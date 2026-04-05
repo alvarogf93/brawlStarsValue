@@ -44,9 +44,12 @@ export const POWER_LEVEL_GEM_COST: Record<number, number> = {
 
 /** V_enhance constants (points per item) */
 export const ENHANCE_VALUES = {
-  gadget: 200,
-  starPower: 400,
-  hypercharge: 1200,
+  /** 1000 coins = 100 gems */
+  gadget: 100,
+  /** 2000 coins = 200 gems */
+  starPower: 200,
+  /** 5000 coins = 500 gems */
+  hypercharge: 500,
   /** 1000 coins + 2000 PP = 3000 resources = 300 gems (at 10:1 ratio) */
   buffie: 300,
   /** Conservative estimate per non-default equipped skin.

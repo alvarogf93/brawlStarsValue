@@ -76,17 +76,17 @@ describe('calculateValue', () => {
     })
     const result = calculateValue(player, MOCK_RARITY)
 
-    // gadgets: 1 * 200 = 200
-    // starPowers: 2 * 400 = 800
-    // hyperCharges: 1 * 1200 = 1200
-    // buffies: 2 true * 300 = 600 (1000 coins + 2000 PP = 300 gems each)
+    // gadgets: 1 * 100 = 100 (1000 coins)
+    // starPowers: 2 * 200 = 400 (2000 coins each)
+    // hyperCharges: 1 * 500 = 500 (5000 coins)
+    // buffies: 2 true * 300 = 600 (1000 coins + 2000 PP each)
     // skin: 1 non-default * 79 = 79
     expect(result.breakdown.enhance.gadgets).toBe(1)
     expect(result.breakdown.enhance.starPowers).toBe(2)
     expect(result.breakdown.enhance.hypercharges).toBe(1)
     expect(result.breakdown.enhance.buffies).toBe(2)
     expect(result.breakdown.enhance.skins).toBe(1)
-    expect(result.breakdown.enhance.value).toBe(2879)
+    expect(result.breakdown.enhance.value).toBe(1679)
   })
 
   it('calculates elite from prestige levels', () => {
