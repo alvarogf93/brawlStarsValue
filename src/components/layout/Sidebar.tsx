@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Users, BarChart3, Share2 } from 'lucide-react'
+import { LayoutDashboard, Users, BarChart3, Share2, Package } from 'lucide-react'
 
 interface SidebarProps {
   tag: string
@@ -34,13 +34,13 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
       <aside
         className={`
           fixed top-[var(--header-height)] left-0 h-[calc(100vh-var(--header-height))]
-          w-[var(--sidebar-width)] bg-[var(--color-brawl-dark)] border-r border-white/10
+          w-[var(--sidebar-width)] bg-[#121A2F] border-r-4 border-[#0F172A]
           z-50 transition-transform duration-300 ease-in-out
           md:translate-x-0 md:static flex flex-col
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <nav className="flex flex-col gap-2 p-4 flex-1">
+        <nav className="flex flex-col gap-3 p-4 flex-1">
           {NAV_ITEMS.map((item) => {
             const href = `${basePath}${item.path}`
             const isActive = pathname === href || (item.path === '' && pathname === basePath)
@@ -51,13 +51,13 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
                 href={href}
                 onClick={onClose}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-['Inter'] font-medium transition-all group
+                  flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-['Lilita_One'] transition-all group border-4
                   ${isActive
-                    ? 'bg-gradient-to-r from-[var(--color-brawl-blue)]/20 to-transparent border-l-2 border-[var(--color-brawl-blue)] text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent'}
+                    ? 'bg-[var(--color-brawl-gold)] text-[var(--color-brawl-dark)] border-[var(--color-brawl-dark)] shadow-[0_4px_0_0_rgba(18,26,47,1)] translate-y-[-2px]'
+                    : 'bg-white/5 border-transparent text-white hover:bg-white/10'}
                 `}
               >
-                <span className={`transition-colors ${isActive ? 'text-[var(--color-brawl-blue)]' : 'group-hover:text-slate-300'}`}>
+                <span className={`transition-colors ${isActive ? 'text-[var(--color-brawl-dark)]' : 'group-hover:text-[var(--color-brawl-gold)]'}`}>
                   {item.icon}
                 </span>
                 <span>{t(item.key)}</span>
@@ -68,9 +68,8 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
         
         {/* Decorative element at the bottom of the sidebar */}
         <div className="p-4 mt-auto">
-          <div className="w-full h-24 rounded-xl border border-white/5 bg-gradient-to-b from-white/5 to-transparent flex items-center justify-center relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--color-brawl-purple)] rounded-full filter blur-[30px] opacity-20"></div>
-             <p className="text-[10px] text-slate-500 font-['Righteous'] uppercase tracking-widest relative z-10">Cyber-Brawl OS</p>
+          <div className="w-full h-24 rounded-2xl border-4 border-[#0F172A] bg-[var(--color-brawl-sky)] flex items-center justify-center relative overflow-hidden shadow-[0_4px_0_0_rgba(18,26,47,1)]">
+             <p className="text-[14px] text-[var(--color-brawl-dark)] font-['Lilita_One'] uppercase tracking-widest relative z-10 transform -rotate-6 filter drop-shadow-md">Auth. OS</p>
           </div>
         </div>
       </aside>

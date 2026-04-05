@@ -30,8 +30,8 @@ export default function SharePage() {
     )
   }
 
-  const prestigeCount = data.breakdown.elite.prestige1 + data.breakdown.elite.prestige2 + data.breakdown.elite.prestige3
-  const shareText = `${t('text', { gems: data.gemEquivalent.toLocaleString(), prestige: prestigeCount.toString() })}`
+  const prestigeCount = data.stats?.totalPrestigeLevel ?? 0
+  const shareText = `${t('text', { gems: data.totalGems.toLocaleString(), prestige: prestigeCount.toString() })}`
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/${locale}/profile/${encodeURIComponent(tag)}` : ''
 
   async function handleShare() {
@@ -102,7 +102,7 @@ export default function SharePage() {
             </p>
             <div className="brawl-card-dark w-full py-4 border-8 border-[#121A2F] transform scale-105 shadow-[0_8px_0_0_#121A2F,inset_0_4px_0_rgba(255,255,255,0.2)] bg-[#F82F41]">
               <h2 className="text-6xl sm:text-7xl font-['Lilita_One'] text-white text-stroke-brawl tracking-wider">
-                {data.gemEquivalent.toLocaleString()}
+                {data.totalGems.toLocaleString()}
               </h2>
             </div>
           </div>

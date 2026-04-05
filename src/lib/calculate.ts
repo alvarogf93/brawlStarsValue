@@ -1,115 +1,96 @@
-import type { PlayerData, GemScore, BrawlerStat, RarityMap, PlayerTag } from './types'
+import type { PlayerData, GemScore, BrawlerStat, RarityMap } from './types'
 import {
-  GEM_DIVISOR,
-  RARITY_BASE_VALUE,
   POWER_LEVEL_GEM_COST,
-  ENHANCE_VALUES,
-  PRESTIGE_REWARDS,
-  BASE_COEFFICIENTS,
+  GEM_COSTS,
+  RARITY_UNLOCK_COST,
+  AVG_MATCH_MINUTES,
   BRAWLER_RARITY_MAP,
 } from './constants'
 
-function calcBaseVector(player: PlayerData) {
-  const trophies = Math.floor(player.trophies * BASE_COEFFICIENTS.trophies)
-  const victories3vs3 = Math.floor(player['3vs3Victories'] * BASE_COEFFICIENTS.victories3vs3)
-  return { trophies, victories3vs3, value: trophies + victories3vs3 }
+function hasNonDefaultSkin(b: BrawlerStat): boolean {
+  return Boolean(b.skin && b.skin.id && b.skin.name !== b.name)
 }
 
-function calcPrestigeReward(brawler: BrawlerStat): number {
-  const level = brawler.prestigeLevel > 0
-    ? brawler.prestigeLevel
-    : brawler.highestTrophies >= 3000 ? 3
-    : brawler.highestTrophies >= 2000 ? 2
-    : brawler.highestTrophies >= 1000 ? 1
-    : 0
-
-  return PRESTIGE_REWARDS[level] ?? 0
-}
-
-function calcAssetsVector(brawlers: BrawlerStat[], rarityMap: RarityMap) {
-  let value = 0
-  for (const b of brawlers) {
-    const rarityName = rarityMap[b.id] ?? 'Trophy Road'
-    const rarityBase = RARITY_BASE_VALUE[rarityName]
-    const powerGemCost = POWER_LEVEL_GEM_COST[b.power] ?? 0
-    // Asset value = rarity base + actual gem investment in upgrades
-    value += rarityBase + powerGemCost
-  }
-  return { brawlerCount: brawlers.length, value }
-}
-
-function hasNonDefaultSkin(brawler: BrawlerStat): boolean {
-  if (!brawler.skin || !brawler.skin.id) return false
-  // Default skins have the same name as the brawler or id 0
-  return brawler.skin.name !== brawler.name
-}
-
-function calcEnhanceVector(brawlers: BrawlerStat[]) {
-  let gadgets = 0
-  let starPowers = 0
-  let hypercharges = 0
-  let buffies = 0
-  let skins = 0
-  let value = 0
-
-  for (const b of brawlers) {
-    gadgets += b.gadgets.length
-    starPowers += b.starPowers.length
-    hypercharges += b.hyperCharges.length
-
-    value += b.gadgets.length * ENHANCE_VALUES.gadget
-    value += b.starPowers.length * ENHANCE_VALUES.starPower
-    value += b.hyperCharges.length * ENHANCE_VALUES.hypercharge
-
-    // Buffies: real data from API (3 booleans)
-    if (b.buffies) {
-      const count = [b.buffies.gadget, b.buffies.starPower, b.buffies.hyperCharge].filter(Boolean).length
-      buffies += count
-      value += count * ENHANCE_VALUES.buffie
-    }
-
-    // Skins: count non-default equipped skins (conservative lower bound)
-    if (hasNonDefaultSkin(b)) {
-      skins++
-      value += ENHANCE_VALUES.skinEquipped
-    }
-  }
-
-  return { gadgets, starPowers, hypercharges, buffies, skins, value }
-}
-
-function calcEliteVector(brawlers: BrawlerStat[]) {
-  let prestige1 = 0
-  let prestige2 = 0
-  let prestige3 = 0
-  let value = 0
-
-  for (const b of brawlers) {
-    const reward = calcPrestigeReward(b)
-    if (reward === PRESTIGE_REWARDS[3]) prestige3++
-    else if (reward === PRESTIGE_REWARDS[2]) prestige2++
-    else if (reward === PRESTIGE_REWARDS[1]) prestige1++
-    value += reward
-  }
-
-  return { prestige1, prestige2, prestige3, value }
+function countBuffies(b: BrawlerStat): number {
+  if (!b.buffies) return 0
+  return [b.buffies.gadget, b.buffies.starPower, b.buffies.hyperCharge].filter(Boolean).length
 }
 
 export function calculateValue(playerData: PlayerData, rarityMap: RarityMap = BRAWLER_RARITY_MAP): GemScore {
-  const base = calcBaseVector(playerData)
-  const assets = calcAssetsVector(playerData.brawlers, rarityMap)
-  const enhance = calcEnhanceVector(playerData.brawlers)
-  const elite = calcEliteVector(playerData.brawlers)
+  let unlockCount = 0, unlockGems = 0
+  let powerCount = 0, powerGems = 0
+  let gadgetCount = 0, gadgetGems = 0
+  let spCount = 0, spGems = 0
+  let hcCount = 0, hcGems = 0
+  let buffieCount = 0, buffieGems = 0
+  let skinCount = 0, skinGems = 0
 
-  const totalScore = base.value + assets.value + enhance.value + elite.value
-  const gemEquivalent = Math.floor(totalScore / GEM_DIVISOR)
+  for (const b of playerData.brawlers) {
+    // Unlock cost by rarity
+    const rarity = rarityMap[b.id] ?? 'Trophy Road'
+    unlockCount++
+    unlockGems += RARITY_UNLOCK_COST[rarity]
+
+    // Power level cost (real gems)
+    const plCost = POWER_LEVEL_GEM_COST[b.power] ?? 0
+    if (plCost > 0) {
+      powerCount++
+      powerGems += plCost
+    }
+
+    // Gadgets
+    gadgetCount += b.gadgets.length
+    gadgetGems += b.gadgets.length * GEM_COSTS.gadget
+
+    // Star Powers
+    spCount += b.starPowers.length
+    spGems += b.starPowers.length * GEM_COSTS.starPower
+
+    // Hypercharges
+    hcCount += b.hyperCharges.length
+    hcGems += b.hyperCharges.length * GEM_COSTS.hypercharge
+
+    // Buffies
+    const bc = countBuffies(b)
+    buffieCount += bc
+    buffieGems += bc * GEM_COSTS.buffie
+
+    // Skins
+    if (hasNonDefaultSkin(b)) {
+      skinCount++
+      skinGems += GEM_COSTS.skin
+    }
+  }
+
+  const totalGems = unlockGems + powerGems + gadgetGems + spGems + hcGems + buffieGems + skinGems
+
+  // Profile stats
+  const totalVictories = playerData.soloVictories + playerData.duoVictories + playerData['3vs3Victories']
+  const estimatedHoursPlayed = Math.round((totalVictories * AVG_MATCH_MINUTES) / 60)
 
   return {
-    playerTag: playerData.tag as PlayerTag,
+    playerTag: playerData.tag,
     playerName: playerData.name,
-    gemEquivalent,
-    totalScore,
-    breakdown: { base, assets, enhance, elite },
+    totalGems,
+    breakdown: {
+      unlocks: { count: unlockCount, gems: unlockGems },
+      powerLevels: { count: powerCount, gems: powerGems },
+      gadgets: { count: gadgetCount, gems: gadgetGems },
+      starPowers: { count: spCount, gems: spGems },
+      hypercharges: { count: hcCount, gems: hcGems },
+      buffies: { count: buffieCount, gems: buffieGems },
+      skins: { count: skinCount, gems: skinGems },
+    },
+    stats: {
+      trophies: playerData.trophies,
+      highestTrophies: playerData.highestTrophies,
+      totalPrestigeLevel: playerData.totalPrestigeLevel,
+      soloVictories: playerData.soloVictories,
+      duoVictories: playerData.duoVictories,
+      threeVsThreeVictories: playerData['3vs3Victories'],
+      totalVictories,
+      estimatedHoursPlayed,
+    },
     timestamp: new Date(),
     cached: false,
   }

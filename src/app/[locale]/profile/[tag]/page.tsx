@@ -42,7 +42,7 @@ export default function OverviewPage() {
         </p>
         <div className="relative z-10 inline-block">
           <h2 className="text-6xl md:text-[120px] leading-none font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-2deg]">
-            {data.gemEquivalent.toLocaleString()}
+            {data.totalGems.toLocaleString()}
           </h2>
         </div>
         <div className="bg-[var(--color-brawl-gold)] border-4 border-black rounded-full px-6 py-2 inline-flex items-center gap-2 mt-8 relative z-10 shadow-[0_4px_0_0_rgba(18,26,47,1)] transform rotate-[2deg] animate-float">
@@ -52,7 +52,7 @@ export default function OverviewPage() {
       </div>
 
       {/* Breakdown Section */}
-      <BreakdownGrid breakdown={data.breakdown} />
+      <BreakdownGrid breakdown={data.breakdown} stats={data.stats} />
 
       {/* Ad Placeholder to prevent CLS */}
       <div className="w-full min-h-[250px] mt-8 bg-[var(--color-brawl-dark)]/50 border-4 border-[var(--color-brawl-dark)] rounded-2xl flex items-center justify-center border-dashed">

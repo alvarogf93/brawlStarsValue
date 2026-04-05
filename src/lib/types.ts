@@ -20,34 +20,29 @@ export interface PlayerData {
   brawlers: BrawlerStat[]
 }
 
-/** Buffies — verified from real API (always present, 3 booleans) */
 export interface Buffies {
   gadget: boolean
   starPower: boolean
   hyperCharge: boolean
 }
 
-/** Single brawler from /players/{tag} — verified from real API April 2026 */
 export interface BrawlerStat {
   id: number
-  name: string                         // "SHELLY" — plain string, NOT { value: string }
-  power: number                        // 1-11
+  name: string
+  power: number
   rank: number
   trophies: number
   highestTrophies: number
-  prestigeLevel: number                // 0, 1, 2, 3
+  prestigeLevel: number
   currentWinStreak: number
   maxWinStreak: number
   starPowers: Array<{ id: number; name: string }>
   gadgets: Array<{ id: number; name: string }>
-  hyperCharges: Array<{ id: number; name: string }>  // Real data, no heuristic needed
+  hyperCharges: Array<{ id: number; name: string }>
   gears: Array<{ id: number; name: string; level: number }>
-  buffies: Buffies                     // Real data, no heuristic needed
+  buffies: Buffies
   skin: { id: number; name: string }
 }
-
-/** Rarity map: brawler ID → rarity name. Must be maintained manually — API does NOT expose rarity. */
-export type RarityMap = Record<number, BrawlerRarityName>
 
 export type BrawlerRarityName =
   | 'Trophy Road'
@@ -59,32 +54,38 @@ export type BrawlerRarityName =
   | 'Chromatic'
   | 'Ultra Legendary'
 
+export type RarityMap = Record<number, BrawlerRarityName>
+
+/** Output: real gem value of account + profile stats */
 export interface GemScore {
-  playerTag: PlayerTag
+  playerTag: string
   playerName: string
-  gemEquivalent: number
-  totalScore: number
+  /** Total real gems invested in the account */
+  totalGems: number
   breakdown: {
-    base: { trophies: number; victories3vs3: number; value: number }
-    assets: { brawlerCount: number; value: number }
-    enhance: {
-      gadgets: number
-      starPowers: number
-      hypercharges: number
-      buffies: number
-      skins: number
-      value: number
-    }
-    elite: {
-      prestige1: number
-      prestige2: number
-      prestige3: number
-      value: number
-    }
+    unlocks: { count: number; gems: number }
+    powerLevels: { count: number; gems: number }
+    gadgets: { count: number; gems: number }
+    starPowers: { count: number; gems: number }
+    hypercharges: { count: number; gems: number }
+    buffies: { count: number; gems: number }
+    skins: { count: number; gems: number }
+  }
+  /** Profile stats (not gem costs — achievements/time) */
+  stats: {
+    trophies: number
+    highestTrophies: number
+    totalPrestigeLevel: number
+    soloVictories: number
+    duoVictories: number
+    threeVsThreeVictories: number
+    totalVictories: number
+    /** Estimated hours played (totalVictories × 2min / 60) */
+    estimatedHoursPlayed: number
   }
   timestamp: Date
   cached: boolean
-  /** Raw player data included for brawlers/stats pages */
+  /** Raw player data for sub-pages */
   player?: {
     trophies: number
     highestTrophies: number

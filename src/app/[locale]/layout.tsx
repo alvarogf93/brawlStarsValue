@@ -4,8 +4,32 @@ import type { Metadata } from 'next'
 import '../globals.css'
 
 export const metadata: Metadata = {
-  title: 'BrawlValue — Gem Power Score',
-  description: 'Calculate your Brawl Stars account power in Gem Equivalent',
+  metadataBase: new URL('https://brawlvalue.com'),
+  title: {
+    absolute: 'BrawlValue | Calculate your Brawl Stars Gem Score',
+    template: '%s | BrawlValue'
+  },
+  description: 'Calculate your real Brawl Stars account value in Gems. View your statistics, brawler progression, and compete on the Global Leaderboard.',
+  keywords: ['Brawl Stars', 'BrawlValue', 'Gem Calculator', 'Brawl Stars Stats', 'Leaderboard', 'Supercell', 'Profile Tracker'],
+  authors: [{ name: 'BrawlValue Team' }],
+  openGraph: {
+    type: 'website',
+    url: 'https://brawlvalue.com',
+    title: 'BrawlValue - Brawl Stars Account Calculator',
+    description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: 'BrawlValue Gem Calculator'
+    }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BrawlValue | Gem Score Calculator',
+    description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
+    images: ['/og-image.jpg'],
+  }
 }
 
 export default async function LocaleLayout({
@@ -19,7 +43,7 @@ export default async function LocaleLayout({
   const messages = await getMessages()
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body className="min-h-screen">
         <NextIntlClientProvider messages={messages}>
           {children}

@@ -1,59 +1,66 @@
 import { useTranslations } from 'next-intl'
 import type { GemScore } from '@/lib/types'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
+import { GemIcon } from '@/components/ui/GemIcon'
 
 interface BreakdownGridProps {
   breakdown: GemScore['breakdown']
+  stats: GemScore['stats']
 }
 
-export function BreakdownGrid({ breakdown }: BreakdownGridProps) {
+export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
   const t = useTranslations('profile')
 
-  const items = [
-    { key: 'base', icon: '🏆', value: breakdown.base.value, details: [
-      { label: t('trophies'), val: breakdown.base.trophies.toLocaleString() },
-      { label: t('victories'), val: breakdown.base.victories3vs3.toLocaleString() }
-    ]},
-    { key: 'assets', icon: '🎴', value: breakdown.assets.value, details: [
-      { label: t('brawlerCount'), val: breakdown.assets.brawlerCount.toString() }
-    ]},
-    { key: 'enhance', icon: '⚡', value: breakdown.enhance.value, details: [
-      { label: t('gadgets'), val: breakdown.enhance.gadgets.toString() },
-      { label: t('starPowers'), val: breakdown.enhance.starPowers.toString() },
-      { label: t('hypercharges'), val: breakdown.enhance.hypercharges.toString() },
-      { label: t('buffies'), val: breakdown.enhance.buffies.toString() },
-      { label: t('skins'), val: breakdown.enhance.skins.toString() },
-    ]},
-    { key: 'elite', icon: '👑', value: breakdown.elite.value, details: [
-      { label: t('prestige'), val: (breakdown.elite.prestige1 + breakdown.elite.prestige2 + breakdown.elite.prestige3).toString() }
-    ]}
+  const gemItems = [
+    { key: 'unlocks', icon: '🎴', label: t('brawlerCount'), gems: breakdown.unlocks.gems, detail: `${breakdown.unlocks.count} brawlers` },
+    { key: 'powerLevels', icon: '📈', label: 'Power Levels', gems: breakdown.powerLevels.gems, detail: `${breakdown.powerLevels.count} upgraded` },
+    { key: 'gadgets', icon: '🔧', label: t('gadgets'), gems: breakdown.gadgets.gems, detail: `×${breakdown.gadgets.count}` },
+    { key: 'starPowers', icon: '⭐', label: t('starPowers'), gems: breakdown.starPowers.gems, detail: `×${breakdown.starPowers.count}` },
+    { key: 'hypercharges', icon: '⚡', label: t('hypercharges'), gems: breakdown.hypercharges.gems, detail: `×${breakdown.hypercharges.count}` },
+    { key: 'buffies', icon: '💪', label: t('buffies'), gems: breakdown.buffies.gems, detail: `×${breakdown.buffies.count}` },
+    { key: 'skins', icon: '🎨', label: t('skins'), gems: breakdown.skins.gems, detail: `×${breakdown.skins.count}` },
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-      {items.map((item, idx) => (
-        <div key={item.key} className="brawl-card-dark p-5 flex flex-col relative overflow-hidden group brawl-tilt animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl filter drop-shadow-md">{item.icon}</span>
-            <h3 className="font-bold tracking-widest uppercase text-sm text-[var(--color-brawl-sky)] font-['Lilita_One'] text-shadow-sm">{t(item.key)}</h3>
-          </div>
-          
-          <div className="flex-1 z-10">
-            <p className="text-4xl font-bold font-['Lilita_One'] tracking-wider text-white mb-4 text-stroke-brawl">
-              <AnimatedCounter value={item.value} duration={1800 + (idx * 200)} />
+    <div className="space-y-8 mt-8">
+      {/* Gem breakdown grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        {gemItems.map((item, idx) => (
+          <div key={item.key} className="brawl-card-dark p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt animate-fade-in" style={{ animationDelay: `${idx * 60}ms` }}>
+            <span className="text-2xl mb-2 filter drop-shadow-md">{item.icon}</span>
+            <p className="text-xs text-slate-400 font-bold uppercase mb-1">{item.label}</p>
+            <p className="font-['Lilita_One'] text-xl text-white flex items-center gap-1">
+              <AnimatedCounter value={item.gems} duration={1200 + idx * 100} />
+              <GemIcon className="w-4 h-4" />
             </p>
-            
-            <div className="space-y-2 mt-auto">
-              {item.details.map((detail, i) => (
-                <div key={i} className="flex justify-between text-base font-['Lilita_One'] border-b border-white/10 pb-1">
-                  <span className="text-slate-300">{detail.label}</span>
-                  <span className="text-[var(--color-brawl-gold)]">{detail.val}</span>
-                </div>
-              ))}
-            </div>
+            <p className="text-[10px] text-slate-500 mt-1">{item.detail}</p>
           </div>
+        ))}
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="brawl-card p-4 text-center">
+          <span className="text-2xl">🏆</span>
+          <p className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-dark)]">{stats.trophies.toLocaleString()}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500">{t('trophies')}</p>
         </div>
-      ))}
+        <div className="brawl-card p-4 text-center">
+          <span className="text-2xl">👑</span>
+          <p className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-dark)]">P{stats.totalPrestigeLevel}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500">{t('prestige')}</p>
+        </div>
+        <div className="brawl-card p-4 text-center">
+          <span className="text-2xl">⚔️</span>
+          <p className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-dark)]">{stats.totalVictories.toLocaleString()}</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500">{t('victories')}</p>
+        </div>
+        <div className="brawl-card p-4 text-center bg-[#4EC0FA]">
+          <span className="text-2xl">⏱️</span>
+          <p className="font-['Lilita_One'] text-2xl text-white text-stroke-brawl" style={{ WebkitTextStroke: '1px #121A2F' }}>{stats.estimatedHoursPlayed.toLocaleString()}h</p>
+          <p className="text-[10px] uppercase font-bold text-white/80">Tiempo jugado</p>
+        </div>
+      </div>
     </div>
   )
 }

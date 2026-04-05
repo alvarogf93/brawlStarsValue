@@ -36,7 +36,7 @@ export function InputForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
       <div className="relative">
         <input 
           type="text" 
@@ -47,10 +47,10 @@ export function InputForm() {
           }}
           placeholder={t('placeholder')} 
           disabled={isLoading}
-          className={`w-full h-14 bg-white/5 border ${error ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 text-xl outline-none focus:border-[var(--color-brawl-blue)] transition-colors text-center font-['Inter'] font-semibold placeholder:font-normal placeholder:text-slate-500 disabled:opacity-50`}
+          className={`w-full h-16 bg-white border-4 ${error ? 'border-red-500' : 'border-[var(--color-brawl-dark)]'} rounded-xl px-4 text-2xl outline-none text-center font-['Lilita_One'] placeholder:font-['Inter'] placeholder:text-slate-400 placeholder:text-base text-[var(--color-brawl-dark)] shadow-[3px_4px_0_0_rgba(18,26,47,1)] transition-transform focus:scale-[1.02] disabled:opacity-50`}
         />
         {error && (
-          <p className="absolute -bottom-6 left-0 right-0 text-red-400 text-xs font-semibold text-center animate-fade-in">
+          <p className="absolute -bottom-7 left-0 right-0 text-white font-['Lilita_One'] text-shadow-sm text-lg text-center animate-fade-in bg-red-500 rounded-lg mx-auto w-max px-3 border-2 border-[var(--color-brawl-dark)]">
             {t('invalidTag')}
           </p>
         )}
@@ -59,7 +59,7 @@ export function InputForm() {
       <button 
         type="submit"
         disabled={isLoading || !tag}
-        className={`mt-2 w-full h-14 bg-[var(--color-brawl-gold)] hover:bg-yellow-500 text-black font-bold text-xl rounded-xl transition-all font-['Inter'] shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:shadow-[0_0_30px_rgba(251,191,36,0.5)] disabled:opacity-50 disabled:shadow-none relative overflow-hidden group`}
+        className={`mt-2 w-full h-16 brawl-button text-2xl relative overflow-hidden flex items-center justify-center`}
       >
         <span className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}>
           {t('cta')}
@@ -69,7 +69,6 @@ export function InputForm() {
             {t('calculating')}
           </span>
         )}
-        <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 hidden group-hover:block"></div>
       </button>
     </form>
   )

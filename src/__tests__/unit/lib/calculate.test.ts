@@ -3,8 +3,8 @@ import { calculateValue } from '@/lib/calculate'
 import type { PlayerData, PlayerTag, RarityMap } from '@/lib/types'
 
 const MOCK_RARITY: RarityMap = {
-  16000000: 'Trophy Road',   // Shelly
-  16000005: 'Legendary',     // Spike
+  16000000: 'Trophy Road',   // Shelly — unlock 0
+  16000005: 'Legendary',     // Spike — unlock 700
 }
 
 function makePlayer(overrides: Partial<PlayerData> = {}): PlayerData {
@@ -30,140 +30,141 @@ function makePlayer(overrides: Partial<PlayerData> = {}): PlayerData {
   }
 }
 
-describe('calculateValue', () => {
-  it('calculates base vector from trophies and 3vs3 victories', () => {
-    const player = makePlayer({ trophies: 35000, '3vs3Victories': 8500 })
-    const result = calculateValue(player, MOCK_RARITY)
+function makeBrawler(id: number, overrides: Partial<import('@/lib/types').BrawlerStat> = {}): import('@/lib/types').BrawlerStat {
+  return {
+    id, name: 'TEST', power: 1, rank: 1,
+    trophies: 0, highestTrophies: 0, prestigeLevel: 0,
+    currentWinStreak: 0, maxWinStreak: 0,
+    starPowers: [], gadgets: [], hyperCharges: [], gears: [],
+    buffies: { gadget: false, starPower: false, hyperCharge: false },
+    skin: { id: 0, name: 'TEST' },
+    ...overrides,
+  }
+}
 
-    // trophies: floor(35000 * 0.02) = 700
-    // 3vs3: floor(8500 * 0.08) = 680
-    expect(result.breakdown.base.trophies).toBe(700)
-    expect(result.breakdown.base.victories3vs3).toBe(680)
-    expect(result.breakdown.base.value).toBe(1380)
+describe('calculateValue — real gems', () => {
+  it('returns 0 gems for empty player', () => {
+    const result = calculateValue(makePlayer(), MOCK_RARITY)
+    expect(result.totalGems).toBe(0)
   })
 
-  it('calculates assets using rarity base + real gem cost of power level', () => {
-    const player = makePlayer({
-      brawlers: [{
-        id: 16000005, name: 'SPIKE', power: 11, rank: 25,
-        trophies: 800, highestTrophies: 900, prestigeLevel: 0,
-        currentWinStreak: 0, maxWinStreak: 0,
-        starPowers: [], gadgets: [], hyperCharges: [], gears: [],
-        buffies: { gadget: false, starPower: false, hyperCharge: false },
-        skin: { id: 0, name: '' },
-      }],
-    })
-    const result = calculateValue(player, MOCK_RARITY)
-
-    // Spike = Legendary (1500) + power 11 gem cost (1151) = 2651
-    expect(result.breakdown.assets.brawlerCount).toBe(1)
-    expect(result.breakdown.assets.value).toBe(2651)
-  })
-
-  it('calculates enhance from gadgets, star powers, hypercharges, buffies, and skins', () => {
-    const player = makePlayer({
-      brawlers: [{
-        id: 16000000, name: 'SHELLY', power: 11, rank: 25,
-        trophies: 846, highestTrophies: 854, prestigeLevel: 0,
-        currentWinStreak: 0, maxWinStreak: 0,
-        starPowers: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }],
-        gadgets: [{ id: 1, name: 'C' }],
-        hyperCharges: [{ id: 1, name: 'D' }],
-        gears: [],
-        buffies: { gadget: true, starPower: true, hyperCharge: false },
-        skin: { id: 29000844, name: 'SQUAD BUSTER\nSHELLY' },
-      }],
-    })
-    const result = calculateValue(player, MOCK_RARITY)
-
-    // gadgets: 1 * 100 = 100 (1000 coins)
-    // starPowers: 2 * 200 = 400 (2000 coins each)
-    // hyperCharges: 1 * 500 = 500 (5000 coins)
-    // buffies: 2 true * 300 = 600 (1000 coins + 2000 PP each)
-    // skin: 1 non-default * 79 = 79
-    expect(result.breakdown.enhance.gadgets).toBe(1)
-    expect(result.breakdown.enhance.starPowers).toBe(2)
-    expect(result.breakdown.enhance.hypercharges).toBe(1)
-    expect(result.breakdown.enhance.buffies).toBe(2)
-    expect(result.breakdown.enhance.skins).toBe(1)
-    expect(result.breakdown.enhance.value).toBe(1679)
-  })
-
-  it('calculates elite from prestige levels', () => {
+  it('calculates unlock cost by rarity', () => {
     const player = makePlayer({
       brawlers: [
-        { id: 16000000, name: 'SHELLY', power: 11, rank: 25,
-          trophies: 1200, highestTrophies: 1500, prestigeLevel: 1,
-          currentWinStreak: 0, maxWinStreak: 0,
-          starPowers: [], gadgets: [], hyperCharges: [], gears: [],
-          buffies: { gadget: false, starPower: false, hyperCharge: false },
-          skin: { id: 0, name: '' } },
-        { id: 16000005, name: 'SPIKE', power: 9, rank: 20,
-          trophies: 600, highestTrophies: 750, prestigeLevel: 0,
-          currentWinStreak: 0, maxWinStreak: 0,
-          starPowers: [], gadgets: [], hyperCharges: [], gears: [],
-          buffies: { gadget: false, starPower: false, hyperCharge: false },
-          skin: { id: 0, name: '' } },
+        makeBrawler(16000000), // Trophy Road = 0
+        makeBrawler(16000005), // Legendary = 700
       ],
     })
     const result = calculateValue(player, MOCK_RARITY)
-
-    // Shelly: prestigeLevel 1 → 10000
-    // Spike: prestigeLevel 0, highestTrophies 750 < 1000 → 0
-    expect(result.breakdown.elite.prestige1).toBe(1)
-    expect(result.breakdown.elite.prestige2).toBe(0)
-    expect(result.breakdown.elite.prestige3).toBe(0)
-    expect(result.breakdown.elite.value).toBe(10000)
+    expect(result.breakdown.unlocks.count).toBe(2)
+    expect(result.breakdown.unlocks.gems).toBe(700) // 0 + 700
   })
 
-  it('breakdown sums to totalScore', () => {
+  it('calculates power level real gem cost', () => {
     const player = makePlayer({
-      trophies: 35000,
-      '3vs3Victories': 8500,
-      brawlers: [{
-        id: 16000000, name: 'SHELLY', power: 11, rank: 25,
-        trophies: 1200, highestTrophies: 1500, prestigeLevel: 1,
-        currentWinStreak: 0, maxWinStreak: 4,
-        starPowers: [{ id: 1, name: 'A' }], gadgets: [{ id: 1, name: 'B' }],
-        hyperCharges: [{ id: 1, name: 'C' }], gears: [],
-        buffies: { gadget: true, starPower: true, hyperCharge: true },
-        skin: { id: 0, name: '' },
-      }],
+      brawlers: [makeBrawler(16000000, { power: 11 })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.powerLevels.gems).toBe(1151) // Level 11 real cost
+  })
+
+  it('calculates gadgets at 100 gems each', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000000, {
+        gadgets: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }],
+      })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.gadgets).toEqual({ count: 2, gems: 200 })
+  })
+
+  it('calculates star powers at 200 gems each', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000000, {
+        starPowers: [{ id: 1, name: 'A' }],
+      })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.starPowers).toEqual({ count: 1, gems: 200 })
+  })
+
+  it('calculates hypercharges at 500 gems each', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000000, {
+        hyperCharges: [{ id: 1, name: 'A' }],
+      })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.hypercharges).toEqual({ count: 1, gems: 500 })
+  })
+
+  it('calculates buffies at 300 gems each', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000000, {
+        buffies: { gadget: true, starPower: true, hyperCharge: false },
+      })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.buffies).toEqual({ count: 2, gems: 600 })
+  })
+
+  it('calculates non-default skins at 79 gems each', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000000, {
+        name: 'SHELLY',
+        skin: { id: 29000844, name: 'SQUAD BUSTER\nSHELLY' },
+      })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.skins).toEqual({ count: 1, gems: 79 })
+  })
+
+  it('does not count default skin', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000000, {
+        name: 'SHELLY',
+        skin: { id: 0, name: 'SHELLY' },
+      })],
+    })
+    const result = calculateValue(player, MOCK_RARITY)
+    expect(result.breakdown.skins).toEqual({ count: 0, gems: 0 })
+  })
+
+  it('totalGems equals sum of all breakdown gems', () => {
+    const player = makePlayer({
+      brawlers: [makeBrawler(16000005, { // Legendary = 700 unlock
+        power: 11,                       // 1151 gems
+        gadgets: [{ id: 1, name: 'A' }], // 100
+        starPowers: [{ id: 1, name: 'B' }, { id: 2, name: 'C' }], // 400
+        hyperCharges: [{ id: 1, name: 'D' }], // 500
+        buffies: { gadget: true, starPower: true, hyperCharge: true }, // 900
+        name: 'SPIKE',
+        skin: { id: 29000777, name: 'POOP SPIKE' }, // 79
+      })],
     })
     const result = calculateValue(player, MOCK_RARITY)
 
-    const sum =
-      result.breakdown.base.value +
-      result.breakdown.assets.value +
-      result.breakdown.enhance.value +
-      result.breakdown.elite.value
+    const sum = result.breakdown.unlocks.gems
+      + result.breakdown.powerLevels.gems
+      + result.breakdown.gadgets.gems
+      + result.breakdown.starPowers.gems
+      + result.breakdown.hypercharges.gems
+      + result.breakdown.buffies.gems
+      + result.breakdown.skins.gems
 
-    expect(result.totalScore).toBe(sum)
-    expect(result.gemEquivalent).toBe(Math.floor(result.totalScore / 50))
+    expect(result.totalGems).toBe(sum)
+    expect(result.totalGems).toBe(700 + 1151 + 100 + 400 + 500 + 900 + 79)
   })
 
-  it('returns 0 for empty player', () => {
-    const player = makePlayer({ trophies: 0, '3vs3Victories': 0 })
-    const result = calculateValue(player, MOCK_RARITY)
-
-    expect(result.gemEquivalent).toBe(0)
-    expect(result.totalScore).toBe(0)
-  })
-
-  it('falls back to Trophy Road for unknown brawler ID', () => {
+  it('calculates estimated hours played', () => {
     const player = makePlayer({
-      brawlers: [{
-        id: 99999999, name: 'UNKNOWN', power: 5, rank: 10,
-        trophies: 200, highestTrophies: 300, prestigeLevel: 0,
-        currentWinStreak: 0, maxWinStreak: 0,
-        starPowers: [], gadgets: [], hyperCharges: [], gears: [],
-        buffies: { gadget: false, starPower: false, hyperCharge: false },
-        skin: { id: 0, name: '' },
-      }],
+      soloVictories: 100,
+      duoVictories: 200,
+      '3vs3Victories': 300,
     })
     const result = calculateValue(player, MOCK_RARITY)
-
-    // Trophy Road (100) + power 5 gem cost (45) = 145
-    expect(result.breakdown.assets.value).toBe(145)
+    // 600 total victories × 2 min / 60 = 20 hours
+    expect(result.stats.totalVictories).toBe(600)
+    expect(result.stats.estimatedHoursPlayed).toBe(20)
   })
 })

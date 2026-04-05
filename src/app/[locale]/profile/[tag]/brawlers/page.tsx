@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { usePlayerData } from '@/hooks/usePlayerData'
-import { BRAWLER_RARITY_MAP, RARITY_BASE_VALUE, POWER_LEVEL_GEM_COST, ENHANCE_VALUES } from '@/lib/constants'
+import { BRAWLER_RARITY_MAP, RARITY_UNLOCK_COST, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
 
 const RARITY_COLORS: Record<BrawlerRarityName, string> = {
@@ -20,14 +20,14 @@ const RARITY_COLORS: Record<BrawlerRarityName, string> = {
 
 function calcBrawlerGemValue(b: BrawlerStat): number {
   const rarity = BRAWLER_RARITY_MAP[b.id] ?? 'Trophy Road'
-  const rarityBase = RARITY_BASE_VALUE[rarity]
+  const unlock = RARITY_UNLOCK_COST[rarity]
   const powerCost = POWER_LEVEL_GEM_COST[b.power] ?? 0
-  const gadgets = b.gadgets.length * ENHANCE_VALUES.gadget
-  const starPowers = b.starPowers.length * ENHANCE_VALUES.starPower
-  const hypercharges = b.hyperCharges.length * ENHANCE_VALUES.hypercharge
-  const buffies = [b.buffies?.gadget, b.buffies?.starPower, b.buffies?.hyperCharge].filter(Boolean).length * ENHANCE_VALUES.buffie
-  const skin = (b.skin && b.skin.name !== b.name) ? ENHANCE_VALUES.skinEquipped : 0
-  return rarityBase + powerCost + gadgets + starPowers + hypercharges + buffies + skin
+  const gadgets = b.gadgets.length * GEM_COSTS.gadget
+  const starPowers = b.starPowers.length * GEM_COSTS.starPower
+  const hypercharges = b.hyperCharges.length * GEM_COSTS.hypercharge
+  const buffies = [b.buffies?.gadget, b.buffies?.starPower, b.buffies?.hyperCharge].filter(Boolean).length * GEM_COSTS.buffie
+  const skin = (b.skin && b.skin.name !== b.name) ? GEM_COSTS.skin : 0
+  return unlock + powerCost + gadgets + starPowers + hypercharges + buffies + skin
 }
 
 export default function BrawlersPage() {

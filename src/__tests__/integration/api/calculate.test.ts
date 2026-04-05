@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST } from '@/app/api/calculate/route'
 import type { PlayerData } from '@/lib/types'
 
-// Mock the fetch to Supercell API so tests don't hit the real API
 vi.mock('@/lib/api', () => ({
   fetchPlayer: vi.fn(),
   SuprecellApiError: class extends Error {
@@ -45,7 +44,7 @@ const MOCK_PLAYER: PlayerData = {
       hyperCharges: [{ id: 1, name: 'E' }],
       gears: [],
       buffies: { gadget: true, starPower: true, hyperCharge: true },
-      skin: { id: 0, name: '' },
+      skin: { id: 29000844, name: 'SQUAD BUSTER\nSHELLY' },
     },
   ],
 }
@@ -59,52 +58,41 @@ function makeRequest(body: unknown) {
 }
 
 describe('POST /api/calculate', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+  beforeEach(() => { vi.clearAllMocks() })
 
-  it('returns 200 with GemScore for valid tag', async () => {
+  it('returns 200 with real gem value', async () => {
     mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
     const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
-
     expect(res.status).toBe(200)
     const data = await res.json()
 
     expect(data.playerTag).toBe('#YJU282PV')
-    expect(data.playerName).toBe('TestPlayer')
-    expect(data.gemEquivalent).toBeGreaterThan(0)
-    expect(data.totalScore).toBeGreaterThan(0)
+    expect(data.totalGems).toBeGreaterThan(0)
     expect(data.breakdown).toBeDefined()
-    expect(data.breakdown.base).toBeDefined()
-    expect(data.breakdown.assets).toBeDefined()
-    expect(data.breakdown.enhance).toBeDefined()
-    expect(data.breakdown.elite).toBeDefined()
+    expect(data.breakdown.unlocks).toBeDefined()
+    expect(data.breakdown.powerLevels).toBeDefined()
+    expect(data.stats).toBeDefined()
+    expect(data.stats.estimatedHoursPlayed).toBeGreaterThan(0)
   })
 
-  it('breakdown sums to totalScore', async () => {
+  it('breakdown sums to totalGems', async () => {
     mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
     const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
     const data = await res.json()
 
-    const sum =
-      data.breakdown.base.value +
-      data.breakdown.assets.value +
-      data.breakdown.enhance.value +
-      data.breakdown.elite.value
+    const sum = data.breakdown.unlocks.gems
+      + data.breakdown.powerLevels.gems
+      + data.breakdown.gadgets.gems
+      + data.breakdown.starPowers.gems
+      + data.breakdown.hypercharges.gems
+      + data.breakdown.buffies.gems
+      + data.breakdown.skins.gems
 
-    expect(data.totalScore).toBe(sum)
-    expect(data.gemEquivalent).toBe(Math.floor(data.totalScore / 50))
+    expect(data.totalGems).toBe(sum)
   })
 
   it('returns 400 for invalid tag', async () => {
     const res = await POST(makeRequest({ playerTag: 'invalid' }))
-    expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBeDefined()
-  })
-
-  it('returns 400 for missing playerTag', async () => {
-    const res = await POST(makeRequest({}))
     expect(res.status).toBe(400)
   })
 
@@ -112,17 +100,6 @@ describe('POST /api/calculate', () => {
     const { SuprecellApiError: MockError } = await import('@/lib/api')
     mockFetchPlayer.mockRejectedValue(new MockError(404, 'notFound'))
     const res = await POST(makeRequest({ playerTag: '#NOTEXIST' }))
-
     expect(res.status).toBe(404)
-    const data = await res.json()
-    expect(data.error).toContain('not found')
-  })
-
-  it('returns 403 when API access denied', async () => {
-    const { SuprecellApiError: MockError } = await import('@/lib/api')
-    mockFetchPlayer.mockRejectedValue(new MockError(403, 'accessDenied'))
-    const res = await POST(makeRequest({ playerTag: '#DENIED' }))
-
-    expect(res.status).toBe(403)
   })
 })

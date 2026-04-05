@@ -21,7 +21,6 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ...result,
       timestamp: result.timestamp.toISOString(),
-      // Include raw player data for brawlers/stats pages (persisted in localStorage)
       player: {
         trophies: playerData.trophies,
         highestTrophies: playerData.highestTrophies,
@@ -48,7 +47,6 @@ export async function POST(req: Request) {
         { status: error.status },
       )
     }
-
     const message = error instanceof Error ? error.message : 'Internal server error'
     return NextResponse.json({ error: message, code: 500 }, { status: 500 })
   }
