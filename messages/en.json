@@ -12,7 +12,8 @@
     "overview": "Overview",
     "brawlers": "Brawlers",
     "stats": "Stats",
-    "share": "Share"
+    "share": "Share",
+    "leaderboard": "Leaderboard"
   },
   "profile": {
     "gemEquivalent": "Gem Equivalent",
@@ -27,6 +28,7 @@
     "starPowers": "Star Powers",
     "hypercharges": "Hypercharges",
     "buffies": "Buffies",
+    "skins": "Skins",
     "prestige": "Prestige",
     "calculateAnother": "Calculate another account"
   },
@@ -37,7 +39,8 @@
     "copied": "Copied to clipboard!"
   },
   "footer": {
-    "disclaimer": "This content is not official and is not endorsed by Supercell. For more information, see the {link}.",
-    "policyLink": "Supercell Fan Content Policy"
+    "disclaimerBefore": "This material is unofficial and is not endorsed by Supercell. For more information see Supercell's ",
+    "disclaimerLink": "Fan Content Policy",
+    "disclaimerAfter": "."
   }
 }
