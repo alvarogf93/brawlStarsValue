@@ -21,6 +21,19 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ...result,
       timestamp: result.timestamp.toISOString(),
+      // Include raw player data for brawlers/stats pages (persisted in localStorage)
+      player: {
+        trophies: playerData.trophies,
+        highestTrophies: playerData.highestTrophies,
+        totalPrestigeLevel: playerData.totalPrestigeLevel,
+        expLevel: playerData.expLevel,
+        soloVictories: playerData.soloVictories,
+        duoVictories: playerData.duoVictories,
+        '3vs3Victories': playerData['3vs3Victories'],
+        club: playerData.club,
+        icon: playerData.icon,
+        brawlers: playerData.brawlers,
+      },
     })
   } catch (error) {
     if (error instanceof SuprecellApiError) {

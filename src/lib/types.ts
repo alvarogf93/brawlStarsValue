@@ -84,6 +84,19 @@ export interface GemScore {
   }
   timestamp: Date
   cached: boolean
+  /** Raw player data included for brawlers/stats pages */
+  player?: {
+    trophies: number
+    highestTrophies: number
+    totalPrestigeLevel: number
+    expLevel: number
+    soloVictories: number
+    duoVictories: number
+    '3vs3Victories': number
+    club: { tag: string; name: string } | Record<string, never>
+    icon: { id: number }
+    brawlers: BrawlerStat[]
+  }
 }
 
 export type ApiError =
