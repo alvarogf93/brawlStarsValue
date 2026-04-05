@@ -47,7 +47,8 @@ export const ENHANCE_VALUES = {
   gadget: 200,
   starPower: 400,
   hypercharge: 1200,
-  buffie: 2000,
+  /** 1000 coins + 2000 PP = 3000 resources = 300 gems (at 10:1 ratio) */
+  buffie: 300,
   /** Conservative estimate per non-default equipped skin.
    *  Real prices: Special=29, SuperSpecial=79, Epic=149, Mythic=199, Legendary=299, Hypercharge=700.
    *  API only shows equipped skin, not inventory or rarity. 79 is a conservative median. */
