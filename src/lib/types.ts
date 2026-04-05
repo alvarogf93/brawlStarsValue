@@ -20,27 +20,34 @@ export interface PlayerData {
   brawlers: BrawlerStat[]
 }
 
-export interface BrawlerBuffies {
-  [key: string]: number // Dynamic type for arbitrary buffies
+/** Buffies — verified from real API (always present, 3 booleans) */
+export interface Buffies {
+  gadget: boolean
+  starPower: boolean
+  hyperCharge: boolean
 }
 
+/** Single brawler from /players/{tag} — verified from real API April 2026 */
 export interface BrawlerStat {
   id: number
-  name: { value: string }
-  power: number
+  name: string                         // "SHELLY" — plain string, NOT { value: string }
+  power: number                        // 1-11
   rank: number
   trophies: number
   highestTrophies: number
-  prestigeLevel: number
+  prestigeLevel: number                // 0, 1, 2, 3
   currentWinStreak: number
   maxWinStreak: number
   starPowers: Array<{ id: number; name: string }>
   gadgets: Array<{ id: number; name: string }>
-  hyperCharges: Array<{ id: number; name: string }>
+  hyperCharges: Array<{ id: number; name: string }>  // Real data, no heuristic needed
   gears: Array<{ id: number; name: string; level: number }>
-  buffies?: BrawlerBuffies
-  skin: { id: number }
+  buffies: Buffies                     // Real data, no heuristic needed
+  skin: { id: number; name: string }
 }
+
+/** Rarity map: brawler ID → rarity name. Must be maintained manually — API does NOT expose rarity. */
+export type RarityMap = Record<number, BrawlerRarityName>
 
 export type BrawlerRarityName =
   | 'Trophy Road'
