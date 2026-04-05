@@ -60,7 +60,7 @@ describe('calculateValue', () => {
     expect(result.breakdown.assets.value).toBe(2651)
   })
 
-  it('calculates enhance from gadgets, star powers, hypercharges, and buffies', () => {
+  it('calculates enhance from gadgets, star powers, hypercharges, buffies, and skins', () => {
     const player = makePlayer({
       brawlers: [{
         id: 16000000, name: 'SHELLY', power: 11, rank: 25,
@@ -71,7 +71,7 @@ describe('calculateValue', () => {
         hyperCharges: [{ id: 1, name: 'D' }],
         gears: [],
         buffies: { gadget: true, starPower: true, hyperCharge: false },
-        skin: { id: 0, name: '' },
+        skin: { id: 29000844, name: 'SQUAD BUSTER\nSHELLY' },
       }],
     })
     const result = calculateValue(player, MOCK_RARITY)
@@ -80,11 +80,13 @@ describe('calculateValue', () => {
     // starPowers: 2 * 400 = 800
     // hyperCharges: 1 * 1200 = 1200
     // buffies: 2 true * 2000 = 4000
+    // skin: 1 non-default * 79 = 79
     expect(result.breakdown.enhance.gadgets).toBe(1)
     expect(result.breakdown.enhance.starPowers).toBe(2)
     expect(result.breakdown.enhance.hypercharges).toBe(1)
     expect(result.breakdown.enhance.buffies).toBe(2)
-    expect(result.breakdown.enhance.value).toBe(6200)
+    expect(result.breakdown.enhance.skins).toBe(1)
+    expect(result.breakdown.enhance.value).toBe(6279)
   })
 
   it('calculates elite from prestige levels', () => {

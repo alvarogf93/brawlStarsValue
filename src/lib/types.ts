@@ -72,6 +72,7 @@ export interface GemScore {
       starPowers: number
       hypercharges: number
       buffies: number
+      skins: number
       value: number
     }
     elite: {

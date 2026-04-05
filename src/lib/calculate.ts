@@ -38,11 +38,18 @@ function calcAssetsVector(brawlers: BrawlerStat[], rarityMap: RarityMap) {
   return { brawlerCount: brawlers.length, value }
 }
 
+function hasNonDefaultSkin(brawler: BrawlerStat): boolean {
+  if (!brawler.skin || !brawler.skin.id) return false
+  // Default skins have the same name as the brawler or id 0
+  return brawler.skin.name !== brawler.name
+}
+
 function calcEnhanceVector(brawlers: BrawlerStat[]) {
   let gadgets = 0
   let starPowers = 0
   let hypercharges = 0
   let buffies = 0
+  let skins = 0
   let value = 0
 
   for (const b of brawlers) {
@@ -60,9 +67,15 @@ function calcEnhanceVector(brawlers: BrawlerStat[]) {
       buffies += count
       value += count * ENHANCE_VALUES.buffie
     }
+
+    // Skins: count non-default equipped skins (conservative lower bound)
+    if (hasNonDefaultSkin(b)) {
+      skins++
+      value += ENHANCE_VALUES.skinEquipped
+    }
   }
 
-  return { gadgets, starPowers, hypercharges, buffies, value }
+  return { gadgets, starPowers, hypercharges, buffies, skins, value }
 }
 
 function calcEliteVector(brawlers: BrawlerStat[]) {
