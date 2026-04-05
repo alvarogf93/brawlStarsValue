@@ -61,20 +61,21 @@ npm run build
 ```typescript
 describe('calculateValue()', () => {
   // Test 1: Valid input returns correct value
-  test('should calculate value correctly for valid player data', () => {
-    // GIVEN: player data with specific trophies, exp, brawlers
+  test('should calculate gem score correctly for valid player data', () => {
+    // GIVEN: player data with specific trophies, brawlers, victories
     const playerData = {
       trophies: 35000,
-      expLevel: 420,
-      brawlers: [ /* 2 RARE, 4 SUPERRARE, 8 EPIC, 5 MYTHIC, 1 LEGENDARY */ ],
-      '3v3Victories': 8500
+      '3vs3Victories': 8500,
+      brawlers: [ /* mix of rarities, levels, prestige */ ],
     }
+    const rarityMap = { /* brawlerId → rarity */ }
     
-    // WHEN: calculateValue is called
-    const result = calculateValue(playerData)
+    // WHEN: calculateGemScore is called
+    const result = calculateGemScore(playerData, rarityMap)
     
-    // THEN: result matches expected value
-    expect(result).toBe(450.75) // Or whatever the formula gives
+    // THEN: result has valid gem equivalent
+    expect(result.gemEquivalent).toBeGreaterThan(0)
+    expect(result.totalScore).toBeGreaterThan(0)
   })
 
   // Test 2: Edge case - zero input
@@ -83,7 +84,7 @@ describe('calculateValue()', () => {
       trophies: 0,
       expLevel: 0,
       brawlers: [],
-      '3v3Victories': 0
+      '3vs3Victories': 0
     }
     
     expect(calculateValue(playerData)).toBe(0)
@@ -95,7 +96,7 @@ describe('calculateValue()', () => {
       trophies: 999999,
       expLevel: 999,
       brawlers: [ /* 60 LEGENDARY */ ],
-      '3v3Victories': 999999
+      '3vs3Victories': 999999
     }
     
     const result = calculateValue(playerData)
@@ -103,18 +104,19 @@ describe('calculateValue()', () => {
     expect(result).toBeFinite()
   })
 
-  // Test 4: Formula breakdown
-  test('breakdown should sum to total value', () => {
+  // Test 4: 4-vector breakdown sums to totalScore
+  test('breakdown should sum to totalScore', () => {
     const playerData = { /* valid data */ }
-    const result = calculateValue(playerData)
+    const rarityMap = { /* brawlerId → rarity */ }
+    const result = calculateGemScore(playerData, rarityMap)
     
     const breakdownSum =
-      result.breakdown.trophies.value +
-      result.breakdown.experience.value +
-      result.breakdown.brawlers.value +
-      result.breakdown.victories.value
+      result.breakdown.base.value +
+      result.breakdown.assets.value +
+      result.breakdown.enhance.value +
+      result.breakdown.elite.value
     
-    expect(result.totalValue).toBe(breakdownSum)
+    expect(result.totalScore).toBe(breakdownSum)
   })
 
   // Test 5: Input validation
@@ -158,20 +160,15 @@ describe('isValidPlayerTag()', () => {
   })
 })
 
-describe('formatCurrency()', () => {
-  test('should format number as currency', () => {
-    expect(formatCurrency(450.75)).toBe('$450.75')
-    expect(formatCurrency(1000)).toBe('$1000.00')
-    expect(formatCurrency(0)).toBe('$0.00')
+describe('formatGems()', () => {
+  test('should format number as gem equivalent', () => {
+    expect(formatGems(5042)).toBe('5,042 Gemas')
+    expect(formatGems(85000)).toBe('85,000 Gemas')
+    expect(formatGems(0)).toBe('0 Gemas')
   })
 
   test('should handle large numbers', () => {
-    expect(formatCurrency(1000000)).toBe('$1000000.00')
-  })
-
-  test('should handle decimals correctly', () => {
-    expect(formatCurrency(450.754)).toBe('$450.75') // Rounds to 2 decimals
-    expect(formatCurrency(450.756)).toBe('$450.76')
+    expect(formatGems(150000)).toBe('150,000 Gemas')
   })
 })
 
@@ -389,7 +386,7 @@ describe('POST /api/calculate', () => {
     expect(response.status).toBe(200)
 
     const data = await response.json()
-    expect(data.totalValue).toBeGreaterThan(0)
+    expect(data.gemEquivalent).toBeGreaterThan(0)
     expect(data.breakdown).toBeDefined()
   })
 
@@ -436,8 +433,8 @@ describe('POST /api/calculate', () => {
     expect(data).toHaveProperty('cached')
   })
 
-  // Test 5: Breakdown sums to total
-  test('breakdown values should sum to total', async () => {
+  // Test 5: 4-vector breakdown sums to totalScore
+  test('breakdown values should sum to totalScore', async () => {
     const req = new NextRequest('http://localhost:3000/api/calculate', {
       method: 'POST',
       body: JSON.stringify({ playerTag: '#2P0Q8C2C0' })
@@ -447,12 +444,13 @@ describe('POST /api/calculate', () => {
     const data = await response.json()
 
     const sum =
-      data.breakdown.trophies.value +
-      data.breakdown.experience.value +
-      data.breakdown.brawlers.value +
-      data.breakdown.victories.value
+      data.breakdown.base.value +
+      data.breakdown.assets.value +
+      data.breakdown.enhance.value +
+      data.breakdown.elite.value
 
-    expect(data.totalValue).toBeCloseTo(sum, 2) // Within 2 decimals
+    expect(data.totalScore).toBeCloseTo(sum, 2)
+    expect(data.gemEquivalent).toBe(Math.round(data.totalScore / 50))
   })
 })
 ```

@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Righteous&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-brawl-dark: #0F172A;
+  --color-brawl-blue: #3B82F6;
+  --color-brawl-gold: #FBBF24;
+  --color-brawl-purple: #A855F7;
+  --color-brawl-light: #F8FAFC;
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+  --header-height: 56px;
+}
+
+body {
+  background-color: var(--color-brawl-dark);
+  color: var(--color-brawl-light);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.glass {
+  background-color: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}

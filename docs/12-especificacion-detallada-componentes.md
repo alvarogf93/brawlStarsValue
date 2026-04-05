@@ -82,55 +82,91 @@ src/
 // Player tag validation
 export type PlayerTag = string & { readonly __brand: 'PlayerTag' }
 
-// API Response from Supercell (FUTURE - when API integrated)
+// API Response from Supercell (ver doc 14 para tipos completos)
 export interface PlayerData {
   tag: PlayerTag
   name: string
+  nameColor: string
   trophies: number
-  expLevel: number
+  highestTrophies: number
+  expLevel: number                    // DEPRECADO — no usar en algoritmo
+  expPoints: number
+  totalPrestigeLevel: number          // Suma de prestigio de todos los brawlers
   soloVictories: number
   duoVictories: number
-  '3v3Victories': number
-  brawlers: Brawler[]
+  '3vs3Victories': number             // ⚠️ "vs" no "v"
+  bestRoboRumbleTime: number
+  bestTimeAsBigBrawler: number
+  isQualifiedFromChampionshipChallenge: boolean
+  icon: { id: number }
+  club: { tag: string; name: string } | Record<string, never>
+  brawlers: BrawlerStat[]
 }
 
-export interface Brawler {
+export interface BrawlerStat {
   id: number
-  name: string
-  power: number
+  name: { value: string }             // JsonLocalizedName
+  power: number                       // 1-11
   rank: number
   trophies: number
   highestTrophies: number
+  prestigeLevel: number               // 0, 1, 2, 3
+  currentWinStreak: number
+  maxWinStreak: number
+  starPowers: Array<{ id: number; name: string }>
+  gadgets: Array<{ id: number; name: string }>
+  hyperCharges: Array<{ id: number; name: string }>   // Puede estar incompleto
+  gears: Array<{ id: number; name: string; level: number }>
+  buffies: BrawlerBuffies             // Puede estar ausente en API
+  skin: { id: number }
 }
 
-// Calculation response
-export interface CalculatedValue {
+// Rarezas del juego (obtenidas de GET /brawlers)
+export type BrawlerRarityName =
+  | 'Trophy Road'
+  | 'Rare'
+  | 'Super Rare'
+  | 'Epic'
+  | 'Mythic'
+  | 'Legendary'
+  | 'Chromatic'
+  | 'Ultra Legendary'
+
+// Calculation response — Motor Vectorial v2 (Gemas, NO USD)
+export interface GemScore {
   playerTag: PlayerTag
   playerName: string
-  totalValue: number
+  gemEquivalent: number               // Resultado principal mostrado al usuario
+  totalScore: number                  // Puntuación raw antes de conversión
   breakdown: {
-    trophies: { amount: number; value: number }
-    experience: { level: number; value: number }
-    brawlers: {
-      rare: number
-      superRare: number
-      epic: number
-      mythic: number
-      legendary: number
+    base: { trophies: number; victories3vs3: number; value: number }
+    assets: { brawlerCount: number; value: number }
+    enhance: {
+      gadgets: number
+      starPowers: number
+      hypercharges: number
+      buffies: number
       value: number
     }
-    victories: { threeVsThree: number; value: number }
+    elite: {
+      prestige1: number
+      prestige2: number
+      prestige3: number
+      value: number
+    }
   }
   timestamp: Date
   cached: boolean
 }
 
 // API Error types
-export type ApiError = 
+export type ApiError =
   | { code: 400; message: 'Invalid player tag format' }
+  | { code: 403; message: 'Access denied (API key or IP)' }
   | { code: 404; message: 'Player not found' }
   | { code: 429; message: 'Rate limited' }
   | { code: 500; message: 'Server error' }
+  | { code: 503; message: 'Supercell maintenance' }
 
 // UI State
 export type CalculationState = 'idle' | 'loading' | 'success' | 'error'
@@ -206,9 +242,9 @@ export function normalizePlayerTag(tag: string): string
   // Add # if missing
 
 // Formatting functions
-export function formatCurrency(value: number): string
-  // Return: `$${value.toFixed(2)}`
-  // Example: 450.75 → "$450.75"
+export function formatGems(value: number): string
+  // Return: `${value.toLocaleString()} Gemas`
+  // Example: 5042 → "5,042 Gemas"
 
 export function formatTrophies(num: number): string
   // Return: num with thousands separator
@@ -333,47 +369,46 @@ interface CTAProps {
 
 ---
 
-### **8. src/components/results/ResultCard.tsx** (FUTURE)
+### **8. src/components/results/ResultCard.tsx**
 
 **Contrato Exacto**:
 
 ```
 // Props:
 interface ResultCardProps {
-  value: number
+  gemEquivalent: number
   playerTag: string
-  breakdown: CalculatedValue['breakdown']
+  breakdown: GemScore['breakdown']
 }
 
-// Features (NO CODE YET - FUTURE):
-// - Large display of value: "$XXX.XX"
+// Features:
+// - Large display: "XX,XXX Gemas Equivalentes"
 // - Font: Lilita One or Righteous (display font)
 // - Size: 48px or larger
 // - Color: Gold accent
-// - Glassmorphism: backdrop-blur-md, rgba(255,255,255,0.1) border
-// - Animation: Fade in with Motion
-// - Below: Breakdown sub-components
+// - Glassmorphism: backdrop-blur-md, border-white/10
+// - Animation: Fade in with Motion (inmediato, LCP < 2.5s)
+// - Below: Breakdown por vectores (base, assets, enhance, elite)
 ```
 
 ---
 
-### **9. src/components/results/LoadingState.tsx** (FUTURE)
+### **9. src/components/results/LoadingState.tsx**
 
 **Contrato Exacto**:
 
 ```
 // Props:
 interface LoadingStateProps {
-  messageIndex: number // 0-3 (rotating message)
+  isLoading: boolean
 }
 
-// Features (NO CODE YET - FUTURE):
-// - Show rotating messages from LOADING_MESSAGES
-// - Update message every ~1 second
-// - Spinning loader (CSS animation or Rive)
-// - Duration: 4-5 seconds (configurable)
-// - Display: "Contando gemas..." → "Calculando valor..." etc
-// - Animation: Fade in/out messages smoothly
+// Features:
+// - Spinner breve mientras se espera respuesta real del servidor (~200-500ms)
+// - NO hay retraso artificial (eliminado por auditoría doc 15)
+// - Transición suave a ResultCard cuando llegan los datos
+// - Si API tarda >2s: mostrar mensaje "Consultando servidores de Supercell..."
+// - Animation: Fade in/out con Motion
 ```
 
 ---
@@ -439,15 +474,15 @@ interface LoadingStateProps {
 //    → If found: Return cached result
 // 5. Fetch from Supercell API - FUTURE
 //    → playerTag → call https://api.brawlstars.com/v1/players/{playerTag}
-//    → Handle 401 (invalid key), 404 (not found), 500 (server error)
+//    → Handle 403 (invalid key/IP), 404 (not found), 429 (rate limit), 500, 503
 // 6. Calculate value using lib/calculate.ts
 // 7. Store in cache (TTL: 1 hour) - FUTURE
 // 8. Return JSON: { playerTag, playerName, totalValue, breakdown, timestamp, cached }
 // 9. Error responses: JSON with { error, code } + HTTP status
 
 // For MVP (No Supercell API Yet):
-// - Return mock data: 
-//   { playerTag, playerName: "Test Player", totalValue: 450.75, breakdown: {...} }
+// - Return mock data:
+//   { playerTag, playerName: "Test Player", gemEquivalent: 5042, totalScore: 252080, breakdown: {...} }
 ```
 
 ---

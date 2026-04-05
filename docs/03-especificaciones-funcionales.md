@@ -18,47 +18,50 @@ El viaje del usuario se divide en **tres fases críticas**:
 
 - **Diseño**: Minimalista, con fondo oscuro (glassmorphism), sin distracciones
 
-## Fase 2: Retención (La Mina de Oro Publicitaria) ⭐ CRÍTICA
+## Fase 2: Procesamiento y Revelación Progresiva ⭐ CRÍTICA
 
-**Objetivo**: Retener al usuario exactamente el tiempo suficiente para mostrar anuncios.
+**Objetivo**: Entregar el resultado principal de forma instantánea (LCP < 2.5s), luego revelar métricas detalladas con animaciones ricas que retengan al usuario de forma lícita.
 
 **Flujo Técnico**:
 1. Usuario hace clic en CTA
 2. Frontend envía Player Tag al backend (`/api/calculate`)
 3. Backend consulta API de Supercell y calcula valor en milisegundos
-4. **Frontend fuerza retraso artificial** con `setTimeout(4000-5000)`
-5. Durante esta espera:
-   - Se muestran mensajes rotativos cada ~1 segundo:
-     - "Contando gemas..."
-     - "Calculando valor de brawlers legendarios..."
-     - "Analizando trofeos..."
-     - "Verificando victorias..."
-   - Se cargan anuncios intersticiales o banners centrales
-   - Animación de carga (ej. spinner, barra de progreso)
+4. **Frontend muestra resultado principal inmediatamente** (Gemas Equivalentes)
+5. **Revelación progresiva** del breakdown detallado:
+   - Sección 1: Gemas Equivalentes (resultado hero, animación Motion de entrada)
+   - Sección 2: Breakdown por vectores (assets, mejoras, prestigio) — aparece con scroll
+   - Sección 3: Gráfico de radar de stats del jugador (visualización interactiva)
+   - Sección 4: CTA de comparación ("¿Quieres comparar con un amigo?")
+   - Ads integrados entre secciones de contenido real
 
-**Razón del retraso artificial**: Crear ventana de exposición para anuncios sin que se note "artificial"
+**Razón de la revelación progresiva**: Más secciones exploradas = más impresiones de ads lícitas. LCP < 2.5s = buen SEO. Sin dark patterns.
+
+> **ELIMINADO**: El retraso artificial (`setTimeout 4-5s`) fue eliminado tras la auditoría (doc 15). Viola políticas de AdSense, destruye LCP, y constituye un dark pattern bajo la EU Digital Fairness Act.
 
 ## Fase 3: Viral (Resultados)
 
 **Objetivo**: Mostrar resultado de forma épica y compartible.
 
 - **Muestra Principal**: 
-  - Número grande y centrado: "Tu cuenta vale **$XXX.XX**"
+  - Número grande y centrado: "Tu cuenta tiene un poder equivalente a **XX,XXX Gemas**"
   - Uso de tipografía display (Lilita One, Righteous)
   - Color de acento: Ámbar/Oro (#FBBF24)
 
-- **Desglose Visual**:
-  - Trofeos totales
-  - Brawlers maxeados
-  - Victorias 3v3
-  - Rareza de Brawlers (cuenta de Legendarios, Míticos, etc.)
+- **Desglose Visual (4 vectores)**:
+  - Base: Trofeos totales + Victorias 3vs3
+  - Inventario: Brawlers por rareza × nivel de fuerza
+  - Mejoras: Gadgets, Star Powers, Hypercharges, Buffies
+  - Elite: Brawlers en Prestigio (1, 2, 3)
 
 - **Web Share API** (Compartir):
   ```
-  Título: "¡Mi cuenta vale $XXX! ¿Y la tuya?"
-  Texto: "Acabo de usar BrawlValue para tasar mi cuenta de Brawl Stars. ¿Cuánto vale la tuya? [LINK]"
+  Título: "Mi Puntuación de Poder en Brawl Stars"
+  Texto: "¡Mi cuenta tiene un poder equivalente a XX,XXX Gemas! Tengo X Brawlers en Prestigio. ¿Puedes superarme?"
+  URL: https://{DOMAIN}/profile/{playerTag}
   Compartible a: WhatsApp, Instagram, TikTok, Twitter
   ```
+
+  > **NOTA LEGAL**: No usar USD ni monedas fiduciarias en el mensaje. Ver doc 15 para justificación.
 
 - **Captura de Pantalla**: 
   - Botón "Descargar como imagen" (usar html2canvas o similar)

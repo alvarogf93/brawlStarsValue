@@ -52,7 +52,7 @@
 
 - [ ] **Supercell API Client**
   - `lib/api.ts`: función `fetchPlayer(playerTag)`
-  - Manejo de errores (404 player not found, 401 API key invalid, etc)
+  - Manejo de errores (404 player not found, 403 API key/IP invalid, 503 maintenance, etc)
   - TypeScript types para respuesta Supercell
   
 - [ ] **Algoritmo de Valoración**
@@ -70,7 +70,7 @@
   - Validación input (Player Tag format)
   - Rate limit check
   - Llamar Supercell → Calcular → Response JSON
-  - Error handling (429, 400, 404, 500)
+  - Error handling (400, 403, 404, 429, 500, 503)
 
 **Deliverable**: Endpoint funcional, testeable, protegido
 
@@ -88,13 +88,13 @@
   - `useCalculateValue()` hook
   - Caché automático
   
-- [ ] **Loading State**
-  - `setTimeout(4500)` artificial delay
-  - Mensajes rotativos cada 1s
-  - Loading spinner con Rive (o CSS)
-  - AdSense placeholder (reservar espacio, no cargar aún)
+- [ ] **Results Display (Entrega Instantánea)**
+  - Resultado principal inmediato (LCP < 2.5s) — SIN retraso artificial
+  - Revelación progresiva del breakdown con Motion animations
+  - Gráfico de radar / visualización interactiva de stats
+  - AdSense integrado entre secciones de contenido real
 
-**Deliverable**: Flujo Landing → Loading → Results completamente funcional
+**Deliverable**: Flujo Landing → Results (instantáneo) → Breakdown (progresivo) completamente funcional
 
 ---
 

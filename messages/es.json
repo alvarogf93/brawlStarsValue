@@ -1,0 +1,43 @@
+{
+  "landing": {
+    "title": "¿Cuánto poder tiene tu cuenta?",
+    "subtitle": "Ingresa tu Player Tag y descubre tu Puntuación de Poder en Gemas",
+    "placeholder": "#2P0Q8C2C0",
+    "cta": "Calcular Poder",
+    "calculating": "Calculando...",
+    "invalidTag": "Formato inválido. Ejemplo: #2P0Q8C2C0",
+    "error": "Error de conexión"
+  },
+  "nav": {
+    "overview": "Vista General",
+    "brawlers": "Brawlers",
+    "stats": "Estadísticas",
+    "share": "Compartir"
+  },
+  "profile": {
+    "gemEquivalent": "Gemas Equivalentes",
+    "base": "Base",
+    "assets": "Inventario",
+    "enhance": "Mejoras",
+    "elite": "Elite",
+    "trophies": "Trofeos",
+    "victories": "Victorias 3vs3",
+    "brawlerCount": "Brawlers",
+    "gadgets": "Gadgets",
+    "starPowers": "Star Powers",
+    "hypercharges": "Hipercargas",
+    "buffies": "Buffies",
+    "prestige": "Prestigio",
+    "calculateAnother": "Calcular otra cuenta"
+  },
+  "share": {
+    "title": "Mi Puntuación de Poder en Brawl Stars",
+    "text": "¡Mi cuenta tiene un poder equivalente a {gems} Gemas! Tengo {prestige} Brawlers en Prestigio. ¿Puedes superarme?",
+    "button": "Compartir resultado",
+    "copied": "¡Copiado al portapapeles!"
+  },
+  "footer": {
+    "disclaimer": "Este material no es oficial y no está respaldado por Supercell. Para obtener más información, consulte la {link}.",
+    "policyLink": "Política de contenido de los fans de Supercell"
+  }
+}

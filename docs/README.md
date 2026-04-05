@@ -7,9 +7,9 @@ Documentación integral del proyecto BrawlValue desde la visión hasta la implem
 ### **FASE 0: Visión & Diseño**
 - **[01-vision-general.md](./01-vision-general.md)** - Visión del producto, objetivo y target
 - **[02-stack-tecnologico.md](./02-stack-tecnologico.md)** - Stack tecnológico seleccionado
-- **[03-especificaciones-funcionales.md](./03-especificaciones-funcionales.md)** - Flujo del usuario (Landing → Loading → Results)
-- **[04-diseño-ux.md](./04-diseño-ux.md)** - Paleta Cyber-Brawl, tipografía, glassmorphism
-- **[05-algoritmo-valoracion.md](./05-algoritmo-valoracion.md)** - Fórmula de cálculo de valor ($)
+- **[03-especificaciones-funcionales.md](./03-especificaciones-funcionales.md)** - Flujo del usuario (Landing → Results instantáneo)
+- **[04-diseño-ux.md](./04-diseño-ux.md)** - Paleta Cyber-Brawl, tipografía, glassmorphism, accesibilidad
+- **[05-algoritmo-valoracion.md](./05-algoritmo-valoracion.md)** - Motor Vectorial v2 (4 vectores → Gemas Equivalentes)
 - **[06-preguntas-pendientes.md](./06-preguntas-pendientes.md)** - Clarificaciones iniciales (API Key, AdSense, dominio)
 
 ### **FASE 1: Investigación Técnica** ✅ COMPLETA
@@ -31,6 +31,10 @@ Documentación integral del proyecto BrawlValue desde la visión hasta la implem
 - **[09-plan-implementacion.md](./09-plan-implementacion.md)** - Roadmap detallado (Sprints, estimaciones, checklist)
 - **[10-supercell-api-integration.md](./10-supercell-api-integration.md)** - Integración API Brawl Stars (endpoints, rate limiting, caché)
 
+### **FASE 2.5: Auditoría Post-Documentación** ✅ COMPLETA
+- **[14-supercell-api-referencia-oficial.md](./14-supercell-api-referencia-oficial.md)** - Referencia oficial extraída del portal de Supercell
+- **[15-auditoria-tecnica-legal-algoritmica.md](./15-auditoria-tecnica-legal-algoritmica.md)** - Auditoría legal, algorítmica y UX. Cambios fundamentales aplicados.
+
 ## 🎯 Estado Actual
 
 - ✅ **13 documentos completados** - Especificación 100% detallada
@@ -45,7 +49,11 @@ Documentación integral del proyecto BrawlValue desde la visión hasta la implem
 - ✅ Versiones exactas (Next.js 16.2, React 19.2.4, TypeScript 6.0, Tailwind v4.1)
 - ✅ Especificación detallada de componentes (props, contracts, behavior)
 - ✅ **TDD Strategy obligatoria** - Tests PRIMERO, código DESPUÉS
-- ⏳ **SIGUIENTE**: Revisar documentación → Aprobar → Invocar TDD Skill → Comenzar Sprint 1.1
+- ✅ **Auditoría Legal/Algorítmica completada** (doc 15)
+- ✅ **Algoritmo reescrito** — 4 vectores, Gemas Equivalentes (no USD)
+- ✅ **Retraso artificial eliminado** — Entrega instantánea (LCP < 2.5s)
+- ✅ **Disclaimer Supercell obligatorio** — Fan Content Policy en footer
+- ⏳ **SIGUIENTE**: Escribir spec formal + plan de implementación → Comenzar Sprint 1.1
 
 ## 🚀 Próximos Pasos
 

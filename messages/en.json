@@ -1,0 +1,43 @@
+{
+  "landing": {
+    "title": "How powerful is your account?",
+    "subtitle": "Enter your Player Tag to discover your Gem Power Score",
+    "placeholder": "#2P0Q8C2C0",
+    "cta": "Calculate Power",
+    "calculating": "Calculating...",
+    "invalidTag": "Invalid format. Example: #2P0Q8C2C0",
+    "error": "Connection error"
+  },
+  "nav": {
+    "overview": "Overview",
+    "brawlers": "Brawlers",
+    "stats": "Stats",
+    "share": "Share"
+  },
+  "profile": {
+    "gemEquivalent": "Gem Equivalent",
+    "base": "Base",
+    "assets": "Assets",
+    "enhance": "Upgrades",
+    "elite": "Elite",
+    "trophies": "Trophies",
+    "victories": "3vs3 Victories",
+    "brawlerCount": "Brawlers",
+    "gadgets": "Gadgets",
+    "starPowers": "Star Powers",
+    "hypercharges": "Hypercharges",
+    "buffies": "Buffies",
+    "prestige": "Prestige",
+    "calculateAnother": "Calculate another account"
+  },
+  "share": {
+    "title": "My Brawl Stars Power Score",
+    "text": "My Brawl Stars account has a power equivalent to {gems} Gems! I have {prestige} Brawlers at Prestige. Can you beat me?",
+    "button": "Share result",
+    "copied": "Copied to clipboard!"
+  },
+  "footer": {
+    "disclaimer": "This content is not official and is not endorsed by Supercell. For more information, see the {link}.",
+    "policyLink": "Supercell Fan Content Policy"
+  }
+}

@@ -31,7 +31,7 @@ Obtiene datos completos de un jugador.
   "expPoints": 1250000,                 // Puntos de experiencia
   "soloVictories": 500,                 // Victorias 1v1
   "duoVictories": 300,                  // Victorias 2v2
-  "3v3Victories": 8500,                 // ✅ CRITICO: Victorias 3v3
+  "3vs3Victories": 8500,                 // ��� CRITICO: "vs" no "v"
   "brawlers": [
     {
       "id": 16000000,                   // ID único del brawler
@@ -51,10 +51,11 @@ Obtiene datos completos de un jugador.
 **Códigos de Error**:
 - `200`: Éxito
 - `400`: Invalid player tag format
-- `401`: Invalid/missing API key
+- `403`: Access Denied — API key inválida O IP no whitelisted (NO es 401)
 - `404`: Player not found
 - `429`: Rate limit exceeded
 - `500`: Server error
+- `503`: Service Unavailable — mantenimiento Supercell
 
 ---
 
@@ -98,9 +99,13 @@ const BRAWLER_RARITY = {
 }
 ```
 
-**Problema**: El API no devuelve la rareza directamente.
+**Problema**: El endpoint `/players/{playerTag}` NO devuelve la rareza de los brawlers.
 
-**Solución**: Mantener un JSON estático con todas las rarezas (actualizar manualmente o usar unofficial API como fallback).
+**Solución** (confirmada vía API oficial — ver doc 14):
+1. Llamar `GET /brawlers` para obtener lista completa con rarezas
+2. Cachear mapa `{brawlerId → rarity}` en Redis (TTL 24h)
+3. Cruzar por `id` con los brawlers del jugador
+4. Rarezas disponibles: Trophy Road, Rare, Super Rare, Epic, Mythic, Legendary, Chromatic, Ultra Legendary
 
 ---
 
@@ -228,8 +233,8 @@ Si API retorna 404: "Jugador no encontrado"
 ### Backend Cache (Redis)
 
 ```typescript
-const CACHE_KEY = `brawlvalue:${playerTag.toLowerCase()}`
-const CACHE_TTL = 3600 // 1 hora
+const CACHE_KEY = `brawlvalue:player:${playerTag.toLowerCase()}`
+const CACHE_TTL = 300 // 5 minutos (alineado con caché interna Supercell ~3min)
 
 // Get
 const cached = await redis.get(CACHE_KEY)
@@ -304,7 +309,7 @@ export const mockPlayerData = {
   expLevel: 420,
   soloVictories: 500,
   duoVictories: 300,
-  "3v3Victories": 8500,
+  "3vs3Victories": 8500,
   brawlers: [
     {
       id: 16000000,
@@ -339,10 +344,11 @@ export async function fetchPlayer(playerTag: string) {
 ### Situaciones que Requieren Investigación
 
 1. **429 Frequently**: Ajustar rate limiting propio
-2. **401 Errors**: Validar API Key en Vercel secrets
+2. **403 Errors**: Validar API Key en Vercel secrets Y verificar IPs whitelisted
 3. **404 Spike**: Posible ataque con tags falsos (mitigation: rate limit)
 4. **API Latency >5s**: Problema con Supercell, considerar timeout
-5. **Cache Hit Ratio <70%**: Ajustar TTL
+5. **503 Errors**: Mantenimiento Supercell — servir desde caché si disponible
+6. **Cache Hit Ratio <70%**: Ajustar TTL
 
 ---
 

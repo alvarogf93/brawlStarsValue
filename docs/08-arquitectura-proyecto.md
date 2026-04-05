@@ -93,9 +93,8 @@ User (Frontend)
 [Click CTA] → POST /api/calculate
      ↓
 [Loading State]
-  - setTimeout 4-5 segundos
-  - Mensajes rotativos
-  - Cargar anuncios (AdSense)
+  - Spinner breve (~200-500ms latencia real)
+  - Sin retraso artificial (eliminado — doc 15)
      ↓
 [Backend Route Handler]
   ├─ Rate limit check (Upstash)
@@ -106,9 +105,10 @@ User (Frontend)
   └─ Return JSON
      ↓
 [Results Page]
-  - Mostrar valor: "$XXX.XX"
-  - Desglose: trofeos, brawlers, etc
+  - Mostrar: "XX,XXX Gemas Equivalentes"
+  - Desglose 4 vectores: base, assets, enhance, elite
   - Botón "Compartir" (Web Share API)
+  - Ads integrados entre secciones de contenido
      ↓
 [Share Flow]
   - Copiar enlace con resultado
@@ -195,9 +195,9 @@ jobs:
 
 ### Backend (Upstash Redis)
 ```
-Key: "player:{playerTag}:{hash}"
-Value: { value, breakdown, timestamp }
-TTL: 1 hour
+Key: "brawlvalue:player:{tag}"
+Value: { gemEquivalent, totalScore, breakdown, timestamp }
+TTL: 5 minutes (alineado con caché interna Supercell ~3min)
 ```
 
 ### Frontend (TanStack Query)
