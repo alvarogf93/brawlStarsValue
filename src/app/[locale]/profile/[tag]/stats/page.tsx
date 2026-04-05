@@ -3,6 +3,8 @@
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { GemIcon } from '@/components/ui/GemIcon'
+import { ENHANCE_VALUES, GEM_DIVISOR } from '@/lib/constants'
 
 export default function StatsPage() {
   const params = useParams<{ tag: string }>()
@@ -179,6 +181,93 @@ export default function StatsPage() {
           </div>
 
         </div>
+      </div>
+
+      {/* Gem Breakdown Table */}
+      <div className="brawl-card-dark p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <GemIcon className="w-8 h-8" />
+          <h2 className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-gold)] tracking-widest">
+            GEM BREAKDOWN
+          </h2>
+        </div>
+
+        <div className="space-y-1">
+          {/* Header */}
+          <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-2 text-xs font-bold uppercase text-slate-500">
+            <span>Concepto</span>
+            <span className="text-right w-20">Cantidad</span>
+            <span className="text-right w-24">Gemas</span>
+          </div>
+
+          {(() => {
+            const rows = [
+              { icon: '🏆', label: `${t('trophies')} (×0.02)`, qty: player.trophies.toLocaleString(), gems: bd.base.trophies, category: 'base' },
+              { icon: '⚔️', label: `${t('victories')} (×0.08)`, qty: player['3vs3Victories'].toLocaleString(), gems: bd.base.victories3vs3, category: 'base' },
+              { icon: '🎴', label: `Rarity base value`, qty: `${bd.assets.brawlerCount} brawlers`, gems: null, category: 'divider' },
+              { icon: '📈', label: `Power levels`, qty: `${bd.assets.brawlerCount} brawlers`, gems: bd.assets.value, category: 'assets' },
+              { icon: '🔧', label: `${t('gadgets')} (×${ENHANCE_VALUES.gadget})`, qty: bd.enhance.gadgets.toString(), gems: bd.enhance.gadgets * ENHANCE_VALUES.gadget, category: 'enhance' },
+              { icon: '⭐', label: `${t('starPowers')} (×${ENHANCE_VALUES.starPower})`, qty: bd.enhance.starPowers.toString(), gems: bd.enhance.starPowers * ENHANCE_VALUES.starPower, category: 'enhance' },
+              { icon: '⚡', label: `${t('hypercharges')} (×${ENHANCE_VALUES.hypercharge})`, qty: bd.enhance.hypercharges.toString(), gems: bd.enhance.hypercharges * ENHANCE_VALUES.hypercharge, category: 'enhance' },
+              { icon: '💪', label: `${t('buffies')} (×${ENHANCE_VALUES.buffie})`, qty: bd.enhance.buffies.toString(), gems: bd.enhance.buffies * ENHANCE_VALUES.buffie, category: 'enhance' },
+              { icon: '🎨', label: `${t('skins')} (×${ENHANCE_VALUES.skinEquipped})`, qty: bd.enhance.skins.toString(), gems: bd.enhance.skins * ENHANCE_VALUES.skinEquipped, category: 'enhance' },
+              { icon: '🥇', label: `${t('prestige')} 1 (×10,000)`, qty: bd.elite.prestige1.toString(), gems: bd.elite.prestige1 * 10000, category: 'elite' },
+              { icon: '🥈', label: `${t('prestige')} 2 (×25,000)`, qty: bd.elite.prestige2.toString(), gems: bd.elite.prestige2 * 25000, category: 'elite' },
+              { icon: '🥉', label: `${t('prestige')} 3 (×75,000)`, qty: bd.elite.prestige3.toString(), gems: bd.elite.prestige3 * 75000, category: 'elite' },
+            ]
+
+            const categoryColors: Record<string, string> = {
+              base: 'border-l-blue-500',
+              assets: 'border-l-yellow-500',
+              enhance: 'border-l-purple-500',
+              elite: 'border-l-red-500',
+            }
+
+            return rows.map((row, i) => (
+              <div
+                key={i}
+                className={`grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-3 rounded-lg border-l-4 ${categoryColors[row.category] || 'border-l-transparent'} ${i % 2 === 0 ? 'bg-white/5' : 'bg-white/[0.02]'}`}
+              >
+                <span className="flex items-center gap-2 text-sm text-slate-200">
+                  <span>{row.icon}</span>
+                  <span>{row.label}</span>
+                </span>
+                <span className="text-right text-sm text-slate-400 w-20">{row.qty}</span>
+                <span className="text-right text-sm font-['Lilita_One'] text-white w-24">
+                  {row.gems !== null ? row.gems.toLocaleString() : '—'}
+                </span>
+              </div>
+            ))
+          })()}
+
+          {/* Total row */}
+          <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-4 mt-2 rounded-xl bg-[var(--color-brawl-gold)]/10 border-2 border-[var(--color-brawl-gold)]/30">
+            <span className="flex items-center gap-2 font-['Lilita_One'] text-lg text-[var(--color-brawl-gold)]">
+              <GemIcon className="w-5 h-5" />
+              TOTAL SCORE
+            </span>
+            <span className="text-right text-sm text-slate-400 w-20">÷{GEM_DIVISOR}</span>
+            <span className="text-right font-['Lilita_One'] text-xl text-[var(--color-brawl-gold)] w-24">
+              {data.totalScore.toLocaleString()}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-4 rounded-xl bg-[var(--color-brawl-gold)]/20 border-2 border-[var(--color-brawl-gold)]">
+            <span className="flex items-center gap-2 font-['Lilita_One'] text-xl text-white">
+              <GemIcon className="w-6 h-6" />
+              {t('gemEquivalent').toUpperCase()}
+            </span>
+            <span className="text-right text-sm text-white/60 w-20">=</span>
+            <span className="text-right font-['Lilita_One'] text-2xl text-white w-24">
+              {data.gemEquivalent.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Ad Placeholder */}
+      <div className="w-full min-h-[250px] bg-slate-800/50 border-2 border-dashed border-slate-600/50 rounded-xl flex items-center justify-center">
+        <span className="text-slate-500 font-['Lilita_One'] tracking-wider">AD SPACE (300x250)</span>
       </div>
     </div>
   )
