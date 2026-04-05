@@ -7,6 +7,7 @@ import { usePlayerData } from '@/hooks/usePlayerData'
 export default function StatsPage() {
   const params = useParams<{ tag: string }>()
   const t = useTranslations('profile')
+  const tNav = useTranslations('nav')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
 
@@ -49,7 +50,7 @@ export default function StatsPage() {
           </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">
-              {t('stats') || 'ACCOUNT STATS'}
+              {tNav('stats')}
             </h1>
             <p className="font-['Inter'] font-semibold text-[#4EC0FA]">
               {data.playerName}
