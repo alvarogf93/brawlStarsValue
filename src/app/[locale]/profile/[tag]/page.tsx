@@ -3,8 +3,10 @@
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
-import type { GemScore } from '@/lib/types'
 import { BreakdownGrid } from '@/components/profile/BreakdownGrid'
+import { GemIcon } from '@/components/ui/GemIcon'
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
+import type { GemScore } from '@/lib/types'
 
 export default function OverviewPage() {
   const params = useParams<{ tag: string }>()
@@ -35,8 +37,11 @@ export default function OverviewPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-        <div className="w-24 h-24 border-4 border-[var(--color-brawl-blue)] border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-8 text-slate-400 font-['Righteous'] text-xl tracking-widest uppercase">Consultando base de datos...</p>
+        <div className="brawl-card-dark inline-block px-12 py-6 border-8 border-black transform scale-[1.1] rotate-[-2deg] shadow-[0_12px_0_0_rgba(18,26,47,1),inset_0_4px_0_rgba(255,255,255,0.2)]">
+          <h2 className="text-7xl md:text-8xl font-['Lilita_One'] text-white text-stroke-brawl tracking-wider">
+            <AnimatedCounter value={94200} duration={2000} />
+          </h2>
+        </div>
       </div>
     )
   }
@@ -52,23 +57,21 @@ export default function OverviewPage() {
   return (
     <div className="animate-fade-in w-full">
       {/* Hero Section */}
-      <div className="glass rounded-[32px] p-8 md:p-12 text-center border-t border-t-[var(--color-brawl-gold)]/30 relative overflow-hidden">
-        {/* Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[200px] bg-[var(--color-brawl-gold)] mix-blend-screen filter blur-[120px] opacity-10 pointer-events-none"></div>
+      <div className="brawl-card p-8 md:p-12 text-center relative overflow-hidden bg-gradient-to-b from-[#1C5CF1] to-[#121A2F]">
         
-        <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase mb-4 relative z-10 font-['Inter']">
+        <p className="text-[var(--color-brawl-gold)] text-lg font-['Lilita_One'] tracking-widest uppercase mb-4 relative z-10">
           Valoración de <span className="text-white">{data.playerName}</span>
         </p>
         
         <div className="relative z-10 inline-block">
-          <h2 className="text-5xl md:text-8xl font-['Lilita_One'] tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-[#FDE047] via-[#FBBF24] to-[#B45309] drop-shadow-[0_4px_10px_rgba(251,191,36,0.4)]">
+          <h2 className="text-6xl md:text-[120px] leading-none font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-2deg]">
             {data.gemEquivalent.toLocaleString()}
           </h2>
         </div>
         
-        <div className="bg-[var(--color-brawl-dark)]/50 border border-white/10 rounded-full px-6 py-2 inline-flex items-center gap-2 mt-6 relative z-10">
-          <span className="text-xl">💎</span>
-          <span className="text-slate-300 font-semibold font-['Inter']">{t('gemEquivalent')}</span>
+        <div className="bg-[var(--color-brawl-gold)] border-4 border-black rounded-full px-6 py-2 inline-flex items-center gap-2 mt-8 relative z-10 shadow-[0_4px_0_0_rgba(18,26,47,1)] transform rotate-[2deg] animate-float">
+          <GemIcon className="w-8 h-8" />
+          <span className="text-black font-[900] uppercase font-['Lilita_One'] text-xl">{t('gemEquivalent')}</span>
         </div>
       </div>
 
@@ -76,8 +79,8 @@ export default function OverviewPage() {
       <BreakdownGrid breakdown={data.breakdown} />
       
       {/* Ad Placeholder to prevent CLS */}
-      <div className="w-full min-h-[250px] mt-8 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center border-dashed">
-        <p className="text-slate-600 text-sm italic">Ad Space Reservation</p>
+      <div className="w-full min-h-[250px] mt-8 bg-[var(--color-brawl-dark)]/50 border-4 border-[var(--color-brawl-dark)] rounded-2xl flex items-center justify-center border-dashed">
+        <p className="text-white/50 font-['Lilita_One'] text-xl">ESPACIO PUBLICITARIO</p>
       </div>
     </div>
   )

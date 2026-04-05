@@ -1,79 +1,103 @@
-import type { PlayerData, GemScore, BrawlerStat, PlayerTag } from './types'
+import type { PlayerData, GemScore, BrawlerStat, RarityMap, PlayerTag } from './types'
+import {
+  GEM_DIVISOR,
+  RARITY_BASE_VALUE,
+  POWER_LEVEL_GEM_COST,
+  ENHANCE_VALUES,
+  PRESTIGE_REWARDS,
+  BASE_COEFFICIENTS,
+  BRAWLER_RARITY_MAP,
+} from './constants'
 
-export function calculateValue(playerData: PlayerData): GemScore {
-  let baseValue = 0
-  let assetsValue = 0
-  let enhanceValue = 0
-  let eliteValue = 0
+function calcBaseVector(player: PlayerData) {
+  const trophies = Math.floor(player.trophies * BASE_COEFFICIENTS.trophies)
+  const victories3vs3 = Math.floor(player['3vs3Victories'] * BASE_COEFFICIENTS.victories3vs3)
+  return { trophies, victories3vs3, value: trophies + victories3vs3 }
+}
 
-  let vBaseTrophies = 0
-  let vBaseVictories = 0
-  
-  let gadgetsCount = 0
-  let starPowersCount = 0
-  let hyperChargesCount = 0
-  let buffiesCount = 0
+function calcPrestigeReward(brawler: BrawlerStat): number {
+  const level = brawler.prestigeLevel > 0
+    ? brawler.prestigeLevel
+    : brawler.highestTrophies >= 3000 ? 3
+    : brawler.highestTrophies >= 2000 ? 2
+    : brawler.highestTrophies >= 1000 ? 1
+    : 0
 
-  let prestige1Count = 0
-  let prestige2Count = 0
-  let prestige3Count = 0
+  return PRESTIGE_REWARDS[level] ?? 0
+}
 
-  // 1. Base Logic
-  vBaseTrophies = Math.floor(playerData.trophies * 0.02)
-  vBaseVictories = Math.floor(playerData['3vs3Victories'] * 0.08)
-  baseValue = vBaseTrophies + vBaseVictories
+function calcAssetsVector(brawlers: BrawlerStat[], rarityMap: RarityMap) {
+  let value = 0
+  for (const b of brawlers) {
+    const rarityName = rarityMap[b.id] ?? 'Trophy Road'
+    const rarityBase = RARITY_BASE_VALUE[rarityName]
+    const powerGemCost = POWER_LEVEL_GEM_COST[b.power] ?? 0
+    // Asset value = rarity base + actual gem investment in upgrades
+    value += rarityBase + powerGemCost
+  }
+  return { brawlerCount: brawlers.length, value }
+}
 
-  // Iterating through Brawlers
-  for (const brawler of playerData.brawlers) {
-    // 2. Assets 
-    const isLegendary = ['Spike', 'Crow', 'Leon', 'Sandy', 'Amber', 'Meg'].includes(brawler.name.value) // Very simplified mapping for test mock
-    const rarityBase = isLegendary ? 500 : 100 // Test values
-    const powerLevelMultiplier = brawler.power * 0.1
-    assetsValue += Math.floor(rarityBase * powerLevelMultiplier)
+function calcEnhanceVector(brawlers: BrawlerStat[]) {
+  let gadgets = 0
+  let starPowers = 0
+  let hypercharges = 0
+  let buffies = 0
+  let value = 0
 
-    // 3. Enhance
-    gadgetsCount += brawler.gadgets.length
-    starPowersCount += brawler.starPowers.length
-    hyperChargesCount += brawler.hyperCharges?.length || 0
-    if (brawler.buffies) {
-      buffiesCount += Object.keys(brawler.buffies).length
+  for (const b of brawlers) {
+    gadgets += b.gadgets.length
+    starPowers += b.starPowers.length
+    hypercharges += b.hyperCharges.length
+
+    value += b.gadgets.length * ENHANCE_VALUES.gadget
+    value += b.starPowers.length * ENHANCE_VALUES.starPower
+    value += b.hyperCharges.length * ENHANCE_VALUES.hypercharge
+
+    // Buffies: real data from API (3 booleans)
+    if (b.buffies) {
+      const count = [b.buffies.gadget, b.buffies.starPower, b.buffies.hyperCharge].filter(Boolean).length
+      buffies += count
+      value += count * ENHANCE_VALUES.buffie
     }
-
-    // 4. Elite
-    if (brawler.highestTrophies >= 1000) prestige1Count++
-    if (brawler.highestTrophies >= 2000) prestige2Count++
-    if (brawler.highestTrophies >= 3000) prestige3Count++
   }
 
-  enhanceValue = (gadgetsCount * 200) + (starPowersCount * 400) + (hyperChargesCount * 1200) + (buffiesCount * 2000)
-  eliteValue = (prestige1Count * 10000) + (prestige2Count * 25000) + (prestige3Count * 75000)
+  return { gadgets, starPowers, hypercharges, buffies, value }
+}
 
-  const totalScore = baseValue + assetsValue + enhanceValue + eliteValue
-  const gemEquivalent = Math.floor(totalScore / 50)
+function calcEliteVector(brawlers: BrawlerStat[]) {
+  let prestige1 = 0
+  let prestige2 = 0
+  let prestige3 = 0
+  let value = 0
+
+  for (const b of brawlers) {
+    const reward = calcPrestigeReward(b)
+    if (reward === PRESTIGE_REWARDS[3]) prestige3++
+    else if (reward === PRESTIGE_REWARDS[2]) prestige2++
+    else if (reward === PRESTIGE_REWARDS[1]) prestige1++
+    value += reward
+  }
+
+  return { prestige1, prestige2, prestige3, value }
+}
+
+export function calculateValue(playerData: PlayerData, rarityMap: RarityMap = BRAWLER_RARITY_MAP): GemScore {
+  const base = calcBaseVector(playerData)
+  const assets = calcAssetsVector(playerData.brawlers, rarityMap)
+  const enhance = calcEnhanceVector(playerData.brawlers)
+  const elite = calcEliteVector(playerData.brawlers)
+
+  const totalScore = base.value + assets.value + enhance.value + elite.value
+  const gemEquivalent = Math.floor(totalScore / GEM_DIVISOR)
 
   return {
     playerTag: playerData.tag as PlayerTag,
     playerName: playerData.name,
     gemEquivalent,
     totalScore,
-    breakdown: {
-      base: { trophies: vBaseTrophies, victories3vs3: vBaseVictories, value: baseValue },
-      assets: { brawlerCount: playerData.brawlers.length, value: assetsValue },
-      enhance: {
-        gadgets: gadgetsCount,
-        starPowers: starPowersCount,
-        hypercharges: hyperChargesCount,
-        buffies: buffiesCount,
-        value: enhanceValue
-      },
-      elite: {
-        prestige1: prestige1Count,
-        prestige2: prestige2Count,
-        prestige3: prestige3Count,
-        value: eliteValue
-      }
-    },
+    breakdown: { base, assets, enhance, elite },
     timestamp: new Date(),
-    cached: false
+    cached: false,
   }
 }

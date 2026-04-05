@@ -1,4 +1,4 @@
-import { PLAYER_TAG_REGEX, LOADING_MESSAGES } from './constants'
+import { PLAYER_TAG_REGEX } from './constants'
 
 export function isValidPlayerTag(tag: string): boolean {
   return PLAYER_TAG_REGEX.test(tag)
@@ -17,10 +17,6 @@ export function formatTrophies(num: number): string {
   return num.toLocaleString('en-US')
 }
 
-export function getLoadingMessage(): string {
-  const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length)
-  return LOADING_MESSAGES[randomIndex]
-}
 
 export class ApiErrorObj extends Error {
   constructor(public code: number, message: string) {

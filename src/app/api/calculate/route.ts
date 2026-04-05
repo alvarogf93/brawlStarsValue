@@ -1,57 +1,42 @@
 import { NextResponse } from 'next/server'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
-
-// Mock data to simulate API response for MVP
-const MOCK_GEM_SCORE = {
-  playerTag: '#2P0Q8C2C0',
-  playerName: 'CyberBrawler',
-  gemEquivalent: 15420,
-  totalScore: 771000,
-  breakdown: {
-    base: { trophies: 7000, victories3vs3: 840, value: 7840 },
-    assets: { brawlerCount: 65, value: 250000 },
-    enhance: { 
-      gadgets: 80, 
-      starPowers: 60, 
-      hypercharges: 10, 
-      buffies: 5, 
-      value: 13160 },
-    elite: { 
-      prestige1: 20, 
-      prestige2: 5, 
-      prestige3: 1, 
-      value: 500000 }
-  },
-  timestamp: new Date().toISOString(),
-  cached: false
-}
+import { fetchPlayer, SuprecellApiError } from '@/lib/api'
+import { calculateValue } from '@/lib/calculate'
 
 export async function POST(req: Request) {
   try {
-    const { playerTag } = await req.json()
+    const body = await req.json()
+    const { playerTag } = body
 
-    if (!playerTag || !PLAYER_TAG_REGEX.test(playerTag)) {
+    if (!playerTag || typeof playerTag !== 'string' || !PLAYER_TAG_REGEX.test(playerTag)) {
       return NextResponse.json(
-        { error: 'Invalid format', code: 400 },
-        { status: 400 }
+        { error: 'Invalid player tag format', code: 400 },
+        { status: 400 },
       )
     }
 
-    // Since we are mocking, we won't actually wait to prevent LCP issues.
-    // The design specifies LCP < 2.5s, so respond immediately.
-    
-    // Customize mock slightly to reflect input tag
-    const result = {
-      ...MOCK_GEM_SCORE,
-      playerTag: playerTag.toUpperCase()
+    const playerData = await fetchPlayer(playerTag)
+    const result = calculateValue(playerData)
+
+    return NextResponse.json({
+      ...result,
+      timestamp: result.timestamp.toISOString(),
+    })
+  } catch (error) {
+    if (error instanceof SuprecellApiError) {
+      const messages: Record<number, string> = {
+        403: 'API access denied — key or IP not whitelisted',
+        404: 'Player not found',
+        429: 'Rate limit exceeded, try again later',
+        503: 'Brawl Stars servers under maintenance',
+      }
+      return NextResponse.json(
+        { error: messages[error.status] ?? error.message, code: error.status },
+        { status: error.status },
+      )
     }
 
-    return NextResponse.json(result)
-
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Server error', code: 500 },
-      { status: 500 }
-    )
+    const message = error instanceof Error ? error.message : 'Internal server error'
+    return NextResponse.json({ error: message, code: 500 }, { status: 500 })
   }
 }
