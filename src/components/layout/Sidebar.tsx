@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Users, BarChart3, Share2, Package } from 'lucide-react'
+import { LayoutDashboard, Users, Swords, BarChart3, Share2 } from 'lucide-react'
 
 interface SidebarProps {
   tag: string
@@ -20,6 +20,7 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
   const NAV_ITEMS = [
     { key: 'overview', path: '', icon: <LayoutDashboard className="w-5 h-5" /> },
     { key: 'brawlers', path: '/brawlers', icon: <Users className="w-5 h-5" /> },
+    { key: 'battles', path: '/battles', icon: <Swords className="w-5 h-5" /> },
     { key: 'stats', path: '/stats', icon: <BarChart3 className="w-5 h-5" /> },
     { key: 'share', path: '/share', icon: <Share2 className="w-5 h-5" /> },
   ] as const

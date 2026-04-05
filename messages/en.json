@@ -11,9 +11,19 @@
   "nav": {
     "overview": "Overview",
     "brawlers": "Brawlers",
+    "battles": "Battles",
     "stats": "Stats",
     "share": "Share",
     "leaderboard": "Leaderboard"
+  },
+  "battles": {
+    "title": "RECENT BATTLES",
+    "subtitle": "Last {count} battles",
+    "winRate": "Win Rate",
+    "record": "W/L Record",
+    "favMode": "Favourite Mode",
+    "favBrawler": "Favourite Brawler",
+    "trophyChange": "Trophy Change (recent)"
   },
   "profile": {
     "gemEquivalent": "Gem Equivalent",

@@ -11,9 +11,19 @@
   "nav": {
     "overview": "Vista General",
     "brawlers": "Brawlers",
+    "battles": "Batallas",
     "stats": "Estadísticas",
     "share": "Compartir",
     "leaderboard": "Clasificación"
+  },
+  "battles": {
+    "title": "BATALLAS RECIENTES",
+    "subtitle": "Últimas {count} batallas",
+    "winRate": "Ratio de Victoria",
+    "record": "Registro W/L",
+    "favMode": "Modo Favorito",
+    "favBrawler": "Brawler Favorito",
+    "trophyChange": "Cambio de Trofeos (reciente)"
   },
   "profile": {
     "gemEquivalent": "Gemas Equivalentes",
