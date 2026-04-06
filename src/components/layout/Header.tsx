@@ -56,9 +56,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
         )}
       </div>
       <div className="flex gap-2 items-center">
-        <Link href={`/${locale}/leaderboard`} className="brawl-button px-3 py-2 flex items-center gap-2 text-sm">
-          🏆 <span className="hidden sm:inline-block">RANKING</span>
-        </Link>
         {playerTag && (
           <button
             onClick={handleSync}
@@ -69,6 +66,9 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
           </button>
         )}
+        <Link href={`/${locale}/leaderboard`} className="brawl-button px-3 py-2 flex items-center gap-2 text-sm">
+          🏆 <span className="hidden sm:inline-block">RANKING</span>
+        </Link>
         <LocaleSwitcher />
         {playerTag && (
           <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-400 transition-colors rounded-xl hover:bg-white/5" title="Logout">
