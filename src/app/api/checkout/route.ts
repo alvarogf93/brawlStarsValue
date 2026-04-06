@@ -15,8 +15,8 @@ export async function POST(request: Request) {
   const body = await request.json()
   const interval = body.interval as string
 
-  if (interval !== 'monthly' && interval !== 'yearly') {
-    return NextResponse.json({ error: 'interval must be "monthly" or "yearly"' }, { status: 400 })
+  if (!['monthly', 'quarterly', 'yearly'].includes(interval)) {
+    return NextResponse.json({ error: 'interval must be "monthly", "quarterly", or "yearly"' }, { status: 400 })
   }
 
   const { data: profile } = await supabase
@@ -33,9 +33,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Already premium' }, { status: 409 })
   }
 
-  const variantId = interval === 'monthly'
-    ? process.env.LEMONSQUEEZY_VARIANT_MONTHLY!
-    : process.env.LEMONSQUEEZY_VARIANT_YEARLY!
+  const variantMap: Record<string, string | undefined> = {
+    monthly: process.env.LEMONSQUEEZY_VARIANT_MONTHLY,
+    quarterly: process.env.LEMONSQUEEZY_VARIANT_QUARTERLY,
+    yearly: process.env.LEMONSQUEEZY_VARIANT_YEARLY,
+  }
+  const variantId = variantMap[interval]
+  if (!variantId) {
+    return NextResponse.json({ error: 'Plan not configured' }, { status: 500 })
+  }
 
   const { origin } = new URL(request.url)
   const redirectUrl = `${origin}/profile/${encodeURIComponent(profile.player_tag)}?upgraded=true`
