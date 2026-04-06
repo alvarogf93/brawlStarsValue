@@ -1,8 +1,8 @@
-# BrawlValue Premium — Battle Analytics Platform
+# BrawlVision Premium — Battle Analytics Platform
 
 ## Vision
 
-BrawlValue evolves from a "gem calculator" into a **combat analytics platform** for Brawl Stars. The gem value calculator remains the free hook. The paid product is an unlimited battle history with deep analytics: win rates by brawler/mode/map, best teammates, opponent data, and temporal evolution.
+BrawlVision evolves from a "gem calculator" into a **combat analytics platform** for Brawl Stars. The gem value calculator remains the free hook. The paid product is an unlimited battle history with deep analytics: win rates by brawler/mode/map, best teammates, opponent data, and temporal evolution.
 
 ## Business Model
 
