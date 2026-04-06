@@ -89,6 +89,7 @@ export function parseBattle(entry: BattlelogEntry, playerTag: string): BattleIns
   return {
     player_tag: playerTag,
     battle_time: parseBattleTime(entry.battleTime),
+    event_id: entry.event.id ?? null,
     mode,
     map,
     result: battle.result,

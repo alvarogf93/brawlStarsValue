@@ -1,11 +1,16 @@
 import { useTranslations } from 'next-intl'
 import { InputForm } from '@/components/landing/InputForm'
+import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 
 export default function LandingPage() {
   const t = useTranslations('landing')
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Language selector */}
+      <div className="absolute top-4 right-4 z-50">
+        <LocaleSwitcher />
+      </div>
       <main className="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden">
         <div className="text-center brawl-card p-10 max-w-[500px] w-full animate-fade-in relative z-10">
           <div className="mb-6 flex justify-center">

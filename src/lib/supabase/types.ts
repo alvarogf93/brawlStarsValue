@@ -73,6 +73,7 @@ export interface Battle {
   id: number
   player_tag: string
   battle_time: string
+  event_id: number | null
   mode: string
   map: string | null
   result: 'victory' | 'defeat' | 'draw'
@@ -88,6 +89,7 @@ export interface Battle {
 export interface BattleInsert {
   player_tag: string
   battle_time: string
+  event_id: number | null
   mode: string
   map: string | null
   result: 'victory' | 'defeat' | 'draw'

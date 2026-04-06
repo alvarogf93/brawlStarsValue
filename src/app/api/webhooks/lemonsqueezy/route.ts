@@ -32,7 +32,12 @@ export async function POST(request: Request) {
   }
 
   // 3. Parse event
-  const payload = JSON.parse(rawBody)
+  let payload
+  try {
+    payload = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
   const event = parseWebhookEvent(payload)
 
   if (!event) {

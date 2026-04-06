@@ -2,7 +2,7 @@
 
 import Script from 'next/script'
 import { useAuth } from '@/hooks/useAuth'
-import { isPremium } from '@/lib/auth'
+import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
 
 export function AdSenseScript() {

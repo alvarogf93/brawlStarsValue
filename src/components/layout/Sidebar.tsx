@@ -105,7 +105,7 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
         {/* BrawlVision branding footer */}
         <div className="p-4 shrink-0">
           <div className="w-full rounded-2xl border-4 border-[#0F172A] bg-gradient-to-r from-[#1C5CF1] to-[#121A2F] px-4 py-3 flex flex-col items-center justify-center overflow-hidden shadow-[0_3px_0_0_rgba(18,26,47,1)]">
-            <span className="font-['Lilita_One'] text-lg text-[var(--color-brawl-gold)] text-stroke-brawl tracking-wide transform rotate-[-1deg]">BrawlVision</span>
+            <span className="font-['Lilita_One'] text-xl text-[var(--color-brawl-gold)] text-stroke-brawl-brand tracking-wider transform rotate-[-1deg]">BrawlVision</span>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">combat analytics</span>
           </div>
         </div>

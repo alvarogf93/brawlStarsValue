@@ -12,9 +12,17 @@ export function InputForm() {
   const locale = useLocale()
   const router = useRouter()
 
-  const [tag, setTag] = useState('')
+  const [tag, setTag] = useState('#')
   const [error, setError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  /** Keep # prefix fixed, strip duplicates, uppercase */
+  const handleTagChange = (raw: string) => {
+    // Remove all # then re-add one at the start
+    const stripped = raw.replace(/#/g, '').toUpperCase()
+    setTag('#' + stripped)
+    setError(false)
+  }
 
   // Auto-redirect if user already saved
   useEffect(() => {
@@ -37,11 +45,7 @@ export function InputForm() {
     setError(false)
     setIsLoading(true)
 
-    // Format tag (uppercase and ensure #)
-    let formattedTag = tag.toUpperCase().trim()
-    if (!formattedTag.startsWith('#')) {
-      formattedTag = '#' + formattedTag
-    }
+    const formattedTag = tag.trim()
 
     // Persist user tag
     try { localStorage.setItem(STORAGE_KEY, formattedTag) } catch { /* ignore */ }
@@ -56,10 +60,7 @@ export function InputForm() {
         <input 
           type="text" 
           value={tag}
-          onChange={(e) => {
-            setTag(e.target.value)
-            setError(false)
-          }}
+          onChange={(e) => handleTagChange(e.target.value)}
           placeholder={t('placeholder')} 
           disabled={isLoading}
           className={`w-full h-16 bg-white border-4 ${error ? 'border-red-500' : 'border-[var(--color-brawl-dark)]'} rounded-xl px-4 text-2xl outline-none text-center font-['Lilita_One'] placeholder:font-['Inter'] placeholder:text-slate-400 placeholder:text-base text-[var(--color-brawl-dark)] shadow-[3px_4px_0_0_rgba(18,26,47,1)] transition-transform focus:scale-[1.02] disabled:opacity-50`}
@@ -73,7 +74,7 @@ export function InputForm() {
       
       <button 
         type="submit"
-        disabled={isLoading || !tag}
+        disabled={isLoading || tag.length < 2}
         className={`mt-2 w-full h-16 brawl-button text-2xl relative overflow-hidden flex items-center justify-center`}
       >
         <span className={`${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity`}>

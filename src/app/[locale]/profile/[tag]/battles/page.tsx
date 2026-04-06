@@ -7,7 +7,7 @@ import { TrophyChart } from '@/components/battles/TrophyChart'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
 import { useAuth } from '@/hooks/useAuth'
-import { isPremium } from '@/lib/auth'
+import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
 
 const MODE_ICONS: Record<string, string> = {

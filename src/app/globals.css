@@ -77,7 +77,14 @@ body {
 
 .text-stroke-brawl {
   -webkit-text-stroke: 2px #121A2F;
-  text-shadow: 0 2px 0 #121A2F;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 0 #121A2F, 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.text-stroke-brawl-brand {
+  -webkit-text-stroke: 3px #121A2F;
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 #121A2F, 0 4px 8px rgba(0,0,0,0.5);
 }
 
 .brawl-button {

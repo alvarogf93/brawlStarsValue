@@ -62,3 +62,7 @@ export function handleApiError(error: unknown): ApiErrorObj {
 export function getBrawlerPortraitUrl(id: number): string {
   return `https://cdn.brawlify.com/brawlers/borders/${id}.png`
 }
+
+export function getMapImageUrl(eventId: number): string {
+  return `https://cdn.brawlify.com/maps/regular/${eventId}.png`
+}

@@ -1,15 +1,21 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import { isPremium } from '@/lib/premium'
+import type { Profile } from '@/lib/supabase/types'
 
 const ADSENSE_PUB_ID = 'ca-pub-6838192381842255'
 
 export function AdPlaceholder({ className = '' }: { className?: string }) {
+  const { profile } = useAuth()
   const adRef = useRef<HTMLModElement>(null)
   const pushed = useRef(false)
 
+  const hasPremium = isPremium(profile as Profile | null)
+
   useEffect(() => {
-    if (!ADSENSE_PUB_ID || pushed.current) return
+    if (!ADSENSE_PUB_ID || pushed.current || hasPremium) return
     try {
       ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
       pushed.current = true
@@ -17,6 +23,8 @@ export function AdPlaceholder({ className = '' }: { className?: string }) {
       // AdSense not loaded yet or blocked
     }
   }, [])
+
+  if (hasPremium) return null
 
   if (!ADSENSE_PUB_ID) {
     return (

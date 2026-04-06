@@ -182,7 +182,7 @@ export default function ComparePage() {
   const { data: p1Battles } = useBattlelog(tag)
 
   const vsParam = searchParams.get('vs') || ''
-  const [opponentInput, setOpponentInput] = useState(vsParam)
+  const [opponentInput, setOpponentInput] = useState(vsParam || '#')
   const [autoTriggered, setAutoTriggered] = useState(false)
   const [inputError, setInputError] = useState<string | null>(null)
   const [opponentData, setOpponentData] = useState<GemScore | null>(null)
@@ -341,7 +341,8 @@ export default function ComparePage() {
               type="text"
               value={opponentInput}
               onChange={(e) => {
-                setOpponentInput(e.target.value)
+                const stripped = e.target.value.replace(/#/g, '').toUpperCase()
+                setOpponentInput('#' + stripped)
                 setInputError(null)
               }}
               placeholder="#2P0Q8C2C0"
