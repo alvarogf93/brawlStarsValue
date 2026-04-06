@@ -22,7 +22,8 @@
     "logout": "Sair",
     "login": "Entrar",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Última sinc."
   },
   "battles": {
     "title": "BATALHAS RECENTES",

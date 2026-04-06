@@ -22,7 +22,8 @@
     "logout": "Wyloguj",
     "login": "Zaloguj",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Ostatnia synch."
   },
   "battles": {
     "title": "OSTATNIE BITWY",

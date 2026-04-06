@@ -22,7 +22,8 @@
     "logout": "Выход",
     "login": "Войти",
     "upgrade": "Премиум",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Послед. синхр."
   },
   "battles": {
     "title": "НЕДАВНИЕ БИТВЫ",

@@ -22,7 +22,8 @@
     "logout": "تسجيل الخروج",
     "login": "تسجيل الدخول",
     "upgrade": "بريميوم",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "آخر مزامنة"
   },
   "battles": {
     "title": "المعارك الأخيرة",

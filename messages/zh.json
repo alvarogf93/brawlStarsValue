@@ -22,7 +22,8 @@
     "logout": "退出",
     "login": "登录",
     "upgrade": "高级版",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "上次同步"
   },
   "battles": {
     "title": "最近战斗",

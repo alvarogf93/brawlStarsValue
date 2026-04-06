@@ -6,8 +6,19 @@ import { useLocale, useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
+import { isPremium } from '@/lib/auth'
+import type { Profile } from '@/lib/supabase/types'
 import { Menu, LogOut, RefreshCw, User, Crown } from 'lucide-react'
 import Link from 'next/link'
+
+function formatTimeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return '<1 min'
+  if (mins < 60) return `${mins} min`
+  const hours = Math.floor(mins / 60)
+  return `${hours}h ${mins % 60}m`
+}
 
 interface HeaderProps {
   playerTag?: string
@@ -23,8 +34,17 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   const [syncing, setSyncing] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
-  const handleSync = () => {
+  const handleSync = async () => {
     setSyncing(true)
+
+    // Premium: call sync API first
+    if (user && profile && isPremium(profile as Profile)) {
+      try {
+        await fetch('/api/sync', { method: 'POST' })
+      } catch { /* ignore */ }
+    }
+
+    // Always clear local cache
     try {
       const keysToKeep = ['brawlvalue:user']
       const keysToKeepPrefixes = ['brawlvalue:skins:']
@@ -59,6 +79,11 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           {playerTag && (
             <span className="text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white hidden sm:inline-block ml-2 drop-shadow-[0_2px_0_rgba(18,26,47,1)]">
               {playerTag}
+            </span>
+          )}
+          {!loading && user && isPremium(profile as Profile) && profile?.last_sync && (
+            <span className="text-[10px] text-slate-500 font-semibold hidden md:inline-block">
+              {t('lastSync')}: {formatTimeAgo(profile.last_sync)}
             </span>
           )}
         </div>

@@ -22,7 +22,8 @@
     "logout": "Salir",
     "login": "Login",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Última sincr."
   },
   "battles": {
     "title": "BATALLAS RECIENTES",

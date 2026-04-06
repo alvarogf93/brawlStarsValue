@@ -22,7 +22,8 @@
     "logout": "Logout",
     "login": "Login",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Last sync"
   },
   "battles": {
     "title": "RECENT BATTLES",

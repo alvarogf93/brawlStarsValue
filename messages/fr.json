@@ -22,7 +22,8 @@
     "logout": "Déconnexion",
     "login": "Connexion",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Dernière synchro."
   },
   "battles": {
     "title": "COMBATS RÉCENTS",

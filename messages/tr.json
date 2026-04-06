@@ -22,7 +22,8 @@
     "logout": "Çıkış",
     "login": "Giris",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Son senk."
   },
   "battles": {
     "title": "SON SAVAŞLAR",

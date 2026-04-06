@@ -22,7 +22,8 @@
     "logout": "Abmelden",
     "login": "Anmelden",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Letzte Synch."
   },
   "battles": {
     "title": "LETZTE KÄMPFE",

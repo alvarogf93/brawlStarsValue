@@ -22,7 +22,8 @@
     "logout": "Esci",
     "login": "Accedi",
     "upgrade": "Premium",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "lastSync": "Ultima sinc."
   },
   "battles": {
     "title": "BATTAGLIE RECENTI",
