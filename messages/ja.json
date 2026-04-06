@@ -245,5 +245,19 @@
     "disclaimer": "登録することで、プライバシーポリシーに同意します。",
     "login": "ログイン",
     "upgrade": "プレミアム"
+  },
+  "premium": {
+    "title": "BrawlVision プレミアム",
+    "subtitle": "無制限バトル分析",
+    "featureHistory": "無制限履歴",
+    "featureAnalytics": "詳細勝率",
+    "featureTeammates": "チームメイト分析",
+    "monthly": "$2.99/月",
+    "yearly": "$19.99/年 (44%お得)",
+    "ageNotice": "購入には18歳以上が必要です。",
+    "activePlan": "プレミアムプラン有効",
+    "activeNotice": "サブスクリプションは自動更新されます。",
+    "cancelledNotice": "キャンセルされましたが期間終了まで有効です。",
+    "manage": "管理"
   }
 }

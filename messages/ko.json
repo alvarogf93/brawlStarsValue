@@ -245,5 +245,19 @@
     "disclaimer": "가입하면 개인정보 보호정책에 동의하게 됩니다.",
     "login": "로그인",
     "upgrade": "프리미엄"
+  },
+  "premium": {
+    "title": "BrawlVision 프리미엄",
+    "subtitle": "무제한 전투 분석",
+    "featureHistory": "무제한 기록",
+    "featureAnalytics": "상세 승률",
+    "featureTeammates": "팀원 분석",
+    "monthly": "$2.99/월",
+    "yearly": "$19.99/년 (44% 절약)",
+    "ageNotice": "구매하려면 18세 이상이어야 합니다.",
+    "activePlan": "프리미엄 플랜 활성",
+    "activeNotice": "구독이 자동 갱신됩니다.",
+    "cancelledNotice": "구독이 취소되었지만 기간 종료까지 활성입니다.",
+    "manage": "관리"
   }
 }

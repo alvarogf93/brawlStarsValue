@@ -100,7 +100,17 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           )}
           {!loading && user && profile?.tier === 'free' && (
             <button
-              onClick={() => {/* Plan 3: checkout redirect */}}
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ interval: 'monthly' }),
+                  })
+                  const data = await res.json()
+                  if (data.url) window.location.href = data.url
+                } catch { /* ignore */ }
+              }}
               className="flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-[#FFC91B] bg-[#FFC91B]/10 hover:bg-[#FFC91B]/20 rounded-xl transition-colors border border-[#FFC91B]/30"
             >
               <Crown className="w-4 h-4" />

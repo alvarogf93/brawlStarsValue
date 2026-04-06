@@ -245,5 +245,19 @@
     "disclaimer": "بالتسجيل، توافق على سياسة الخصوصية الخاصة بنا.",
     "login": "تسجيل الدخول",
     "upgrade": "بريميوم"
+  },
+  "premium": {
+    "title": "BrawlVision بريميوم",
+    "subtitle": "تحليلات قتال غير محدودة",
+    "featureHistory": "سجل غير محدود",
+    "featureAnalytics": "معدل فوز مفصل",
+    "featureTeammates": "تحليل زملاء الفريق",
+    "monthly": "$2.99/شهر",
+    "yearly": "$19.99/سنة (وفر 44%)",
+    "ageNotice": "يجب أن تكون 18+ للشراء.",
+    "activePlan": "خطة بريميوم نشطة",
+    "activeNotice": "يتم تجديد اشتراكك تلقائياً.",
+    "cancelledNotice": "تم إلغاء اشتراكك لكنه نشط حتى نهاية الفترة.",
+    "manage": "إدارة"
   }
 }

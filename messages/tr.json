@@ -245,5 +245,19 @@
     "disclaimer": "Kaydolarak Gizlilik Politikamizi kabul edersiniz.",
     "login": "Giris",
     "upgrade": "Premium"
+  },
+  "premium": {
+    "title": "BrawlVision Premium",
+    "subtitle": "Sinirsiz savas analitigi",
+    "featureHistory": "Sinirsiz gecmis",
+    "featureAnalytics": "Detayli kazanma oranlari",
+    "featureTeammates": "Takim arkadasi analizi",
+    "monthly": "$2.99/ay",
+    "yearly": "$19.99/yil (%44 tasarruf)",
+    "ageNotice": "Satin almak icin 18 yasinda olmalisiniz.",
+    "activePlan": "Premium plan aktif",
+    "activeNotice": "Aboneliginiz otomatik yenilenir.",
+    "cancelledNotice": "Aboneliginiz iptal edildi ama donem sonuna kadar aktif.",
+    "manage": "Yonet"
   }
 }

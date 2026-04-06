@@ -245,5 +245,19 @@
     "disclaimer": "Registrandoti, accetti la nostra Informativa sulla Privacy.",
     "login": "Accedi",
     "upgrade": "Premium"
+  },
+  "premium": {
+    "title": "BrawlVision Premium",
+    "subtitle": "Analisi di combattimento illimitata",
+    "featureHistory": "Storico illimitato",
+    "featureAnalytics": "Percentuali vittoria dettagliate",
+    "featureTeammates": "Analisi compagni",
+    "monthly": "2,99$/mese",
+    "yearly": "19,99$/anno (risparmia 44%)",
+    "ageNotice": "Devi avere 18+ o il consenso dei genitori per acquistare.",
+    "activePlan": "Piano Premium attivo",
+    "activeNotice": "Il tuo abbonamento si rinnova automaticamente.",
+    "cancelledNotice": "Il tuo abbonamento e cancellato ma attivo fino alla fine del periodo.",
+    "manage": "Gestisci"
   }
 }

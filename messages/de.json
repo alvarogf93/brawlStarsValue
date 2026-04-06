@@ -245,5 +245,19 @@
     "disclaimer": "Mit der Registrierung akzeptierst du unsere Datenschutzrichtlinie.",
     "login": "Anmelden",
     "upgrade": "Premium"
+  },
+  "premium": {
+    "title": "BrawlVision Premium",
+    "subtitle": "Unbegrenzte Kampfanalysen",
+    "featureHistory": "Unbegrenzter Verlauf",
+    "featureAnalytics": "Detaillierte Siegesraten",
+    "featureTeammates": "Teamkameraden-Analyse",
+    "monthly": "2,99$/Monat",
+    "yearly": "19,99$/Jahr (44% sparen)",
+    "ageNotice": "Sie muessen 18+ sein oder elterliche Zustimmung haben.",
+    "activePlan": "Premium-Plan aktiv",
+    "activeNotice": "Ihr Abo verlaengert sich automatisch.",
+    "cancelledNotice": "Ihr Abo ist gekuendigt aber bis Periodenende aktiv.",
+    "manage": "Verwalten"
   }
 }

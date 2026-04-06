@@ -112,6 +112,14 @@ export interface SyncQueueRow {
   created_at: string
 }
 
+// ── Webhook Events ──────────────────────────────────────
+
+export interface WebhookEvent {
+  event_id: string
+  event_type: string
+  processed_at: string
+}
+
 // ── Database ────────────────────────────────────────────
 
 export interface Database {
@@ -131,6 +139,11 @@ export interface Database {
         Row: SyncQueueRow
         Insert: { player_tag: string }
         Update: Partial<SyncQueueRow>
+      }
+      webhook_events: {
+        Row: WebhookEvent
+        Insert: { event_id: string; event_type: string }
+        Update: never
       }
     }
   }

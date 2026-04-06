@@ -245,5 +245,19 @@
     "disclaimer": "注册即表示您同意我们的隐私政策。",
     "login": "登录",
     "upgrade": "高级版"
+  },
+  "premium": {
+    "title": "BrawlVision 高级版",
+    "subtitle": "无限战斗分析",
+    "featureHistory": "无限历史",
+    "featureAnalytics": "详细胜率",
+    "featureTeammates": "队友分析",
+    "monthly": "$2.99/月",
+    "yearly": "$19.99/年 (节省44%)",
+    "ageNotice": "购买需年满18岁。",
+    "activePlan": "高级计划已激活",
+    "activeNotice": "您的订阅将自动续订。",
+    "cancelledNotice": "您的订阅已取消，但在期限结束前仍有效。",
+    "manage": "管理"
   }
 }

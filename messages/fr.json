@@ -245,5 +245,19 @@
     "disclaimer": "En vous inscrivant, vous acceptez notre Politique de Confidentialite.",
     "login": "Connexion",
     "upgrade": "Premium"
+  },
+  "premium": {
+    "title": "BrawlVision Premium",
+    "subtitle": "Analyses de combat illimitees",
+    "featureHistory": "Historique illimite",
+    "featureAnalytics": "Taux de victoire detailles",
+    "featureTeammates": "Analyse des coequipiers",
+    "monthly": "2,99$/mois",
+    "yearly": "19,99$/an (economisez 44%)",
+    "ageNotice": "Vous devez avoir 18 ans ou le consentement parental pour acheter.",
+    "activePlan": "Plan Premium actif",
+    "activeNotice": "Votre abonnement se renouvelle automatiquement.",
+    "cancelledNotice": "Votre abonnement est annule mais actif jusqu au fin de la periode.",
+    "manage": "Gerer"
   }
 }

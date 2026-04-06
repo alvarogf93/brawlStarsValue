@@ -1,0 +1,57 @@
+import { NextResponse } from 'next/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { verifyWebhookSignature, parseWebhookEvent, statusToTier } from '@/lib/lemonsqueezy'
+
+export async function POST(request: Request) {
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
+  if (!secret) {
+    console.error('LEMONSQUEEZY_WEBHOOK_SECRET not configured')
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
+
+  const rawBody = await request.text()
+  const signature = request.headers.get('X-Signature') ?? ''
+  const eventId = request.headers.get('X-Event-Id') ?? ''
+
+  // 1. Verify HMAC signature
+  if (!verifyWebhookSignature(rawBody, signature, secret)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+  }
+
+  const supabase = await createServiceClient()
+
+  // 2. Idempotency check
+  if (eventId) {
+    const { error: insertErr } = await supabase
+      .from('webhook_events')
+      .insert({ event_id: eventId, event_type: 'lemonsqueezy' })
+
+    if (insertErr?.code === '23505') {
+      return NextResponse.json({ ok: true, skipped: true })
+    }
+  }
+
+  // 3. Parse event
+  const payload = JSON.parse(rawBody)
+  const event = parseWebhookEvent(payload)
+
+  if (!event) {
+    return NextResponse.json({ error: 'Could not parse event' }, { status: 400 })
+  }
+
+  // 4. Update profile tier
+  const { tier, subscriptionStatus } = statusToTier(event.eventName, event.status)
+
+  await supabase
+    .from('profiles')
+    .update({
+      tier,
+      ls_customer_id: event.customerId,
+      ls_subscription_id: event.subscriptionId,
+      ls_subscription_status: subscriptionStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', event.profileId)
+
+  return NextResponse.json({ ok: true })
+}
