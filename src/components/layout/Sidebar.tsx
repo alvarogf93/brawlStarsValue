@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Swords, BarChart3, Shield, GitCompareArrows, Palette, Share2 } from 'lucide-react'
+import { LayoutDashboard, Users, Swords, BarChart3, Shield, GitCompareArrows, Palette, Share2, FlaskConical } from 'lucide-react'
 
 interface SidebarProps {
   tag: string
@@ -23,7 +23,9 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
     ] },
     { key: 'brawlers', path: '/brawlers', icon: <Users className="w-5 h-5" /> },
     { key: 'battles', path: '/battles', icon: <Swords className="w-5 h-5" /> },
-    { key: 'stats', path: '/stats', icon: <BarChart3 className="w-5 h-5" /> },
+    { key: 'stats', path: '/stats', icon: <BarChart3 className="w-5 h-5" />, sub: [
+      { key: 'analytics', path: '/analytics', icon: <FlaskConical className="w-4 h-4" /> },
+    ] },
     { key: 'club', path: '/club', icon: <Shield className="w-5 h-5" /> },
     { key: 'compare', path: '/compare', icon: <GitCompareArrows className="w-5 h-5" /> },
     { key: 'share', path: '/share', icon: <Share2 className="w-5 h-5" /> },
@@ -89,6 +91,9 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
                         {sub.icon}
                       </span>
                       <span>{t(sub.key)}</span>
+                      {sub.key === 'analytics' && (
+                        <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-[#FFC91B]/20 text-[#FFC91B] font-bold uppercase">PRO</span>
+                      )}
                     </Link>
                   )
                 })}
