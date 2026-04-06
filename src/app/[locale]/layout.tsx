@@ -1,9 +1,9 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
-import Script from 'next/script'
 import type { Metadata } from 'next'
 import { CookieConsent } from '@/components/ui/CookieConsent'
 import { AuthProvider } from '@/components/auth/AuthProvider'
+import { AdSenseScript } from '@/components/ads/AdSenseScript'
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -77,11 +77,7 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-screen">
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6838192381842255"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        <AdSenseScript />
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             {children}

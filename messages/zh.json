@@ -258,6 +258,42 @@
     "activePlan": "高级计划已激活",
     "activeNotice": "您的订阅将自动续订。",
     "cancelledNotice": "您的订阅已取消，但在期限结束前仍有效。",
-    "manage": "管理"
+    "manage": "管理",
+    "teaserTitle": "完整战斗历史",
+    "teaserSubtitle": "解锁无限历史 + 分析 $2.99/月起",
+    "upgradeButton": "激活高级版",
+    "registerButton": "创建免费账户"
+  },
+  "analytics": {
+    "title": "数据分析",
+    "loading": "加载中...",
+    "premiumOnly": "仅限高级版",
+    "winRateByMode": "按模式胜率",
+    "winRateByBrawler": "按英雄胜率",
+    "bestTeammates": "最佳队友",
+    "sortGames": "场次",
+    "sortWR": "胜率",
+    "games": "场",
+    "winRate": "胜率",
+    "trophies": "奖杯",
+    "battles": "战斗",
+    "totalBattles": "已分析 {count} 场战斗"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }

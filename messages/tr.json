@@ -258,6 +258,42 @@
     "activePlan": "Premium plan aktif",
     "activeNotice": "Aboneliginiz otomatik yenilenir.",
     "cancelledNotice": "Aboneliginiz iptal edildi ama donem sonuna kadar aktif.",
-    "manage": "Yonet"
+    "manage": "Yonet",
+    "teaserTitle": "Tam gecmis",
+    "teaserSubtitle": "Sinirsiz gecmis + analizler $2.99/ay",
+    "upgradeButton": "Premium Etkinlestir",
+    "registerButton": "Ucretsiz hesap olustur"
+  },
+  "analytics": {
+    "title": "Analitik",
+    "loading": "Yukleniyor...",
+    "premiumOnly": "Sadece Premium",
+    "winRateByMode": "Moda Gore Kazanma Orani",
+    "winRateByBrawler": "Brawler Gore Kazanma Orani",
+    "bestTeammates": "En Iyi Takim Arkadaslari",
+    "sortGames": "Oyunlar",
+    "sortWR": "Oran",
+    "games": "oyun",
+    "winRate": "Kazanma Orani",
+    "trophies": "Kupalar",
+    "battles": "Savaslar",
+    "totalBattles": "{count} savas analiz edildi"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }

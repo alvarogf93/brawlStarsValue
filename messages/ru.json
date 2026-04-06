@@ -258,6 +258,42 @@
     "activePlan": "Премиум-план активен",
     "activeNotice": "Ваша подписка продлевается автоматически.",
     "cancelledNotice": "Ваша подписка отменена, но активна до конца периода.",
-    "manage": "Управление"
+    "manage": "Управление",
+    "teaserTitle": "Полная история",
+    "teaserSubtitle": "Безлимитная история + аналитика от $2.99/мес",
+    "upgradeButton": "Активировать Премиум",
+    "registerButton": "Создать бесплатный аккаунт"
+  },
+  "analytics": {
+    "title": "Аналитика",
+    "loading": "Загрузка...",
+    "premiumOnly": "Только для Премиум",
+    "winRateByMode": "Винрейт по режиму",
+    "winRateByBrawler": "Винрейт по бравлеру",
+    "bestTeammates": "Лучшие тиммейты",
+    "sortGames": "Игры",
+    "sortWR": "Винрейт",
+    "games": "игр",
+    "winRate": "Винрейт",
+    "trophies": "Трофеи",
+    "battles": "Бои",
+    "totalBattles": "{count} боёв проанализировано"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }

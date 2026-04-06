@@ -5,6 +5,10 @@ import { useTranslations } from 'next-intl'
 import { useBattlelog } from '@/hooks/useBattlelog'
 import { TrophyChart } from '@/components/battles/TrophyChart'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
+import { useAuth } from '@/hooks/useAuth'
+import { isPremium } from '@/lib/auth'
+import type { Profile } from '@/lib/supabase/types'
 
 const MODE_ICONS: Record<string, string> = {
   brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀',
@@ -29,10 +33,12 @@ const RESULT_STYLES: Record<string, string> = {
 }
 
 export default function BattlesPage() {
-  const params = useParams<{ tag: string }>()
+  const params = useParams<{ tag: string; locale: string }>()
   const t = useTranslations('battles')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = useBattlelog(tag)
+  const { profile } = useAuth()
+  const hasPremium = isPremium(profile as Profile | null)
 
   if (isLoading) {
     return <div className="animate-pulse py-20 text-center"><p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p></div>
@@ -209,6 +215,24 @@ export default function BattlesPage() {
           )
         })}
       </div>
+
+      {/* Blurred teaser for non-premium users */}
+      {!hasPremium && (
+        <BlurredTeaser redirectTo={`/${params.locale}/profile/${params.tag}/battles`}>
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="p-4 rounded-xl border-2 bg-white/5 border-white/10 flex items-center gap-4">
+                <span className="text-2xl">🎮</span>
+                <div className="flex-1">
+                  <div className="h-4 bg-white/10 rounded w-32 mb-2" />
+                  <div className="h-3 bg-white/5 rounded w-20" />
+                </div>
+                <div className="h-4 bg-white/10 rounded w-16" />
+              </div>
+            ))}
+          </div>
+        </BlurredTeaser>
+      )}
 
       {/* Ad space */}
       <AdPlaceholder className="mb-8" />

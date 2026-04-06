@@ -258,6 +258,42 @@
     "activePlan": "プレミアムプラン有効",
     "activeNotice": "サブスクリプションは自動更新されます。",
     "cancelledNotice": "キャンセルされましたが期間終了まで有効です。",
-    "manage": "管理"
+    "manage": "管理",
+    "teaserTitle": "完全なバトル履歴",
+    "teaserSubtitle": "無制限履歴 + 分析 月$2.99から",
+    "upgradeButton": "プレミアム有効化",
+    "registerButton": "無料アカウント作成"
+  },
+  "analytics": {
+    "title": "アナリティクス",
+    "loading": "読み込み中...",
+    "premiumOnly": "プレミアム専用",
+    "winRateByMode": "モード別勝率",
+    "winRateByBrawler": "ブロウラー別勝率",
+    "bestTeammates": "ベストチームメイト",
+    "sortGames": "試合",
+    "sortWR": "勝率",
+    "games": "試合",
+    "winRate": "勝率",
+    "trophies": "トロフィー",
+    "battles": "バトル",
+    "totalBattles": "{count}バトル分析済み"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }

@@ -258,6 +258,42 @@
     "activePlan": "خطة بريميوم نشطة",
     "activeNotice": "يتم تجديد اشتراكك تلقائياً.",
     "cancelledNotice": "تم إلغاء اشتراكك لكنه نشط حتى نهاية الفترة.",
-    "manage": "إدارة"
+    "manage": "إدارة",
+    "teaserTitle": "السجل الكامل",
+    "teaserSubtitle": "سجل غير محدود + تحليلات من $2.99/شهر",
+    "upgradeButton": "تفعيل بريميوم",
+    "registerButton": "إنشاء حساب مجاني"
+  },
+  "analytics": {
+    "title": "التحليلات",
+    "loading": "جارِ التحميل...",
+    "premiumOnly": "حصري للبريميوم",
+    "winRateByMode": "معدل الفوز حسب الوضع",
+    "winRateByBrawler": "معدل الفوز حسب البطل",
+    "bestTeammates": "أفضل زملاء الفريق",
+    "sortGames": "مباريات",
+    "sortWR": "معدل",
+    "games": "مباريات",
+    "winRate": "معدل الفوز",
+    "trophies": "الكؤوس",
+    "battles": "المعارك",
+    "totalBattles": "{count} معارك محللة"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }

@@ -258,6 +258,42 @@
     "activePlan": "프리미엄 플랜 활성",
     "activeNotice": "구독이 자동 갱신됩니다.",
     "cancelledNotice": "구독이 취소되었지만 기간 종료까지 활성입니다.",
-    "manage": "관리"
+    "manage": "관리",
+    "teaserTitle": "전체 전투 기록",
+    "teaserSubtitle": "무제한 기록 + 분석 월 $2.99부터",
+    "upgradeButton": "프리미엄 활성화",
+    "registerButton": "무료 계정 만들기"
+  },
+  "analytics": {
+    "title": "분석",
+    "loading": "로딩 중...",
+    "premiumOnly": "프리미엄 전용",
+    "winRateByMode": "모드별 승률",
+    "winRateByBrawler": "브롤러별 승률",
+    "bestTeammates": "최고의 팀원",
+    "sortGames": "게임",
+    "sortWR": "승률",
+    "games": "게임",
+    "winRate": "승률",
+    "trophies": "트로피",
+    "battles": "전투",
+    "totalBattles": "{count}개 전투 분석됨"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }

@@ -258,6 +258,42 @@
     "activePlan": "Plan Premium activo",
     "activeNotice": "Tu suscripcion se renueva automaticamente.",
     "cancelledNotice": "Tu suscripcion esta cancelada pero activa hasta fin del periodo.",
-    "manage": "Gestionar"
+    "manage": "Gestionar",
+    "teaserTitle": "Historial completo",
+    "teaserSubtitle": "Desbloquea historial ilimitado + analytics desde $2.99/mes",
+    "upgradeButton": "Activar Premium",
+    "registerButton": "Crear cuenta gratis"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "loading": "Cargando analytics...",
+    "premiumOnly": "Exclusivo para Premium",
+    "winRateByMode": "Win Rate por Modo",
+    "winRateByBrawler": "Win Rate por Brawler",
+    "bestTeammates": "Mejores Companeros",
+    "sortGames": "Partidas",
+    "sortWR": "Win Rate",
+    "games": "partidas",
+    "winRate": "Win Rate",
+    "trophies": "Trofeos",
+    "battles": "Batallas",
+    "totalBattles": "{count} batallas analizadas"
+  },
+  "privacy": {
+    "title": "Politica de Privacidad",
+    "dataCollectedTitle": "Datos que recopilamos",
+    "dataTag": "Tu tag de jugador de Brawl Stars",
+    "dataBattles": "Historial de batallas (usuarios Premium)",
+    "dataEmail": "Email de tu cuenta Google (autenticacion)",
+    "thirdPartyTitle": "Datos de otros jugadores",
+    "thirdPartyBody": "Los datos de companeros y rivales provienen de la API publica de Supercell. Se almacenan para analytics agregados.",
+    "retentionTitle": "Retencion de datos",
+    "retentionBody": "Las batallas se conservan indefinidamente, incluso tras la cancelacion.",
+    "gdprTitle": "Derechos GDPR",
+    "gdprBody": "Solicita exportacion o eliminacion en privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "Usamos localStorage y cookies de Supabase Auth. AdSense usa cookies publicitarias para usuarios gratuitos.",
+    "disclaimerTitle": "Aviso legal",
+    "disclaimerBody": "BrawlVision no esta afiliado con Supercell Oy. Brawl Stars es marca registrada de Supercell."
   }
 }

@@ -258,6 +258,42 @@
     "activePlan": "Premium plan active",
     "activeNotice": "Your subscription renews automatically.",
     "cancelledNotice": "Your subscription is cancelled but active until end of period.",
-    "manage": "Manage"
+    "manage": "Manage",
+    "teaserTitle": "Full battle history",
+    "teaserSubtitle": "Unlock unlimited history + analytics from $2.99/mo",
+    "upgradeButton": "Activate Premium",
+    "registerButton": "Create free account"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "loading": "Loading analytics...",
+    "premiumOnly": "Premium exclusive",
+    "winRateByMode": "Win Rate by Mode",
+    "winRateByBrawler": "Win Rate by Brawler",
+    "bestTeammates": "Best Teammates",
+    "sortGames": "Games",
+    "sortWR": "Win Rate",
+    "games": "games",
+    "winRate": "Win Rate",
+    "trophies": "Trophies",
+    "battles": "Battles",
+    "totalBattles": "{count} battles analyzed"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "dataCollectedTitle": "Data we collect",
+    "dataTag": "Your Brawl Stars player tag",
+    "dataBattles": "Battle history (Premium users)",
+    "dataEmail": "Google account email (authentication)",
+    "thirdPartyTitle": "Third-party player data",
+    "thirdPartyBody": "Teammate and opponent data comes from Supercell public API for aggregate analytics.",
+    "retentionTitle": "Data retention",
+    "retentionBody": "Battles are preserved indefinitely, even after cancellation.",
+    "gdprTitle": "GDPR Rights",
+    "gdprBody": "Request data export or deletion at privacy@brawlvision.com.",
+    "cookiesTitle": "Cookies",
+    "cookiesBody": "We use localStorage and Supabase Auth cookies. AdSense sets ad cookies for free users.",
+    "disclaimerTitle": "Legal disclaimer",
+    "disclaimerBody": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   }
 }
