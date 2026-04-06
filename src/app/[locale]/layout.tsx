@@ -18,18 +18,11 @@ export const metadata: Metadata = {
     url: 'https://brawlvalue.com',
     title: 'BrawlValue - Brawl Stars Account Calculator',
     description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
-    images: [{
-      url: '/og-image.jpg',
-      width: 1200,
-      height: 630,
-      alt: 'BrawlValue Gem Calculator'
-    }]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'BrawlValue | Gem Score Calculator',
     description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
-    images: ['/og-image.jpg'],
   },
   alternates: {
     languages: {
