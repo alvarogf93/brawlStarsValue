@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select()
       .single()
 
-    setProfile((newProfile as Profile) ?? null)
+    setProfile(newProfile ? (newProfile as Profile) : null)
   }, [supabase])
 
   useEffect(() => {

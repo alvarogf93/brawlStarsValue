@@ -25,7 +25,7 @@ describe('Profile API', () => {
   describe('GET /api/profile', () => {
     it('returns 401 when not authenticated', async () => {
       mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(401)
     })
 
@@ -42,7 +42,7 @@ describe('Profile API', () => {
         }),
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data.player_tag).toBe('#TAG')
@@ -58,7 +58,7 @@ describe('Profile API', () => {
         }),
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(404)
     })
   })

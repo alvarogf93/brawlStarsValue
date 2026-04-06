@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Proyectos_Agentes/brawlValue/public/*.jpg /c/Proyectos_Agentes/brawlValue/public/*.png /c/Proyectos_Agentes/brawlValue/public/*.ico)",
+      "Bash(ls -la /c/Proyectos_Agentes/brawlValue/public/favicon*)",
+      "Bash(git push origin main)"
+    ]
+  }
+}

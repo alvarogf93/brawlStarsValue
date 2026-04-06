@@ -28,6 +28,12 @@ export interface ProfileInsert {
   id: string
   player_tag: string
   tier?: Tier
+  ls_customer_id?: string | null
+  ls_subscription_id?: string | null
+  ls_subscription_status?: SubscriptionStatus | null
+  last_sync?: string | null
+  created_at?: string
+  updated_at?: string
 }
 
 /** What the client sends when updating a profile */
