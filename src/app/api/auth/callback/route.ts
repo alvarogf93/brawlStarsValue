@@ -7,12 +7,16 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
+  console.log('[auth/callback] origin:', origin, '| code:', code ? 'present' : 'MISSING', '| next:', next)
+
   if (!code) {
-    console.error('[auth/callback] No code parameter received')
+    console.error('[auth/callback] No code parameter')
     return NextResponse.redirect(`${origin}${next}`)
   }
 
   const cookieStore = await cookies()
+  const allCookies = cookieStore.getAll()
+  console.log('[auth/callback] cookies received:', allCookies.map(c => c.name).join(', '))
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,7 +30,6 @@ export async function GET(request: Request) {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, {
               ...options,
-              // Ensure cookies work across the domain
               sameSite: 'lax',
               secure: true,
             })
@@ -36,12 +39,12 @@ export async function GET(request: Request) {
     }
   )
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
-    console.error('[auth/callback] exchangeCodeForSession failed:', error.message)
-    // Don't redirect to error page — redirect back and let user retry
-    return NextResponse.redirect(`${origin}${next}`)
+    console.error('[auth/callback] EXCHANGE FAILED:', error.message, '| code:', error.code, '| status:', error.status)
+  } else {
+    console.log('[auth/callback] SUCCESS — user:', data.user?.email, '| session:', data.session?.access_token ? 'valid' : 'missing')
   }
 
   return NextResponse.redirect(`${origin}${next}`)
