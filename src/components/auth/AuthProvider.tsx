@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
     setUser(null)
     setProfile(null)
+    try { localStorage.removeItem('brawlvalue:user') } catch { /* ignore */ }
   }, [supabase])
 
   const value: AuthState = { user, profile, loading, signIn, signOut }
