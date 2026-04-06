@@ -140,11 +140,13 @@ function Tooltip({
   x,
   y,
   chartWidth,
+  t,
 }: {
   point: DataPoint
   x: number
   y: number
   chartWidth: number
+  t: (key: string) => string
 }) {
   const mode = point.battle.battle.mode || point.battle.event.mode
   const map = point.battle.event.map
@@ -190,7 +192,7 @@ function Tooltip({
           </p>
           {point.isStarPlayer && (
             <p style={{ margin: '2px 0 0', fontFamily: "'Lilita One', sans-serif", fontSize: 10, color: '#FFC91B', lineHeight: 1.2 }}>
-              ⭐ Star Player
+              ⭐ {t('starPlayer')}
             </p>
           )}
         </div>
@@ -611,6 +613,7 @@ export function TrophyChart({ battles, playerTag }: TrophyChartProps) {
               x={coords[hoveredIdx].x}
               y={coords[hoveredIdx].y}
               chartWidth={svgW}
+              t={t}
             />
           )}
         </svg>
@@ -620,21 +623,21 @@ export function TrophyChart({ battles, playerTag }: TrophyChartProps) {
       <div className="flex items-center justify-center gap-6 mt-4 text-xs font-semibold text-slate-400">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400" />
-          Victory
+          {t('resultVictory')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400" />
-          Defeat
+          {t('resultDefeat')}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400" />
-          Draw
+          {t('resultDraw')}
         </span>
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block w-2.5 h-2.5 rounded-full border-2 border-dashed border-yellow-400"
           />
-          Star Player
+          {t('starPlayer')}
         </span>
       </div>
     </div>

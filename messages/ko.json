@@ -17,7 +17,9 @@
     "compare": "비교",
     "cosmetics": "코스메틱",
     "share": "공유",
-    "leaderboard": "리더보드"
+    "leaderboard": "리더보드",
+    "sync": "동기화",
+    "logout": "로그아웃"
   },
   "battles": {
     "title": "최근 전투",
@@ -31,7 +33,8 @@
     "error": "전투를 불러올 수 없습니다.",
     "resultVictory": "승리",
     "resultDefeat": "패배",
-    "resultDraw": "무승부"
+    "resultDraw": "무승부",
+    "starPlayer": "스타 플레이어"
   },
   "profile": {
     "gemEquivalent": "젬 환산 가치",
@@ -104,7 +107,16 @@
     "closed": "비공개",
     "loadingMembers": "회원 데이터 로딩 중...",
     "timePlayed": "시간",
-    "clickToCompare": "회원을 클릭하여 계정을 비교하세요"
+    "clickToCompare": "회원을 클릭하여 계정을 비교하세요",
+    "sortGems": "젬",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "승리",
+    "sortWinRate": "승률",
+    "sortTimePlayed": "플레이 시간",
+    "sortPrestige": "Prestige",
+    "sortLevel": "레벨",
+    "columnWR": "WR",
+    "timeTooltip": "현재 승률({winRate}%)을 기반으로 한 예상 시간입니다.\n\n승률이 높은 플레이어는 더 적은 실제 시간이 필요했습니다."
   },
   "compare": {
     "title": "비교",
@@ -157,7 +169,8 @@
     "grandTotal": "총 계정 가치",
     "verified": "인증됨",
     "fromSkins": "스킨에서",
-    "fromPins": "핀에서"
+    "fromPins": "핀에서",
+    "total": "합계"
   },
   "leaderboard": {
     "title": "글로벌 랭킹",

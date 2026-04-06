@@ -6,11 +6,19 @@ import { useState, useRef, useEffect } from 'react'
 import { Globe } from 'lucide-react'
 
 const SUPPORTED_LOCALES = [
-  { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
+  { code: 'en', label: 'English' },
   { code: 'fr', label: 'Français' },
   { code: 'pt', label: 'Português' },
-  { code: 'de', label: 'Deutsch' }
+  { code: 'de', label: 'Deutsch' },
+  { code: 'it', label: 'Italiano' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'tr', label: 'Türkçe' },
+  { code: 'pl', label: 'Polski' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'ko', label: '한국어' },
+  { code: 'ja', label: '日本語' },
+  { code: 'zh', label: '中文' },
 ]
 
 export function LocaleSwitcher() {
@@ -56,7 +64,7 @@ export function LocaleSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 bg-white border-4 border-[#121A2F] rounded-2xl p-2 flex flex-col gap-1 z-50 shadow-[4px_6px_0_0_#121A2F] transform origin-top-right animate-fade-in">
+        <div className="absolute right-0 top-full mt-2 w-48 max-h-80 overflow-y-auto bg-white border-4 border-[#121A2F] rounded-2xl p-2 flex flex-col gap-1 z-50 shadow-[4px_6px_0_0_#121A2F] transform origin-top-right animate-fade-in">
           {SUPPORTED_LOCALES.map((loc) => (
             <button
               key={loc.code}

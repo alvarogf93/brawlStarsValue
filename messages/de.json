@@ -17,7 +17,9 @@
     "compare": "Vergleichen",
     "cosmetics": "Kosmetik",
     "share": "Teilen",
-    "leaderboard": "Rangliste"
+    "leaderboard": "Rangliste",
+    "sync": "Synchronisieren",
+    "logout": "Abmelden"
   },
   "battles": {
     "title": "LETZTE KÄMPFE",
@@ -31,7 +33,8 @@
     "error": "Kämpfe konnten nicht geladen werden.",
     "resultVictory": "Sieg",
     "resultDefeat": "Niederlage",
-    "resultDraw": "Unentschieden"
+    "resultDraw": "Unentschieden",
+    "starPlayer": "Star Player"
   },
   "profile": {
     "gemEquivalent": "Edelstein-Äquivalent",
@@ -104,7 +107,16 @@
     "closed": "Geschlossen",
     "loadingMembers": "Mitgliederdaten werden geladen...",
     "timePlayed": "Zeit",
-    "clickToCompare": "Klicke auf ein Mitglied, um dein Konto mit ihrem zu vergleichen"
+    "clickToCompare": "Klicke auf ein Mitglied, um dein Konto mit ihrem zu vergleichen",
+    "sortGems": "Edelsteine",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "Siege",
+    "sortWinRate": "Gewinnrate",
+    "sortTimePlayed": "Gespielte Zeit",
+    "sortPrestige": "Prestige",
+    "sortLevel": "Level",
+    "columnWR": "WR",
+    "timeTooltip": "Geschätzte Zeit basierend auf der aktuellen Gewinnrate ({winRate}%).\n\nSpieler mit höherer Gewinnrate benötigten weniger echte Stunden."
   },
   "compare": {
     "title": "VERGLEICHEN",
@@ -157,7 +169,8 @@
     "grandTotal": "Gesamter Kontowert",
     "verified": "verifiziert",
     "fromSkins": "von Skins",
-    "fromPins": "von Pins"
+    "fromPins": "von Pins",
+    "total": "Gesamt"
   },
   "leaderboard": {
     "title": "GLOBALES RANKING",

@@ -17,7 +17,9 @@
     "compare": "Compare",
     "cosmetics": "Cosmetics",
     "share": "Share",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "sync": "Sync",
+    "logout": "Logout"
   },
   "battles": {
     "title": "RECENT BATTLES",
@@ -31,7 +33,8 @@
     "error": "Could not load battles.",
     "resultVictory": "Victory",
     "resultDefeat": "Defeat",
-    "resultDraw": "Draw"
+    "resultDraw": "Draw",
+    "starPlayer": "Star Player"
   },
   "profile": {
     "gemEquivalent": "Gem Equivalent",
@@ -104,7 +107,16 @@
     "closed": "Closed",
     "loadingMembers": "Loading member data...",
     "timePlayed": "Time",
-    "clickToCompare": "Click a member to compare your account with theirs"
+    "clickToCompare": "Click a member to compare your account with theirs",
+    "sortGems": "Gems",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "Victories",
+    "sortWinRate": "Win Rate",
+    "sortTimePlayed": "Time Played",
+    "sortPrestige": "Prestige",
+    "sortLevel": "Level",
+    "columnWR": "WR",
+    "timeTooltip": "Estimated time based on current Win Rate ({winRate}%).\n\nPlayers with a higher win rate required fewer real hours."
   },
   "compare": {
     "title": "COMPARE",
@@ -157,7 +169,8 @@
     "grandTotal": "Total account value",
     "verified": "verified",
     "fromSkins": "from skins",
-    "fromPins": "from pins"
+    "fromPins": "from pins",
+    "total": "Total"
   },
   "leaderboard": {
     "title": "GLOBAL RANKING",

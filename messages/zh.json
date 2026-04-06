@@ -17,7 +17,9 @@
     "compare": "比较",
     "cosmetics": "外观",
     "share": "分享",
-    "leaderboard": "排行榜"
+    "leaderboard": "排行榜",
+    "sync": "同步",
+    "logout": "退出"
   },
   "battles": {
     "title": "最近战斗",
@@ -31,7 +33,8 @@
     "error": "无法加载战斗。",
     "resultVictory": "胜利",
     "resultDefeat": "失败",
-    "resultDraw": "平局"
+    "resultDraw": "平局",
+    "starPlayer": "明星球员"
   },
   "profile": {
     "gemEquivalent": "宝石等值",
@@ -104,7 +107,16 @@
     "closed": "封闭",
     "loadingMembers": "加载成员数据中...",
     "timePlayed": "时间",
-    "clickToCompare": "点击成员以比较您的账号与他们的账号"
+    "clickToCompare": "点击成员以比较您的账号与他们的账号",
+    "sortGems": "宝石",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "胜利",
+    "sortWinRate": "胜率",
+    "sortTimePlayed": "游戏时间",
+    "sortPrestige": "Prestige",
+    "sortLevel": "等级",
+    "columnWR": "WR",
+    "timeTooltip": "基于当前胜率（{winRate}%）的估计时间。\n\n胜率越高的玩家所需实际时间越少。"
   },
   "compare": {
     "title": "比较",
@@ -157,7 +169,8 @@
     "grandTotal": "账号总价值",
     "verified": "已验证",
     "fromSkins": "来自皮肤",
-    "fromPins": "来自表情"
+    "fromPins": "来自表情",
+    "total": "合计"
   },
   "leaderboard": {
     "title": "全球排行榜",

@@ -62,7 +62,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             onClick={handleSync}
             disabled={syncing}
             className="p-2 text-slate-400 hover:text-[#4EC0FA] transition-colors rounded-xl hover:bg-white/5 disabled:opacity-50"
-            title="Sync"
+            title={t('sync')}
           >
             <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
           </button>
@@ -72,7 +72,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
         </Link>
         <LocaleSwitcher />
         {playerTag && (
-          <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-400 transition-colors rounded-xl hover:bg-white/5" title="Logout">
+          <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-400 transition-colors rounded-xl hover:bg-white/5" title={t('logout')}>
             <LogOut className="w-5 h-5" />
           </button>
         )}

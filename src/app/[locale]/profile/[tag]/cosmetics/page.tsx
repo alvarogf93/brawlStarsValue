@@ -226,7 +226,7 @@ function CosmeticSection({
 
       {/* Section total */}
       <div className="border-t-2 border-white/10 pt-3 flex items-center justify-between px-4">
-        <span className="font-['Lilita_One'] text-base text-[var(--color-brawl-gold)]">Total</span>
+        <span className="font-['Lilita_One'] text-base text-[var(--color-brawl-gold)]">{t('total')}</span>
         <span className="flex items-center gap-2">
           <span className="font-['Lilita_One'] text-2xl text-white text-stroke-brawl">
             <AnimatedCounter value={total} duration={600} />

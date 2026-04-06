@@ -18,15 +18,15 @@ import type { ClubMember } from '@/lib/api'
 
 type SortKey = 'trophies' | 'gems' | 'brawlers' | 'victories' | 'winrate' | 'hours' | 'prestige' | 'level'
 
-const SORT_OPTIONS: { value: SortKey; label: string; icon: typeof Trophy }[] = [
-  { value: 'trophies', label: 'Trophies', icon: Trophy },
-  { value: 'gems', label: 'Gems', icon: Gem },
-  { value: 'brawlers', label: 'Brawlers', icon: Users },
-  { value: 'victories', label: 'Victories', icon: Swords },
-  { value: 'winrate', label: 'Win Rate', icon: TrendingUp },
-  { value: 'hours', label: 'Time Played', icon: Clock },
-  { value: 'prestige', label: 'Prestige', icon: Crown },
-  { value: 'level', label: 'Level', icon: Star },
+const SORT_OPTIONS: { value: SortKey; labelKey: string; icon: typeof Trophy }[] = [
+  { value: 'trophies', labelKey: 'sortTrophies', icon: Trophy },
+  { value: 'gems', labelKey: 'sortGems', icon: Gem },
+  { value: 'brawlers', labelKey: 'sortBrawlers', icon: Users },
+  { value: 'victories', labelKey: 'sortVictories', icon: Swords },
+  { value: 'winrate', labelKey: 'sortWinRate', icon: TrendingUp },
+  { value: 'hours', labelKey: 'sortTimePlayed', icon: Clock },
+  { value: 'prestige', labelKey: 'sortPrestige', icon: Crown },
+  { value: 'level', labelKey: 'sortLevel', icon: Star },
 ]
 
 function sortMembers(members: EnrichedMember[], key: SortKey): EnrichedMember[] {
@@ -262,7 +262,7 @@ export default function ClubPage() {
                   return (
                     <>
                       <Icon size={16} className="text-[#4EC0FA]" />
-                      {selected.label}
+                      {t(selected.labelKey)}
                     </>
                   )
                 })()}
@@ -279,7 +279,7 @@ export default function ClubPage() {
                     onClick={() => { setSortBy(o.value); setDropdownOpen(false) }}
                     className={`flex items-center text-left w-full px-3 py-2 rounded-lg text-sm font-bold transition-colors ${o.value === sortBy ? 'bg-[#4EC0FA]/20 text-[#4EC0FA]' : 'text-slate-400 hover:bg-[#1E293B] hover:text-white'}`}
                   >
-                    {o.label}
+                    {t(o.labelKey)}
                   </button>
                 ))}
               </div>
@@ -295,7 +295,7 @@ export default function ClubPage() {
               <span className="text-left pl-1">{t('sortName')}</span>
               <span className="text-right text-[10px]">{t('sortTrophies')}</span>
               <span className="text-right text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] pr-1">💎</span>
-              <span className="text-center">WR</span>
+              <span className="text-center">{t('columnWR')}</span>
               <span className="text-right text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">⚔️</span>
               <span className="text-center text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">👑</span>
               <span className="text-right text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">⏱️</span>
@@ -390,7 +390,7 @@ export default function ClubPage() {
                 {member.loaded ? (
                   <span 
                     className="relative z-10 hidden sm:block text-right text-[14px] text-[#A0AEC0] cursor-help hover:text-[#4EC0FA] font-bold tabular-nums text-stroke-none border-b border-dashed border-[#A0AEC0]/50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]"
-                    title={`Tiempo estimado basándose en el Win Rate actual (${wr ?? 50}%).\n\nJugadores con mayor win rate requirieron de menos horas reales para llegar a estas estadísticas.`}
+                    title={t('timeTooltip', { winRate: wr ?? 50 })}
                   >
                     {member.estimatedHoursPlayed ? formatPlaytime(member.estimatedHoursPlayed) : '-'}
                   </span>

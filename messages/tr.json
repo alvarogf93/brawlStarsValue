@@ -17,7 +17,9 @@
     "compare": "Karşılaştır",
     "cosmetics": "Kozmetikler",
     "share": "Paylaş",
-    "leaderboard": "Sıralama"
+    "leaderboard": "Sıralama",
+    "sync": "Senkronize",
+    "logout": "Çıkış"
   },
   "battles": {
     "title": "SON SAVAŞLAR",
@@ -31,7 +33,8 @@
     "error": "Savaşlar yüklenemedi.",
     "resultVictory": "Zafer",
     "resultDefeat": "Yenilgi",
-    "resultDraw": "Beraberlik"
+    "resultDraw": "Beraberlik",
+    "starPlayer": "Yıldız Oyuncu"
   },
   "profile": {
     "gemEquivalent": "Gem Karşılığı",
@@ -104,7 +107,16 @@
     "closed": "Kapalı",
     "loadingMembers": "Üye verileri yükleniyor...",
     "timePlayed": "Süre",
-    "clickToCompare": "Hesabınızı onlarınkiyle karşılaştırmak için bir üyeye tıklayın"
+    "clickToCompare": "Hesabınızı onlarınkiyle karşılaştırmak için bir üyeye tıklayın",
+    "sortGems": "Elmaslar",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "Galibiyetler",
+    "sortWinRate": "Kazanma Oranı",
+    "sortTimePlayed": "Oynama Süresi",
+    "sortPrestige": "Prestige",
+    "sortLevel": "Seviye",
+    "columnWR": "WR",
+    "timeTooltip": "Mevcut kazanma oranına ({winRate}%) göre tahmini süre.\n\nDaha yüksek kazanma oranına sahip oyuncular daha az gerçek saat harcadı."
   },
   "compare": {
     "title": "KARŞILAŞTIR",
@@ -157,7 +169,8 @@
     "grandTotal": "Toplam hesap değeri",
     "verified": "doğrulandı",
     "fromSkins": "Skin'lerden",
-    "fromPins": "pinlerden"
+    "fromPins": "pinlerden",
+    "total": "Toplam"
   },
   "leaderboard": {
     "title": "KÜRESEL SIRALAMA",

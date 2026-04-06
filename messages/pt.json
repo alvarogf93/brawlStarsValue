@@ -17,7 +17,9 @@
     "compare": "Comparar",
     "cosmetics": "Cosméticos",
     "share": "Compartilhar",
-    "leaderboard": "Ranking"
+    "leaderboard": "Ranking",
+    "sync": "Sincronizar",
+    "logout": "Sair"
   },
   "battles": {
     "title": "BATALHAS RECENTES",
@@ -31,7 +33,8 @@
     "error": "Não foi possível carregar as batalhas.",
     "resultVictory": "Vitória",
     "resultDefeat": "Derrota",
-    "resultDraw": "Empate"
+    "resultDraw": "Empate",
+    "starPlayer": "Jogador Estrela"
   },
   "profile": {
     "gemEquivalent": "Equivalente em gemas",
@@ -104,7 +107,16 @@
     "closed": "Fechado",
     "loadingMembers": "Carregando dados dos membros...",
     "timePlayed": "Tempo",
-    "clickToCompare": "Clique em um membro para comparar sua conta com a dele"
+    "clickToCompare": "Clique em um membro para comparar sua conta com a dele",
+    "sortGems": "Gemas",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "Vitórias",
+    "sortWinRate": "Taxa de vitória",
+    "sortTimePlayed": "Tempo Jogado",
+    "sortPrestige": "Prestige",
+    "sortLevel": "Nível",
+    "columnWR": "WR",
+    "timeTooltip": "Tempo estimado com base na taxa de vitória atual ({winRate}%).\n\nJogadores com maior taxa precisaram de menos horas reais."
   },
   "compare": {
     "title": "COMPARAR",
@@ -157,7 +169,8 @@
     "grandTotal": "Valor total da conta",
     "verified": "verificado",
     "fromSkins": "de skins",
-    "fromPins": "de pins"
+    "fromPins": "de pins",
+    "total": "Total"
   },
   "leaderboard": {
     "title": "RANKING GLOBAL",

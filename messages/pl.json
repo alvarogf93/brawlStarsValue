@@ -17,7 +17,9 @@
     "compare": "Porównaj",
     "cosmetics": "Kosmetyki",
     "share": "Udostępnij",
-    "leaderboard": "Ranking"
+    "leaderboard": "Ranking",
+    "sync": "Synchronizuj",
+    "logout": "Wyloguj"
   },
   "battles": {
     "title": "OSTATNIE BITWY",
@@ -31,7 +33,8 @@
     "error": "Nie można załadować bitew.",
     "resultVictory": "Zwycięstwo",
     "resultDefeat": "Porażka",
-    "resultDraw": "Remis"
+    "resultDraw": "Remis",
+    "starPlayer": "Gwiazda meczu"
   },
   "profile": {
     "gemEquivalent": "Równoważnik w klejnotach",
@@ -104,7 +107,16 @@
     "closed": "Zamknięty",
     "loadingMembers": "Ładowanie danych członków...",
     "timePlayed": "Czas",
-    "clickToCompare": "Kliknij członka, aby porównać swoje konto z jego kontem"
+    "clickToCompare": "Kliknij członka, aby porównać swoje konto z jego kontem",
+    "sortGems": "Klejnoty",
+    "sortBrawlers": "Brawlers",
+    "sortVictories": "Zwycięstwa",
+    "sortWinRate": "Wsp. wygranych",
+    "sortTimePlayed": "Czas gry",
+    "sortPrestige": "Prestige",
+    "sortLevel": "Poziom",
+    "columnWR": "WR",
+    "timeTooltip": "Szacowany czas na podstawie bieżącego współczynnika wygranych ({winRate}%).\n\nGracze z wyższym współczynnikiem potrzebowali mniej rzeczywistych godzin."
   },
   "compare": {
     "title": "PORÓWNAJ",
@@ -157,7 +169,8 @@
     "grandTotal": "Łączna wartość konta",
     "verified": "zweryfikowano",
     "fromSkins": "ze skórek",
-    "fromPins": "z pinów"
+    "fromPins": "z pinów",
+    "total": "Łącznie"
   },
   "leaderboard": {
     "title": "GLOBALNY RANKING",
