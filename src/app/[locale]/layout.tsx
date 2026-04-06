@@ -62,18 +62,31 @@ export default async function LocaleLayout({
         <meta name="theme-color" content="#1C5CF1" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebApplication',
-            name: 'BrawlVision',
-            url: 'https://brawlvision.com',
-            applicationCategory: 'GameApplication',
-            operatingSystem: 'Web',
-            description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, and track progression.',
-            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-            author: { '@type': 'Organization', name: 'BrawlVision' },
-            inLanguage: ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh'],
-          })}}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'WebApplication',
+              name: 'BrawlVision',
+              url: 'https://brawlvision.com',
+              applicationCategory: 'GameApplication',
+              operatingSystem: 'Web',
+              description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, track win rates, and get personalized recommendations.',
+              offers: [
+                { '@type': 'Offer', price: '0', priceCurrency: 'USD', description: 'Free tier with ads' },
+                { '@type': 'Offer', price: '2.99', priceCurrency: 'USD', description: 'Premium: analytics, battle history, no ads' },
+              ],
+              author: { '@type': 'Organization', name: 'BrawlVision', url: 'https://brawlvision.com' },
+              inLanguage: ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh'],
+              screenshot: 'https://brawlvision.com/opengraph-image',
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: `https://brawlvision.com/${locale}` },
+              ],
+            },
+          ])}}
         />
       </head>
       <body className="min-h-screen">
