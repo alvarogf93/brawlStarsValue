@@ -149,6 +149,20 @@
     "fromSkins": "from skins",
     "fromPins": "from pins"
   },
+  "leaderboard": {
+    "title": "GLOBAL RANKING",
+    "subtitle": "Top Brawl Stars Players",
+    "home": "Home",
+    "global": "GLOBAL",
+    "local": "SPAIN",
+    "error": "Could not load rankings",
+    "trophies": "Trophies"
+  },
+  "consent": {
+    "message": "We use cookies and similar technologies to display personalized ads and improve your experience. You can accept or reject non-essential cookies.",
+    "accept": "Accept",
+    "reject": "Reject"
+  },
   "footer": {
     "disclaimerBefore": "This material is unofficial and is not endorsed by Supercell. For more information see Supercell's ",
     "disclaimerLink": "Fan Content Policy",

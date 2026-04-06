@@ -1,6 +1,8 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import type { Metadata } from 'next'
+import Script from 'next/script'
+import { CookieConsent } from '@/components/ui/CookieConsent'
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -70,8 +72,15 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-screen">
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6838192381842255"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <NextIntlClientProvider messages={messages}>
           {children}
+          <CookieConsent />
         </NextIntlClientProvider>
       </body>
     </html>

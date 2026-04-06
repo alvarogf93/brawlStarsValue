@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { GemIcon } from '@/components/ui/GemIcon'
+import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { formatPlaytime } from '@/lib/utils'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import type { GemScore } from '@/lib/types'
@@ -163,31 +164,6 @@ function ComparisonBar({
       </div>
     </div>
   )
-}
-
-function AnimatedCounter({ target, duration = 1200 }: { target: number; duration?: number }) {
-  const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    if (target === 0) {
-      setCount(0)
-      return
-    }
-    let start = 0
-    const step = Math.max(1, Math.floor(target / (duration / 16)))
-    const id = setInterval(() => {
-      start += step
-      if (start >= target) {
-        setCount(target)
-        clearInterval(id)
-      } else {
-        setCount(start)
-      }
-    }, 16)
-    return () => clearInterval(id)
-  }, [target, duration])
-
-  return <>{count}</>
 }
 
 /* ------------------------------------------------------------------ */
@@ -408,7 +384,7 @@ export default function ComparePage() {
                 {/* Player 1 score */}
                 <div className="flex flex-col items-center">
                   <span className="text-4xl md:text-6xl font-['Lilita_One'] text-[#4EC0FA] text-stroke-brawl">
-                    <AnimatedCounter target={wins.left} />
+                    <AnimatedCounter value={wins.left} fromZero />
                   </span>
                   <span className="font-['Inter'] font-bold text-sm text-[var(--color-brawl-dark)] truncate max-w-[120px] md:max-w-none">
                     {player1.playerName}
@@ -428,7 +404,7 @@ export default function ComparePage() {
                 {/* Player 2 score */}
                 <div className="flex flex-col items-center">
                   <span className="text-4xl md:text-6xl font-['Lilita_One'] text-[#F82F41] text-stroke-brawl">
-                    <AnimatedCounter target={wins.right} />
+                    <AnimatedCounter value={wins.right} fromZero />
                   </span>
                   <span className="font-['Inter'] font-bold text-sm text-[var(--color-brawl-dark)] truncate max-w-[120px] md:max-w-none">
                     {opponentData.playerName}

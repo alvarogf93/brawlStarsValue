@@ -149,6 +149,20 @@
     "fromSkins": "en skins",
     "fromPins": "en reacciones"
   },
+  "leaderboard": {
+    "title": "RANKING GLOBAL",
+    "subtitle": "Los Mejores Jugadores de Brawl Stars",
+    "home": "Inicio",
+    "global": "GLOBAL",
+    "local": "ESPAÑA",
+    "error": "No se pudo cargar el ranking",
+    "trophies": "Trofeos"
+  },
+  "consent": {
+    "message": "Usamos cookies y tecnologías similares para mostrar anuncios personalizados y mejorar tu experiencia. Puedes aceptar o rechazar el uso de cookies no esenciales.",
+    "accept": "Aceptar",
+    "reject": "Rechazar"
+  },
   "footer": {
     "disclaimerBefore": "Este material no es oficial y no está respaldado por Supercell. Para obtener más información, consulte la ",
     "disclaimerLink": "Política de contenido de fans de Supercell",
