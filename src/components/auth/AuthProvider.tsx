@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectPath)}`,
+        queryParams: { prompt: 'select_account' },
       },
     })
   }, [supabase])
