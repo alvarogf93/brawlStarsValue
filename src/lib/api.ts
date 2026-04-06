@@ -1,21 +1,17 @@
 import type { PlayerData } from './types'
 
-const API_BASE = process.env.BRAWLSTARS_API_URL || 'https://api.brawlstars.com/v1'
-
-function getApiKey(): string {
-  const key = process.env.BRAWLSTARS_API_KEY
-  if (!key) throw new Error('BRAWLSTARS_API_KEY not configured')
-  return key
-}
+const API_BASE = process.env.BRAWLSTARS_API_URL || 'http://141.253.197.60:3001/v1'
 
 function encodeTag(tag: string): string {
   return encodeURIComponent(tag)
 }
 
-const headers = () => ({
-  Authorization: `Bearer ${getApiKey()}`,
-  Accept: 'application/json',
-})
+const headers = (): Record<string, string> => {
+  const h: Record<string, string> = { Accept: 'application/json' }
+  const key = process.env.BRAWLSTARS_API_KEY
+  if (key) h.Authorization = `Bearer ${key}`
+  return h
+}
 
 export class SuprecellApiError extends Error {
   constructor(
