@@ -46,7 +46,74 @@ export interface ProfileUpdate {
   last_sync?: string | null
 }
 
-/** Supabase Database type (used for typed client) */
+// ── Battles ─────────────────────────────────────────────
+
+export interface BrawlerJsonb {
+  id: number
+  name: string
+  power: number
+  trophies: number
+  gadgets: Array<{ id: number; name: string }>
+  starPowers: Array<{ id: number; name: string }>
+  hypercharges: Array<{ id: number; name: string }>
+}
+
+export interface TeammateJsonb {
+  tag: string
+  name: string
+  brawler: {
+    id: number
+    name: string
+    power: number
+    trophies: number
+  }
+}
+
+export interface Battle {
+  id: number
+  player_tag: string
+  battle_time: string
+  mode: string
+  map: string | null
+  result: 'victory' | 'defeat' | 'draw'
+  trophy_change: number
+  duration: number | null
+  is_star_player: boolean
+  my_brawler: BrawlerJsonb
+  teammates: TeammateJsonb[]
+  opponents: TeammateJsonb[]
+  created_at: string
+}
+
+export interface BattleInsert {
+  player_tag: string
+  battle_time: string
+  mode: string
+  map: string | null
+  result: 'victory' | 'defeat' | 'draw'
+  trophy_change: number
+  duration: number | null
+  is_star_player: boolean
+  my_brawler: BrawlerJsonb
+  teammates: TeammateJsonb[]
+  opponents: TeammateJsonb[]
+}
+
+// ── Sync Queue ──────────────────────────────────────────
+
+export interface SyncQueueRow {
+  id: number
+  player_tag: string
+  scheduled_at: string
+  started_at: string | null
+  completed_at: string | null
+  retry_count: number
+  error: string | null
+  created_at: string
+}
+
+// ── Database ────────────────────────────────────────────
+
 export interface Database {
   public: {
     Tables: {
@@ -54,6 +121,16 @@ export interface Database {
         Row: Profile
         Insert: ProfileInsert
         Update: ProfileUpdate
+      }
+      battles: {
+        Row: Battle
+        Insert: BattleInsert
+        Update: Partial<BattleInsert>
+      }
+      sync_queue: {
+        Row: SyncQueueRow
+        Insert: { player_tag: string }
+        Update: Partial<SyncQueueRow>
       }
     }
   }
