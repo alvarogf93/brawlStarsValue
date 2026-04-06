@@ -5,6 +5,23 @@ import type { BattlelogEntry } from '@/lib/api'
 
 const CACHE_TTL = 2 * 60 * 1000 // 2 min
 
+export interface ModeWinRate {
+  mode: string
+  wins: number
+  losses: number
+  draws: number
+  total: number
+  winRate: number
+}
+
+export interface TeammateStats {
+  tag: string
+  name: string
+  gamesPlayed: number
+  wins: number
+  winRate: number
+}
+
 interface BattleStats {
   battles: BattlelogEntry[]
   recentWins: number
@@ -15,6 +32,10 @@ interface BattleStats {
   mostPlayedBrawler: string
   avgDuration: number
   trophyChange: number
+  starPlayerCount: number
+  starPlayerPct: number
+  modeWinRates: ModeWinRate[]
+  teammates: TeammateStats[]
 }
 
 function getCacheKey(tag: string) { return `brawlvalue:battlelog:${tag.toUpperCase()}` }
@@ -64,33 +85,70 @@ export function useBattlelog(tag: string) {
 }
 
 function analyzeBattles(battles: BattlelogEntry[], playerTag: string): BattleStats {
-  let wins = 0, losses = 0, draws = 0, totalDuration = 0, trophyChange = 0
+  let wins = 0, losses = 0, draws = 0, totalDuration = 0, trophyChange = 0, starPlayerCount = 0
   const modeCount: Record<string, number> = {}
   const brawlerCount: Record<string, number> = {}
+  const modeStats: Record<string, { wins: number; losses: number; draws: number }> = {}
+  const teammateMap: Record<string, { name: string; games: number; wins: number }> = {}
 
   for (const b of battles) {
-    if (b.battle.result === 'victory') wins++
-    else if (b.battle.result === 'defeat') losses++
+    const result = b.battle.result
+    if (result === 'victory') wins++
+    else if (result === 'defeat') losses++
     else draws++
 
     totalDuration += b.battle.duration || 0
     trophyChange += b.battle.trophyChange || 0
 
+    // Star Player
+    if (b.battle.starPlayer?.tag === playerTag) starPlayerCount++
+
     // Mode
     const mode = b.battle.mode || b.event.mode
     modeCount[mode] = (modeCount[mode] || 0) + 1
+    if (!modeStats[mode]) modeStats[mode] = { wins: 0, losses: 0, draws: 0 }
+    if (result === 'victory') modeStats[mode].wins++
+    else if (result === 'defeat') modeStats[mode].losses++
+    else modeStats[mode].draws++
 
-    // Find player's brawler in teams
+    // Find player + teammates in teams
     const allPlayers = (b.battle.teams || []).flat().concat(b.battle.players || [])
     const me = allPlayers.find(p => p.tag === playerTag)
     if (me) {
       brawlerCount[me.brawler.name] = (brawlerCount[me.brawler.name] || 0) + 1
+    }
+
+    // Teammate analysis (same team only, 3v3 modes)
+    if (b.battle.teams) {
+      const myTeam = b.battle.teams.find(team => team.some(p => p.tag === playerTag))
+      if (myTeam) {
+        for (const p of myTeam) {
+          if (p.tag === playerTag) continue
+          if (!teammateMap[p.tag]) teammateMap[p.tag] = { name: p.name, games: 0, wins: 0 }
+          teammateMap[p.tag].games++
+          if (result === 'victory') teammateMap[p.tag].wins++
+        }
+      }
     }
   }
 
   const total = wins + losses + draws
   const mostPlayedMode = Object.entries(modeCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
   const mostPlayedBrawler = Object.entries(brawlerCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'
+
+  // Win rate per mode
+  const modeWinRates: ModeWinRate[] = Object.entries(modeStats)
+    .map(([mode, s]) => {
+      const t = s.wins + s.losses + s.draws
+      return { mode, ...s, total: t, winRate: t > 0 ? Math.round((s.wins / t) * 100) : 0 }
+    })
+    .sort((a, b) => b.total - a.total)
+
+  // Top teammates
+  const teammates: TeammateStats[] = Object.entries(teammateMap)
+    .map(([tag, s]) => ({ tag, name: s.name, gamesPlayed: s.games, wins: s.wins, winRate: s.games > 0 ? Math.round((s.wins / s.games) * 100) : 0 }))
+    .sort((a, b) => b.gamesPlayed - a.gamesPlayed)
+    .slice(0, 10)
 
   return {
     battles,
@@ -102,5 +160,9 @@ function analyzeBattles(battles: BattlelogEntry[], playerTag: string): BattleSta
     mostPlayedBrawler,
     avgDuration: total > 0 ? Math.round(totalDuration / total) : 0,
     trophyChange,
+    starPlayerCount,
+    starPlayerPct: total > 0 ? Math.round((starPlayerCount / total) * 100) : 0,
+    modeWinRates,
+    teammates,
   }
 }

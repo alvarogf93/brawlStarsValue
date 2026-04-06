@@ -149,6 +149,9 @@ export default function ClubPage() {
             </div>
             <div>
               <h1 className="text-3xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl">{club.name}</h1>
+              {club.description && (
+                <p className="text-sm text-slate-300/80 font-['Inter'] mt-1 max-w-md">{club.description}</p>
+              )}
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase ${typeCfg.bg} ${typeCfg.color}`}>
                   <TypeIcon size={12} />{t(club.type)}
