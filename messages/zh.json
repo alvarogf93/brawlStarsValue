@@ -19,7 +19,10 @@
     "share": "分享",
     "leaderboard": "排行榜",
     "sync": "同步",
-    "logout": "退出"
+    "logout": "退出",
+    "login": "登录",
+    "upgrade": "高级版",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "最近战斗",
@@ -232,5 +235,14 @@
     "title": "出现了错误",
     "description": "发生了意外错误。",
     "retry": "重试"
+  },
+  "auth": {
+    "title": "创建免费账户",
+    "subtitle": "访问分析和同步战斗",
+    "googleButton": "使用Google继续",
+    "loading": "连接中...",
+    "disclaimer": "注册即表示您同意我们的隐私政策。",
+    "login": "登录",
+    "upgrade": "高级版"
   }
 }

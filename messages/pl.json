@@ -19,7 +19,10 @@
     "share": "Udostępnij",
     "leaderboard": "Ranking",
     "sync": "Synchronizuj",
-    "logout": "Wyloguj"
+    "logout": "Wyloguj",
+    "login": "Zaloguj",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "OSTATNIE BITWY",
@@ -232,5 +235,14 @@
     "title": "Coś poszło nie tak",
     "description": "Wystąpił nieoczekiwany błąd.",
     "retry": "Spróbuj ponownie"
+  },
+  "auth": {
+    "title": "Utworz darmowe konto",
+    "subtitle": "Uzyskaj dostep do analiz i synchronizuj bitwy",
+    "googleButton": "Kontynuuj z Google",
+    "loading": "Laczenie...",
+    "disclaimer": "Rejestrujac sie, akceptujesz nasza Polityke Prywatnosci.",
+    "login": "Zaloguj",
+    "upgrade": "Premium"
   }
 }

@@ -19,7 +19,10 @@
     "share": "Paylaş",
     "leaderboard": "Sıralama",
     "sync": "Senkronize",
-    "logout": "Çıkış"
+    "logout": "Çıkış",
+    "login": "Giris",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "SON SAVAŞLAR",
@@ -232,5 +235,14 @@
     "title": "Bir şeyler ters gitti",
     "description": "Beklenmeyen bir hata oluştu.",
     "retry": "Tekrar dene"
+  },
+  "auth": {
+    "title": "Ucretsiz hesap olustur",
+    "subtitle": "Analizlere erisin ve savaslarinizi senkronize edin",
+    "googleButton": "Google ile devam et",
+    "loading": "Baglaniyor...",
+    "disclaimer": "Kaydolarak Gizlilik Politikamizi kabul edersiniz.",
+    "login": "Giris",
+    "upgrade": "Premium"
   }
 }

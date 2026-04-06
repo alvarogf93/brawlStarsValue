@@ -19,7 +19,10 @@
     "share": "Share",
     "leaderboard": "Leaderboard",
     "sync": "Sync",
-    "logout": "Logout"
+    "logout": "Logout",
+    "login": "Login",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "RECENT BATTLES",
@@ -232,5 +235,14 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred.",
     "retry": "Try again"
+  },
+  "auth": {
+    "title": "Create free account",
+    "subtitle": "Access analytics and sync your battles",
+    "googleButton": "Continue with Google",
+    "loading": "Connecting...",
+    "disclaimer": "By signing up, you agree to our Privacy Policy.",
+    "login": "Login",
+    "upgrade": "Premium"
   }
 }

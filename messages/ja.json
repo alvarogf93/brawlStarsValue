@@ -19,7 +19,10 @@
     "share": "シェア",
     "leaderboard": "ランキング",
     "sync": "同期",
-    "logout": "ログアウト"
+    "logout": "ログアウト",
+    "login": "ログイン",
+    "upgrade": "プレミアム",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "最近のバトル",
@@ -232,5 +235,14 @@
     "title": "エラーが発生しました",
     "description": "予期しないエラーが発生しました。",
     "retry": "再試行"
+  },
+  "auth": {
+    "title": "無料アカウント作成",
+    "subtitle": "分析にアクセスしてバトルを同期",
+    "googleButton": "Googleで続ける",
+    "loading": "接続中...",
+    "disclaimer": "登録することで、プライバシーポリシーに同意します。",
+    "login": "ログイン",
+    "upgrade": "プレミアム"
   }
 }

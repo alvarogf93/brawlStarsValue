@@ -19,7 +19,10 @@
     "share": "Partager",
     "leaderboard": "Classement",
     "sync": "Synchroniser",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "COMBATS RÉCENTS",
@@ -232,5 +235,14 @@
     "title": "Une erreur s'est produite",
     "description": "Une erreur inattendue s'est produite.",
     "retry": "Réessayer"
+  },
+  "auth": {
+    "title": "Creer un compte gratuit",
+    "subtitle": "Accedez aux analyses et synchronisez vos combats",
+    "googleButton": "Continuer avec Google",
+    "loading": "Connexion...",
+    "disclaimer": "En vous inscrivant, vous acceptez notre Politique de Confidentialite.",
+    "login": "Connexion",
+    "upgrade": "Premium"
   }
 }

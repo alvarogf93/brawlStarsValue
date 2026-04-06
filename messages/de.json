@@ -19,7 +19,10 @@
     "share": "Teilen",
     "leaderboard": "Rangliste",
     "sync": "Synchronisieren",
-    "logout": "Abmelden"
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "LETZTE KÄMPFE",
@@ -232,5 +235,14 @@
     "title": "Etwas ist schiefgelaufen",
     "description": "Ein unerwarteter Fehler ist aufgetreten.",
     "retry": "Erneut versuchen"
+  },
+  "auth": {
+    "title": "Kostenloses Konto erstellen",
+    "subtitle": "Zugriff auf Analysen und Kaempfe synchronisieren",
+    "googleButton": "Weiter mit Google",
+    "loading": "Verbinde...",
+    "disclaimer": "Mit der Registrierung akzeptierst du unsere Datenschutzrichtlinie.",
+    "login": "Anmelden",
+    "upgrade": "Premium"
   }
 }

@@ -19,7 +19,10 @@
     "share": "Condividi",
     "leaderboard": "Classifica",
     "sync": "Sincronizza",
-    "logout": "Esci"
+    "logout": "Esci",
+    "login": "Accedi",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "BATTAGLIE RECENTI",
@@ -232,5 +235,14 @@
     "title": "Qualcosa è andato storto",
     "description": "Si è verificato un errore imprevisto.",
     "retry": "Riprova"
+  },
+  "auth": {
+    "title": "Crea account gratuito",
+    "subtitle": "Accedi alle analisi e sincronizza le tue battaglie",
+    "googleButton": "Continua con Google",
+    "loading": "Connessione...",
+    "disclaimer": "Registrandoti, accetti la nostra Informativa sulla Privacy.",
+    "login": "Accedi",
+    "upgrade": "Premium"
   }
 }

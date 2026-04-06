@@ -19,7 +19,10 @@
     "share": "Compartir",
     "leaderboard": "Clasificación",
     "sync": "Sincronizar",
-    "logout": "Salir"
+    "logout": "Salir",
+    "login": "Login",
+    "upgrade": "Premium",
+    "analytics": "Analytics"
   },
   "battles": {
     "title": "BATALLAS RECIENTES",
@@ -232,5 +235,14 @@
     "title": "Algo salió mal",
     "description": "Ocurrió un error inesperado.",
     "retry": "Intentar de nuevo"
+  },
+  "auth": {
+    "title": "Crear cuenta gratis",
+    "subtitle": "Accede a analytics y sincroniza tus batallas",
+    "googleButton": "Continuar con Google",
+    "loading": "Conectando...",
+    "disclaimer": "Al registrarte, aceptas nuestra Politica de Privacidad.",
+    "login": "Login",
+    "upgrade": "Premium"
   }
 }
