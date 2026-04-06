@@ -33,7 +33,7 @@ export default function OverviewPage() {
   if (error || !data || !data.breakdown) {
     return (
       <div className="glass p-8 rounded-2xl text-center border-red-500/30">
-        <p className="text-red-400">{error || 'No se pudo cargar la información del perfil.'}</p>
+        <p className="text-red-400">{error || t('loadError')}</p>
       </div>
     )
   }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { Menu, LogOut, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
@@ -15,6 +15,7 @@ interface HeaderProps {
 export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   const router = useRouter()
   const locale = useLocale()
+  const t = useTranslations('nav')
 
   const [syncing, setSyncing] = useState(false)
 
@@ -67,7 +68,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           </button>
         )}
         <Link href={`/${locale}/leaderboard`} className="brawl-button px-3 py-2 flex items-center gap-2 text-sm">
-          🏆 <span className="hidden sm:inline-block">RANKING</span>
+          🏆 <span className="hidden sm:inline-block">{t('leaderboard')}</span>
         </Link>
         <LocaleSwitcher />
         {playerTag && (

@@ -18,7 +18,7 @@ export default function SharePage() {
   if (isLoading) {
     return (
       <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">Loading...</p>
+        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
       </div>
     )
   }
@@ -26,7 +26,7 @@ export default function SharePage() {
   if (error || !data) {
     return (
       <div className="glass p-8 rounded-2xl text-center border-red-500/30">
-        <p className="text-red-400">{error || 'Could not load data.'}</p>
+        <p className="text-red-400">{error || t('error')}</p>
       </div>
     )
   }
@@ -70,10 +70,10 @@ export default function SharePage() {
       {/* Share Card Area */}
       <div className="text-center mb-8">
         <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-2deg]">
-          FLEX YOUR SCORE
+          {t('flexTitle')}
         </h1>
         <p className="font-['Inter'] font-semibold text-[var(--color-brawl-gold)] mt-2">
-          Download your Player Card for TikTok or Instagram Reels!
+          {t('flexSubtitle')}
         </p>
       </div>
 
@@ -132,15 +132,15 @@ export default function SharePage() {
           <div className="grid grid-cols-3 gap-3 w-full mb-6">
             <div className="bg-[#0A101D]/60 rounded-xl p-3 text-center border-l-4 border-l-yellow-400">
               <p className="font-['Lilita_One'] text-white text-xl drop-shadow-md">{data.player?.trophies.toLocaleString()}</p>
-              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">🏆 Trophies</p>
+              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">🏆 {tProfile('trophies')}</p>
             </div>
             <div className="bg-[#0A101D]/60 rounded-xl p-3 text-center border-l-4 border-l-red-500">
               <p className="font-['Lilita_One'] text-white text-xl drop-shadow-md">{data.player?.brawlers.length}</p>
-              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">👥 Brawlers</p>
+              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">👥 {tProfile('brawlerCount')}</p>
             </div>
             <div className="bg-[#0A101D]/60 rounded-xl p-3 text-center border-l-4 border-l-blue-500">
               <p className="font-['Lilita_One'] text-white text-xl drop-shadow-md">P{data.player?.totalPrestigeLevel ?? 0}</p>
-              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">👑 Prestige</p>
+              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">👑 {tProfile('prestige')}</p>
             </div>
           </div>
 

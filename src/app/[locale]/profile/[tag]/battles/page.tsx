@@ -35,11 +35,17 @@ export default function BattlesPage() {
   const { data, isLoading, error } = useBattlelog(tag)
 
   if (isLoading) {
-    return <div className="animate-pulse py-20 text-center"><p className="text-slate-400 font-['Lilita_One'] text-2xl">Loading battles...</p></div>
+    return <div className="animate-pulse py-20 text-center"><p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p></div>
   }
 
   if (error || !data) {
-    return <div className="glass p-8 rounded-2xl text-center border-red-500/30"><p className="text-red-400">{error || 'Could not load battles.'}</p></div>
+    return <div className="glass p-8 rounded-2xl text-center border-red-500/30"><p className="text-red-400">{error || t('error')}</p></div>
+  }
+
+  const RESULT_TEXT: Record<string, string> = {
+    victory: t('resultVictory'),
+    defeat: t('resultDefeat'),
+    draw: t('resultDraw'),
   }
 
   return (
@@ -107,7 +113,7 @@ export default function BattlesPage() {
                 <p className="text-xs text-slate-500 mt-0.5">{formatBattleTime(battle.battleTime)}</p>
               </div>
               <div className="text-right">
-                <span className="font-['Lilita_One'] uppercase text-sm">{result}</span>
+                <span className="font-['Lilita_One'] uppercase text-sm">{RESULT_TEXT[result] ?? result}</span>
                 {battle.battle.trophyChange !== undefined && (
                   <p className={`text-xs font-bold ${battle.battle.trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                     {battle.battle.trophyChange >= 0 ? '+' : ''}{battle.battle.trophyChange}🏆

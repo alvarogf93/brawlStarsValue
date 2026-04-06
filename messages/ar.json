@@ -26,7 +26,12 @@
     "record": "سجل الفوز/الخسارة",
     "favMode": "الوضع المفضل",
     "favBrawler": "Brawler المفضل",
-    "trophyChange": "تغيير الكؤوس (الأخير)"
+    "trophyChange": "تغيير الكؤوس (الأخير)",
+    "loading": "جارٍ تحميل المعارك...",
+    "error": "تعذر تحميل المعارك.",
+    "resultVictory": "فوز",
+    "resultDefeat": "هزيمة",
+    "resultDraw": "تعادل"
   },
   "profile": {
     "gemEquivalent": "ما يعادل الجواهر",
@@ -55,13 +60,18 @@
     "cosmetics": "مستحضرات التجميل",
     "addCosmetics": "إضافة",
     "classifySkins": "صنّف أزياءك ودبابيسك",
-    "calculateAnother": "احسب حسابًا آخر"
+    "calculateAnother": "احسب حسابًا آخر",
+    "loadError": "تعذر تحميل معلومات الملف الشخصي."
   },
   "share": {
     "title": "نقاط قوتي في Brawl Stars",
     "text": "حسابي في Brawl Stars يعادل {gems} جوهرة! لدي {prestige} من Brawlers على مستوى Prestige. هل يمكنك التغلب عليّ؟",
     "button": "مشاركة النتيجة",
-    "copied": "تم النسخ إلى الحافظة!"
+    "copied": "تم النسخ إلى الحافظة!",
+    "loading": "جارٍ التحميل...",
+    "error": "تعذر تحميل البيانات.",
+    "flexTitle": "اعرض مستواك",
+    "flexSubtitle": "حمّل بطاقة اللاعب الخاصة بك لـ TikTok أو Instagram Reels!"
   },
   "club": {
     "title": "النادي",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "هذه المادة غير رسمية ولا تحظى بموافقة Supercell. لمزيد من المعلومات، راجع ",
     "disclaimerLink": "سياسة محتوى المعجبين لـ Supercell",
     "disclaimerAfter": "."
+  },
+  "brawlers": {
+    "loading": "جارٍ تحميل Brawlers...",
+    "error": "تعذر تحميل بيانات Brawlers.",
+    "searchPlaceholder": "ابحث عن brawler...",
+    "noResults": "لم يتم العثور على Brawlers",
+    "filterAll": "الكل",
+    "sortValue": "قيمة الجواهر",
+    "sortTrophies": "الكؤوس",
+    "sortPowerLevel": "مستوى القوة",
+    "sortName": "الاسم أ-ي",
+    "sortRank": "الرتبة",
+    "labelValue": "القيمة",
+    "labelBest": "الأفضل: "
+  },
+  "stats": {
+    "loading": "جارٍ تحميل الإحصائيات...",
+    "error": "تعذر تحميل الإحصائيات.",
+    "gemScore": "نقاط الجواهر",
+    "trophyRoad": "طريق الكؤوس",
+    "highest": "الأعلى: ",
+    "wins3v3": "انتصارات 3vs3",
+    "soloWins": "انتصارات فردية",
+    "duoWins": "انتصارات ثنائية",
+    "timePlayed": "وقت اللعب",
+    "details": "التفاصيل",
+    "gemBreakdown": "تفصيل الجواهر",
+    "concept": "المفهوم",
+    "quantity": "الكمية",
+    "gems": "الجواهر",
+    "totalGems": "إجمالي الجواهر الحقيقية",
+    "timeTooltip": "الوقت المقدر بناءً على معدل الفوز الحالي ({winRate}%).\n\nاللاعبون ذوو معدل الفوز الأعلى احتاجوا إلى ساعات حقيقية أقل."
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "description": "الصفحة التي تبحث عنها غير موجودة.",
+    "back": "العودة إلى الرئيسية"
+  },
+  "errorPage": {
+    "title": "حدث خطأ ما",
+    "description": "حدث خطأ غير متوقع.",
+    "retry": "حاول مجدداً"
   }
 }

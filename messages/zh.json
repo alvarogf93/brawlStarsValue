@@ -26,7 +26,12 @@
     "record": "胜负记录",
     "favMode": "常用模式",
     "favBrawler": "常用 Brawler",
-    "trophyChange": "奖杯变化（最近）"
+    "trophyChange": "奖杯变化（最近）",
+    "loading": "加载战斗中...",
+    "error": "无法加载战斗。",
+    "resultVictory": "胜利",
+    "resultDefeat": "失败",
+    "resultDraw": "平局"
   },
   "profile": {
     "gemEquivalent": "宝石等值",
@@ -55,13 +60,18 @@
     "cosmetics": "外观",
     "addCosmetics": "添加",
     "classifySkins": "分类您的皮肤和表情",
-    "calculateAnother": "计算另一个账号"
+    "calculateAnother": "计算另一个账号",
+    "loadError": "无法加载个人资料信息。"
   },
   "share": {
     "title": "我的 Brawl Stars 能量分数",
     "text": "我的 Brawl Stars 账号能量相当于 {gems} 颗宝石！我有 {prestige} 个 Prestige 级别的 Brawler。你能超越我吗？",
     "button": "分享结果",
-    "copied": "已复制到剪贴板！"
+    "copied": "已复制到剪贴板！",
+    "loading": "加载中...",
+    "error": "无法加载数据。",
+    "flexTitle": "展示你的实力",
+    "flexSubtitle": "为 TikTok 或 Instagram Reels 下载您的玩家卡！"
   },
   "club": {
     "title": "俱乐部",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "本资料为非官方内容，未经 Supercell 认可。如需了解更多信息，请参阅 Supercell 的",
     "disclaimerLink": "粉丝内容政策",
     "disclaimerAfter": "。"
+  },
+  "brawlers": {
+    "loading": "加载 Brawlers 中...",
+    "error": "无法加载 Brawler 数据。",
+    "searchPlaceholder": "搜索 Brawler...",
+    "noResults": "未找到 Brawler",
+    "filterAll": "全部",
+    "sortValue": "宝石价值",
+    "sortTrophies": "奖杯",
+    "sortPowerLevel": "能量等级",
+    "sortName": "名称 A-Z",
+    "sortRank": "排名",
+    "labelValue": "价值",
+    "labelBest": "最佳: "
+  },
+  "stats": {
+    "loading": "加载统计中...",
+    "error": "无法加载统计信息。",
+    "gemScore": "宝石分数",
+    "trophyRoad": "奖杯之路",
+    "highest": "最高: ",
+    "wins3v3": "3vs3 胜利",
+    "soloWins": "单人胜利",
+    "duoWins": "双人胜利",
+    "timePlayed": "游戏时间",
+    "details": "详细信息",
+    "gemBreakdown": "宝石细分",
+    "concept": "项目",
+    "quantity": "数量",
+    "gems": "宝石",
+    "totalGems": "实际宝石总量",
+    "timeTooltip": "基于当前胜率（{winRate}%）的估计时间。\n\n胜率越高的玩家达到这些数据所需的实际时间越少。"
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "您查找的页面不存在。",
+    "back": "返回首页"
+  },
+  "errorPage": {
+    "title": "出现了错误",
+    "description": "发生了意外错误。",
+    "retry": "重试"
   }
 }

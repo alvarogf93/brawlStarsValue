@@ -28,12 +28,14 @@ const ALL_RARITIES: BrawlerRarityName[] = [
 
 type SortOption = 'gems' | 'trophies' | 'power' | 'name' | 'rank'
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'gems', label: 'Gem Value' },
-  { value: 'trophies', label: 'Trophies' },
-  { value: 'power', label: 'Power Level' },
-  { value: 'name', label: 'Name A-Z' },
-  { value: 'rank', label: 'Rank' },
+type SortLabelKey = 'sortValue' | 'sortTrophies' | 'sortPowerLevel' | 'sortName' | 'sortRank'
+
+const SORT_OPTIONS: { value: SortOption; labelKey: SortLabelKey }[] = [
+  { value: 'gems', labelKey: 'sortValue' },
+  { value: 'trophies', labelKey: 'sortTrophies' },
+  { value: 'power', labelKey: 'sortPowerLevel' },
+  { value: 'name', labelKey: 'sortName' },
+  { value: 'rank', labelKey: 'sortRank' },
 ]
 
 function calcBrawlerGemValue(b: BrawlerStat): number {
@@ -67,7 +69,8 @@ function sortBrawlers(brawlers: BrawlerStat[], sortBy: SortOption): BrawlerStat[
 
 export default function BrawlersPage() {
   const params = useParams<{ tag: string }>()
-  const t = useTranslations('profile')
+  const t = useTranslations('brawlers')
+  const tProfile = useTranslations('profile')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
 
@@ -122,7 +125,7 @@ export default function BrawlersPage() {
   if (isLoading) {
     return (
       <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">Loading brawlers...</p>
+        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
       </div>
     )
   }
@@ -130,7 +133,7 @@ export default function BrawlersPage() {
   if (error || !data?.player?.brawlers) {
     return (
       <div className="glass p-8 rounded-2xl text-center border-red-500/30">
-        <p className="text-red-400">{error || 'Could not load brawler data.'}</p>
+        <p className="text-red-400">{error || t('error')}</p>
       </div>
     )
   }
@@ -145,7 +148,7 @@ export default function BrawlersPage() {
           </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">
-              {t('brawlerCount').toUpperCase()}
+              {tProfile('brawlerCount').toUpperCase()}
             </h1>
             <p className="font-['Inter'] font-semibold text-[var(--color-brawl-gold)]">
               {brawlers.length} / {Object.keys(BRAWLER_RARITY_MAP).length}
@@ -165,7 +168,7 @@ export default function BrawlersPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search brawler..."
+              placeholder={t('searchPlaceholder')}
               className="w-full pl-10 pr-4 py-3 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl text-white font-['Lilita_One'] text-lg placeholder:text-slate-500 placeholder:font-['Lilita_One'] focus:outline-none focus:border-[var(--color-brawl-blue)] shadow-[0_4px_0_0_#0D1321] transition-colors"
             />
           </div>
@@ -176,7 +179,7 @@ export default function BrawlersPage() {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="flex items-center gap-2 px-5 py-3 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl text-white font-['Lilita_One'] text-lg shadow-[0_4px_0_0_#0D1321] hover:bg-[#1a2540] transition-colors w-full sm:w-auto justify-between sm:justify-start min-w-[180px]"
             >
-              <span>{SORT_OPTIONS.find((o) => o.value === sortBy)?.label}</span>
+              <span>{t(SORT_OPTIONS.find((o) => o.value === sortBy)?.labelKey ?? 'sortValue')}</span>
               <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
             {dropdownOpen && (
@@ -194,7 +197,7 @@ export default function BrawlersPage() {
                         : 'text-slate-300 hover:bg-[#1a2540] hover:text-white'
                     }`}
                   >
-                    {option.label}
+                    {t(option.labelKey)}
                   </button>
                 ))}
               </div>
@@ -213,7 +216,7 @@ export default function BrawlersPage() {
                 : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white hover:-translate-y-1 active:translate-y-[4px] active:shadow-none'
             }`}
           >
-            <div className="skew-x-12">All</div>
+            <div className="skew-x-12">{t('filterAll')}</div>
           </button>
           {ALL_RARITIES.map((rarity) => {
             const isActive = activeRarities.has(rarity)
@@ -242,7 +245,7 @@ export default function BrawlersPage() {
         {/* Quick Stats Bar */}
         <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-white/10">
           <span className="font-['Inter'] font-bold text-slate-300 text-sm">
-            {filteredAndSorted.length} / {brawlers.length} {t('brawlerCount').toLowerCase()}
+            {filteredAndSorted.length} / {brawlers.length} {tProfile('brawlerCount').toLowerCase()}
           </span>
           <span className="font-['Lilita_One'] text-lg text-white flex items-center gap-1">
             {filteredGemTotal.toLocaleString()} <GemIcon className="w-5 h-5 mb-0.5" />
@@ -255,7 +258,7 @@ export default function BrawlersPage() {
       {/* Empty state */}
       {filteredAndSorted.length === 0 && (
         <div className="brawl-card p-12 text-center">
-          <p className="font-['Lilita_One'] text-2xl text-slate-400">No brawlers found</p>
+          <p className="font-['Lilita_One'] text-2xl text-slate-400">{t('noResults')}</p>
         </div>
       )}
 
@@ -324,7 +327,7 @@ export default function BrawlersPage() {
                       {brawler.trophies.toLocaleString()} 🏆
                     </span>
                     <span className="font-['Inter'] text-xs text-slate-500 block leading-tight">
-                      Best: {brawler.highestTrophies.toLocaleString()}
+                      {t('labelBest')}{brawler.highestTrophies.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -366,7 +369,7 @@ export default function BrawlersPage() {
                 <div className="w-full h-px bg-[#121A2F] opacity-20 mb-2" />
 
                 <div className="flex justify-between items-center">
-                  <span className="font-['Inter'] font-bold text-[#1C5CF1] text-sm uppercase">Value</span>
+                  <span className="font-['Inter'] font-bold text-[#1C5CF1] text-sm uppercase">{t('labelValue')}</span>
                   <span className="font-['Lilita_One'] text-xl text-[var(--color-brawl-dark)] flex items-center gap-1 drop-shadow-sm">
                     {gemValue.toLocaleString()} <GemIcon className="w-5 h-5 mb-1" />
                   </span>

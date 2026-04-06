@@ -26,7 +26,12 @@
     "record": "Bilans W/P",
     "favMode": "Ulubiony tryb",
     "favBrawler": "Ulubiony Brawler",
-    "trophyChange": "Zmiana trofeów (ostatnia)"
+    "trophyChange": "Zmiana trofeów (ostatnia)",
+    "loading": "Ładowanie bitew...",
+    "error": "Nie można załadować bitew.",
+    "resultVictory": "Zwycięstwo",
+    "resultDefeat": "Porażka",
+    "resultDraw": "Remis"
   },
   "profile": {
     "gemEquivalent": "Równoważnik w klejnotach",
@@ -55,13 +60,18 @@
     "cosmetics": "kosmetyki",
     "addCosmetics": "Dodaj",
     "classifySkins": "Sklasyfikuj swoje skórki i piny",
-    "calculateAnother": "Oblicz inne konto"
+    "calculateAnother": "Oblicz inne konto",
+    "loadError": "Nie można załadować informacji o profilu."
   },
   "share": {
     "title": "Mój wynik mocy w Brawl Stars",
     "text": "Moje konto w Brawl Stars ma moc równoważną {gems} klejnotom! Mam {prestige} Brawlerów na poziomie Prestige. Czy możesz mnie pokonać?",
     "button": "Udostępnij wynik",
-    "copied": "Skopiowano do schowka!"
+    "copied": "Skopiowano do schowka!",
+    "loading": "Ładowanie...",
+    "error": "Nie można załadować danych.",
+    "flexTitle": "POKAŻ SWÓJ WYNIK",
+    "flexSubtitle": "Pobierz swoją Kartę Gracza na TikTok lub Instagram Reels!"
   },
   "club": {
     "title": "KLUB",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "Ten materiał jest nieoficjalny i nie jest zatwierdzony przez Supercell. Więcej informacji znajdziesz w ",
     "disclaimerLink": "Polityce dotyczącej treści fanów Supercell",
     "disclaimerAfter": "."
+  },
+  "brawlers": {
+    "loading": "Ładowanie Brawlers...",
+    "error": "Nie można załadować danych Brawlers.",
+    "searchPlaceholder": "Szukaj brawlera...",
+    "noResults": "Nie znaleziono Brawlerów",
+    "filterAll": "Wszyscy",
+    "sortValue": "Wartość klejnotów",
+    "sortTrophies": "Trofea",
+    "sortPowerLevel": "Poziom mocy",
+    "sortName": "Nazwa A-Z",
+    "sortRank": "Ranga",
+    "labelValue": "Wartość",
+    "labelBest": "Najlepszy: "
+  },
+  "stats": {
+    "loading": "Ładowanie statystyk...",
+    "error": "Nie można załadować statystyk.",
+    "gemScore": "WYNIK KLEJNOTÓW",
+    "trophyRoad": "DROGA TROFEÓW",
+    "highest": "Najwyższe: ",
+    "wins3v3": "Zwycięstwa 3vs3",
+    "soloWins": "Zwycięstwa Solo",
+    "duoWins": "Zwycięstwa Duo",
+    "timePlayed": "Czas gry",
+    "details": "SZCZEGÓŁY",
+    "gemBreakdown": "ZESTAWIENIE KLEJNOTÓW",
+    "concept": "Kategoria",
+    "quantity": "Ilość",
+    "gems": "Klejnoty",
+    "totalGems": "ŁĄCZNIE PRAWDZIWYCH KLEJNOTÓW",
+    "timeTooltip": "Szacowany czas na podstawie bieżącego współczynnika wygranych ({winRate}%).\n\nGracze z wyższym współczynnikiem wygranych potrzebowali mniej rzeczywistych godzin."
+  },
+  "notFound": {
+    "title": "Strona nie znaleziona",
+    "description": "Szukana strona nie istnieje.",
+    "back": "Wróć do strony głównej"
+  },
+  "errorPage": {
+    "title": "Coś poszło nie tak",
+    "description": "Wystąpił nieoczekiwany błąd.",
+    "retry": "Spróbuj ponownie"
   }
 }

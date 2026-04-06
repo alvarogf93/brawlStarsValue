@@ -26,7 +26,12 @@
     "record": "Registro W/L",
     "favMode": "Modo Favorito",
     "favBrawler": "Brawler Favorito",
-    "trophyChange": "Cambio de Trofeos (reciente)"
+    "trophyChange": "Cambio de Trofeos (reciente)",
+    "loading": "Cargando batallas...",
+    "error": "No se pudieron cargar las batallas.",
+    "resultVictory": "Victoria",
+    "resultDefeat": "Derrota",
+    "resultDraw": "Empate"
   },
   "profile": {
     "gemEquivalent": "Gemas Equivalentes",
@@ -55,13 +60,18 @@
     "cosmetics": "cosméticos",
     "addCosmetics": "Añadir",
     "classifySkins": "Clasifica tus skins y reacciones",
-    "calculateAnother": "Calcular otra cuenta"
+    "calculateAnother": "Calcular otra cuenta",
+    "loadError": "No se pudo cargar la información del perfil."
   },
   "share": {
     "title": "Mi Puntuación de Poder en Brawl Stars",
     "text": "¡Mi cuenta tiene un poder equivalente a {gems} Gemas! Tengo {prestige} Brawlers en Prestigio. ¿Puedes superarme?",
     "button": "Compartir resultado",
-    "copied": "¡Copiado al portapapeles!"
+    "copied": "¡Copiado al portapapeles!",
+    "loading": "Cargando...",
+    "error": "No se pudieron cargar los datos.",
+    "flexTitle": "PRESUME TU NIVEL",
+    "flexSubtitle": "¡Descarga tu tarjeta de jugador para TikTok o Instagram Reels!"
   },
   "club": {
     "title": "CLUB",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "Este material no es oficial y no está respaldado por Supercell. Para obtener más información, consulte la ",
     "disclaimerLink": "Política de contenido de fans de Supercell",
     "disclaimerAfter": "."
+  },
+  "brawlers": {
+    "loading": "Cargando Brawlers...",
+    "error": "No se pudieron cargar los datos de Brawlers.",
+    "searchPlaceholder": "Buscar brawler...",
+    "noResults": "No se encontraron Brawlers",
+    "filterAll": "Todos",
+    "sortValue": "Valor en Gemas",
+    "sortTrophies": "Trofeos",
+    "sortPowerLevel": "Nivel de Poder",
+    "sortName": "Nombre A-Z",
+    "sortRank": "Rango",
+    "labelValue": "Valor",
+    "labelBest": "Mejor: "
+  },
+  "stats": {
+    "loading": "Cargando estadísticas...",
+    "error": "No se pudieron cargar las estadísticas.",
+    "gemScore": "PUNTUACIÓN DE GEMAS",
+    "trophyRoad": "CAMINO DE TROFEOS",
+    "highest": "Máximo: ",
+    "wins3v3": "Victorias 3vs3",
+    "soloWins": "Victorias Solo",
+    "duoWins": "Victorias Dúo",
+    "timePlayed": "Tiempo Jugado",
+    "details": "DETALLES",
+    "gemBreakdown": "DESGLOSE DE GEMAS",
+    "concept": "Concepto",
+    "quantity": "Cantidad",
+    "gems": "Gemas",
+    "totalGems": "TOTAL GEMAS REALES",
+    "timeTooltip": "Tiempo estimado basándose en el Win Rate actual ({winRate}%).\n\nJugadores con mayor win rate requirieron de menos horas reales para llegar a estas estadísticas."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe.",
+    "back": "Volver al inicio"
+  },
+  "errorPage": {
+    "title": "Algo salió mal",
+    "description": "Ocurrió un error inesperado.",
+    "retry": "Intentar de nuevo"
   }
 }

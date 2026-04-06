@@ -33,7 +33,7 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
   return (
     <div className="space-y-8 mt-8">
       {/* Gem breakdown grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {gemItems.map((item, idx) => (
           <div key={item.key} className="brawl-card p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt animate-fade-in" style={{ animationDelay: `${idx * 60}ms` }}>
             <span className="text-3xl mb-2 filter drop-shadow-md">{item.icon}</span>
@@ -65,7 +65,7 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
             )}
           </p>
           {totalCosmeticGems > 0 && (
-            <p className="text-[10px] text-slate-400 mt-1">skins + pins</p>
+            <p className="text-[10px] text-slate-400 mt-1">skins &amp; pins</p>
           )}
         </Link>
       </div>

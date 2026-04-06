@@ -26,7 +26,12 @@
     "record": "승/패 기록",
     "favMode": "선호 모드",
     "favBrawler": "선호 Brawler",
-    "trophyChange": "트로피 변화 (최근)"
+    "trophyChange": "트로피 변화 (최근)",
+    "loading": "전투 로딩 중...",
+    "error": "전투를 불러올 수 없습니다.",
+    "resultVictory": "승리",
+    "resultDefeat": "패배",
+    "resultDraw": "무승부"
   },
   "profile": {
     "gemEquivalent": "젬 환산 가치",
@@ -55,13 +60,18 @@
     "cosmetics": "코스메틱",
     "addCosmetics": "추가",
     "classifySkins": "스킨과 핀을 분류하세요",
-    "calculateAnother": "다른 계정 계산"
+    "calculateAnother": "다른 계정 계산",
+    "loadError": "프로필 정보를 불러올 수 없습니다."
   },
   "share": {
     "title": "내 Brawl Stars 파워 점수",
     "text": "내 Brawl Stars 계정의 파워는 {gems} 젬에 해당합니다! 프레스티지 레벨의 Brawler가 {prestige}명 있어요. 저를 이길 수 있나요?",
     "button": "결과 공유",
-    "copied": "클립보드에 복사되었습니다!"
+    "copied": "클립보드에 복사되었습니다!",
+    "loading": "로딩 중...",
+    "error": "데이터를 불러올 수 없습니다.",
+    "flexTitle": "실력을 뽐내세요",
+    "flexSubtitle": "TikTok 또는 Instagram Reels를 위해 플레이어 카드를 다운로드하세요!"
   },
   "club": {
     "title": "클럽",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "이 자료는 비공식이며 Supercell의 승인을 받지 않았습니다. 자세한 내용은 Supercell의 ",
     "disclaimerLink": "팬 콘텐츠 정책",
     "disclaimerAfter": "을 참조하세요."
+  },
+  "brawlers": {
+    "loading": "Brawlers 로딩 중...",
+    "error": "Brawler 데이터를 불러올 수 없습니다.",
+    "searchPlaceholder": "브롤러 검색...",
+    "noResults": "Brawler를 찾을 수 없습니다",
+    "filterAll": "전체",
+    "sortValue": "젬 가치",
+    "sortTrophies": "트로피",
+    "sortPowerLevel": "파워 레벨",
+    "sortName": "이름 A-Z",
+    "sortRank": "순위",
+    "labelValue": "가치",
+    "labelBest": "최고: "
+  },
+  "stats": {
+    "loading": "통계 로딩 중...",
+    "error": "통계를 불러올 수 없습니다.",
+    "gemScore": "젬 점수",
+    "trophyRoad": "트로피 로드",
+    "highest": "최고: ",
+    "wins3v3": "3vs3 승리",
+    "soloWins": "솔로 승리",
+    "duoWins": "듀오 승리",
+    "timePlayed": "플레이 시간",
+    "details": "세부 정보",
+    "gemBreakdown": "젬 분석",
+    "concept": "항목",
+    "quantity": "수량",
+    "gems": "젬",
+    "totalGems": "총 실제 젬",
+    "timeTooltip": "현재 승률({winRate}%)을 기반으로 한 예상 시간입니다.\n\n승률이 높은 플레이어는 이 통계에 도달하는 데 더 적은 실제 시간이 필요했습니다."
+  },
+  "notFound": {
+    "title": "페이지를 찾을 수 없음",
+    "description": "찾고 있는 페이지가 존재하지 않습니다.",
+    "back": "홈으로 돌아가기"
+  },
+  "errorPage": {
+    "title": "문제가 발생했습니다",
+    "description": "예기치 않은 오류가 발생했습니다.",
+    "retry": "다시 시도"
   }
 }

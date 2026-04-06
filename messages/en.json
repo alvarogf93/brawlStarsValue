@@ -26,7 +26,12 @@
     "record": "W/L Record",
     "favMode": "Favourite Mode",
     "favBrawler": "Favourite Brawler",
-    "trophyChange": "Trophy Change (recent)"
+    "trophyChange": "Trophy Change (recent)",
+    "loading": "Loading battles...",
+    "error": "Could not load battles.",
+    "resultVictory": "Victory",
+    "resultDefeat": "Defeat",
+    "resultDraw": "Draw"
   },
   "profile": {
     "gemEquivalent": "Gem Equivalent",
@@ -55,13 +60,18 @@
     "cosmetics": "cosmetics",
     "addCosmetics": "Add",
     "classifySkins": "Classify your skins & pins",
-    "calculateAnother": "Calculate another account"
+    "calculateAnother": "Calculate another account",
+    "loadError": "Could not load profile information."
   },
   "share": {
     "title": "My Brawl Stars Power Score",
     "text": "My Brawl Stars account has a power equivalent to {gems} Gems! I have {prestige} Brawlers at Prestige. Can you beat me?",
     "button": "Share result",
-    "copied": "Copied to clipboard!"
+    "copied": "Copied to clipboard!",
+    "loading": "Loading...",
+    "error": "Could not load data.",
+    "flexTitle": "FLEX YOUR SCORE",
+    "flexSubtitle": "Download your Player Card for TikTok or Instagram Reels!"
   },
   "club": {
     "title": "CLUB",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "This material is unofficial and is not endorsed by Supercell. For more information see Supercell's ",
     "disclaimerLink": "Fan Content Policy",
     "disclaimerAfter": "."
+  },
+  "brawlers": {
+    "loading": "Loading brawlers...",
+    "error": "Could not load brawler data.",
+    "searchPlaceholder": "Search brawler...",
+    "noResults": "No brawlers found",
+    "filterAll": "All",
+    "sortValue": "Gem Value",
+    "sortTrophies": "Trophies",
+    "sortPowerLevel": "Power Level",
+    "sortName": "Name A-Z",
+    "sortRank": "Rank",
+    "labelValue": "Value",
+    "labelBest": "Best: "
+  },
+  "stats": {
+    "loading": "Loading stats...",
+    "error": "Could not load stats.",
+    "gemScore": "GEM SCORE",
+    "trophyRoad": "TROPHY ROAD",
+    "highest": "Highest: ",
+    "wins3v3": "3v3 Wins",
+    "soloWins": "Solo Wins",
+    "duoWins": "Duo Wins",
+    "timePlayed": "Time Played",
+    "details": "DETAILS",
+    "gemBreakdown": "GEM BREAKDOWN",
+    "concept": "Concept",
+    "quantity": "Quantity",
+    "gems": "Gems",
+    "totalGems": "TOTAL ACTUAL GEMS",
+    "timeTooltip": "Estimated time based on current Win Rate ({winRate}%).\n\nPlayers with a higher win rate required fewer real hours to reach these stats."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist.",
+    "back": "Go back home"
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred.",
+    "retry": "Try again"
   }
 }

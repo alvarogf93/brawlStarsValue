@@ -26,7 +26,12 @@
     "record": "勝敗記録",
     "favMode": "お気に入りモード",
     "favBrawler": "お気に入りBrawler",
-    "trophyChange": "トロフィー変動（最近）"
+    "trophyChange": "トロフィー変動（最近）",
+    "loading": "バトル読み込み中...",
+    "error": "バトルを読み込めませんでした。",
+    "resultVictory": "勝利",
+    "resultDefeat": "敗北",
+    "resultDraw": "引き分け"
   },
   "profile": {
     "gemEquivalent": "ジェム換算値",
@@ -55,13 +60,18 @@
     "cosmetics": "コスメ",
     "addCosmetics": "追加",
     "classifySkins": "スキンとピンを分類する",
-    "calculateAnother": "別のアカウントを計算"
+    "calculateAnother": "別のアカウントを計算",
+    "loadError": "プロフィール情報を読み込めませんでした。"
   },
   "share": {
     "title": "私のBrawl Starsパワースコア",
     "text": "私のBrawl Starsアカウントのパワーは{gems}ジェムに相当します！プレスティジレベルのBrawlerが{prestige}体います。私に勝てますか？",
     "button": "結果をシェア",
-    "copied": "クリップボードにコピーしました！"
+    "copied": "クリップボードにコピーしました！",
+    "loading": "読み込み中...",
+    "error": "データを読み込めませんでした。",
+    "flexTitle": "実力を見せろ",
+    "flexSubtitle": "TikTokまたはInstagram Reels用のプレイヤーカードをダウンロード！"
   },
   "club": {
     "title": "クラブ",
@@ -167,5 +177,47 @@
     "disclaimerBefore": "この素材は非公式であり、Supercellによって承認されていません。詳細についてはSupercellの",
     "disclaimerLink": "ファンコンテンツポリシー",
     "disclaimerAfter": "をご覧ください。"
+  },
+  "brawlers": {
+    "loading": "Brawlers読み込み中...",
+    "error": "Brawlerデータを読み込めませんでした。",
+    "searchPlaceholder": "ブロウラーを検索...",
+    "noResults": "Brawlerが見つかりません",
+    "filterAll": "すべて",
+    "sortValue": "ジェム価値",
+    "sortTrophies": "トロフィー",
+    "sortPowerLevel": "パワーレベル",
+    "sortName": "名前 A-Z",
+    "sortRank": "ランク",
+    "labelValue": "価値",
+    "labelBest": "最高: "
+  },
+  "stats": {
+    "loading": "統計を読み込み中...",
+    "error": "統計を読み込めませんでした。",
+    "gemScore": "ジェムスコア",
+    "trophyRoad": "トロフィーロード",
+    "highest": "最高: ",
+    "wins3v3": "3vs3勝利数",
+    "soloWins": "ソロ勝利数",
+    "duoWins": "デュオ勝利数",
+    "timePlayed": "プレイ時間",
+    "details": "詳細",
+    "gemBreakdown": "ジェム内訳",
+    "concept": "カテゴリ",
+    "quantity": "数量",
+    "gems": "ジェム",
+    "totalGems": "実際のジェム合計",
+    "timeTooltip": "現在の勝率（{winRate}%）に基づく推定時間です。\n\n勝率が高いプレイヤーほど、この統計に達するまでの実時間が少なくて済みました。"
+  },
+  "notFound": {
+    "title": "ページが見つかりません",
+    "description": "お探しのページは存在しません。",
+    "back": "ホームに戻る"
+  },
+  "errorPage": {
+    "title": "エラーが発生しました",
+    "description": "予期しないエラーが発生しました。",
+    "retry": "再試行"
   }
 }

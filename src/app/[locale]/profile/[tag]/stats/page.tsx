@@ -12,13 +12,14 @@ export default function StatsPage() {
   const params = useParams<{ tag: string }>()
   const t = useTranslations('profile')
   const tNav = useTranslations('nav')
+  const tStats = useTranslations('stats')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
 
   if (isLoading) {
     return (
       <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">Loading stats...</p>
+        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{tStats('loading')}</p>
       </div>
     )
   }
@@ -26,7 +27,7 @@ export default function StatsPage() {
   if (error || !data?.player) {
     return (
       <div className="glass p-8 rounded-2xl text-center border-red-500/30">
-        <p className="text-red-400">{error || 'Could not load stats.'}</p>
+        <p className="text-red-400">{error || tStats('error')}</p>
       </div>
     )
   }
@@ -65,7 +66,7 @@ export default function StatsPage() {
 
         {/* Gem Score Breakdown */}
         <div className="brawl-card-dark border-[#090E17] p-6 flex flex-col items-center justify-center col-span-1 min-h-[300px]">
-          <h2 className="font-['Lilita_One'] text-3xl text-[var(--color-brawl-gold)] text-center mb-6 tracking-wide drop-shadow-md">GEM SCORE</h2>
+          <h2 className="font-['Lilita_One'] text-3xl text-[var(--color-brawl-gold)] text-center mb-6 tracking-wide drop-shadow-md">{tStats('gemScore')}</h2>
           <div className="relative w-48 h-48 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_4px_10px_rgba(255,201,27,0.2)]" viewBox="0 0 36 36">
               <path className="text-[#0D1321]" strokeWidth="4" stroke="currentColor" fill="none"
@@ -120,9 +121,9 @@ export default function StatsPage() {
             </div>
             <div className="flex justify-between items-end mb-4 relative z-10">
               <div>
-                <h3 className="font-['Lilita_One'] text-[#F82F41] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.8)]">TROPHY ROAD</h3>
+                <h3 className="font-['Lilita_One'] text-[#F82F41] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.8)]">{tStats('trophyRoad')}</h3>
                 <p className="font-['Inter'] font-bold text-slate-300 text-sm tracking-wide">
-                  Highest: <span className="text-yellow-400">{st.highestTrophies.toLocaleString()}</span>
+                  {tStats('highest')}<span className="text-yellow-400">{st.highestTrophies.toLocaleString()}</span>
                 </p>
               </div>
               <span className="font-['Lilita_One'] text-4xl text-white text-stroke-brawl drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
@@ -148,34 +149,34 @@ export default function StatsPage() {
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#1C5CF1] transition-all duration-200">
               <span className="text-4xl mb-2 filter drop-shadow-md">⚔️</span>
               <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.threeVsThreeVictories.toLocaleString()}</span>
-              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">3v3 Wins</span>
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('wins3v3')}</span>
             </div>
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#F82F41] transition-all duration-200">
               <span className="text-4xl mb-2 filter drop-shadow-md">👤</span>
               <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.soloVictories.toLocaleString()}</span>
-              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Solo Wins</span>
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('soloWins')}</span>
             </div>
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#10B981] transition-all duration-200">
               <span className="text-4xl mb-2 filter drop-shadow-md">👥</span>
               <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.duoVictories.toLocaleString()}</span>
-              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Duo Wins</span>
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('duoWins')}</span>
             </div>
             <div 
               className="brawl-card-dark border-[#121A2F] p-4 flex flex-col justify-center items-center relative overflow-hidden group cursor-help"
-              title={`Tiempo estimado basándose en el Win Rate actual (${Math.round(st.winRateUsed * 100)}%).\n\nJugadores con mayor win rate requirieron de menos horas reales para llegar a estas estadísticas.`}
+              title={tStats('timeTooltip', { winRate: Math.round(st.winRateUsed * 100) })}
             >
               <div className="absolute inset-0 bg-[#4EC0FA]/20 group-hover:bg-[#4EC0FA]/40 transition-colors" />
               <span className="text-4xl filter drop-shadow-md relative z-10 mb-2">⏱️</span>
               <span className="text-2xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl relative z-10 border-b border-dashed border-[#A0AEC0]/50 pb-0.5">
                 {formatPlaytime(st.estimatedHoursPlayed)}
               </span>
-              <span className="text-[10px] uppercase font-black text-slate-300 relative z-10 tracking-wider">Time Played</span>
+              <span className="text-[10px] uppercase font-black text-slate-300 relative z-10 tracking-wider">{tStats('timePlayed')}</span>
             </div>
           </div>
 
           {/* Unlock details */}
           <div className="brawl-card-dark p-6">
-            <h3 className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-lg tracking-widest mb-4">DETALLES</h3>
+            <h3 className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-lg tracking-widest mb-4">{tStats('details')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 { label: t('gadgets'), value: bd.gadgets.count, icon: '🔧' },
@@ -205,15 +206,15 @@ export default function StatsPage() {
         <div className="flex items-center gap-3 mb-6">
           <GemIcon className="w-8 h-8" />
           <h2 className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-gold)] tracking-widest">
-            GEM BREAKDOWN
+            {tStats('gemBreakdown')}
           </h2>
         </div>
 
         <div className="space-y-1">
           <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-2 text-xs font-bold uppercase text-slate-500">
-            <span>Concepto</span>
-            <span className="text-right w-20">Cantidad</span>
-            <span className="text-right w-24">Gemas</span>
+            <span>{tStats('concept')}</span>
+            <span className="text-right w-20">{tStats('quantity')}</span>
+            <span className="text-right w-24">{tStats('gems')}</span>
           </div>
 
           {[
@@ -239,7 +240,7 @@ export default function StatsPage() {
           <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-4 mt-2 rounded-xl bg-[var(--color-brawl-gold)]/20 border-2 border-[var(--color-brawl-gold)]">
             <span className="flex items-center gap-2 font-['Lilita_One'] text-xl text-white">
               <GemIcon className="w-6 h-6" />
-              TOTAL GEMAS REALES
+              {tStats('totalGems')}
             </span>
             <span className="text-right text-sm text-white/60 w-20">=</span>
             <span className="text-right font-['Lilita_One'] text-2xl text-white w-24">
