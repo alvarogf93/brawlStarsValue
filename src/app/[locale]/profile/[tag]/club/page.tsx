@@ -10,6 +10,8 @@ import { useClubEnriched, type EnrichedMember } from '@/hooks/useClubEnriched'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { ClubTrophyChart } from '@/components/club/ClubTrophyChart'
+import { useClubTrophyChanges } from '@/hooks/useClubTrophyChanges'
 import { formatPlaytime } from '@/lib/utils'
 import { Crown, Shield, Star, Users, Trophy, Lock, Unlock, Mail, TrendingUp, TrendingDown, BarChart3, UserCheck, ChevronDown, Gem, Swords, Clock } from 'lucide-react'
 import type { ClubMember } from '@/lib/api'
@@ -89,6 +91,7 @@ export default function ClubPage() {
 
   const { data: club, isLoading: clubLoading, error: clubError } = useClub(clubTag)
   const { members: enrichedMembers, progress, isLoading: enrichLoading, totalLoaded } = useClubEnriched(club?.members ?? null)
+  const { data: trophyChanges, progress: tcProgress, isLoading: tcLoading } = useClubTrophyChanges(club?.members ?? null)
 
   const isLoading = playerLoading || clubLoading
 
@@ -213,6 +216,14 @@ export default function ClubPage() {
           <p className="text-[10px] uppercase font-bold text-slate-500">{t('trophySpread')}</p>
         </div>
       </div>
+
+      {/* Club Trophy Changes Chart */}
+      <ClubTrophyChart
+        members={trophyChanges}
+        playerTag={tag}
+        progress={tcProgress}
+        isLoading={tcLoading}
+      />
 
       {/* Loading progress + ad space */}
       {enrichLoading && (

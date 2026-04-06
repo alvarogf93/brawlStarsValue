@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
 import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
@@ -292,7 +291,8 @@ export default function BrawlersPage() {
                 <div className="w-24 h-24 bg-white/30 rounded-full blur-[20px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 
                 {/* Brawler portrait */}
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={getBrawlerPortraitUrl(brawler.id)}
                   alt={brawler.name}
                   width={110}
