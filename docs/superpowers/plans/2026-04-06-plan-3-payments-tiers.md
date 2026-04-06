@@ -115,7 +115,7 @@ git commit -m "feat: webhook_events table + Lemon Squeezy env vars"
 ```typescript
 // src/__tests__/unit/lib/lemonsqueezy.test.ts
 import { describe, it, expect, vi } from 'vitest'
-import { verifyWebhookSignature, parseWebhookEvent, createCheckoutUrl } from '@/lib/lemonsqueezy'
+import { verifyWebhookSignature, parseWebhookEvent, statusToTier, createCheckoutUrl } from '@/lib/lemonsqueezy'
 import crypto from 'crypto'
 
 describe('verifyWebhookSignature', () => {
@@ -185,6 +185,34 @@ describe('parseWebhookEvent', () => {
     }
     const result = parseWebhookEvent(payload)
     expect(result).toBeNull()
+  })
+})
+
+describe('statusToTier', () => {
+  it('maps subscription_created to premium + active', () => {
+    const result = statusToTier('subscription_created', 'active')
+    expect(result).toEqual({ tier: 'premium', subscriptionStatus: 'active' })
+  })
+
+  it('maps subscription_cancelled — keeps tier premium, status cancelled', () => {
+    // User paid through end of period — tier stays premium
+    const result = statusToTier('subscription_cancelled', 'cancelled')
+    expect(result).toEqual({ tier: 'premium', subscriptionStatus: 'cancelled' })
+  })
+
+  it('maps subscription_expired — drops to free', () => {
+    const result = statusToTier('subscription_expired', 'expired')
+    expect(result).toEqual({ tier: 'free', subscriptionStatus: 'expired' })
+  })
+
+  it('maps subscription_updated with active status', () => {
+    const result = statusToTier('subscription_updated', 'active')
+    expect(result).toEqual({ tier: 'premium', subscriptionStatus: 'active' })
+  })
+
+  it('maps subscription_updated with past_due status', () => {
+    const result = statusToTier('subscription_updated', 'past_due')
+    expect(result).toEqual({ tier: 'premium', subscriptionStatus: 'past_due' })
   })
 })
 ```
@@ -621,10 +649,15 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { verifyWebhookSignature, parseWebhookEvent, statusToTier } from '@/lib/lemonsqueezy'
 
 export async function POST(request: Request) {
+  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
+  if (!secret) {
+    console.error('LEMONSQUEEZY_WEBHOOK_SECRET not configured')
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
+
   const rawBody = await request.text()
   const signature = request.headers.get('X-Signature') ?? ''
   const eventId = request.headers.get('X-Event-Id') ?? ''
-  const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET!
 
   // 1. Verify HMAC signature
   if (!verifyWebhookSignature(rawBody, signature, secret)) {

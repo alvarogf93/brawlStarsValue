@@ -725,12 +725,22 @@ describe('auth utilities', () => {
       expect(isPremium({ ...MOCK_PROFILE, tier: 'pro', ls_subscription_status: 'active' })).toBe(true)
     })
 
+    it('returns true for cancelled subscription (still in paid period)', () => {
+      // Spec: "subscription_cancelled → keep tier until period ends"
+      // User paid — access continues until subscription_expired fires
+      expect(isPremium({ ...MOCK_PROFILE, tier: 'premium', ls_subscription_status: 'cancelled' })).toBe(true)
+    })
+
     it('returns false for free tier', () => {
       expect(isPremium(MOCK_PROFILE)).toBe(false)
     })
 
-    it('returns false for cancelled subscription', () => {
-      expect(isPremium({ ...MOCK_PROFILE, tier: 'premium', ls_subscription_status: 'cancelled' })).toBe(false)
+    it('returns false for expired subscription', () => {
+      expect(isPremium({ ...MOCK_PROFILE, tier: 'free', ls_subscription_status: 'expired' })).toBe(false)
+    })
+
+    it('returns false for past_due subscription', () => {
+      expect(isPremium({ ...MOCK_PROFILE, tier: 'premium', ls_subscription_status: 'past_due' })).toBe(false)
     })
 
     it('returns false for null profile', () => {
@@ -791,11 +801,14 @@ Expected: FAIL — module `@/lib/auth` not found.
 import { createClient } from '@/lib/supabase/server'
 import type { Profile } from '@/lib/supabase/types'
 
-/** Check if a profile has active premium access */
+/** Check if a profile has active premium access.
+ *  Cancelled subscriptions KEEP access until period ends (subscription_expired).
+ *  Only 'expired' and 'past_due' revoke access. */
 export function isPremium(profile: Profile | null): boolean {
   if (!profile) return false
   if (profile.tier === 'free') return false
   return profile.ls_subscription_status === 'active'
+      || profile.ls_subscription_status === 'cancelled'
 }
 
 /** Get current authenticated user + their profile (if exists) */

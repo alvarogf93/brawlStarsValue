@@ -218,7 +218,7 @@ git commit -m "feat: add battles + sync_queue database types"
 ```typescript
 // src/__tests__/unit/lib/battle-parser.test.ts
 import { describe, it, expect } from 'vitest'
-import { parseBattle, parseBattleTime } from '@/lib/battle-parser'
+import { parseBattle, parseBattleTime, parseBattlelog } from '@/lib/battle-parser'
 import type { BattlelogEntry } from '@/lib/api'
 
 const PLAYER_TAG = '#YJU282PV'
@@ -341,6 +341,32 @@ describe('parseBattle', () => {
   it('returns null if player not found in battle', () => {
     const result = parseBattle(makeBattleEntry(), '#NOTINBATTLE')
     expect(result).toBeNull()
+  })
+})
+
+describe('parseBattlelog', () => {
+  it('parses multiple entries and filters null results', () => {
+    const entries = [
+      makeBattleEntry(),
+      makeBattleEntry({ battleTime: '20260405T180000.000Z' }),
+    ]
+    const results = parseBattlelog(entries, PLAYER_TAG)
+    expect(results).toHaveLength(2)
+    expect(results[0].battle_time).toBe('2026-04-05T17:16:04.000Z')
+    expect(results[1].battle_time).toBe('2026-04-05T18:00:00.000Z')
+  })
+
+  it('skips entries where player is not found', () => {
+    const entries = [
+      makeBattleEntry(),
+      makeBattleEntry({ battleTime: '20260405T180000.000Z' }),
+    ]
+    const results = parseBattlelog(entries, '#NOTINBATTLE')
+    expect(results).toHaveLength(0)
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(parseBattlelog([], PLAYER_TAG)).toHaveLength(0)
   })
 })
 ```
@@ -574,6 +600,34 @@ describe('syncBattles', () => {
     expect(result.inserted).toBe(0)
   })
 
+  it('deduplicates: upsert is called with ignoreDuplicates true', async () => {
+    const { fetchBattlelog } = await import('@/lib/api')
+    vi.mocked(fetchBattlelog).mockResolvedValue({
+      items: [{
+        battleTime: '20260405T171604.000Z',
+        event: { id: 1, mode: 'brawlBall', modeId: 2, map: 'Beach' },
+        battle: {
+          mode: 'brawlBall', type: 'ranked', result: 'victory', duration: 120,
+          teams: [[{ tag: '#YJU282PV', name: 'T', brawler: { id: 16000000, name: 'S', power: 11, trophies: 750 } }], []],
+        },
+      }],
+      paging: { cursors: {} },
+    })
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'battles') return { upsert: mockUpsert.mockResolvedValue({ error: null, count: 0 }) }
+      if (table === 'profiles') return { update: mockUpdate.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) }) }
+      return {}
+    })
+
+    await syncBattles('#YJU282PV')
+    // Verify upsert was called with ignoreDuplicates
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ onConflict: 'player_tag,battle_time', ignoreDuplicates: true })
+    )
+  })
+
   it('updates last_sync on profiles after successful sync', async () => {
     const { fetchBattlelog } = await import('@/lib/api')
     vi.mocked(fetchBattlelog).mockResolvedValue({ items: [], paging: { cursors: {} } })
@@ -586,6 +640,15 @@ describe('syncBattles', () => {
 
     await syncBattles('#YJU282PV')
     expect(eqMock).toHaveBeenCalledWith('player_tag', '#YJU282PV')
+  })
+
+  it('returns error when Supercell API fails (429/503)', async () => {
+    const { fetchBattlelog } = await import('@/lib/api')
+    vi.mocked(fetchBattlelog).mockRejectedValue(new Error('429 Rate limited'))
+
+    const result = await syncBattles('#YJU282PV')
+    expect(result.error).toContain('429')
+    expect(result.inserted).toBe(0)
   })
 })
 ```
@@ -620,7 +683,12 @@ export async function syncBattles(playerTag: string): Promise<SyncResult> {
   const supabase = await createServiceClient()
 
   // 1. Fetch from Supercell API
-  const response = await fetchBattlelog(playerTag)
+  let response
+  try {
+    response = await fetchBattlelog(playerTag)
+  } catch (err) {
+    return { playerTag, fetched: 0, inserted: 0, error: String(err) }
+  }
   const entries = response.items ?? []
 
   if (entries.length === 0) {
@@ -750,7 +818,7 @@ describe('POST /api/sync', () => {
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           single: vi.fn().mockResolvedValue({
-            data: { id: 'uid1', player_tag: '#TAG', tier: 'premium', ls_subscription_status: 'active' },
+            data: { id: 'uid1', player_tag: '#TAG', tier: 'premium', ls_subscription_status: 'active', last_sync: null },
             error: null,
           }),
         }),
@@ -761,6 +829,26 @@ describe('POST /api/sync', () => {
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.inserted).toBe(3)
+  })
+
+  it('returns 429 when last_sync was less than 2 minutes ago', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'uid1' } }, error: null })
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: {
+              id: 'uid1', player_tag: '#TAG', tier: 'premium', ls_subscription_status: 'active',
+              last_sync: new Date().toISOString(), // just now
+            },
+            error: null,
+          }),
+        }),
+      }),
+    })
+
+    const res = await POST(makeRequest({}))
+    expect(res.status).toBe(429)
   })
 })
 ```
@@ -780,6 +868,9 @@ import { createClient } from '@/lib/supabase/server'
 import { isPremium } from '@/lib/auth'
 import { syncBattles } from '@/lib/battle-sync'
 import type { Profile } from '@/lib/supabase/types'
+
+// Rate limit: 1 sync per user per 2 minutes (uses profile.last_sync as natural limiter)
+const MIN_SYNC_INTERVAL_MS = 2 * 60 * 1000
 
 export async function POST() {
   // 1. Authenticate
@@ -805,7 +896,16 @@ export async function POST() {
     return NextResponse.json({ error: 'Premium subscription required' }, { status: 403 })
   }
 
-  // 3. Sync battles
+  // 3. Rate limit: reject if last_sync was less than 2 minutes ago
+  if (profile.last_sync) {
+    const elapsed = Date.now() - new Date(profile.last_sync).getTime()
+    if (elapsed < MIN_SYNC_INTERVAL_MS) {
+      const waitSec = Math.ceil((MIN_SYNC_INTERVAL_MS - elapsed) / 1000)
+      return NextResponse.json({ error: `Rate limited. Try again in ${waitSec}s` }, { status: 429 })
+    }
+  }
+
+  // 4. Sync battles
   const result = await syncBattles(profile.player_tag)
 
   if (result.error) {
@@ -841,6 +941,8 @@ git commit -m "feat: manual sync API route — auth + premium check + sync"
 Run: `mkdir -p supabase/functions/sync-worker`
 
 - [ ] **Step 2: Create the Edge Function**
+
+> **IMPORTANT:** This Edge Function duplicates `parseBattle` logic from `src/lib/battle-parser.ts` adapted for Deno. If the parser logic changes, update BOTH files. The canonical source of truth is the Next.js version (which has TDD tests). The Edge Function version must match its behavior.
 
 ```typescript
 // supabase/functions/sync-worker/index.ts

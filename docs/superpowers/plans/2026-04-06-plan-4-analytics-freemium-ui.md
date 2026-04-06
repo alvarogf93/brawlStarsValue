@@ -175,7 +175,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const before = searchParams.get('before')
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 100)
+  const aggregate = searchParams.get('aggregate') === 'true'
 
+  // Server-side aggregation: returns stats without sending all battles
+  if (aggregate) {
+    const { data: battles } = await supabase
+      .from('battles')
+      .select('mode, map, result, trophy_change, is_star_player, my_brawler, teammates')
+      .eq('player_tag', profile.player_tag)
+
+    return NextResponse.json({ analytics: battles ?? [], count: battles?.length ?? 0 })
+  }
+
+  // Paginated battles
   let query = supabase
     .from('battles')
     .select('*')
@@ -694,7 +706,6 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
-import { useBattleHistory } from '@/hooks/useBattleHistory'
 import { aggregateAnalytics, type Analytics } from '@/hooks/useAnalytics'
 import { WinRateByMode } from '@/components/analytics/WinRateByMode'
 import { WinRateByBrawler } from '@/components/analytics/WinRateByBrawler'
@@ -702,30 +713,32 @@ import { BestTeammates } from '@/components/analytics/BestTeammates'
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
 import { ManageSubscription } from '@/components/premium/ManageSubscription'
 import { isPremium } from '@/lib/auth'
-import type { Profile } from '@/lib/supabase/types'
+import type { Battle, Profile } from '@/lib/supabase/types'
 import { FlaskConical } from 'lucide-react'
 
 export default function AnalyticsPage() {
   const params = useParams<{ tag: string; locale: string }>()
   const t = useTranslations('analytics')
   const { user, profile, loading: authLoading } = useAuth()
-  const { battles, loading: battlesLoading, loadAll } = useBattleHistory()
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const tag = decodeURIComponent(params.tag)
   const hasPremium = isPremium(profile as Profile | null)
 
+  // Fetch analytics via server-side aggregation (only selected columns, not full rows)
   useEffect(() => {
-    if (hasPremium && battles.length === 0 && !battlesLoading) {
-      loadAll().then(all => setAnalytics(aggregateAnalytics(all)))
-    }
-  }, [hasPremium, battles.length, battlesLoading, loadAll])
+    if (!hasPremium || loading || analytics) return
+    setLoading(true)
+    fetch('/api/battles?aggregate=true')
+      .then(r => r.json())
+      .then(data => {
+        setAnalytics(aggregateAnalytics(data.analytics as Battle[]))
+      })
+      .finally(() => setLoading(false))
+  }, [hasPremium, loading, analytics])
 
-  useEffect(() => {
-    if (battles.length > 0) {
-      setAnalytics(aggregateAnalytics(battles))
-    }
-  }, [battles])
+  const battlesLoading = loading
 
   // Not premium: show upgrade card
   if (!authLoading && !hasPremium) {
@@ -895,6 +908,11 @@ import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/auth'
 import type { Profile } from '@/lib/supabase/types'
+```
+
+Change `useParams` to include locale:
+```typescript
+const params = useParams<{ tag: string; locale: string }>()
 ```
 
 Inside the component, add after `const { data, isLoading, error } = useBattlelog(tag)`:
@@ -1116,6 +1134,17 @@ const PREMIUM_EXTRA = {
 const PRIVACY = {
   es: { title: 'Política de Privacidad', dataCollectedTitle: 'Datos que recopilamos', dataTag: 'Tu tag de jugador de Brawl Stars', dataBattles: 'Historial de batallas (para usuarios Premium)', dataEmail: 'Correo electrónico de tu cuenta de Google (para autenticación)', thirdPartyTitle: 'Datos de otros jugadores', thirdPartyBody: 'Los datos de compañeros de equipo y rivales provienen de la API pública de Supercell. Se almacenan para analytics agregados, no para identificación individual.', retentionTitle: 'Retención de datos', retentionBody: 'Las batallas almacenadas durante una suscripción activa se conservan indefinidamente, incluso tras la cancelación. Si solicitas la eliminación de tus datos, contacta con nosotros.', gdprTitle: 'Derechos GDPR', gdprBody: 'Puedes solicitar exportación o eliminación de tus datos enviando un email a privacy@brawlvision.com.', cookiesTitle: 'Cookies', cookiesBody: 'Usamos localStorage para caché de datos del juego y cookies de sesión de Supabase Auth. Google AdSense puede establecer cookies de publicidad para usuarios gratuitos.', disclaimerTitle: 'Aviso legal', disclaimerBody: 'BrawlVision no está afiliado con, respaldado, patrocinado o aprobado por Supercell Oy. Brawl Stars es una marca registrada de Supercell.' },
   en: { title: 'Privacy Policy', dataCollectedTitle: 'Data we collect', dataTag: 'Your Brawl Stars player tag', dataBattles: 'Battle history (for Premium users)', dataEmail: 'Google account email (for authentication)', thirdPartyTitle: 'Third-party player data', thirdPartyBody: 'Teammate and opponent data comes from Supercell\\'s public API. It is stored for aggregate analytics, not individual identification.', retentionTitle: 'Data retention', retentionBody: 'Battles stored during an active subscription are preserved indefinitely, even after cancellation. Contact us to request data deletion.', gdprTitle: 'GDPR Rights', gdprBody: 'You may request data export or deletion by emailing privacy@brawlvision.com.', cookiesTitle: 'Cookies', cookiesBody: 'We use localStorage for game data caching and Supabase Auth session cookies. Google AdSense may set advertising cookies for free users.', disclaimerTitle: 'Legal disclaimer', disclaimerBody: 'BrawlVision is not affiliated with, endorsed, sponsored, or approved by Supercell Oy. Brawl Stars is a trademark of Supercell.' },
+  fr: { title: 'Politique de Confidentialité', dataCollectedTitle: 'Données collectées', dataTag: 'Votre tag joueur Brawl Stars', dataBattles: 'Historique des combats (utilisateurs Premium)', dataEmail: 'Email du compte Google (authentification)', thirdPartyTitle: 'Données des autres joueurs', thirdPartyBody: 'Les données des coéquipiers et adversaires proviennent de l\\'API publique de Supercell. Stockées pour des analyses agrégées, pas pour l\\'identification individuelle.', retentionTitle: 'Conservation des données', retentionBody: 'Les combats stockés pendant un abonnement actif sont conservés indéfiniment, même après annulation. Contactez-nous pour demander la suppression.', gdprTitle: 'Droits RGPD', gdprBody: 'Vous pouvez demander l\\'export ou la suppression de vos données par email à privacy@brawlvision.com.', cookiesTitle: 'Cookies', cookiesBody: 'Nous utilisons localStorage pour le cache et les cookies de session Supabase Auth. Google AdSense peut définir des cookies publicitaires pour les utilisateurs gratuits.', disclaimerTitle: 'Avis légal', disclaimerBody: 'BrawlVision n\\'est pas affilié, approuvé ou sponsorisé par Supercell Oy. Brawl Stars est une marque de Supercell.' },
+  pt: { title: 'Política de Privacidade', dataCollectedTitle: 'Dados coletados', dataTag: 'Sua tag de jogador Brawl Stars', dataBattles: 'Histórico de batalhas (usuários Premium)', dataEmail: 'Email da conta Google (autenticação)', thirdPartyTitle: 'Dados de outros jogadores', thirdPartyBody: 'Dados de companheiros e oponentes vêm da API pública da Supercell. Armazenados para análises agregadas, não para identificação individual.', retentionTitle: 'Retenção de dados', retentionBody: 'Batalhas armazenadas durante assinatura ativa são preservadas indefinidamente, mesmo após cancelamento. Entre em contato para solicitar exclusão.', gdprTitle: 'Direitos LGPD/GDPR', gdprBody: 'Você pode solicitar exportação ou exclusão de dados por email em privacy@brawlvision.com.', cookiesTitle: 'Cookies', cookiesBody: 'Usamos localStorage para cache e cookies de sessão Supabase Auth. Google AdSense pode definir cookies de publicidade para usuários gratuitos.', disclaimerTitle: 'Aviso legal', disclaimerBody: 'BrawlVision não é afiliado, endossado ou patrocinado pela Supercell Oy. Brawl Stars é marca registrada da Supercell.' },
+  de: { title: 'Datenschutzrichtlinie', dataCollectedTitle: 'Erhobene Daten', dataTag: 'Ihr Brawl Stars Spieler-Tag', dataBattles: 'Kampfverlauf (Premium-Nutzer)', dataEmail: 'Google-Konto E-Mail (Authentifizierung)', thirdPartyTitle: 'Daten anderer Spieler', thirdPartyBody: 'Teamkameraden- und Gegnerdaten stammen aus der öffentlichen API von Supercell. Gespeichert für aggregierte Analysen, nicht zur individuellen Identifikation.', retentionTitle: 'Datenspeicherung', retentionBody: 'Kämpfe, die während eines aktiven Abonnements gespeichert wurden, bleiben unbegrenzt erhalten, auch nach Kündigung. Kontaktieren Sie uns zur Datenlöschung.', gdprTitle: 'DSGVO-Rechte', gdprBody: 'Sie können den Export oder die Löschung Ihrer Daten per E-Mail an privacy@brawlvision.com anfordern.', cookiesTitle: 'Cookies', cookiesBody: 'Wir verwenden localStorage für Caching und Supabase Auth Sitzungs-Cookies. Google AdSense kann Werbe-Cookies für kostenlose Nutzer setzen.', disclaimerTitle: 'Haftungsausschluss', disclaimerBody: 'BrawlVision ist nicht mit Supercell Oy verbunden, unterstützt oder gesponsert. Brawl Stars ist eine Marke von Supercell.' },
+  it: { title: 'Informativa sulla Privacy', dataCollectedTitle: 'Dati raccolti', dataTag: 'Il tuo tag giocatore Brawl Stars', dataBattles: 'Storico battaglie (utenti Premium)', dataEmail: 'Email account Google (autenticazione)', thirdPartyTitle: 'Dati di altri giocatori', thirdPartyBody: 'I dati di compagni e avversari provengono dall\\'API pubblica di Supercell. Memorizzati per analisi aggregate, non per identificazione individuale.', retentionTitle: 'Conservazione dati', retentionBody: 'Le battaglie memorizzate durante un abbonamento attivo sono conservate a tempo indeterminato, anche dopo la cancellazione. Contattaci per richiedere la cancellazione.', gdprTitle: 'Diritti GDPR', gdprBody: 'Puoi richiedere l\\'esportazione o la cancellazione dei tuoi dati inviando un\\'email a privacy@brawlvision.com.', cookiesTitle: 'Cookie', cookiesBody: 'Utilizziamo localStorage per il caching e cookie di sessione Supabase Auth. Google AdSense può impostare cookie pubblicitari per gli utenti gratuiti.', disclaimerTitle: 'Avviso legale', disclaimerBody: 'BrawlVision non è affiliato, approvato o sponsorizzato da Supercell Oy. Brawl Stars è un marchio di Supercell.' },
+  ru: { title: 'Политика конфиденциальности', dataCollectedTitle: 'Собираемые данные', dataTag: 'Ваш тег игрока Brawl Stars', dataBattles: 'История боёв (Премиум-пользователи)', dataEmail: 'Email аккаунта Google (аутентификация)', thirdPartyTitle: 'Данные других игроков', thirdPartyBody: 'Данные тиммейтов и противников получены из публичного API Supercell. Хранятся для агрегированной аналитики, не для индивидуальной идентификации.', retentionTitle: 'Хранение данных', retentionBody: 'Бои, сохранённые во время активной подписки, хранятся бессрочно, даже после отмены. Свяжитесь с нами для удаления данных.', gdprTitle: 'Права GDPR', gdprBody: 'Вы можете запросить экспорт или удаление данных по email privacy@brawlvision.com.', cookiesTitle: 'Файлы cookie', cookiesBody: 'Мы используем localStorage для кеширования и cookie сессий Supabase Auth. Google AdSense может устанавливать рекламные cookie для бесплатных пользователей.', disclaimerTitle: 'Юридическая информация', disclaimerBody: 'BrawlVision не связан, не одобрен и не спонсируется Supercell Oy. Brawl Stars — торговая марка Supercell.' },
+  tr: { title: 'Gizlilik Politikası', dataCollectedTitle: 'Toplanan veriler', dataTag: 'Brawl Stars oyuncu etiketiniz', dataBattles: 'Savaş geçmişi (Premium kullanıcılar)', dataEmail: 'Google hesap e-postası (kimlik doğrulama)', thirdPartyTitle: 'Diğer oyuncu verileri', thirdPartyBody: 'Takım arkadaşı ve rakip verileri Supercell\\'in genel API\\'sından gelir. Toplu analizler için saklanır, bireysel tanımlama için değil.', retentionTitle: 'Veri saklama', retentionBody: 'Aktif abonelik sırasında saklanan savaşlar süresiz korunur, iptalden sonra bile. Silme için bizimle iletişime geçin.', gdprTitle: 'KVKK/GDPR Hakları', gdprBody: 'privacy@brawlvision.com adresine e-posta göndererek veri dışa aktarma veya silme talep edebilirsiniz.', cookiesTitle: 'Çerezler', cookiesBody: 'Önbellek için localStorage ve Supabase Auth oturum çerezleri kullanıyoruz. Google AdSense ücretsiz kullanıcılar için reklam çerezleri ayarlayabilir.', disclaimerTitle: 'Yasal uyarı', disclaimerBody: 'BrawlVision, Supercell Oy ile bağlantılı, onaylanmış veya desteklenmemiştir. Brawl Stars, Supercell\\'in ticari markasıdır.' },
+  pl: { title: 'Polityka Prywatności', dataCollectedTitle: 'Zbierane dane', dataTag: 'Twój tag gracza Brawl Stars', dataBattles: 'Historia bitew (użytkownicy Premium)', dataEmail: 'Email konta Google (uwierzytelnianie)', thirdPartyTitle: 'Dane innych graczy', thirdPartyBody: 'Dane współgraczy i przeciwników pochodzą z publicznego API Supercell. Przechowywane do zagregowanych analiz, nie do indywidualnej identyfikacji.', retentionTitle: 'Przechowywanie danych', retentionBody: 'Bitwy zapisane podczas aktywnej subskrypcji są przechowywane bezterminowo, nawet po anulowaniu. Skontaktuj się z nami w celu usunięcia.', gdprTitle: 'Prawa RODO', gdprBody: 'Możesz poprosić o eksport lub usunięcie danych wysyłając email na privacy@brawlvision.com.', cookiesTitle: 'Pliki cookie', cookiesBody: 'Używamy localStorage do cache\\'owania i plików cookie sesji Supabase Auth. Google AdSense może ustawiać pliki cookie reklamowe dla darmowych użytkowników.', disclaimerTitle: 'Zastrzeżenie prawne', disclaimerBody: 'BrawlVision nie jest powiązany, zatwierdzony ani sponsorowany przez Supercell Oy. Brawl Stars jest znakiem towarowym Supercell.' },
+  ar: { title: 'سياسة الخصوصية', dataCollectedTitle: 'البيانات المجمعة', dataTag: 'علامة لاعب Brawl Stars الخاصة بك', dataBattles: 'سجل المعارك (مستخدمو بريميوم)', dataEmail: 'بريد حساب Google (المصادقة)', thirdPartyTitle: 'بيانات اللاعبين الآخرين', thirdPartyBody: 'بيانات زملاء الفريق والخصوم تأتي من API العام لـ Supercell. تُخزن للتحليلات المجمعة وليس للتعريف الفردي.', retentionTitle: 'الاحتفاظ بالبيانات', retentionBody: 'المعارك المخزنة أثناء اشتراك نشط تُحفظ إلى أجل غير مسمى حتى بعد الإلغاء. اتصل بنا لطلب الحذف.', gdprTitle: 'حقوق GDPR', gdprBody: 'يمكنك طلب تصدير أو حذف بياناتك عبر البريد الإلكتروني privacy@brawlvision.com.', cookiesTitle: 'ملفات تعريف الارتباط', cookiesBody: 'نستخدم localStorage للتخزين المؤقت وملفات تعريف ارتباط جلسة Supabase Auth. قد يضع Google AdSense ملفات تعريف ارتباط إعلانية للمستخدمين المجانيين.', disclaimerTitle: 'إخلاء المسؤولية القانونية', disclaimerBody: 'BrawlVision غير تابع أو معتمد أو مدعوم من Supercell Oy. Brawl Stars علامة تجارية لـ Supercell.' },
+  ko: { title: '개인정보 처리방침', dataCollectedTitle: '수집하는 데이터', dataTag: 'Brawl Stars 플레이어 태그', dataBattles: '전투 기록 (프리미엄 사용자)', dataEmail: 'Google 계정 이메일 (인증)', thirdPartyTitle: '다른 플레이어 데이터', thirdPartyBody: '팀원 및 상대 데이터는 Supercell의 공개 API에서 가져옵니다. 집계 분석을 위해 저장되며 개인 식별용이 아닙니다.', retentionTitle: '데이터 보존', retentionBody: '활성 구독 중 저장된 전투는 취소 후에도 무기한 보존됩니다. 삭제 요청은 문의해 주세요.', gdprTitle: 'GDPR 권리', gdprBody: 'privacy@brawlvision.com으로 이메일을 보내 데이터 내보내기 또는 삭제를 요청할 수 있습니다.', cookiesTitle: '쿠키', cookiesBody: '캐싱을 위한 localStorage와 Supabase Auth 세션 쿠키를 사용합니다. Google AdSense는 무료 사용자에게 광고 쿠키를 설정할 수 있습니다.', disclaimerTitle: '법적 고지', disclaimerBody: 'BrawlVision은 Supercell Oy와 제휴, 승인 또는 후원 관계가 아닙니다. Brawl Stars는 Supercell의 상표입니다.' },
+  ja: { title: 'プライバシーポリシー', dataCollectedTitle: '収集するデータ', dataTag: 'Brawl Starsプレイヤータグ', dataBattles: 'バトル履歴（プレミアムユーザー）', dataEmail: 'Googleアカウントメール（認証）', thirdPartyTitle: '他プレイヤーのデータ', thirdPartyBody: 'チームメイトと対戦相手のデータはSupercellの公開APIから取得されます。集計分析用に保存され、個人識別には使用されません。', retentionTitle: 'データ保持', retentionBody: 'アクティブなサブスクリプション中に保存されたバトルは、キャンセル後も無期限に保持されます。削除リクエストはお問い合わせください。', gdprTitle: 'GDPR権利', gdprBody: 'privacy@brawlvision.comにメールしてデータのエクスポートまたは削除を要求できます。', cookiesTitle: 'Cookie', cookiesBody: 'キャッシュにlocalStorageとSupabase Authセッションcookieを使用しています。Google AdSenseは無料ユーザーに広告cookieを設定する場合があります。', disclaimerTitle: '法的免責事項', disclaimerBody: 'BrawlVisionはSupercell Oyと提携、承認、スポンサーシップ関係にありません。Brawl StarsはSupercellの商標です。' },
+  zh: { title: '隐私政策', dataCollectedTitle: '收集的数据', dataTag: '您的Brawl Stars玩家标签', dataBattles: '战斗历史（高级用户）', dataEmail: 'Google账户邮箱（身份验证）', thirdPartyTitle: '其他玩家数据', thirdPartyBody: '队友和对手数据来自Supercell的公开API。存储用于聚合分析，不用于个人识别。', retentionTitle: '数据保留', retentionBody: '在活跃订阅期间存储的战斗将无限期保留，即使取消后也是如此。请联系我们请求删除。', gdprTitle: 'GDPR权利', gdprBody: '您可以通过发送电子邮件至privacy@brawlvision.com请求数据导出或删除。', cookiesTitle: 'Cookie', cookiesBody: '我们使用localStorage进行缓存和Supabase Auth会话cookie。Google AdSense可能会为免费用户设置广告cookie。', disclaimerTitle: '法律声明', disclaimerBody: 'BrawlVision与Supercell Oy没有关联、认可或赞助关系。Brawl Stars是Supercell的商标。' },
 };
 
 // Only add es + en for privacy (add others similarly)
