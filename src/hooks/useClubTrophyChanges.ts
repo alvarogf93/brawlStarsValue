@@ -6,13 +6,24 @@ const CACHE_TTL = 5 * 60 * 1000
 const BATCH_SIZE = 3
 const STORAGE_PREFIX = 'brawlvalue:club-tc:'
 
+/** Per-battle data point for the chart */
+export interface BattlePoint {
+  change: number
+  cumulative: number
+  result: 'victory' | 'defeat' | 'draw'
+  mode: string
+  map: string
+  isStarPlayer: boolean
+}
+
 export interface MemberTrophyChange {
   tag: string
   name: string
   netChange: number
   totalBattles: number
-  /** Cumulative trophy progression per battle (oldest → newest) */
   progression: number[]
+  /** Detailed per-battle data for rich tooltips */
+  battlePoints: BattlePoint[]
   loaded: boolean
 }
 
@@ -20,6 +31,7 @@ interface CachedData {
   netChange: number
   totalBattles: number
   progression: number[]
+  battlePoints: BattlePoint[]
   _ts: number
 }
 
@@ -33,7 +45,7 @@ function getCached(tag: string): Omit<CachedData, '_ts'> | null {
     if (!raw) return null
     const cached: CachedData = JSON.parse(raw)
     if (Date.now() - cached._ts > CACHE_TTL) return null
-    return { netChange: cached.netChange, totalBattles: cached.totalBattles, progression: cached.progression }
+    return { netChange: cached.netChange, totalBattles: cached.totalBattles, progression: cached.progression, battlePoints: cached.battlePoints }
   } catch { return null }
 }
 
@@ -47,6 +59,7 @@ interface FetchResult {
   netChange: number
   totalBattles: number
   progression: number[]
+  battlePoints: BattlePoint[]
 }
 
 async function fetchTrophyChange(tag: string): Promise<FetchResult> {
@@ -59,15 +72,27 @@ async function fetchTrophyChange(tag: string): Promise<FetchResult> {
   const data = await res.json()
   const battles = data.items || []
 
-  // Build cumulative progression (oldest first)
+  // Build detailed progression (oldest first)
   const reversed = [...battles].reverse()
   let cum = 0
-  const progression = reversed.map((b: { battle?: { trophyChange?: number } }) => {
-    cum += b.battle?.trophyChange ?? 0
-    return cum
-  })
+  const progression: number[] = []
+  const battlePoints: BattlePoint[] = []
 
-  return { netChange: cum, totalBattles: battles.length, progression }
+  for (const b of reversed) {
+    const change = b.battle?.trophyChange ?? 0
+    cum += change
+    progression.push(cum)
+    battlePoints.push({
+      change,
+      cumulative: cum,
+      result: b.battle?.result ?? 'draw',
+      mode: b.battle?.mode || b.event?.mode || '',
+      map: b.event?.map || '',
+      isStarPlayer: b.battle?.starPlayer?.tag === tag,
+    })
+  }
+
+  return { netChange: cum, totalBattles: battles.length, progression, battlePoints }
 }
 
 export function useClubTrophyChanges(members: { tag: string; name: string }[] | null) {
@@ -100,6 +125,7 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
               netChange: r.value.netChange,
               totalBattles: r.value.totalBattles,
               progression: r.value.progression,
+              battlePoints: r.value.battlePoints,
             })
           }
         }
@@ -126,6 +152,7 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
       netChange: result?.netChange ?? 0,
       totalBattles: result?.totalBattles ?? 0,
       progression: result?.progression ?? [],
+      battlePoints: result?.battlePoints ?? [],
       loaded: results.has(m.tag),
     }
   })
