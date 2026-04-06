@@ -35,6 +35,17 @@ export const metadata: Metadata = {
     languages: {
       es: 'https://brawlvalue.com/es',
       en: 'https://brawlvalue.com/en',
+      fr: 'https://brawlvalue.com/fr',
+      pt: 'https://brawlvalue.com/pt',
+      de: 'https://brawlvalue.com/de',
+      it: 'https://brawlvalue.com/it',
+      ru: 'https://brawlvalue.com/ru',
+      tr: 'https://brawlvalue.com/tr',
+      pl: 'https://brawlvalue.com/pl',
+      ar: 'https://brawlvalue.com/ar',
+      ko: 'https://brawlvalue.com/ko',
+      ja: 'https://brawlvalue.com/ja',
+      zh: 'https://brawlvalue.com/zh',
     },
   }
 }
@@ -71,7 +82,7 @@ export default async function LocaleLayout({
             description: 'Calculate the real gem value of your Brawl Stars account. View statistics, compare with friends, and track your progression.',
             offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
             author: { '@type': 'Organization', name: 'BrawlValue' },
-            inLanguage: ['es', 'en'],
+            inLanguage: ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh'],
           })}}
         />
       </head>
