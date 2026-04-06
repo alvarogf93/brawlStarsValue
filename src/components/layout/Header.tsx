@@ -49,7 +49,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             <Menu className="w-6 h-6 stroke-[3px]" />
           </button>
         )}
-        <span className="font-black text-2xl font-['Lilita_One'] tracking-wide text-[var(--color-brawl-gold)] text-stroke-brawl transform rotate-[-2deg]">BrawlValue</span>
+        <span className="font-black text-2xl font-['Lilita_One'] tracking-wide text-[var(--color-brawl-gold)] text-stroke-brawl transform rotate-[-2deg]">BrawlVision</span>
         {playerTag && (
           <span className="text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white hidden sm:inline-block ml-2 drop-shadow-[0_2px_0_rgba(18,26,47,1)]">
             {playerTag}

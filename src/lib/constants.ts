@@ -182,5 +182,5 @@ export const BRAWLER_RARITY_MAP: RarityMap = {
 export const SEO = {
   title: '¿Cuánto poder tiene tu cuenta de Brawl Stars?',
   description: 'Calcula el valor real en Gemas de tu cuenta de Brawl Stars. Resultado instantáneo.',
-  siteName: 'BrawlValue',
+  siteName: 'BrawlVision',
 } as const

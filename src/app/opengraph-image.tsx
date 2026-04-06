@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'BrawlValue - Calculate your Brawl Stars Gem Score'
+export const alt = 'BrawlVision - Brawl Stars Combat Analytics'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -33,7 +33,7 @@ export default function OGImage() {
             letterSpacing: 4,
           }}
         >
-          BrawlValue
+          BrawlVision
         </div>
 
         {/* Subtitle */}
@@ -45,7 +45,7 @@ export default function OGImage() {
             opacity: 0.9,
           }}
         >
-          Calculate your Brawl Stars Gem Score
+          Brawl Stars Combat Analytics
         </div>
 
         {/* URL */}
@@ -57,7 +57,7 @@ export default function OGImage() {
             letterSpacing: 2,
           }}
         >
-          brawlvalue.com
+          brawlvision.com
         </div>
       </div>
     ),

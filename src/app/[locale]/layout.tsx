@@ -6,40 +6,40 @@ import { CookieConsent } from '@/components/ui/CookieConsent'
 import '../globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://brawlvalue.com'),
+  metadataBase: new URL('https://brawlvision.com'),
   title: {
-    absolute: 'BrawlValue | Calculate your Brawl Stars Gem Score',
-    template: '%s | BrawlValue'
+    absolute: 'BrawlVision | Brawl Stars Combat Analytics & Gem Calculator',
+    template: '%s | BrawlVision'
   },
-  description: 'Calculate your real Brawl Stars account value in Gems. View your statistics, brawler progression, and compete on the Global Leaderboard.',
-  keywords: ['Brawl Stars', 'BrawlValue', 'Gem Calculator', 'Brawl Stars Stats', 'Leaderboard', 'Supercell', 'Profile Tracker'],
-  authors: [{ name: 'BrawlValue Team' }],
+  description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, track win rates, and compete on the Global Leaderboard.',
+  keywords: ['Brawl Stars', 'BrawlVision', 'Battle Analytics', 'Gem Calculator', 'Brawl Stars Stats', 'Leaderboard', 'Supercell', 'Profile Tracker'],
+  authors: [{ name: 'BrawlVision Team' }],
   openGraph: {
     type: 'website',
-    url: 'https://brawlvalue.com',
-    title: 'BrawlValue - Brawl Stars Account Calculator',
-    description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
+    url: 'https://brawlvision.com',
+    title: 'BrawlVision - Brawl Stars Combat Analytics',
+    description: 'Analyze your battles, track win rates, and calculate your gem value.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'BrawlValue | Gem Score Calculator',
-    description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
+    title: 'BrawlVision | Combat Analytics & Gem Calculator',
+    description: 'Analyze your battles, track win rates, and calculate your gem value.',
   },
   alternates: {
     languages: {
-      es: 'https://brawlvalue.com/es',
-      en: 'https://brawlvalue.com/en',
-      fr: 'https://brawlvalue.com/fr',
-      pt: 'https://brawlvalue.com/pt',
-      de: 'https://brawlvalue.com/de',
-      it: 'https://brawlvalue.com/it',
-      ru: 'https://brawlvalue.com/ru',
-      tr: 'https://brawlvalue.com/tr',
-      pl: 'https://brawlvalue.com/pl',
-      ar: 'https://brawlvalue.com/ar',
-      ko: 'https://brawlvalue.com/ko',
-      ja: 'https://brawlvalue.com/ja',
-      zh: 'https://brawlvalue.com/zh',
+      es: 'https://brawlvision.com/es',
+      en: 'https://brawlvision.com/en',
+      fr: 'https://brawlvision.com/fr',
+      pt: 'https://brawlvision.com/pt',
+      de: 'https://brawlvision.com/de',
+      it: 'https://brawlvision.com/it',
+      ru: 'https://brawlvision.com/ru',
+      tr: 'https://brawlvision.com/tr',
+      pl: 'https://brawlvision.com/pl',
+      ar: 'https://brawlvision.com/ar',
+      ko: 'https://brawlvision.com/ko',
+      ja: 'https://brawlvision.com/ja',
+      zh: 'https://brawlvision.com/zh',
     },
   }
 }
@@ -64,13 +64,13 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'WebApplication',
-            name: 'BrawlValue',
-            url: 'https://brawlvalue.com',
+            name: 'BrawlVision',
+            url: 'https://brawlvision.com',
             applicationCategory: 'GameApplication',
             operatingSystem: 'Web',
-            description: 'Calculate the real gem value of your Brawl Stars account. View statistics, compare with friends, and track your progression.',
+            description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, and track progression.',
             offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-            author: { '@type': 'Organization', name: 'BrawlValue' },
+            author: { '@type': 'Organization', name: 'BrawlVision' },
             inLanguage: ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh'],
           })}}
         />

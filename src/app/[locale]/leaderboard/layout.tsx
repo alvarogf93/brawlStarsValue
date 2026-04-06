@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: 'Global Leaderboard',
   description: 'Check out the top Brawl Stars players with the highest Gem Value in the world.',
   openGraph: {
-    title: 'Global Leaderboard | BrawlValue',
+    title: 'Global Leaderboard | BrawlVision',
     description: 'Who has the most valuable Brawl Stars account? Check the global & local leaderboards.',
   }
 }

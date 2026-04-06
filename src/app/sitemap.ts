@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next'
 const locales = ['es', 'en']
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://brawlvalue.com'
+  const baseUrl = 'https://brawlvision.com'
   const pages = ['', '/leaderboard']
   const entries: MetadataRoute.Sitemap = []
 

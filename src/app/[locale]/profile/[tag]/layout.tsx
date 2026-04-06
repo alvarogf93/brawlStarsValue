@@ -7,11 +7,11 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   
   return {
     title: `Player #${cleanTag.toUpperCase()} Stats`,
-    description: `View Brawl Stars statistics, progression, and gem value for player #${cleanTag.toUpperCase()} on BrawlValue.`,
+    description: `View Brawl Stars statistics, progression, and gem value for player #${cleanTag.toUpperCase()} on BrawlVision.`,
     openGraph: {
-      title: `Player #${cleanTag.toUpperCase()} | BrawlValue Stats`,
+      title: `Player #${cleanTag.toUpperCase()} | BrawlVision Stats`,
       description: `View detailed brawlers, stats, and gem value for #${cleanTag.toUpperCase()}`,
-      url: `https://brawlvalue.com/profile/${cleanTag}`,
+      url: `https://brawlvision.com/profile/${cleanTag}`,
     }
   }
 }

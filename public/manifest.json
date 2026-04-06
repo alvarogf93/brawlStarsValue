@@ -1,7 +1,7 @@
 {
-  "name": "BrawlValue",
-  "short_name": "BrawlValue",
-  "description": "Calculate the real gem value of your Brawl Stars account",
+  "name": "BrawlVision",
+  "short_name": "BrawlVision",
+  "description": "Brawl Stars combat analytics & gem calculator",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#121A2F",

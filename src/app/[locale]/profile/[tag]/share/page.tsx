@@ -170,7 +170,7 @@ export default function SharePage() {
 
           <div className="mt-auto flex items-center justify-center bg-[var(--color-brawl-dark)] w-full py-3 rounded-xl border-4 border-[#121A2F]">
             <span className="font-bold text-xl font-['Righteous'] bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 tracking-wide text-center">
-              BrawlValue
+              BrawlVision
             </span>
           </div>
         </div>
