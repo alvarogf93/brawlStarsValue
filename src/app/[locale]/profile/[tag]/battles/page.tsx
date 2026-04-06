@@ -3,6 +3,8 @@
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useBattlelog } from '@/hooks/useBattlelog'
+import { TrophyChart } from '@/components/battles/TrophyChart'
+import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 
 const MODE_ICONS: Record<string, string> = {
   brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀',
@@ -84,13 +86,8 @@ export default function BattlesPage() {
         </div>
       </div>
 
-      {/* Trophy change */}
-      <div className="brawl-card-dark p-4 text-center">
-        <span className={`font-['Lilita_One'] text-3xl ${data.trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {data.trophyChange >= 0 ? '+' : ''}{data.trophyChange} 🏆
-        </span>
-        <p className="text-xs text-slate-400 font-bold uppercase mt-1">{t('trophyChange')}</p>
-      </div>
+      {/* Trophy progression chart */}
+      <TrophyChart battles={data.battles} playerTag={tag} />
 
       {/* Battle list */}
       <div className="space-y-3">
@@ -123,9 +120,7 @@ export default function BattlesPage() {
       </div>
 
       {/* Ad space */}
-      <div className="w-full min-h-[250px] bg-slate-800/50 border-2 border-dashed border-slate-600/50 rounded-xl flex items-center justify-center">
-        <span className="text-slate-500 font-['Lilita_One'] tracking-wider">AD SPACE</span>
-      </div>
+      <AdPlaceholder className="mb-8" />
     </div>
   )
 }

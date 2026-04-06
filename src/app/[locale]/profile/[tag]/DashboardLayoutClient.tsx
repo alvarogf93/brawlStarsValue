@@ -14,19 +14,23 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
   const locale = params.locale
 
   return (
-    <div className="min-h-screen flex flex-col font-['Inter'] relative w-full">
+    <div className="h-dvh flex flex-col font-['Inter'] w-full">
+      {/* Fixed header */}
       <Header playerTag={tag} onMenuToggle={() => setSidebarOpen(!sidebarOpen)} />
-      
-      <div className="flex-1 flex overflow-hidden">
+
+      {/* Body: sidebar + main — fills remaining height */}
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar tag={tag} locale={locale} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 relative">
-          <div className="max-w-5xl mx-auto relative z-10 pb-20">
+
+        {/* Scrollable main content */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-16">
             {children}
           </div>
         </main>
       </div>
-      
+
+      {/* Sticky footer — always visible at bottom */}
       <Footer />
     </div>
   )

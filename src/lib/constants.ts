@@ -20,7 +20,7 @@ export const POWER_LEVEL_GEM_COST: Record<number, number> = {
   11: 1151,
 }
 
-/** Real gem costs per unlock/upgrade item */
+/** Real gem costs per upgrade item — verified from in-game data */
 export const GEM_COSTS = {
   /** 1000 coins = 100 gems */
   gadget: 100,
@@ -30,24 +30,46 @@ export const GEM_COSTS = {
   hypercharge: 500,
   /** 1000 coins + 2000 PP = 300 gems */
   buffie: 300,
-  /** Conservative average for non-default equipped skin (real: 29–700) */
-  skin: 79,
+  /** 1000 coins = 100 gems */
+  gear: 100,
 } as const
 
-/** Approximate gem cost to unlock a brawler by rarity (shop equivalent) */
-export const RARITY_UNLOCK_COST: Record<BrawlerRarityName, number> = {
-  'Trophy Road': 0,
-  'Rare': 30,
-  'Super Rare': 80,
-  'Epic': 170,
-  'Mythic': 350,
-  'Legendary': 700,
-  'Chromatic': 170,
-  'Ultra Legendary': 1000,
+/**
+ * Skin gem prices by rarity tier.
+ * Users classify their own skins — the API doesn't expose skin rarity.
+ */
+export const SKIN_TIER_PRICES: Record<string, number> = {
+  none: 0,
+  special: 29,
+  superSpecial: 79,
+  epic: 149,
+  mythic: 199,
+  legendary: 299,
+  hypercharge: 700,
+}
+
+export const SKIN_TIER_LABELS: Record<string, Record<string, string>> = {
+  es: { none: 'Sin clasificar', special: 'Especial (29💎)', superSpecial: 'Superespecial (79💎)', epic: 'Épica (149💎)', mythic: 'Mítica (199💎)', legendary: 'Legendaria (299💎)', hypercharge: 'Hipercarga (700💎)' },
+  en: { none: 'Unclassified', special: 'Special (29💎)', superSpecial: 'Super Special (79💎)', epic: 'Epic (149💎)', mythic: 'Mythic (199💎)', legendary: 'Legendary (299💎)', hypercharge: 'Hypercharge (700💎)' },
+}
+
+/** Pin (reaction) gem prices by rarity tier */
+export const PIN_TIER_PRICES: Record<string, number> = {
+  pinSpecial: 19,
+  pinEpic: 39,
+  pinCollector: 29,
+}
+
+export const PIN_TIER_LABELS: Record<string, Record<string, string>> = {
+  es: { pinSpecial: 'Especiales', pinEpic: 'Épicas', pinCollector: 'Coleccionista' },
+  en: { pinSpecial: 'Special', pinEpic: 'Epic', pinCollector: 'Collector' },
 }
 
 /** Average match duration in minutes for time-played estimation */
 export const AVG_MATCH_MINUTES = 2
+
+/** Estimated global win rate — 3v3 is zero-sum (50%), showdown varies */
+export const ESTIMATED_WIN_RATE = 0.5
 
 /**
  * Brawler ID → Rarity. Maintained manually — API does NOT expose rarity.

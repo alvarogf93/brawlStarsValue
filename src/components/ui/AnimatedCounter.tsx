@@ -1,42 +1,53 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-export function AnimatedCounter({ 
-  value, 
+export function AnimatedCounter({
+  value,
   duration = 1500,
+  fromZero = false,
   className = ""
-}: { 
+}: {
   value: number
   duration?: number
+  /** Animate from 0 on first mount */
+  fromZero?: boolean
   className?: string
 }) {
-  const [count, setCount] = useState(0)
+  // When fromZero: show nothing until effect runs, then animate 0→value
+  // When not fromZero: show value immediately, animate on changes
+  const [display, setDisplay] = useState(fromZero ? null : value)
+  const prevRef = useRef(value)
+  const rafRef = useRef(0)
 
   useEffect(() => {
-    let startTime: number | null = null
-    const endValue = value
+    const from = display === null ? 0 : prevRef.current
+    const to = value
+    prevRef.current = value
 
-    const updateCounter = (timestamp: number) => {
-      if (!startTime) startTime = timestamp
-      const progress = timestamp - startTime
+    cancelAnimationFrame(rafRef.current)
 
-      if (progress < duration) {
-        // Ease-out cubic calculation
-        const easeOut = 1 - Math.pow(1 - progress / duration, 3)
-        setCount(Math.floor(endValue * easeOut))
-        requestAnimationFrame(updateCounter)
-      } else {
-        setCount(endValue)
-      }
+    if (from === to) {
+      setDisplay(to)
+      return
     }
 
-    requestAnimationFrame(updateCounter)
+    let start: number | null = null
+    const step = (ts: number) => {
+      if (!start) start = ts
+      const t = Math.min((ts - start) / duration, 1)
+      const ease = 1 - Math.pow(1 - t, 3)
+      setDisplay(Math.floor(from + (to - from) * ease))
+      if (t < 1) rafRef.current = requestAnimationFrame(step)
+    }
+    rafRef.current = requestAnimationFrame(step)
+
+    return () => cancelAnimationFrame(rafRef.current)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, duration])
 
-  return (
-    <span className={className}>
-      {count.toLocaleString()}
-    </span>
-  )
+  // Show nothing during SSR/first frame when fromZero, then the effect kicks in
+  const shown = display ?? 0
+
+  return <span className={className}>{shown.toLocaleString()}</span>
 }

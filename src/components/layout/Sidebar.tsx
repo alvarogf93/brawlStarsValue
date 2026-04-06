@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Swords, BarChart3, Share2 } from 'lucide-react'
+import { LayoutDashboard, Users, Swords, BarChart3, Shield, GitCompareArrows, Palette, Share2 } from 'lucide-react'
 
 interface SidebarProps {
   tag: string
@@ -18,12 +18,16 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
   const basePath = `/${locale}/profile/${encodeURIComponent(tag)}`
 
   const NAV_ITEMS = [
-    { key: 'overview', path: '', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { key: 'overview', path: '', icon: <LayoutDashboard className="w-5 h-5" />, sub: [
+      { key: 'cosmetics', path: '/cosmetics', icon: <Palette className="w-4 h-4" /> },
+    ] },
     { key: 'brawlers', path: '/brawlers', icon: <Users className="w-5 h-5" /> },
     { key: 'battles', path: '/battles', icon: <Swords className="w-5 h-5" /> },
     { key: 'stats', path: '/stats', icon: <BarChart3 className="w-5 h-5" /> },
+    { key: 'club', path: '/club', icon: <Shield className="w-5 h-5" /> },
+    { key: 'compare', path: '/compare', icon: <GitCompareArrows className="w-5 h-5" /> },
     { key: 'share', path: '/share', icon: <Share2 className="w-5 h-5" /> },
-  ] as const
+  ]
 
   return (
     <>
@@ -32,45 +36,71 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden" onClick={onClose} />
       )}
 
+      {/* Sidebar: mobile=fixed overlay, desktop=static flex column inside parent */}
       <aside
         className={`
-          fixed top-[var(--header-height)] left-0 h-[calc(100vh-var(--header-height))]
           w-[var(--sidebar-width)] bg-[#121A2F] border-r-4 border-[#0F172A]
-          z-50 transition-transform duration-300 ease-in-out
-          md:translate-x-0 md:static flex flex-col
+          flex flex-col shrink-0 overflow-y-auto
+          fixed inset-y-0 left-0 top-[var(--header-height)] z-50 transition-transform duration-300
+          md:static md:translate-x-0
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <nav className="flex flex-col gap-3 p-4 flex-1">
+        <nav className="flex flex-col gap-2 p-4 flex-1">
           {NAV_ITEMS.map((item) => {
             const href = `${basePath}${item.path}`
             const isActive = pathname === href || (item.path === '' && pathname === basePath)
 
             return (
-              <Link
-                key={item.key}
-                href={href}
-                onClick={onClose}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-['Lilita_One'] transition-all group border-4
-                  ${isActive
-                    ? 'bg-[var(--color-brawl-gold)] text-[var(--color-brawl-dark)] border-[var(--color-brawl-dark)] shadow-[0_4px_0_0_rgba(18,26,47,1)] translate-y-[-2px]'
-                    : 'bg-white/5 border-transparent text-white hover:bg-white/10'}
-                `}
-              >
-                <span className={`transition-colors ${isActive ? 'text-[var(--color-brawl-dark)]' : 'group-hover:text-[var(--color-brawl-gold)]'}`}>
-                  {item.icon}
-                </span>
-                <span>{t(item.key)}</span>
-              </Link>
+              <div key={item.key}>
+                <Link
+                  href={href}
+                  onClick={onClose}
+                  className={`
+                    flex items-center gap-3 px-4 py-2.5 rounded-xl text-base font-['Lilita_One'] transition-all group border-4
+                    ${isActive
+                      ? 'bg-[var(--color-brawl-gold)] text-[var(--color-brawl-dark)] border-[var(--color-brawl-dark)] shadow-[0_3px_0_0_rgba(18,26,47,1)] translate-y-[-1px]'
+                      : 'bg-white/5 border-transparent text-white hover:bg-white/10'}
+                  `}
+                >
+                  <span className={`transition-colors ${isActive ? 'text-[var(--color-brawl-dark)]' : 'group-hover:text-[var(--color-brawl-gold)]'}`}>
+                    {item.icon}
+                  </span>
+                  <span>{t(item.key)}</span>
+                </Link>
+
+                {/* Sub-items */}
+                {item.sub?.map((sub) => {
+                  const subHref = `${basePath}${sub.path}`
+                  const subActive = pathname === subHref
+                  return (
+                    <Link
+                      key={sub.key}
+                      href={subHref}
+                      onClick={onClose}
+                      className={`
+                        flex items-center gap-2.5 ml-6 mt-1 px-3 py-2 rounded-lg text-sm font-['Lilita_One'] transition-all group border-2
+                        ${subActive
+                          ? 'bg-[var(--color-brawl-gold)]/80 text-[var(--color-brawl-dark)] border-[var(--color-brawl-dark)] shadow-[0_2px_0_0_rgba(18,26,47,1)]'
+                          : 'bg-white/[0.03] border-transparent text-slate-400 hover:bg-white/10 hover:text-white'}
+                      `}
+                    >
+                      <span className={subActive ? 'text-[var(--color-brawl-dark)]' : 'group-hover:text-[var(--color-brawl-gold)]'}>
+                        {sub.icon}
+                      </span>
+                      <span>{t(sub.key)}</span>
+                    </Link>
+                  )
+                })}
+              </div>
             )
           })}
         </nav>
-        
-        {/* Decorative element at the bottom of the sidebar */}
-        <div className="p-4 mt-auto">
-          <div className="w-full h-24 rounded-2xl border-4 border-[#0F172A] bg-[var(--color-brawl-sky)] flex items-center justify-center relative overflow-hidden shadow-[0_4px_0_0_rgba(18,26,47,1)]">
-             <p className="text-[14px] text-[var(--color-brawl-dark)] font-['Lilita_One'] uppercase tracking-widest relative z-10 transform -rotate-6 filter drop-shadow-md">Auth. OS</p>
+
+        {/* Decorative bottom */}
+        <div className="p-4 shrink-0">
+          <div className="w-full h-16 rounded-2xl border-4 border-[#0F172A] bg-[var(--color-brawl-sky)] flex items-center justify-center overflow-hidden shadow-[0_3px_0_0_rgba(18,26,47,1)]">
+            <p className="text-[12px] text-[var(--color-brawl-dark)] font-['Lilita_One'] uppercase tracking-widest transform -rotate-6 drop-shadow-md">Auth. OS</p>
           </div>
         </div>
       </aside>

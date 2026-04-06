@@ -4,6 +4,7 @@ import type { PlayerData } from '@/lib/types'
 
 vi.mock('@/lib/api', () => ({
   fetchPlayer: vi.fn(),
+  fetchBattlelog: vi.fn().mockResolvedValue({ items: [] }),
   SuprecellApiError: class extends Error {
     status: number
     constructor(status: number, message: string) {
@@ -69,8 +70,12 @@ describe('POST /api/calculate', () => {
     expect(data.playerTag).toBe('#YJU282PV')
     expect(data.totalGems).toBeGreaterThan(0)
     expect(data.breakdown).toBeDefined()
-    expect(data.breakdown.unlocks).toBeDefined()
     expect(data.breakdown.powerLevels).toBeDefined()
+    expect(data.breakdown.gadgets).toBeDefined()
+    expect(data.breakdown.starPowers).toBeDefined()
+    expect(data.breakdown.hypercharges).toBeDefined()
+    expect(data.breakdown.buffies).toBeDefined()
+    expect(data.breakdown.gears).toBeDefined()
     expect(data.stats).toBeDefined()
     expect(data.stats.estimatedHoursPlayed).toBeGreaterThan(0)
   })
@@ -80,13 +85,12 @@ describe('POST /api/calculate', () => {
     const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
     const data = await res.json()
 
-    const sum = data.breakdown.unlocks.gems
-      + data.breakdown.powerLevels.gems
+    const sum = data.breakdown.powerLevels.gems
       + data.breakdown.gadgets.gems
       + data.breakdown.starPowers.gems
       + data.breakdown.hypercharges.gems
       + data.breakdown.buffies.gems
-      + data.breakdown.skins.gems
+      + data.breakdown.gears.gems
 
     expect(data.totalGems).toBe(sum)
   })

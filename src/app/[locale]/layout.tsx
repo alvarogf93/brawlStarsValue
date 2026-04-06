@@ -29,6 +29,12 @@ export const metadata: Metadata = {
     title: 'BrawlValue | Gem Score Calculator',
     description: 'Find out exactly how many Gems your Brawl Stars account is worth right now.',
     images: ['/og-image.jpg'],
+  },
+  alternates: {
+    languages: {
+      es: 'https://brawlvalue.com/es',
+      en: 'https://brawlvalue.com/en',
+    },
   }
 }
 
@@ -44,6 +50,25 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#1C5CF1" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            name: 'BrawlValue',
+            url: 'https://brawlvalue.com',
+            applicationCategory: 'GameApplication',
+            operatingSystem: 'Web',
+            description: 'Calculate the real gem value of your Brawl Stars account. View statistics, compare with friends, and track your progression.',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+            author: { '@type': 'Organization', name: 'BrawlValue' },
+            inLanguage: ['es', 'en'],
+          })}}
+        />
+      </head>
       <body className="min-h-screen">
         <NextIntlClientProvider messages={messages}>
           {children}

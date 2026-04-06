@@ -1,27 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
+
+const STORAGE_KEY = 'brawlvalue:user'
 
 export function InputForm() {
   const t = useTranslations('landing')
   const locale = useLocale()
   const router = useRouter()
-  
+
   const [tag, setTag] = useState('')
   const [error, setError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Auto-redirect if user already saved
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        router.replace(`/${locale}/profile/${encodeURIComponent(saved)}`)
+      }
+    } catch { /* ignore */ }
+  }, [locale, router])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!PLAYER_TAG_REGEX.test(tag)) {
       setError(true)
       return
     }
-    
+
     setError(false)
     setIsLoading(true)
 
@@ -30,7 +42,10 @@ export function InputForm() {
     if (!formattedTag.startsWith('#')) {
       formattedTag = '#' + formattedTag
     }
-    
+
+    // Persist user tag
+    try { localStorage.setItem(STORAGE_KEY, formattedTag) } catch { /* ignore */ }
+
     // Push route
     router.push(`/${locale}/profile/${encodeURIComponent(formattedTag)}`)
   }

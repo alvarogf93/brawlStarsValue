@@ -1,10 +1,13 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
+import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { usePlayerData } from '@/hooks/usePlayerData'
-import { BRAWLER_RARITY_MAP, RARITY_UNLOCK_COST, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
+import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
 
 const RARITY_COLORS: Record<BrawlerRarityName, string> = {
@@ -18,16 +21,48 @@ const RARITY_COLORS: Record<BrawlerRarityName, string> = {
   'Ultra Legendary': '#FFD700',
 }
 
+const ALL_RARITIES: BrawlerRarityName[] = [
+  'Trophy Road', 'Rare', 'Super Rare', 'Epic',
+  'Mythic', 'Legendary', 'Chromatic', 'Ultra Legendary',
+]
+
+type SortOption = 'gems' | 'trophies' | 'power' | 'name' | 'rank'
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'gems', label: 'Gem Value' },
+  { value: 'trophies', label: 'Trophies' },
+  { value: 'power', label: 'Power Level' },
+  { value: 'name', label: 'Name A-Z' },
+  { value: 'rank', label: 'Rank' },
+]
+
 function calcBrawlerGemValue(b: BrawlerStat): number {
-  const rarity = BRAWLER_RARITY_MAP[b.id] ?? 'Trophy Road'
-  const unlock = RARITY_UNLOCK_COST[rarity]
   const powerCost = POWER_LEVEL_GEM_COST[b.power] ?? 0
   const gadgets = b.gadgets.length * GEM_COSTS.gadget
   const starPowers = b.starPowers.length * GEM_COSTS.starPower
   const hypercharges = b.hyperCharges.length * GEM_COSTS.hypercharge
   const buffies = [b.buffies?.gadget, b.buffies?.starPower, b.buffies?.hyperCharge].filter(Boolean).length * GEM_COSTS.buffie
-  const skin = (b.skin && b.skin.name !== b.name) ? GEM_COSTS.skin : 0
-  return unlock + powerCost + gadgets + starPowers + hypercharges + buffies + skin
+  const gears = b.gears.length * GEM_COSTS.gear
+  return powerCost + gadgets + starPowers + hypercharges + buffies + gears
+}
+
+function sortBrawlers(brawlers: BrawlerStat[], sortBy: SortOption): BrawlerStat[] {
+  return [...brawlers].sort((a, b) => {
+    switch (sortBy) {
+      case 'gems':
+        return calcBrawlerGemValue(b) - calcBrawlerGemValue(a)
+      case 'trophies':
+        return b.trophies - a.trophies
+      case 'power':
+        return b.power - a.power
+      case 'name':
+        return a.name.localeCompare(b.name)
+      case 'rank':
+        return b.rank - a.rank
+      default:
+        return 0
+    }
+  })
 }
 
 export default function BrawlersPage() {
@@ -35,6 +70,54 @@ export default function BrawlersPage() {
   const t = useTranslations('profile')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<SortOption>('gems')
+  const [activeRarities, setActiveRarities] = useState<Set<BrawlerRarityName>>(new Set())
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  const brawlers = data?.player?.brawlers ?? []
+
+  const filteredAndSorted = useMemo(() => {
+    let result = brawlers
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter((b) => b.name.toLowerCase().includes(q))
+    }
+
+    // Filter by rarity
+    if (activeRarities.size > 0) {
+      result = result.filter((b) => {
+        const rarity = BRAWLER_RARITY_MAP[b.id] ?? 'Trophy Road'
+        return activeRarities.has(rarity)
+      })
+    }
+
+    // Sort
+    return sortBrawlers(result, sortBy)
+  }, [brawlers, searchQuery, activeRarities, sortBy])
+
+  const filteredGemTotal = useMemo(() => {
+    return filteredAndSorted.reduce((sum, b) => sum + calcBrawlerGemValue(b), 0)
+  }, [filteredAndSorted])
+
+  function toggleRarity(rarity: BrawlerRarityName) {
+    setActiveRarities((prev) => {
+      const next = new Set(prev)
+      if (next.has(rarity)) {
+        next.delete(rarity)
+      } else {
+        next.add(rarity)
+      }
+      return next
+    })
+  }
+
+  function clearRarityFilter() {
+    setActiveRarities(new Set())
+  }
 
   if (isLoading) {
     return (
@@ -52,9 +135,6 @@ export default function BrawlersPage() {
     )
   }
 
-  const brawlers = data.player.brawlers
-  const sorted = [...brawlers].sort((a, b) => calcBrawlerGemValue(b) - calcBrawlerGemValue(a))
-
   return (
     <div className="animate-fade-in w-full pb-10">
       {/* Header Panel */}
@@ -68,15 +148,120 @@ export default function BrawlersPage() {
               {t('brawlerCount').toUpperCase()}
             </h1>
             <p className="font-['Inter'] font-semibold text-[var(--color-brawl-gold)]">
-              {brawlers.length} / 101 Unlocked
+              {brawlers.length} / {Object.keys(BRAWLER_RARITY_MAP).length}
             </p>
           </div>
         </div>
       </div>
 
+      {/* Sticky Toolbar */}
+      <div className="bg-[#24355B] border-4 border-[var(--color-brawl-dark)] rounded-3xl shadow-[4px_8px_0px_var(--color-brawl-dark),inset_0px_-6px_0px_rgba(0,0,0,0.3),inset_0px_4px_0px_rgba(255,255,255,0.1)] sticky top-0 z-30 p-4 md:p-6 mb-6 space-y-4" style={{ overflow: 'visible' }}>
+        {/* Search + Sort Row */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search brawler..."
+              className="w-full pl-10 pr-4 py-3 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl text-white font-['Lilita_One'] text-lg placeholder:text-slate-500 placeholder:font-['Lilita_One'] focus:outline-none focus:border-[var(--color-brawl-blue)] shadow-[0_4px_0_0_#0D1321] transition-colors"
+            />
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-2 px-5 py-3 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl text-white font-['Lilita_One'] text-lg shadow-[0_4px_0_0_#0D1321] hover:bg-[#1a2540] transition-colors w-full sm:w-auto justify-between sm:justify-start min-w-[180px]"
+            >
+              <span>{SORT_OPTIONS.find((o) => o.value === sortBy)?.label}</span>
+              <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {dropdownOpen && (
+              <div className="absolute top-full left-0 right-0 sm:right-auto mt-2 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl overflow-hidden shadow-[0_8px_0_0_#0D1321] z-40 min-w-[180px]">
+                {SORT_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortBy(option.value)
+                      setDropdownOpen(false)
+                    }}
+                    className={`w-full text-left px-5 py-3 font-['Lilita_One'] text-base transition-colors ${
+                      sortBy === option.value
+                        ? 'bg-[var(--color-brawl-blue)] text-white'
+                        : 'text-slate-300 hover:bg-[#1a2540] hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Rarity Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {/* All chip */}
+          <button
+            onClick={clearRarityFilter}
+            className={`shrink-0 px-5 py-2.5 rounded-sm font-['Lilita_One'] text-sm uppercase tracking-wide border-4 shadow-[0_4px_0_0_#0D1321] transition-all duration-150 -skew-x-12 ${
+              activeRarities.size === 0
+                ? 'bg-white text-[#121A2F] border-[#121A2F] active:translate-y-[4px] active:shadow-none'
+                : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white hover:-translate-y-1 active:translate-y-[4px] active:shadow-none'
+            }`}
+          >
+            <div className="skew-x-12">All</div>
+          </button>
+          {ALL_RARITIES.map((rarity) => {
+            const isActive = activeRarities.has(rarity)
+            const color = RARITY_COLORS[rarity]
+            return (
+              <button
+                key={rarity}
+                onClick={() => toggleRarity(rarity)}
+                className={`shrink-0 px-5 py-2.5 rounded-sm font-['Lilita_One'] text-sm uppercase tracking-wide border-4 shadow-[0_4px_0_0_#0D1321] transition-all duration-150 -skew-x-12 ${
+                  isActive
+                    ? 'text-white active:translate-y-[4px] active:shadow-none'
+                    : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white hover:-translate-y-1 active:translate-y-[4px] active:shadow-none'
+                }`}
+                style={
+                  isActive
+                    ? { backgroundColor: color, borderColor: '#121A2F' }
+                    : undefined
+                }
+              >
+                <div className="skew-x-12 flex items-center gap-1">{rarity}</div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Quick Stats Bar */}
+        <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-white/10">
+          <span className="font-['Inter'] font-bold text-slate-300 text-sm">
+            {filteredAndSorted.length} / {brawlers.length} {t('brawlerCount').toLowerCase()}
+          </span>
+          <span className="font-['Lilita_One'] text-lg text-white flex items-center gap-1">
+            {filteredGemTotal.toLocaleString()} <GemIcon className="w-5 h-5 mb-0.5" />
+          </span>
+        </div>
+      </div>
+
+      <AdPlaceholder className="mb-6" />
+
+      {/* Empty state */}
+      {filteredAndSorted.length === 0 && (
+        <div className="brawl-card p-12 text-center">
+          <p className="font-['Lilita_One'] text-2xl text-slate-400">No brawlers found</p>
+        </div>
+      )}
+
       {/* Roster Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {sorted.map((brawler) => {
+        {filteredAndSorted.map((brawler) => {
           const rarity = BRAWLER_RARITY_MAP[brawler.id] ?? 'Trophy Road'
           const gemValue = calcBrawlerGemValue(brawler)
           const color = RARITY_COLORS[rarity]
@@ -84,23 +269,43 @@ export default function BrawlersPage() {
           const hasCustomSkin = brawler.skin && brawler.skin.name !== brawler.name
 
           return (
-            <div key={brawler.id} className="brawl-card group brawl-tilt">
+            <div
+              key={brawler.id}
+              className="brawl-card group hover:-translate-y-2 hover:scale-[1.02] hover:shadow-[0_16px_24px_-8px_rgba(0,0,0,0.6)] transition-all duration-300 ease-out"
+            >
               {/* Color header by rarity */}
               <div
-                className="w-full h-36 border-b-4 border-[var(--color-brawl-dark)] flex flex-col items-center justify-end relative overflow-hidden p-3"
+                className="w-full h-40 border-b-[6px] border-[var(--color-brawl-dark)] flex flex-col items-center justify-end relative overflow-hidden p-3"
                 style={{ backgroundColor: color }}
               >
+                {/* Segmented diagonal cut */}
+                <div className="absolute top-0 right-0 left-0 bottom-0 pointer-events-none">
+                  <div className="absolute w-[150%] h-full bg-black/15 -skew-x-12 origin-bottom-left scale-110 -translate-x-1/4" />
+                </div>
+                
                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
                 <div className="w-24 h-24 bg-white/30 rounded-full blur-[20px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
 
-                {/* Prestige badge */}
+                {/* Rank badge — top left */}
+                <div className="absolute top-2 left-2 bg-black/60 rounded-lg px-2 py-1 text-xs font-bold text-white z-10 font-['Inter']">
+                  R{brawler.rank}
+                </div>
+
+                {/* Prestige badge — top right */}
                 {brawler.prestigeLevel > 0 && (
                   <div className="absolute top-2 right-2 bg-black/60 rounded-lg px-2 py-1 text-xs font-bold text-yellow-400 z-10">
                     P{brawler.prestigeLevel} 👑
                   </div>
                 )}
 
-                <h2 className="text-2xl font-['Lilita_One'] text-white text-stroke-brawl uppercase relative z-10 transition-transform group-hover:scale-110 duration-200 group-hover:-translate-y-1">
+                {/* Win streak badge — below prestige or top right area */}
+                {brawler.currentWinStreak > 0 && (
+                  <div className={`absolute ${brawler.prestigeLevel > 0 ? 'top-9' : 'top-2'} right-2 bg-orange-600/80 rounded-lg px-2 py-1 text-xs font-bold text-white z-10`}>
+                    🔥 {brawler.currentWinStreak}
+                  </div>
+                )}
+
+                <h2 className="text-3xl font-['Lilita_One'] text-white text-stroke-brawl uppercase relative z-10 transition-transform group-hover:scale-110 duration-200 group-hover:-translate-y-1 drop-shadow-md">
                   {brawler.name}
                 </h2>
                 <span className="text-xs text-white/70 font-['Inter'] font-bold uppercase relative z-10">
@@ -114,31 +319,41 @@ export default function BrawlersPage() {
                   <span className="font-['Lilita_One'] text-lg px-2 py-1 rounded-lg border-2 border-[var(--color-brawl-dark)] bg-[#B23DFF] text-white shadow-[0_2px_0_0_#121A2F]">
                     LVL {brawler.power}
                   </span>
-                  <span className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] flex items-center gap-1">
-                    {brawler.trophies.toLocaleString()} 🏆
-                  </span>
+                  <div className="text-right">
+                    <span className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] flex items-center gap-1">
+                      {brawler.trophies.toLocaleString()} 🏆
+                    </span>
+                    <span className="font-['Inter'] text-xs text-slate-500 block leading-tight">
+                      Best: {brawler.highestTrophies.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Unlock badges */}
-                <div className="flex gap-1 mb-2 flex-wrap">
+                <div className="flex gap-1.5 mb-3 flex-wrap">
                   {brawler.starPowers.length > 0 && (
-                    <span className="text-xs bg-yellow-500/20 text-yellow-700 px-1.5 py-0.5 rounded font-bold">
-                      SP×{brawler.starPowers.length}
+                    <span className="text-[10px] bg-yellow-400 text-yellow-900 border-2 border-yellow-600 px-2 rounded-sm font-black shadow-sm uppercase">
+                      SP ×{brawler.starPowers.length}
                     </span>
                   )}
                   {brawler.gadgets.length > 0 && (
-                    <span className="text-xs bg-green-500/20 text-green-700 px-1.5 py-0.5 rounded font-bold">
-                      G×{brawler.gadgets.length}
+                    <span className="text-[10px] bg-green-400 text-green-900 border-2 border-green-600 px-2 rounded-sm font-black shadow-sm uppercase">
+                      G ×{brawler.gadgets.length}
                     </span>
                   )}
                   {brawler.hyperCharges.length > 0 && (
-                    <span className="text-xs bg-red-500/20 text-red-700 px-1.5 py-0.5 rounded font-bold">
-                      HC
+                    <span className="text-[10px] bg-purple-500 text-white border-2 border-purple-800 px-2 rounded-sm font-black shadow-sm uppercase">
+                      HC ×{brawler.hyperCharges.length}
                     </span>
                   )}
                   {buffieCount > 0 && (
                     <span className="text-xs bg-purple-500/20 text-purple-700 px-1.5 py-0.5 rounded font-bold">
                       B×{buffieCount}
+                    </span>
+                  )}
+                  {brawler.gears.length > 0 && (
+                    <span className="text-xs bg-gray-500/20 text-gray-700 px-1.5 py-0.5 rounded font-bold">
+                      🔩×{brawler.gears.length}
                     </span>
                   )}
                   {hasCustomSkin && (

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
-import { fetchPlayer, SuprecellApiError } from '@/lib/api'
+import { fetchPlayer, fetchBattlelog, SuprecellApiError } from '@/lib/api'
 import { calculateValue } from '@/lib/calculate'
 
 export async function POST(req: Request) {
@@ -15,8 +15,22 @@ export async function POST(req: Request) {
       )
     }
 
-    const playerData = await fetchPlayer(playerTag)
-    const result = calculateValue(playerData)
+    // Fetch player + battlelog in parallel (battlelog is best-effort for winRate)
+    const [playerData, battlelog] = await Promise.all([
+      fetchPlayer(playerTag),
+      fetchBattlelog(playerTag).catch(() => null),
+    ])
+
+    // Extract real win rate from battlelog if available
+    let winRate: number | undefined
+    if (battlelog?.items?.length) {
+      const battles = battlelog.items
+      const wins = battles.filter((b: { battle: { result: string } }) => b.battle.result === 'victory').length
+      const total = battles.length
+      if (total > 0) winRate = wins / total
+    }
+
+    const result = calculateValue(playerData, { winRate })
 
     return NextResponse.json({
       ...result,

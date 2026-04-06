@@ -62,14 +62,18 @@ export interface GemScore {
   playerName: string
   /** Total real gems invested in the account */
   totalGems: number
+  /** Breakdown of VERIFIED gem costs (from API data + game economics) */
   breakdown: {
-    unlocks: { count: number; gems: number }
     powerLevels: { count: number; gems: number }
     gadgets: { count: number; gems: number }
     starPowers: { count: number; gems: number }
     hypercharges: { count: number; gems: number }
     buffies: { count: number; gems: number }
-    skins: { count: number; gems: number }
+    gears: { count: number; gems: number }
+  }
+  /** Data for user-input values (skins) — not counted in totalGems until user classifies */
+  userInput: {
+    skinsEquipped: number  // how many non-default skins we detected
   }
   /** Profile stats (not gem costs — achievements/time) */
   stats: {
@@ -80,8 +84,12 @@ export interface GemScore {
     duoVictories: number
     threeVsThreeVictories: number
     totalVictories: number
-    /** Estimated hours played (totalVictories × 2min / 60) */
+    /** Estimated total matches (victories / winRate) */
+    estimatedTotalMatches: number
+    /** Estimated hours played (estimatedTotalMatches × 2min / 60) */
     estimatedHoursPlayed: number
+    /** Win rate used for estimation (0-1). From battlelog if available, else 0.5 */
+    winRateUsed: number
   }
   timestamp: Date
   cached: boolean

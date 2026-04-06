@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 
 export default function SharePage() {
   const params = useParams<{ tag: string; locale: string }>()
@@ -64,9 +65,7 @@ export default function SharePage() {
     <div className="space-y-6 flex flex-col items-center pb-10">
 
       {/* Banner Ad Space */}
-      <div className="w-full max-w-xl h-[90px] bg-slate-800/50 border-2 border-dashed border-slate-600/50 rounded-xl flex items-center justify-center">
-        <span className="text-slate-500 font-['Lilita_One'] tracking-wider">AD SPACE (728x90)</span>
-      </div>
+      <AdPlaceholder className="mb-6" />
 
       {/* Share Card Area */}
       <div className="text-center mb-8">
@@ -81,45 +80,67 @@ export default function SharePage() {
       {/* The 9:16 Viral Card Container */}
       <div id="viral-card" className="relative w-[340px] h-[600px] sm:w-[380px] sm:h-[675px] bg-[#121A2F] rounded-[32px] overflow-hidden border-8 border-[var(--color-brawl-dark)] shadow-[0_12px_24px_rgba(0,0,0,0.5)] flex flex-col items-center p-6 mx-auto">
 
-        {/* Dynamic Background Pattern */}
-        <div className="absolute inset-0 bg-[#1C5CF1] z-0">
-          <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_20px,rgba(0,0,0,0.1)_20px,rgba(0,0,0,0.1)_40px)]" />
-          <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-[conic-gradient(from_0deg,transparent_0deg_15deg,rgba(255,255,255,0.1)_15deg_30deg,transparent_30deg_45deg,rgba(255,255,255,0.1)_45deg_60deg,transparent_60deg_75deg,rgba(255,255,255,0.1)_75deg_90deg,transparent_90deg_105deg,rgba(255,255,255,0.1)_105deg_120deg,transparent_120deg_135deg,rgba(255,255,255,0.1)_135deg_150deg,transparent_150deg_165deg,rgba(255,255,255,0.1)_165deg_180deg,transparent_180deg_195deg,rgba(255,255,255,0.1)_195deg_210deg,transparent_210deg_225deg,rgba(255,255,255,0.1)_225deg_240deg,transparent_240deg_255deg,rgba(255,255,255,0.1)_255deg_270deg,transparent_270deg_285deg,rgba(255,255,255,0.1)_285deg_300deg,transparent_300deg_315deg,rgba(255,255,255,0.1)_315deg_330deg,transparent_330deg_345deg,rgba(255,255,255,0.1)_345deg_360deg)] transform -translate-x-1/2 -translate-y-1/2 opacity-30" />
+        {/* Dynamic Background Pattern (HTML2Canvas safe implementation) */}
+        <div className="absolute inset-0 bg-[#0A101D] z-0 overflow-hidden">
+          {/* Base radial gradient for depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#1C5CF1_0%,transparent_70%)] opacity-80" />
+          
+          {/* Geometric shards to mimic the "Razor Shield" aesthetic */}
+          <div className="absolute top-0 right-0 w-[200%] h-[150%] bg-[#4EC0FA]/10 transform rotate-[30deg] translate-x-1/4 -translate-y-1/4" />
+          <div className="absolute bottom-0 left-0 w-[150%] h-[100%] bg-[#F82F41]/10 transform -rotate-[25deg] -translate-x-1/3 translate-y-1/3" />
         </div>
+
+        {/* Holographic Foil Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-20" 
+             style={{ background: 'linear-gradient(135deg, rgba(255,0,0,0.05) 0%, rgba(255,255,0,0.05) 25%, rgba(0,255,0,0.05) 50%, rgba(0,255,255,0.05) 75%, rgba(0,0,255,0.05) 100%)' }} />
+        <div className="absolute inset-0 pointer-events-none z-20" 
+             style={{ background: 'linear-gradient(225deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0) 50%)' }} />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center h-full w-full">
 
-          <div className="bg-[#121A2F] px-4 py-2 rounded-xl border-4 border-[#121A2F] shadow-[0_4px_0_0_#121A2F] transform rotate-[-3deg] mt-4 mb-auto">
-            <span className="font-['Lilita_One'] text-[#4EC0FA] text-xl">
+          <div 
+            className="px-6 py-2 rounded-xl border-[4px] border-[#0D1321] shadow-[0_6px_0_0_#0D1321] transform rotate-[-3deg] mt-6 mb-auto"
+            style={{ backgroundColor: (data.player as any)?.nameColor 
+                ? ((data.player as any).nameColor.startsWith('0x') 
+                    ? '#' + (data.player as any).nameColor.slice(2) 
+                    : (data.player as any).nameColor) 
+                : '#1C5CF1' }}
+          >
+            <span className="font-['Lilita_One'] text-white text-2xl drop-shadow-[0_2px_0_rgba(0,0,0,0.8)] text-stroke-brawl tracking-widest uppercase">
               {data.playerName}
             </span>
           </div>
 
-          <div className="text-center mt-auto mb-4 w-full">
-            <p className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-xl tracking-widest uppercase mb-2 drop-shadow-md">
+          <div className="text-center mt-auto mb-6 w-full px-4 relative">
+            <p className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-xl tracking-widest uppercase mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               {tProfile('gemEquivalent')}
             </p>
-            <div className="brawl-card-dark w-full py-4 border-8 border-[#121A2F] transform scale-105 shadow-[0_8px_0_0_#121A2F,inset_0_4px_0_rgba(255,255,255,0.2)] bg-[#F82F41]">
-              <h2 className="text-6xl sm:text-7xl font-['Lilita_One'] text-white text-stroke-brawl tracking-wider">
+            {/* Razor Shield polygon container for main stat */}
+            <div className="relative mx-auto w-full max-w-[280px] h-[120px] flex items-center justify-center bg-[#F82F41] shadow-[0_12px_30px_rgba(248,47,65,0.4)] transition-all duration-300"
+                 style={{ clipPath: 'polygon(5% 0, 95% 0, 100% 50%, 80% 100%, 20% 100%, 0% 50%)' }}>
+              <div className="absolute inset-1 bg-[#121A2F]" style={{ clipPath: 'polygon(5% 0, 95% 0, 100% 50%, 80% 100%, 20% 100%, 0% 50%)' }}>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#2A3B5C_0%,transparent_80%)] opacity-50" />
+              </div>
+              <h2 className="relative z-10 text-6xl sm:text-7xl font-['Lilita_One'] text-white text-stroke-brawl tracking-wider drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
                 {data.totalGems.toLocaleString()}
               </h2>
             </div>
           </div>
 
           {/* Mini stats */}
-          <div className="grid grid-cols-3 gap-2 w-full mb-4">
-            <div className="bg-black/30 rounded-lg p-2 text-center">
-              <p className="font-['Lilita_One'] text-white text-lg">{data.player?.trophies.toLocaleString()}</p>
-              <p className="text-[8px] text-white/60 uppercase font-bold">🏆 Trophies</p>
+          <div className="grid grid-cols-3 gap-3 w-full mb-6">
+            <div className="bg-[#0A101D]/60 rounded-xl p-3 text-center border-l-4 border-l-yellow-400">
+              <p className="font-['Lilita_One'] text-white text-xl drop-shadow-md">{data.player?.trophies.toLocaleString()}</p>
+              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">🏆 Trophies</p>
             </div>
-            <div className="bg-black/30 rounded-lg p-2 text-center">
-              <p className="font-['Lilita_One'] text-white text-lg">{data.player?.brawlers.length}</p>
-              <p className="text-[8px] text-white/60 uppercase font-bold">👥 Brawlers</p>
+            <div className="bg-[#0A101D]/60 rounded-xl p-3 text-center border-l-4 border-l-red-500">
+              <p className="font-['Lilita_One'] text-white text-xl drop-shadow-md">{data.player?.brawlers.length}</p>
+              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">👥 Brawlers</p>
             </div>
-            <div className="bg-black/30 rounded-lg p-2 text-center">
-              <p className="font-['Lilita_One'] text-white text-lg">P{data.player?.totalPrestigeLevel}</p>
-              <p className="text-[8px] text-white/60 uppercase font-bold">👑 Prestige</p>
+            <div className="bg-[#0A101D]/60 rounded-xl p-3 text-center border-l-4 border-l-blue-500">
+              <p className="font-['Lilita_One'] text-white text-xl drop-shadow-md">P{data.player?.totalPrestigeLevel ?? 0}</p>
+              <p className="text-[9px] text-[#4EC0FA] uppercase font-black tracking-widest">👑 Prestige</p>
             </div>
           </div>
 

@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { GEM_COSTS } from '@/lib/constants'
+import { formatPlaytime } from '@/lib/utils'
+import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 
 export default function StatsPage() {
   const params = useParams<{ tag: string }>()
@@ -40,9 +42,7 @@ export default function StatsPage() {
     <div className="animate-fade-in w-full pb-10 space-y-6">
 
       {/* Banner Ad Space */}
-      <div className="w-full h-[90px] bg-slate-800/50 border-2 border-dashed border-slate-600/50 rounded-xl flex items-center justify-center">
-        <span className="text-slate-500 font-['Lilita_One'] tracking-wider">AD SPACE (728x90)</span>
-      </div>
+      <AdPlaceholder />
 
       {/* Header Panel */}
       <div className="brawl-card p-6 md:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between bg-gradient-to-r from-[var(--color-brawl-purple)] to-[#121A2F]">
@@ -64,45 +64,47 @@ export default function StatsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Gem Score Breakdown */}
-        <div className="brawl-card p-6 flex flex-col items-center justify-center col-span-1 min-h-[300px]">
-          <h2 className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-dark)] text-center mb-6">GEM SCORE</h2>
+        <div className="brawl-card-dark border-[#090E17] p-6 flex flex-col items-center justify-center col-span-1 min-h-[300px]">
+          <h2 className="font-['Lilita_One'] text-3xl text-[var(--color-brawl-gold)] text-center mb-6 tracking-wide drop-shadow-md">GEM SCORE</h2>
           <div className="relative w-48 h-48 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-              <path className="text-[#E2E8F0]" strokeWidth="4" stroke="currentColor" fill="none"
+            <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_4px_10px_rgba(255,201,27,0.2)]" viewBox="0 0 36 36">
+              <path className="text-[#0D1321]" strokeWidth="4" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
               <path className="text-[var(--color-brawl-gold)]" strokeDasharray={`${data.totalGems > 0 ? Math.min(100, Math.round((bd.powerLevels.gems / data.totalGems) * 100)) : 0}, 100`}
                 strokeWidth="4" strokeLinecap="round" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-['Lilita_One'] text-3xl text-[var(--color-brawl-dark)] text-stroke-brawl" style={{ WebkitTextStroke: '2px #121A2F' }}>
+              <span className="font-['Lilita_One'] text-4xl text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl" style={{ WebkitTextStroke: '2px #121A2F' }}>
                 {data.totalGems.toLocaleString()}
               </span>
-              <span className="font-['Inter'] text-xs font-bold text-slate-500 uppercase mt-1">💎 {t('totalGems')}</span>
             </div>
           </div>
 
           {/* Gem breakdown bars */}
-          <div className="w-full mt-6 space-y-2">
+          <div className="w-full mt-8 space-y-3">
             {[
-              { label: t('brawlerCount'), value: bd.unlocks.gems, color: '#3B82F6' },
-              { label: 'Power Levels', value: bd.powerLevels.gems, color: '#F59E0B' },
+              { label: t('powerLevels'), value: bd.powerLevels.gems, color: '#F59E0B' },
               { label: t('gadgets'), value: bd.gadgets.gems, color: '#10B981' },
               { label: t('starPowers'), value: bd.starPowers.gems, color: '#8B5CF6' },
               { label: t('hypercharges'), value: bd.hypercharges.gems, color: '#EF4444' },
               { label: t('buffies'), value: bd.buffies.gems, color: '#EC4899' },
-              { label: t('skins'), value: bd.skins.gems, color: '#F97316' },
+              { label: t('gears'), value: bd.gears.gems, color: '#6B7280' },
             ].map((v) => (
               <div key={v.label}>
-                <div className="flex justify-between text-xs font-bold mb-1">
-                  <span className="text-slate-600">{v.label}</span>
-                  <span className="text-slate-800">{v.value.toLocaleString()} 💎</span>
+                <div className="flex justify-between text-xs font-black uppercase tracking-wider mb-1">
+                  <span className="text-slate-300">{v.label}</span>
+                  <span className="text-slate-100">{v.value.toLocaleString()} 💎</span>
                 </div>
-                <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
+                {/* Segmented/Trophy-Road style mini bar */}
+                <div className="h-4 w-full bg-[#0D1321] rounded-sm overflow-hidden border-2 border-[#1E293B]">
                   <div
-                    className="h-full rounded-full transition-all duration-700"
+                    className="h-full rounded-sm transition-all duration-700 relative"
                     style={{ width: `${data.totalGems > 0 ? Math.max(2, Math.round((v.value / data.totalGems) * 100)) : 0}%`, backgroundColor: v.color }}
-                  />
+                  >
+                    <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_8px,rgba(0,0,0,0.3)_8px,rgba(0,0,0,0.3)_12px)]" />
+                    <div className="absolute top-0 inset-x-0 h-1/2 bg-white/20" />
+                  </div>
                 </div>
               </div>
             ))}
@@ -112,53 +114,62 @@ export default function StatsPage() {
         {/* Trophies & Victories */}
         <div className="lg:col-span-2 flex flex-col gap-6">
 
-          <div className="brawl-card-dark p-6">
-            <div className="flex justify-between items-end mb-4">
+          <div className="brawl-card-dark border-[#090E17] p-6 shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <span className="text-[120px] leading-none block">🏆</span>
+            </div>
+            <div className="flex justify-between items-end mb-4 relative z-10">
               <div>
-                <h3 className="font-['Lilita_One'] text-[#F82F41] text-lg tracking-widest">TROPHY ROAD</h3>
-                <p className="font-['Inter'] font-semibold text-slate-300 text-sm">
-                  Highest: {st.highestTrophies.toLocaleString()}
+                <h3 className="font-['Lilita_One'] text-[#F82F41] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.8)]">TROPHY ROAD</h3>
+                <p className="font-['Inter'] font-bold text-slate-300 text-sm tracking-wide">
+                  Highest: <span className="text-yellow-400">{st.highestTrophies.toLocaleString()}</span>
                 </p>
               </div>
-              <span className="font-['Lilita_One'] text-3xl text-white text-stroke-brawl">
+              <span className="font-['Lilita_One'] text-4xl text-white text-stroke-brawl drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
                 {st.trophies.toLocaleString()} 🏆
               </span>
             </div>
 
-            {/* Progress Bar */}
-            <div className="h-10 w-full bg-[#121A2F] border-4 border-[#121A2F] rounded-full p-1 relative overflow-hidden shadow-[inset_0px_4px_4px_rgba(0,0,0,0.5)]">
+            {/* Segmented Progress Bar */}
+            <div className="h-12 w-full bg-[#0D1321] border-4 border-[#1E293B] p-1 relative shadow-[inset_0px_6px_6px_rgba(0,0,0,0.6)] rounded-sm">
               <div
-                className="h-full bg-gradient-to-r from-[#FFC91B] to-[#F82F41] rounded-full relative overflow-hidden transition-all duration-1000"
+                className="h-full bg-gradient-to-r from-[#FFC91B] to-[#F82F41] relative overflow-hidden transition-all duration-1000 rounded-sm"
                 style={{ width: `${trophyPercent}%` }}
               >
-                <div className="absolute inset-0 top-0 h-1/3 bg-white/40" />
-                <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.2)_10px,rgba(255,255,255,0.2)_20px)]" />
+                {/* 3D Top bevel */}
+                <div className="absolute inset-0 top-0 h-1/2 bg-white/25" />
+                {/* Segmented black notches */}
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_20px,rgba(0,0,0,0.4)_20px,rgba(0,0,0,0.4)_26px)]" />
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
-            <div className="brawl-card p-4 flex flex-col justify-center items-center">
-              <span className="text-2xl mb-1 filter drop-shadow-md">⚔️</span>
-              <span className="text-2xl font-['Lilita_One'] text-[#121A2F]">{st.threeVsThreeVictories.toLocaleString()}</span>
-              <span className="text-[10px] uppercase font-bold text-slate-500">3v3 Wins</span>
+            <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#1C5CF1] transition-all duration-200">
+              <span className="text-4xl mb-2 filter drop-shadow-md">⚔️</span>
+              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.threeVsThreeVictories.toLocaleString()}</span>
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">3v3 Wins</span>
             </div>
-            <div className="brawl-card p-4 flex flex-col justify-center items-center">
-              <span className="text-2xl mb-1 filter drop-shadow-md">👤</span>
-              <span className="text-2xl font-['Lilita_One'] text-[#121A2F]">{st.soloVictories.toLocaleString()}</span>
-              <span className="text-[10px] uppercase font-bold text-slate-500">Solo Wins</span>
+            <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#F82F41] transition-all duration-200">
+              <span className="text-4xl mb-2 filter drop-shadow-md">👤</span>
+              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.soloVictories.toLocaleString()}</span>
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Solo Wins</span>
             </div>
-            <div className="brawl-card p-4 flex flex-col justify-center items-center">
-              <span className="text-2xl mb-1 filter drop-shadow-md">👥</span>
-              <span className="text-2xl font-['Lilita_One'] text-[#121A2F]">{st.duoVictories.toLocaleString()}</span>
-              <span className="text-[10px] uppercase font-bold text-slate-500">Duo Wins</span>
+            <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#10B981] transition-all duration-200">
+              <span className="text-4xl mb-2 filter drop-shadow-md">👥</span>
+              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.duoVictories.toLocaleString()}</span>
+              <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Duo Wins</span>
             </div>
-            <div className="brawl-card p-4 flex flex-col justify-center items-center bg-[#4EC0FA]">
-              <span className="text-2xl font-bold font-['Inter'] text-white mb-1">⏱️</span>
-              <span className="text-2xl font-['Lilita_One'] text-white text-stroke-brawl" style={{ WebkitTextStroke: '1px #121A2F', textShadow: '0 2px 0 #121A2F' }}>
-                {st.estimatedHoursPlayed}h
+            <div 
+              className="brawl-card-dark border-[#121A2F] p-4 flex flex-col justify-center items-center relative overflow-hidden group cursor-help"
+              title={`Tiempo estimado basándose en el Win Rate actual (${Math.round(st.winRateUsed * 100)}%).\n\nJugadores con mayor win rate requirieron de menos horas reales para llegar a estas estadísticas.`}
+            >
+              <div className="absolute inset-0 bg-[#4EC0FA]/20 group-hover:bg-[#4EC0FA]/40 transition-colors" />
+              <span className="text-4xl filter drop-shadow-md relative z-10 mb-2">⏱️</span>
+              <span className="text-2xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl relative z-10 border-b border-dashed border-[#A0AEC0]/50 pb-0.5">
+                {formatPlaytime(st.estimatedHoursPlayed)}
               </span>
-              <span className="text-[10px] uppercase font-bold text-white/80">Time Played</span>
+              <span className="text-[10px] uppercase font-black text-slate-300 relative z-10 tracking-wider">Time Played</span>
             </div>
           </div>
 
@@ -171,10 +182,9 @@ export default function StatsPage() {
                 { label: t('starPowers'), value: bd.starPowers.count, icon: '⭐' },
                 { label: t('hypercharges'), value: bd.hypercharges.count, icon: '⚡' },
                 { label: t('buffies'), value: bd.buffies.count, icon: '💪' },
-                { label: t('skins'), value: bd.skins.count, icon: '🎨' },
+                { label: t('gears'), value: bd.gears.count, icon: '🔩' },
                 { label: t('prestige'), value: st.totalPrestigeLevel, icon: '👑' },
-                { label: t('unlocks'), value: bd.unlocks.count, icon: '🎴' },
-                { label: t('timePlayed'), value: `${st.estimatedHoursPlayed}h`, icon: '⏱️' },
+                { label: t('timePlayed'), value: formatPlaytime(st.estimatedHoursPlayed), icon: '⏱️' },
               ].map((item) => (
                 <div key={item.label} className="bg-white/5 rounded-xl p-3 text-center">
                   <span className="text-2xl">{item.icon}</span>
@@ -188,8 +198,10 @@ export default function StatsPage() {
         </div>
       </div>
 
+      <AdPlaceholder className="mb-2" />
+
       {/* Gem Breakdown Table */}
-      <div className="brawl-card-dark p-6 md:p-8">
+      <div className="brawl-card-dark p-6 sm:p-8 border-[#090E17]">
         <div className="flex items-center gap-3 mb-6">
           <GemIcon className="w-8 h-8" />
           <h2 className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-gold)] tracking-widest">
@@ -205,13 +217,12 @@ export default function StatsPage() {
           </div>
 
           {[
-            { icon: '🎴', label: `${t('brawlerCount')} (desbloqueo)`, qty: `${bd.unlocks.count}`, gems: bd.unlocks.gems, color: 'border-l-blue-500' },
-            { icon: '📈', label: `Power Levels (mejora)`, qty: `${bd.powerLevels.count}`, gems: bd.powerLevels.gems, color: 'border-l-yellow-500' },
+            { icon: '📈', label: `${t('powerLevels')}`, qty: `${bd.powerLevels.count}`, gems: bd.powerLevels.gems, color: 'border-l-yellow-500' },
             { icon: '🔧', label: `${t('gadgets')} (×${GEM_COSTS.gadget}💎)`, qty: `${bd.gadgets.count}`, gems: bd.gadgets.gems, color: 'border-l-green-500' },
             { icon: '⭐', label: `${t('starPowers')} (×${GEM_COSTS.starPower}💎)`, qty: `${bd.starPowers.count}`, gems: bd.starPowers.gems, color: 'border-l-purple-500' },
             { icon: '⚡', label: `${t('hypercharges')} (×${GEM_COSTS.hypercharge}💎)`, qty: `${bd.hypercharges.count}`, gems: bd.hypercharges.gems, color: 'border-l-red-500' },
             { icon: '💪', label: `${t('buffies')} (×${GEM_COSTS.buffie}💎)`, qty: `${bd.buffies.count}`, gems: bd.buffies.gems, color: 'border-l-pink-500' },
-            { icon: '🎨', label: `${t('skins')} (×${GEM_COSTS.skin}💎)`, qty: `${bd.skins.count}`, gems: bd.skins.gems, color: 'border-l-orange-500' },
+            { icon: '🔩', label: `${t('gears')} (×${GEM_COSTS.gear}💎)`, qty: `${bd.gears.count}`, gems: bd.gears.gems, color: 'border-l-gray-500' },
           ].map((row, i) => (
             <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-3 rounded-lg border-l-4 ${row.color} ${i % 2 === 0 ? 'bg-white/5' : 'bg-white/[0.02]'}`}>
               <span className="flex items-center gap-2 text-sm text-slate-200">
@@ -238,10 +249,7 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Ad Placeholder */}
-      <div className="w-full min-h-[250px] bg-slate-800/50 border-2 border-dashed border-slate-600/50 rounded-xl flex items-center justify-center">
-        <span className="text-slate-500 font-['Lilita_One'] tracking-wider">AD SPACE (300x250)</span>
-      </div>
+      <AdPlaceholder className="my-6" />
     </div>
   )
 }

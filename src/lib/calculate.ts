@@ -2,13 +2,15 @@ import type { PlayerData, GemScore, BrawlerStat, RarityMap } from './types'
 import {
   POWER_LEVEL_GEM_COST,
   GEM_COSTS,
-  RARITY_UNLOCK_COST,
   AVG_MATCH_MINUTES,
+  ESTIMATED_WIN_RATE,
   BRAWLER_RARITY_MAP,
 } from './constants'
 
-function hasNonDefaultSkin(b: BrawlerStat): boolean {
-  return Boolean(b.skin && b.skin.id && b.skin.name !== b.name)
+interface CalculateOptions {
+  rarityMap?: RarityMap
+  /** Win rate 0-1 from battlelog. Falls back to ESTIMATED_WIN_RATE (0.5) */
+  winRate?: number
 }
 
 function countBuffies(b: BrawlerStat): number {
@@ -16,70 +18,71 @@ function countBuffies(b: BrawlerStat): number {
   return [b.buffies.gadget, b.buffies.starPower, b.buffies.hyperCharge].filter(Boolean).length
 }
 
-export function calculateValue(playerData: PlayerData, rarityMap: RarityMap = BRAWLER_RARITY_MAP): GemScore {
-  let unlockCount = 0, unlockGems = 0
+export function calculateValue(playerData: PlayerData, opts: CalculateOptions = {}): GemScore {
+  const rarityMap = opts.rarityMap ?? BRAWLER_RARITY_MAP
+  const winRate = opts.winRate && opts.winRate > 0 ? opts.winRate : ESTIMATED_WIN_RATE
   let powerCount = 0, powerGems = 0
   let gadgetCount = 0, gadgetGems = 0
   let spCount = 0, spGems = 0
   let hcCount = 0, hcGems = 0
   let buffieCount = 0, buffieGems = 0
-  let skinCount = 0, skinGems = 0
+  let gearCount = 0, gearGems = 0
 
   for (const b of playerData.brawlers) {
-    // Unlock cost by rarity
-    const rarity = rarityMap[b.id] ?? 'Trophy Road'
-    unlockCount++
-    unlockGems += RARITY_UNLOCK_COST[rarity]
-
-    // Power level cost (real gems)
+    // Power level cost (real gems from verified game data)
     const plCost = POWER_LEVEL_GEM_COST[b.power] ?? 0
     if (plCost > 0) {
       powerCount++
       powerGems += plCost
     }
 
-    // Gadgets
+    // Gadgets (1000 coins = 100 gems)
     gadgetCount += b.gadgets.length
     gadgetGems += b.gadgets.length * GEM_COSTS.gadget
 
-    // Star Powers
+    // Star Powers (2000 coins = 200 gems)
     spCount += b.starPowers.length
     spGems += b.starPowers.length * GEM_COSTS.starPower
 
-    // Hypercharges
+    // Hypercharges (5000 coins = 500 gems)
     hcCount += b.hyperCharges.length
     hcGems += b.hyperCharges.length * GEM_COSTS.hypercharge
 
-    // Buffies
+    // Buffies (1000 coins + 2000 PP = 300 gems)
     const bc = countBuffies(b)
     buffieCount += bc
     buffieGems += bc * GEM_COSTS.buffie
 
-    // Skins
-    if (hasNonDefaultSkin(b)) {
-      skinCount++
-      skinGems += GEM_COSTS.skin
-    }
+    // Gears (1000 coins = 100 gems each)
+    gearCount += b.gears.length
+    gearGems += b.gears.length * GEM_COSTS.gear
   }
 
-  const totalGems = unlockGems + powerGems + gadgetGems + spGems + hcGems + buffieGems + skinGems
+  // Only verified gem costs — skins are classified by user separately
+  const totalGems = powerGems + gadgetGems + spGems + hcGems + buffieGems + gearGems
 
   // Profile stats
   const totalVictories = playerData.soloVictories + playerData.duoVictories + playerData['3vs3Victories']
-  const estimatedHoursPlayed = Math.round((totalVictories * AVG_MATCH_MINUTES) / 60)
+  const estimatedTotalMatches = Math.round(totalVictories / winRate)
+  const estimatedHoursPlayed = Math.round((estimatedTotalMatches * AVG_MATCH_MINUTES) / 60)
+
+  // Count non-default skins for user classification
+  const skinsEquipped = playerData.brawlers.filter(b => b.skin && b.skin.id && b.skin.name !== b.name).length
 
   return {
     playerTag: playerData.tag,
     playerName: playerData.name,
     totalGems,
     breakdown: {
-      unlocks: { count: unlockCount, gems: unlockGems },
       powerLevels: { count: powerCount, gems: powerGems },
       gadgets: { count: gadgetCount, gems: gadgetGems },
       starPowers: { count: spCount, gems: spGems },
       hypercharges: { count: hcCount, gems: hcGems },
       buffies: { count: buffieCount, gems: buffieGems },
-      skins: { count: skinCount, gems: skinGems },
+      gears: { count: gearCount, gems: gearGems },
+    },
+    userInput: {
+      skinsEquipped,
     },
     stats: {
       trophies: playerData.trophies,
@@ -89,7 +92,9 @@ export function calculateValue(playerData: PlayerData, rarityMap: RarityMap = BR
       duoVictories: playerData.duoVictories,
       threeVsThreeVictories: playerData['3vs3Victories'],
       totalVictories,
+      estimatedTotalMatches,
       estimatedHoursPlayed,
+      winRateUsed: winRate,
     },
     timestamp: new Date(),
     cached: false,

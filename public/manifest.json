@@ -1,0 +1,12 @@
+{
+  "name": "BrawlValue",
+  "short_name": "BrawlValue",
+  "description": "Calculate the real gem value of your Brawl Stars account",
+  "start_url": "/es",
+  "display": "standalone",
+  "background_color": "#121A2F",
+  "theme_color": "#1C5CF1",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }
+  ]
+}

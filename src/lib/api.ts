@@ -1,6 +1,6 @@
 import type { PlayerData } from './types'
 
-const API_BASE = 'https://api.brawlstars.com/v1'
+const API_BASE = 'https://bsproxy.royaleapi.dev/v1'
 
 function getApiKey(): string {
   const key = process.env.BRAWLSTARS_API_KEY
