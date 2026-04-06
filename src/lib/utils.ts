@@ -59,3 +59,6 @@ export function handleApiError(error: unknown): ApiErrorObj {
   }
   return new ApiErrorObj(500, error instanceof Error ? error.message : 'Unknown error')
 }
+export function getBrawlerPortraitUrl(id: number): string {
+  return `https://cdn.brawlify.com/brawlers/border/${id}.png`
+}

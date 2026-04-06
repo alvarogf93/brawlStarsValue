@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useEffect, useRef } from 'react'
 import { BreakdownGrid } from '@/components/profile/BreakdownGrid'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
@@ -17,6 +18,16 @@ export default function OverviewPage() {
   const locale = params.locale || 'es'
   const { data, isLoading, error } = usePlayerData(tag)
   const { totalCosmeticGems, classifiedCount } = useSkinClassifications(tag)
+  const confettiFired = useRef(false)
+
+  useEffect(() => {
+    if (data && !confettiFired.current) {
+      confettiFired.current = true
+      import('canvas-confetti').then(({ default: confetti }) => {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#FFC91B', '#4EC0FA', '#F82F41', '#B23DFF'] })
+      })
+    }
+  }, [data])
 
   if (isLoading) {
     return (

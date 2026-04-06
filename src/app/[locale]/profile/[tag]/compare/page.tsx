@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { useBattlelog } from '@/hooks/useBattlelog'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
+import { CompareTrophyChart } from '@/components/battles/CompareTrophyChart'
 import { formatPlaytime } from '@/lib/utils'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import type { GemScore } from '@/lib/types'
@@ -177,6 +179,7 @@ export default function ComparePage() {
   const tNav = useTranslations('nav')
   const tag = decodeURIComponent(params.tag)
   const { data: player1, isLoading: p1Loading, error: p1Error } = usePlayerData(tag)
+  const { data: p1Battles } = useBattlelog(tag)
 
   const vsParam = searchParams.get('vs') || ''
   const [opponentInput, setOpponentInput] = useState(vsParam)
@@ -185,6 +188,8 @@ export default function ComparePage() {
   const [opponentData, setOpponentData] = useState<GemScore | null>(null)
   const [opponentLoading, setOpponentLoading] = useState(false)
   const [opponentError, setOpponentError] = useState<string | null>(null)
+  const [opponentTag, setOpponentTag] = useState<string | null>(null)
+  const { data: p2Battles } = useBattlelog(opponentTag ?? '')
   const [barsVisible, setBarsVisible] = useState(false)
 
   // Trigger bar animation when both players are loaded
@@ -243,6 +248,7 @@ export default function ComparePage() {
 
       const result: GemScore = await res.json()
       setOpponentData(result)
+      setOpponentTag(formatted)
     } catch (err) {
       setOpponentError(err instanceof Error ? err.message : t('fetchError'))
     } finally {
@@ -464,6 +470,18 @@ export default function ComparePage() {
               />
             ))}
           </div>
+
+          {/* Trophy Chart Comparison */}
+          {p1Battles?.battles && p2Battles?.battles && (
+            <CompareTrophyChart
+              player1Battles={p1Battles.battles}
+              player2Battles={p2Battles.battles}
+              player1Name={player1.playerName}
+              player2Name={opponentData.playerName}
+              player1Tag={tag}
+              player2Tag={opponentTag ?? ''}
+            />
+          )}
         </>
       )}
     </div>

@@ -3,10 +3,12 @@
 import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import Image from 'next/image'
 import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { getBrawlerPortraitUrl } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
 
@@ -288,6 +290,16 @@ export default function BrawlersPage() {
                 
                 <div className="absolute inset-0 opacity-20 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
                 <div className="w-24 h-24 bg-white/30 rounded-full blur-[20px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+
+                {/* Brawler portrait */}
+                <Image
+                  src={getBrawlerPortraitUrl(brawler.id)}
+                  alt={brawler.name}
+                  width={110}
+                  height={110}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[55%] z-[5] drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-115"
+                  loading="lazy"
+                />
 
                 {/* Rank badge — top left */}
                 <div className="absolute top-2 left-2 bg-black/60 rounded-lg px-2 py-1 text-xs font-bold text-white z-10 font-['Inter']">

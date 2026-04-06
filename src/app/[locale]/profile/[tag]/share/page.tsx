@@ -2,9 +2,10 @@
 
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { Download } from 'lucide-react'
 
 export default function SharePage() {
   const params = useParams<{ tag: string; locale: string }>()
@@ -14,6 +15,8 @@ export default function SharePage() {
   const locale = params.locale || 'es'
   const { data, isLoading, error } = usePlayerData(tag)
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
 
   if (isLoading) {
     return (
@@ -34,6 +37,27 @@ export default function SharePage() {
   const prestigeCount = data.stats?.totalPrestigeLevel ?? 0
   const shareText = `${t('text', { gems: data.totalGems.toLocaleString(), prestige: prestigeCount.toString() })}`
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/${locale}/profile/${encodeURIComponent(tag)}` : ''
+
+  const handleDownload = useCallback(async () => {
+    if (!cardRef.current || downloading) return
+    setDownloading(true)
+    try {
+      const html2canvas = (await import('html2canvas-pro')).default
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: '#121A2F',
+        scale: 2,
+        useCORS: true,
+      })
+      const link = document.createElement('a')
+      link.download = `brawlvalue-${tag.replace('#', '')}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch {
+      // Fallback: just share text
+    } finally {
+      setDownloading(false)
+    }
+  }, [tag, downloading])
 
   async function handleShare() {
     const shareData = {
@@ -78,7 +102,7 @@ export default function SharePage() {
       </div>
 
       {/* The 9:16 Viral Card Container */}
-      <div id="viral-card" className="relative w-[340px] h-[600px] sm:w-[380px] sm:h-[675px] bg-[#121A2F] rounded-[32px] overflow-hidden border-8 border-[var(--color-brawl-dark)] shadow-[0_12px_24px_rgba(0,0,0,0.5)] flex flex-col items-center p-6 mx-auto">
+      <div ref={cardRef} id="viral-card" className="relative w-[340px] h-[600px] sm:w-[380px] sm:h-[675px] bg-[#121A2F] rounded-[32px] overflow-hidden border-8 border-[var(--color-brawl-dark)] shadow-[0_12px_24px_rgba(0,0,0,0.5)] flex flex-col items-center p-6 mx-auto">
 
         {/* Dynamic Background Pattern (HTML2Canvas safe implementation) */}
         <div className="absolute inset-0 bg-[#0A101D] z-0 overflow-hidden">
@@ -152,8 +176,16 @@ export default function SharePage() {
         </div>
       </div>
 
-      {/* Share Buttons */}
+      {/* Action Buttons */}
       <div className="mt-8 flex gap-4 flex-wrap justify-center">
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="brawl-button px-8 py-4 text-xl flex items-center gap-2 group bg-gradient-to-r from-[#F82F41] to-[#DC2626] disabled:opacity-50"
+        >
+          <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
+          {downloading ? '...' : 'Download'}
+        </button>
         <button
           onClick={handleShare}
           className="brawl-button px-8 py-4 text-xl flex items-center gap-2 group"
