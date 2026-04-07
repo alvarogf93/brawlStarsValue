@@ -7,7 +7,7 @@ import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { usePlayerData } from '@/hooks/usePlayerData'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
 
@@ -85,13 +85,11 @@ export default function BrawlersPage() {
   const filteredAndSorted = useMemo(() => {
     let result = brawlers
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
       result = result.filter((b) => b.name.toLowerCase().includes(q))
     }
 
-    // Filter by rarity
     if (activeRarities.size > 0) {
       result = result.filter((b) => {
         const rarity = BRAWLER_RARITY_MAP[b.id] ?? 'Trophy Road'
@@ -99,7 +97,6 @@ export default function BrawlersPage() {
       })
     }
 
-    // Sort
     return sortBrawlers(result, sortBy)
   }, [brawlers, searchQuery, activeRarities, sortBy])
 
@@ -110,11 +107,8 @@ export default function BrawlersPage() {
   function toggleRarity(rarity: BrawlerRarityName) {
     setActiveRarities((prev) => {
       const next = new Set(prev)
-      if (next.has(rarity)) {
-        next.delete(rarity)
-      } else {
-        next.add(rarity)
-      }
+      if (next.has(rarity)) next.delete(rarity)
+      else next.add(rarity)
       return next
     })
   }
@@ -160,9 +154,7 @@ export default function BrawlersPage() {
 
       {/* Sticky Toolbar */}
       <div className="bg-[#24355B] border-4 border-[var(--color-brawl-dark)] rounded-3xl shadow-[4px_8px_0px_var(--color-brawl-dark),inset_0px_-6px_0px_rgba(0,0,0,0.3),inset_0px_4px_0px_rgba(255,255,255,0.1)] sticky top-0 z-30 p-4 md:p-6 mb-6 space-y-4" style={{ overflow: 'visible' }}>
-        {/* Search + Sort Row */}
         <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search Bar */}
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
             <input
@@ -174,7 +166,6 @@ export default function BrawlersPage() {
             />
           </div>
 
-          {/* Sort Dropdown */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -188,10 +179,7 @@ export default function BrawlersPage() {
                 {SORT_OPTIONS.map((option) => (
                   <button
                     key={option.value}
-                    onClick={() => {
-                      setSortBy(option.value)
-                      setDropdownOpen(false)
-                    }}
+                    onClick={() => { setSortBy(option.value); setDropdownOpen(false) }}
                     className={`w-full text-left px-5 py-3 font-['Lilita_One'] text-base transition-colors ${
                       sortBy === option.value
                         ? 'bg-[var(--color-brawl-blue)] text-white'
@@ -206,9 +194,7 @@ export default function BrawlersPage() {
           </div>
         </div>
 
-        {/* Rarity Filter Chips */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {/* All chip */}
           <button
             onClick={clearRarityFilter}
             className={`shrink-0 px-5 py-2.5 rounded-sm font-['Lilita_One'] text-sm uppercase tracking-wide border-4 shadow-[0_4px_0_0_#0D1321] transition-all duration-150 -skew-x-12 ${
@@ -231,11 +217,7 @@ export default function BrawlersPage() {
                     ? 'text-white active:translate-y-[4px] active:shadow-none'
                     : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white hover:-translate-y-1 active:translate-y-[4px] active:shadow-none'
                 }`}
-                style={
-                  isActive
-                    ? { backgroundColor: color, borderColor: '#121A2F' }
-                    : undefined
-                }
+                style={isActive ? { backgroundColor: color, borderColor: '#121A2F' } : undefined}
               >
                 <div className="skew-x-12 flex items-center gap-1">{rarity}</div>
               </button>
@@ -243,7 +225,6 @@ export default function BrawlersPage() {
           })}
         </div>
 
-        {/* Quick Stats Bar */}
         <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-white/10">
           <span className="font-['Inter'] font-bold text-slate-300 text-sm">
             {filteredAndSorted.length} / {brawlers.length} {tProfile('brawlerCount').toLowerCase()}
@@ -256,134 +237,142 @@ export default function BrawlersPage() {
 
       <AdPlaceholder className="mb-6" />
 
-      {/* Empty state */}
       {filteredAndSorted.length === 0 && (
         <div className="brawl-card p-12 text-center">
           <p className="font-['Lilita_One'] text-2xl text-slate-400">{t('noResults')}</p>
         </div>
       )}
 
-      {/* Roster Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {/* Roster Grid — 3D Pop-Out Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
         {filteredAndSorted.map((brawler) => {
           const rarity = BRAWLER_RARITY_MAP[brawler.id] ?? 'Trophy Road'
           const gemValue = calcBrawlerGemValue(brawler)
           const color = RARITY_COLORS[rarity]
           const buffieCount = [brawler.buffies?.gadget, brawler.buffies?.starPower, brawler.buffies?.hyperCharge].filter(Boolean).length
-          const hasCustomSkin = brawler.skin && brawler.skin.name !== brawler.name
 
           return (
             <div
               key={brawler.id}
-              className="brawl-card group hover:-translate-y-2 hover:scale-[1.02] hover:shadow-[0_16px_24px_-8px_rgba(0,0,0,0.6)] transition-all duration-300 ease-out"
+              className="group relative pt-12"
             >
-              {/* Color header by rarity */}
+              {/* Brawler portrait — 3D pop-out above card */}
+              <img
+                src={getBrawlerPortraitUrl(brawler.id)}
+                alt={brawler.name}
+                width={100}
+                height={100}
+                className="absolute top-0 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2"
+                loading="lazy"
+              />
+
+              {/* Card body */}
               <div
-                className="w-full h-40 border-b-[6px] border-[var(--color-brawl-dark)] flex flex-col items-center justify-end relative overflow-hidden p-3"
-                style={{ backgroundColor: color }}
+                className="brawl-card relative overflow-visible transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_24px_-8px_rgba(0,0,0,0.6)]"
               >
-                {/* Segmented diagonal cut */}
-                <div className="absolute top-0 right-0 left-0 bottom-0 pointer-events-none">
-                  <div className="absolute w-[150%] h-full bg-black/15 -skew-x-12 origin-bottom-left scale-110 -translate-x-1/4" />
-                </div>
-                
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
-                <div className="w-24 h-24 bg-white/30 rounded-full blur-[20px] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                {/* Rarity color header */}
+                <div
+                  className="w-full h-16 border-b-4 border-[var(--color-brawl-dark)] relative"
+                  style={{ backgroundColor: color }}
+                >
+                  <div className="absolute inset-0 opacity-20 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
+                  <div className="absolute w-[150%] h-full bg-black/15 -skew-x-12 origin-bottom-left" />
 
-                {/* Brawler portrait */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getBrawlerPortraitUrl(brawler.id)}
-                  alt={brawler.name}
-                  width={110}
-                  height={110}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[55%] z-[5] drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-115"
-                  loading="lazy"
-                />
-
-                {/* Rank badge — top left */}
-                <div className="absolute top-2 left-2 bg-black/60 rounded-lg px-2 py-1 text-xs font-bold text-white z-10 font-['Inter']">
-                  R{brawler.rank}
-                </div>
-
-                {/* Prestige badge — top right */}
-                {brawler.prestigeLevel > 0 && (
-                  <div className="absolute top-2 right-2 bg-black/60 rounded-lg px-2 py-1 text-xs font-bold text-yellow-400 z-10">
-                    P{brawler.prestigeLevel} 👑
+                  {/* Rank badge */}
+                  <div className="absolute top-1.5 left-1.5 bg-black/60 rounded-lg px-1.5 py-0.5 text-[10px] font-bold text-white z-10 font-['Inter']">
+                    R{brawler.rank}
                   </div>
-                )}
 
-                {/* Win streak badge — below prestige or top right area */}
-                {brawler.currentWinStreak > 0 && (
-                  <div className={`absolute ${brawler.prestigeLevel > 0 ? 'top-9' : 'top-2'} right-2 bg-orange-600/80 rounded-lg px-2 py-1 text-xs font-bold text-white z-10`}>
-                    🔥 {brawler.currentWinStreak}
+                  {/* Power level badge */}
+                  <div className="absolute top-1.5 right-1.5 bg-[#B23DFF] rounded-lg px-1.5 py-0.5 text-[10px] font-bold text-white z-10 font-['Lilita_One'] border-2 border-[var(--color-brawl-dark)] shadow-[0_1px_0_0_#121A2F]">
+                    {brawler.power}
                   </div>
-                )}
 
-                <h2 className="text-3xl font-['Lilita_One'] text-white text-stroke-brawl uppercase relative z-10 transition-transform group-hover:scale-110 duration-200 group-hover:-translate-y-1 drop-shadow-md">
-                  {brawler.name}
-                </h2>
-                <span className="text-xs text-white/70 font-['Inter'] font-bold uppercase relative z-10">
-                  {rarity}
-                </span>
-              </div>
+                  {/* Prestige */}
+                  {brawler.prestigeLevel > 0 && (
+                    <div className="absolute bottom-1 right-1.5 text-[10px] font-bold text-yellow-400 z-10">
+                      P{brawler.prestigeLevel} 👑
+                    </div>
+                  )}
+                </div>
 
-              {/* Stats Body */}
-              <div className="p-4 bg-[var(--color-brawl-light)]">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-['Lilita_One'] text-lg px-2 py-1 rounded-lg border-2 border-[var(--color-brawl-dark)] bg-[#B23DFF] text-white shadow-[0_2px_0_0_#121A2F]">
-                    LVL {brawler.power}
+                {/* Name + Rarity */}
+                <div className="px-3 pt-2 pb-1 text-center">
+                  <h2 className="text-lg font-['Lilita_One'] text-[var(--color-brawl-dark)] uppercase leading-tight truncate" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.1)' }}>
+                    {brawler.name}
+                  </h2>
+                  <span className="text-[9px] font-['Inter'] font-bold uppercase tracking-wider" style={{ color }}>
+                    {rarity}
                   </span>
-                  <div className="text-right">
-                    <span className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] flex items-center gap-1">
-                      {brawler.trophies.toLocaleString()} 🏆
-                    </span>
-                    <span className="font-['Inter'] text-xs text-slate-500 block leading-tight">
-                      {t('labelBest')}{brawler.highestTrophies.toLocaleString()}
-                    </span>
-                  </div>
                 </div>
 
-                {/* Unlock badges */}
-                <div className="flex gap-1.5 mb-3 flex-wrap">
-                  {brawler.starPowers.length > 0 && (
-                    <span className="text-[10px] bg-yellow-400 text-yellow-900 border-2 border-yellow-600 px-2 rounded-sm font-black shadow-sm uppercase">
-                      SP ×{brawler.starPowers.length}
-                    </span>
-                  )}
-                  {brawler.gadgets.length > 0 && (
-                    <span className="text-[10px] bg-green-400 text-green-900 border-2 border-green-600 px-2 rounded-sm font-black shadow-sm uppercase">
-                      G ×{brawler.gadgets.length}
-                    </span>
-                  )}
+                {/* Trophies */}
+                <div className="px-3 flex justify-between items-center">
+                  <span className="font-['Lilita_One'] text-sm text-[var(--color-brawl-dark)]">
+                    {brawler.trophies.toLocaleString()} 🏆
+                  </span>
+                  <span className="text-[9px] text-slate-500 font-['Inter'] font-bold">
+                    {t('labelBest')}{brawler.highestTrophies.toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Upgrade icons — real CDN images */}
+                <div className="px-3 py-2 flex items-center gap-1 flex-wrap">
+                  {/* Star Powers — show actual icons */}
+                  {brawler.starPowers.map(sp => (
+                    <img
+                      key={sp.id}
+                      src={getStarPowerImageUrl(sp.id)}
+                      alt={sp.name}
+                      title={sp.name}
+                      width={20}
+                      height={20}
+                      className="rounded-sm border border-yellow-500/50"
+                      loading="lazy"
+                    />
+                  ))}
+
+                  {/* Gadgets — show actual icons */}
+                  {brawler.gadgets.map(g => (
+                    <img
+                      key={g.id}
+                      src={getGadgetImageUrl(g.id)}
+                      alt={g.name}
+                      title={g.name}
+                      width={20}
+                      height={20}
+                      className="rounded-sm border border-green-500/50"
+                      loading="lazy"
+                    />
+                  ))}
+
+                  {/* Hypercharges — icon + count */}
                   {brawler.hyperCharges.length > 0 && (
-                    <span className="text-[10px] bg-purple-500 text-white border-2 border-purple-800 px-2 rounded-sm font-black shadow-sm uppercase">
-                      HC ×{brawler.hyperCharges.length}
+                    <span className="text-[10px] bg-purple-500 text-white border-2 border-purple-800 px-1.5 rounded-sm font-black shadow-sm flex items-center gap-0.5" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
+                      ⚡ {brawler.hyperCharges.length}
                     </span>
                   )}
+
+                  {/* Buffies */}
                   {buffieCount > 0 && (
-                    <span className="text-xs bg-purple-500/20 text-purple-700 px-1.5 py-0.5 rounded font-bold">
+                    <span className="text-[10px] bg-sky-500 text-white border-2 border-sky-700 px-1.5 rounded-sm font-black shadow-sm" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
                       B×{buffieCount}
                     </span>
                   )}
+
+                  {/* Gears — icon + count */}
                   {brawler.gears.length > 0 && (
-                    <span className="text-xs bg-gray-500/20 text-gray-700 px-1.5 py-0.5 rounded font-bold">
-                      🔩×{brawler.gears.length}
-                    </span>
-                  )}
-                  {hasCustomSkin && (
-                    <span className="text-xs bg-pink-500/20 text-pink-700 px-1.5 py-0.5 rounded font-bold">
-                      🎨
+                    <span className="text-[10px] bg-slate-600 text-white border-2 border-slate-800 px-1.5 rounded-sm font-black shadow-sm flex items-center gap-0.5" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
+                      🔩 ×{brawler.gears.length}
                     </span>
                   )}
                 </div>
 
-                <div className="w-full h-px bg-[#121A2F] opacity-20 mb-2" />
-
-                <div className="flex justify-between items-center">
-                  <span className="font-['Inter'] font-bold text-[#1C5CF1] text-sm uppercase">{t('labelValue')}</span>
-                  <span className="font-['Lilita_One'] text-xl text-[var(--color-brawl-dark)] flex items-center gap-1 drop-shadow-sm">
-                    {gemValue.toLocaleString()} <GemIcon className="w-5 h-5 mb-1" />
+                {/* Gem Value footer */}
+                <div className="px-3 pb-3 pt-1 border-t-2 border-[var(--color-brawl-dark)]/10 flex justify-between items-center">
+                  <span className="font-['Inter'] font-bold text-[#1C5CF1] text-[10px] uppercase">{t('labelValue')}</span>
+                  <span className="font-['Lilita_One'] text-base text-[var(--color-brawl-dark)] flex items-center gap-0.5">
+                    {gemValue.toLocaleString()} <GemIcon className="w-4 h-4" />
                   </span>
                 </div>
               </div>
