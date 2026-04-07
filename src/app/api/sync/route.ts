@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { isPremium } from '@/lib/auth'
+import { isPremium } from '@/lib/premium'
 import { syncBattles } from '@/lib/battle-sync'
 import type { Profile } from '@/lib/supabase/types'
 

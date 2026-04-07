@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createCheckoutUrl } from '@/lib/lemonsqueezy'
-import { isPremium } from '@/lib/auth'
+import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
 
 export async function POST(request: Request) {
