@@ -4,12 +4,12 @@ import { fetchBattlelog } from '@/lib/api'
 import { parseBattlelog } from '@/lib/battle-parser'
 
 const BATCH_SIZE = 10
-const SYNC_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
+const SYNC_INTERVAL_MS = 20 * 60 * 1000 // 20 minutes
 
 /**
- * Vercel Cron Job: sync premium users' battles automatically.
- * Runs every minute, processes up to BATCH_SIZE users per run.
- * Replaces the pg_cron + Edge Function approach for reliability.
+ * Cron Job: sync premium users' battles automatically.
+ * Called every 15 min from Oracle VPS crontab + daily Vercel cron fallback.
+ * Processes up to BATCH_SIZE users per run.
  */
 export async function GET(request: Request) {
   // Verify cron secret to prevent unauthorized calls

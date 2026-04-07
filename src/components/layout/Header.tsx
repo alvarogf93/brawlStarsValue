@@ -91,9 +91,19 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           )}
           <span className="font-black text-2xl font-['Lilita_One'] tracking-wider text-[var(--color-brawl-gold)] text-stroke-brawl-brand transform rotate-[-2deg]">BrawlVision</span>
           {playerTag && (
-            <span className="text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white hidden sm:inline-block ml-2 drop-shadow-[0_2px_0_rgba(18,26,47,1)]">
-              {playerTag}
-            </span>
+            <div className="hidden sm:flex items-center gap-2 ml-2">
+              <span className="text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white drop-shadow-[0_2px_0_rgba(18,26,47,1)]">
+                {playerTag}
+              </span>
+              {user?.user_metadata?.avatar_url && (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt=""
+                  className="w-8 h-8 rounded-full border-2 border-[var(--color-brawl-gold)] shadow-[0_2px_0_rgba(0,0,0,0.3)]"
+                  referrerPolicy="no-referrer"
+                />
+              )}
+            </div>
           )}
           {!loading && user && isPremium(profile as Profile) && profile?.last_sync && (
             <span className="text-[10px] text-slate-500 font-semibold hidden md:inline-block">

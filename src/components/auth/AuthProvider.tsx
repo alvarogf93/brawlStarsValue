@@ -43,9 +43,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    // First login — create profile with current player tag
+    // First login — validate tag exists before creating profile
     const currentTag = extractPlayerTag()
     if (!currentTag) {
+      setProfile(null)
+      return
+    }
+
+    // Verify the player actually exists in Brawl Stars API
+    try {
+      const res = await fetch('/api/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerTag: currentTag }),
+      })
+      if (!res.ok) {
+        // Tag doesn't exist — don't associate it
+        setProfile(null)
+        return
+      }
+    } catch {
       setProfile(null)
       return
     }
