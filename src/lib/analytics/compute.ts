@@ -5,7 +5,7 @@ import type {
   TeammateSynergy, HourPerformance, DailyTrend, BrawlerMastery, MasteryPoint,
   StreakInfo, TiltAnalysis, SessionInfo,
 } from './types'
-import { MIN_GAMES, MIN_GAMES_SOFT } from './types'
+import { MIN_GAMES, MIN_GAMES_SOFT, getConfidence } from './types'
 import {
   wilsonPct, winRate, groupBy, compositeKey, parseCompositeKey,
   isWin, isLoss, avg,
@@ -19,7 +19,7 @@ const SESSION_GAP_MS = 30 * 60 * 1000
  * Battles MUST be sorted by battle_time ascending (oldest first).
  * All heavy computation happens here (server-side).
  */
-export function computeAdvancedAnalytics(rawBattles: Battle[]): AdvancedAnalytics {
+export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string): AdvancedAnalytics {
   // Sort oldest-first for time-series analysis
   const battles = [...rawBattles].sort(
     (a, b) => new Date(a.battle_time).getTime() - new Date(b.battle_time).getTime()
@@ -35,7 +35,7 @@ export function computeAdvancedAnalytics(rawBattles: Battle[]): AdvancedAnalytic
     matchups: computeMatchups(battles),
     brawlerSynergy: computeBrawlerSynergy(battles),
     teammateSynergy: computeTeammateSynergy(battles),
-    byHour: computeByHour(battles),
+    byHour: computeByHour(battles, timezone),
     dailyTrend: computeDailyTrend(battles),
     brawlerMastery: computeBrawlerMastery(battles),
     tilt: computeTiltAnalysis(battles),
@@ -114,6 +114,7 @@ function computeByBrawler(battles: Battle[]): BrawlerPerformance[] {
       wins, losses, draws, total,
       winRate: winRate(wins, total),
       wilsonScore: wilsonPct(wins, total),
+      confidence: getConfidence(total),
       starPlayerCount: starCount,
       starPlayerRate: winRate(starCount, total),
       avgTrophyChange: avg(trophyChanges) ?? 0,
@@ -187,6 +188,7 @@ function computeBrawlerMapMatrix(battles: Battle[]): BrawlerMapEntry[] {
       total: group.length,
       winRate: winRate(wins, group.length),
       wilsonScore: wilsonPct(wins, group.length),
+      confidence: getConfidence(group.length),
     })
   }
 
@@ -213,6 +215,7 @@ function computeBrawlerModeMatrix(battles: Battle[]): BrawlerModeEntry[] {
       total: group.length,
       winRate: winRate(wins, group.length),
       wilsonScore: wilsonPct(wins, group.length),
+      confidence: getConfidence(group.length),
     })
   }
 
@@ -252,6 +255,7 @@ function computeMatchups(battles: Battle[]): MatchupEntry[] {
       total: val.total,
       winRate: winRate(val.wins, val.total),
       wilsonScore: wilsonPct(val.wins, val.total),
+      confidence: getConfidence(val.total),
     })
   }
 
@@ -290,6 +294,7 @@ function computeBrawlerSynergy(battles: Battle[]): BrawlerSynergy[] {
       total: val.total,
       winRate: winRate(val.wins, val.total),
       wilsonScore: wilsonPct(val.wins, val.total),
+      confidence: getConfidence(val.total),
     })
   }
 
@@ -349,6 +354,7 @@ function computeTeammateSynergy(battles: Battle[]): TeammateSynergy[] {
       wins: val.wins, total: val.total,
       winRate: winRate(val.wins, val.total),
       wilsonScore: wilsonPct(val.wins, val.total),
+      confidence: getConfidence(val.total),
       bestMode, bestModeWR,
     })
   }
@@ -358,13 +364,24 @@ function computeTeammateSynergy(battles: Battle[]): TeammateSynergy[] {
 
 // ── By Hour of Day ──────────────────────────────────────────────
 
-function computeByHour(battles: Battle[]): HourPerformance[] {
+function computeByHour(battles: Battle[], timezone?: string): HourPerformance[] {
   const hours: Array<{ wins: number; total: number }> = Array.from(
     { length: 24 }, () => ({ wins: 0, total: 0 })
   )
 
   for (const b of battles) {
-    const h = new Date(b.battle_time).getUTCHours()
+    let h: number
+    if (timezone) {
+      // Convert to player's local timezone
+      const localHour = new Date(b.battle_time).toLocaleString('en-US', {
+        timeZone: timezone,
+        hour: 'numeric',
+        hour12: false,
+      })
+      h = parseInt(localHour, 10)
+    } else {
+      h = new Date(b.battle_time).getUTCHours()
+    }
     hours[h].total++
     if (isWin(b.result)) hours[h].wins++
   }
@@ -485,6 +502,7 @@ function computeTiltAnalysis(battles: Battle[]): TiltAnalysis {
         }
       } else {
         consecutiveLosses = 0
+        inTilt = false
       }
 
       if (inTilt) {

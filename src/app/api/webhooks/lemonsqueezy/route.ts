@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   // 4. Update profile tier
   const { tier, subscriptionStatus } = statusToTier(event.eventName, event.status)
 
-  await supabase
+  const { error: updateErr, count } = await supabase
     .from('profiles')
     .update({
       tier,
@@ -57,6 +57,34 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', event.profileId)
+
+  if (updateErr) {
+    console.error('[webhook] Profile update failed:', {
+      profileId: event.profileId,
+      eventName: event.eventName,
+      eventId,
+      error: updateErr.message,
+    })
+    // Return 500 so Lemon Squeezy retries the webhook
+    return NextResponse.json({ error: 'Profile update failed' }, { status: 500 })
+  }
+
+  if (count === 0) {
+    console.error('[webhook] Profile not found for update:', {
+      profileId: event.profileId,
+      eventName: event.eventName,
+      eventId,
+    })
+    // Return 500 to trigger retry — profile might not exist yet if auth is slow
+    return NextResponse.json({ error: 'Profile not found' }, { status: 500 })
+  }
+
+  console.log('[webhook] Success:', {
+    profileId: event.profileId,
+    event: event.eventName,
+    tier,
+    status: subscriptionStatus,
+  })
 
   return NextResponse.json({ ok: true })
 }

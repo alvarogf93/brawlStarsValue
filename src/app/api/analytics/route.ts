@@ -4,7 +4,9 @@ import { isPremium } from '@/lib/premium'
 import { computeAdvancedAnalytics } from '@/lib/analytics/compute'
 import type { Profile, Battle } from '@/lib/supabase/types'
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const timezone = searchParams.get('tz') || undefined
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -22,18 +24,19 @@ export async function GET() {
     return NextResponse.json({ error: 'Premium required' }, { status: 403 })
   }
 
-  // Fetch ALL battles for this player (analytics needs the full dataset)
+  // Fetch recent battles for analytics (cap at 5000 to prevent OOM)
   const { data: battles, error } = await supabase
     .from('battles')
     .select('*')
     .eq('player_tag', profile.player_tag)
-    .order('battle_time', { ascending: true })
+    .order('battle_time', { ascending: false })
+    .limit(5000)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const analytics = computeAdvancedAnalytics((battles ?? []) as Battle[])
+  const analytics = computeAdvancedAnalytics((battles ?? []) as Battle[], timezone)
 
   return NextResponse.json(analytics)
 }

@@ -1,11 +1,14 @@
 import type { Profile } from '@/lib/supabase/types'
 
 /** Check if a profile has active premium access.
- *  Cancelled subscriptions KEEP access until period ends (subscription_expired).
- *  Only 'expired' and 'past_due' revoke access. */
+ *  - 'active': paying, full access
+ *  - 'cancelled': grace period until end of billing cycle, full access
+ *  - 'past_due': payment failed, access REVOKED to prevent indefinite free use
+ *  - 'expired': subscription ended, access REVOKED
+ *  - null/undefined: no subscription, no access */
 export function isPremium(profile: Profile | null): boolean {
   if (!profile) return false
   if (profile.tier === 'free') return false
-  return profile.ls_subscription_status === 'active'
-      || profile.ls_subscription_status === 'cancelled'
+  const status = profile.ls_subscription_status
+  return status === 'active' || status === 'cancelled'
 }

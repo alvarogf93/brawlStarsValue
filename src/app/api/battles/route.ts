@@ -21,15 +21,17 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url)
   const before = searchParams.get('before')
-  const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 100)
+  const parsedLimit = parseInt(searchParams.get('limit') ?? '50', 10)
+  const limit = Math.min(isNaN(parsedLimit) ? 50 : parsedLimit, 100)
   const aggregate = searchParams.get('aggregate') === 'true'
 
   // Server-side aggregation: returns stats without sending all battles
   if (aggregate) {
     const { data: battles } = await supabase
       .from('battles')
-      .select('mode, map, result, trophy_change, is_star_player, my_brawler, teammates')
+      .select('mode, map, result, trophy_change, is_star_player, my_brawler')
       .eq('player_tag', profile.player_tag)
+      .limit(5000)
 
     return NextResponse.json({ analytics: battles ?? [], count: battles?.length ?? 0 })
   }
@@ -41,6 +43,10 @@ export async function GET(request: Request) {
     .eq('player_tag', profile.player_tag)
 
   if (before) {
+    const beforeDate = new Date(before)
+    if (isNaN(beforeDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid before cursor' }, { status: 400 })
+    }
     query = query.lt('battle_time', before)
   }
 

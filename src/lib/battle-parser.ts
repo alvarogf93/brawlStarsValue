@@ -16,10 +16,12 @@ export function parseBattleTime(raw: string): string {
   return `${y}-${m}-${d}T${h}:${min}:${sec}.000Z`
 }
 
+import type { BattlelogBrawler } from '@/lib/api'
+
 interface BattlePlayer {
   tag: string
   name: string
-  brawler: { id: number; name: string; power: number; trophies: number }
+  brawler: BattlelogBrawler
 }
 
 function toBrawlerJsonb(player: BattlePlayer): BrawlerJsonb {
@@ -28,9 +30,9 @@ function toBrawlerJsonb(player: BattlePlayer): BrawlerJsonb {
     name: player.brawler.name,
     power: player.brawler.power,
     trophies: player.brawler.trophies,
-    gadgets: [],
-    starPowers: [],
-    hypercharges: [],
+    gadgets: player.brawler.gadgets ?? [],
+    starPowers: player.brawler.starPowers ?? [],
+    hypercharges: player.brawler.hypercharges ?? [],
   }
 }
 

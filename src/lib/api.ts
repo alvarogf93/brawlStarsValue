@@ -48,6 +48,16 @@ export interface BattlelogResponse {
   paging: { cursors: { before?: string; after?: string } }
 }
 
+export interface BattlelogBrawler {
+  id: number
+  name: string
+  power: number
+  trophies: number
+  gadgets?: Array<{ id: number; name: string }>
+  starPowers?: Array<{ id: number; name: string }>
+  hypercharges?: Array<{ id: number; name: string }>
+}
+
 export interface BattlelogEntry {
   battleTime: string
   event: { id: number; mode: string; modeId: number; map: string }
@@ -57,9 +67,9 @@ export interface BattlelogEntry {
     result: 'victory' | 'defeat' | 'draw'
     duration: number
     trophyChange?: number
-    starPlayer?: { tag: string; name: string; brawler: { id: number; name: string; power: number; trophies: number } }
-    teams?: Array<Array<{ tag: string; name: string; brawler: { id: number; name: string; power: number; trophies: number } }>>
-    players?: Array<{ tag: string; name: string; brawler: { id: number; name: string; power: number; trophies: number } }>
+    starPlayer?: { tag: string; name: string; brawler: BattlelogBrawler }
+    teams?: Array<Array<{ tag: string; name: string; brawler: BattlelogBrawler }>>
+    players?: Array<{ tag: string; name: string; brawler: BattlelogBrawler }>
   }
 }
 

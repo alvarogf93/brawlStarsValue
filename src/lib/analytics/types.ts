@@ -1,11 +1,23 @@
 // ── Advanced Analytics Type Definitions ─────────────────────────
 
-/** Minimum games required to show a statistic */
-export const MIN_GAMES = 3
-/** Lower threshold for teammate/synergy stats (hard to repeat with randoms) */
-export const MIN_GAMES_SOFT = 2
-/** Minimum games for "reliable" confidence badge */
+/** Minimum games to show a statistic (1 = show everything, let Wilson score rank) */
+export const MIN_GAMES = 1
+/** Lower threshold for teammate/synergy stats */
+export const MIN_GAMES_SOFT = 1
+/** Minimum games for "reliable" confidence badge in UI */
 export const RELIABLE_GAMES = 10
+/** Minimum games for "medium" confidence in UI */
+export const CONFIDENT_GAMES = 3
+
+/** Confidence level based on sample size */
+export type Confidence = 'low' | 'medium' | 'high'
+
+/** Returns confidence level for a given game count */
+export function getConfidence(total: number): Confidence {
+  if (total >= RELIABLE_GAMES) return 'high'
+  if (total >= CONFIDENT_GAMES) return 'medium'
+  return 'low'
+}
 
 // ── Per-entity performance ──────────────────────────────────────
 
@@ -18,6 +30,7 @@ export interface BrawlerPerformance {
   total: number
   winRate: number            // raw percentage 0-100
   wilsonScore: number        // Wilson lower bound for ranking
+  confidence: Confidence
   starPlayerCount: number
   starPlayerRate: number
   avgTrophyChange: number
@@ -53,6 +66,7 @@ export interface BrawlerMapEntry {
   total: number
   winRate: number
   wilsonScore: number
+  confidence: Confidence
 }
 
 export interface BrawlerModeEntry {
@@ -63,6 +77,7 @@ export interface BrawlerModeEntry {
   total: number
   winRate: number
   wilsonScore: number
+  confidence: Confidence
 }
 
 // ── Matchup analysis ────────────────────────────────────────────
@@ -76,6 +91,7 @@ export interface MatchupEntry {
   total: number
   winRate: number
   wilsonScore: number
+  confidence: Confidence
 }
 
 // ── Team synergy ────────────────────────────────────────────────
@@ -87,6 +103,7 @@ export interface TeammateSynergy {
   total: number
   winRate: number
   wilsonScore: number
+  confidence: Confidence
   bestMode: string | null
   bestModeWR: number | null
 }
@@ -100,6 +117,7 @@ export interface BrawlerSynergy {
   total: number
   winRate: number
   wilsonScore: number
+  confidence: Confidence
 }
 
 // ── Time & trends ───────────────────────────────────────────────
