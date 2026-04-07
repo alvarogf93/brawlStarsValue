@@ -358,7 +358,7 @@ function BattleList({ battles, playerTag, resultText }: {
                   {/* Map background */}
                   {mapUrl && (
                     <div className="absolute inset-0 z-0">
-                      <img src={mapUrl} alt="" className="w-full h-full object-cover opacity-[0.07]" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      <img src={mapUrl} alt="" className="w-full h-full object-cover opacity-40" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0F172A]/90" />
                     </div>
                   )}
