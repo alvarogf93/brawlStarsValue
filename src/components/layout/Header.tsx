@@ -59,17 +59,24 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   }
 
   const handleLogout = async () => {
-    // Clear all app data
+    // 1. Sign out from Supabase first (before clearing storage)
     try {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
+      if (user) await signOut()
+    } catch { /* ignore lock errors */ }
+
+    // 2. Clear ALL app data from localStorage
+    try {
+      const keysToRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key?.startsWith('brawlvalue:')) localStorage.removeItem(key)
+        if (key?.startsWith('brawlvalue:') || key?.startsWith('sb-')) {
+          keysToRemove.push(key)
+        }
       }
+      keysToRemove.forEach(k => localStorage.removeItem(k))
     } catch { /* ignore */ }
 
-    if (user) await signOut()
-
-    // Hard redirect to landing (avoids auto-redirect from stale state)
+    // 3. Hard redirect to landing
     window.location.href = `/${locale}`
   }
 
