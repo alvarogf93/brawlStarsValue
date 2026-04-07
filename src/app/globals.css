@@ -156,3 +156,23 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Brawler Parade — infinite scroll */
+@keyframes parade-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes parade-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.parade-row-left {
+  animation: parade-left 40s linear infinite;
+}
+.parade-row-right {
+  animation: parade-right 40s linear infinite;
+}
+.parade-row-left:hover,
+.parade-row-right:hover {
+  animation-play-state: paused;
+}

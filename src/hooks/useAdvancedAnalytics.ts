@@ -18,7 +18,8 @@ export function useAdvancedAnalytics(): UseAdvancedAnalyticsResult {
   const fetchAnalytics = () => {
     setLoading(true)
     setError(null)
-    fetch('/api/analytics')
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    fetch(`/api/analytics?tz=${encodeURIComponent(tz)}`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
