@@ -66,3 +66,42 @@ export function getBrawlerPortraitUrl(id: number): string {
 export function getMapImageUrl(eventId: number): string {
   return `https://cdn.brawlify.com/maps/regular/${eventId}.png`
 }
+
+export function getGadgetImageUrl(id: number): string {
+  return `https://cdn.brawlify.com/gadgets/borderless/${id}.png`
+}
+
+export function getStarPowerImageUrl(id: number): string {
+  return `https://cdn.brawlify.com/star-powers/borderless/${id}.png`
+}
+
+/** Map Supercell API mode string → Brawlify scId for mode icon */
+const MODE_SC_IDS: Record<string, number> = {
+  gemGrab: 48000000,
+  heist: 48000002,
+  bounty: 48000003,
+  brawlBall: 48000005,
+  soloShowdown: 48000006,
+  duoShowdown: 48000009,
+  hotZone: 48000017,
+  knockout: 48000020,
+  basketBrawl: 48000022,
+  volleyBrawl: 48000023,
+  duels: 48000024,
+  wipeout: 48000025,
+  payload: 48000026,
+  botDrop: 48000027,
+  hunters: 48000028,
+  lastStand: 48000029,
+  paintBrawl: 48000037,
+  trioShowdown: 48000038,
+  trophyEscape: 48000034,
+  showdown: 48000006,
+  brawlHockey: 48000045,
+  dodgebrawl: 48000063,
+}
+
+export function getGameModeImageUrl(mode: string): string | null {
+  const scId = MODE_SC_IDS[mode]
+  return scId ? `https://cdn.brawlify.com/game-modes/regular/${scId}.png` : null
+}

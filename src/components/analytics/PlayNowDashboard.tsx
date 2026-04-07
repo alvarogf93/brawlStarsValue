@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
+import { ModeIcon } from '@/components/ui/ModeIcon'
 
 function wrColor(wr: number): string {
   if (wr >= 60) return 'text-green-400'
@@ -21,12 +22,6 @@ function computeTimeLeft(endTimeStr: string, endedLabel: string): string {
   return `${m}m`
 }
 
-const MODE_ICONS: Record<string, string> = {
-  brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀', soloShowdown: '💀',
-  heist: '🔒', bounty: '⭐', siege: '🤖', hotZone: '🔥',
-  knockout: '🥊', wipeout: '💥', payload: '🚚', paintBrawl: '🎨',
-  trophyThieves: '🏆', duels: '⚔️', ranked: '🏅',
-}
 
 interface Props {
   recommendations: PlayNowRecommendation[]
@@ -66,7 +61,7 @@ export function PlayNowDashboard({ recommendations }: Props) {
         {recommendations.map(slot => {
           const endedLabel = t('ended')
           const timeLeft = computeTimeLeft(slot.slotEndTime, endedLabel)
-          const modeIcon = MODE_ICONS[slot.mode] || '🎮'
+          const modeIcon = null // replaced by ModeIcon component
           const top3 = slot.recommendations.slice(0, 3)
           const best = top3[0]
 
@@ -88,8 +83,8 @@ export function PlayNowDashboard({ recommendations }: Props) {
 
                 {/* Top-left: mode + time badge */}
                 <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                  <span className="text-sm bg-black/50 backdrop-blur-sm rounded-lg px-2 py-0.5 border border-white/10">
-                    {modeIcon}
+                  <span className="bg-black/50 backdrop-blur-sm rounded-lg px-2 py-0.5 border border-white/10 flex items-center">
+                    <ModeIcon mode={slot.mode} size={18} />
                   </span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm border ${
                     timeLeft === endedLabel

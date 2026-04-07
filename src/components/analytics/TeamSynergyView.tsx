@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl } from '@/lib/utils'
 import type { BrawlerSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { ModeIcon } from '@/components/ui/ModeIcon'
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -21,12 +22,6 @@ function medal(i: number): string {
   return ''
 }
 
-const MODE_ICONS: Record<string, string> = {
-  brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀',
-  heist: '🔒', bounty: '⭐', siege: '🤖', hotZone: '🔥',
-  knockout: '🥊', wipeout: '💥', payload: '🚚', paintBrawl: '🎨',
-  trophyThieves: '🏆', duels: '⚔️', ranked: '🏅',
-}
 
 const INITIAL_VISIBLE = 15
 
@@ -241,7 +236,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
                       </span>
                       {tm.bestMode && tm.bestModeWR !== null && (
                         <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
-                          <span>{MODE_ICONS[tm.bestMode] || '🎮'}</span>
+                          <ModeIcon mode={tm.bestMode} size={14} />
                           <span className={wrColor(tm.bestModeWR)}>
                             {tm.bestModeWR.toFixed(1)}%
                           </span>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
 import type { BrawlerMapEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { ModeIcon } from '@/components/ui/ModeIcon'
 
 interface Props {
   data: BrawlerMapEntry[]
@@ -22,12 +23,6 @@ function wrBorderColor(wr: number): string {
   return 'border-l-red-500'
 }
 
-const MODE_ICONS: Record<string, string> = {
-  brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀', soloShowdown: '💀',
-  heist: '🔒', bounty: '⭐', siege: '🤖', hotZone: '🔥',
-  knockout: '🥊', wipeout: '💥', payload: '🚚', paintBrawl: '🎨',
-  trophyThieves: '🏆', duels: '⚔️', ranked: '🏅',
-}
 
 export function BrawlerMapHeatmap({ data }: Props) {
   const t = useTranslations('advancedAnalytics')
@@ -126,8 +121,8 @@ export function BrawlerMapHeatmap({ data }: Props) {
 
             {/* Bottom: Mode + games */}
             <div className="flex items-center justify-between relative z-10">
-              <span className="text-[10px] text-slate-400">
-                {MODE_ICONS[entry.mode] || '🎮'} {entry.mode}
+              <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                <ModeIcon mode={entry.mode} size={14} /> {entry.mode}
               </span>
               <span className="text-[10px] text-slate-400 font-['Lilita_One']">
                 {entry.total}g
