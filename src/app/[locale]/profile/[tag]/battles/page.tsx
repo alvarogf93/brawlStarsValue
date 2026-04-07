@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useParams, useRouter } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
 import { useBattlelog } from '@/hooks/useBattlelog'
 import { TrophyChart } from '@/components/battles/TrophyChart'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
@@ -10,7 +10,7 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
 import { ChevronDown } from 'lucide-react'
 import type { Profile } from '@/lib/supabase/types'
 import type { BattlelogEntry } from '@/lib/api'
@@ -228,13 +228,19 @@ export default function BattlesPage() {
 /*  Player row inside expanded battle detail                          */
 /* ------------------------------------------------------------------ */
 
-function PlayerRow({ player, isMe, isStar }: {
+function PlayerRow({ player, isMe, isStar, isOpponent, onCompare }: {
   player: { tag: string; name: string; brawler: { id: number; name: string; power: number; trophies: number } }
   isMe: boolean
   isStar: boolean
+  isOpponent?: boolean
+  onCompare?: (tag: string) => void
 }) {
+  const Tag = isOpponent && onCompare ? 'button' : 'div'
   return (
-    <div className={`brawl-row flex items-center gap-3 rounded-xl px-3 py-2 ${isMe ? 'ring-2 ring-[#4EC0FA]/50 bg-[#4EC0FA]/10' : ''}`}>
+    <Tag
+      {...(isOpponent && onCompare ? { onClick: () => onCompare(player.tag) } : {})}
+      className={`brawl-row flex items-center gap-3 rounded-xl px-3 py-2 w-full text-left ${isMe ? 'ring-2 ring-[#4EC0FA]/50 bg-[#4EC0FA]/10' : ''} ${isOpponent && onCompare ? 'cursor-pointer hover:bg-white/10 active:bg-white/15 transition-colors' : ''}`}
+    >
       <BrawlImg
         src={getBrawlerPortraitUrl(player.brawler.id)}
         alt={player.brawler.name}
@@ -259,7 +265,10 @@ function PlayerRow({ player, isMe, isStar }: {
           {player.brawler.trophies}🏆
         </span>
       </div>
-    </div>
+      {isOpponent && onCompare && (
+        <span className="text-[10px] text-slate-600 shrink-0">⚔️</span>
+      )}
+    </Tag>
   )
 }
 
@@ -274,7 +283,13 @@ function BattleList({ battles, playerTag, resultText }: {
 }) {
   const [expanded, setExpanded] = useState<number | null>(null)
   const t = useTranslations('battles')
+  const locale = useLocale()
+  const router = useRouter()
   const cleanTag = `#${playerTag.replace('#', '')}`
+
+  const handleCompare = (opponentTag: string) => {
+    router.push(`/${locale}/profile/${encodeURIComponent(cleanTag)}/compare?vs=${encodeURIComponent(opponentTag)}`)
+  }
 
   return (
     <div className="space-y-2.5">
@@ -331,69 +346,93 @@ function BattleList({ battles, playerTag, resultText }: {
             </button>
 
             {/* Expanded detail — Team mode */}
-            {isOpen && teams.length > 0 && (
-              <div className="brawl-row rounded-b-2xl rounded-t-none px-4 pb-4 pt-2 animate-fade-in"
-                style={{ borderLeft: `4px solid ${colors.accent}` }}>
+            {isOpen && teams.length > 0 && (() => {
+              const mapUrl = battle.event.id ? getMapImageUrl(battle.event.id) : null
+              // Determine which team the player is on
+              const myTeamIdx = teams.findIndex(team => team.some(p => p.tag === cleanTag))
 
-                {/* Duration pill */}
-                {battle.battle.duration > 0 && (
-                  <div className="flex justify-center mb-3">
-                    <span className="text-[10px] uppercase font-bold text-slate-500 bg-black/20 px-3 py-1 rounded-full">
-                      {Math.floor(battle.battle.duration / 60)}:{String(battle.battle.duration % 60).padStart(2, '0')}
-                    </span>
+              return (
+                <div className="relative brawl-row rounded-b-2xl rounded-t-none px-4 pb-4 pt-2 animate-fade-in overflow-hidden"
+                  style={{ borderLeft: `4px solid ${colors.accent}` }}>
+
+                  {/* Map background */}
+                  {mapUrl && (
+                    <div className="absolute inset-0 z-0">
+                      <img src={mapUrl} alt="" className="w-full h-full object-cover opacity-[0.07]" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0F172A]/90" />
+                    </div>
+                  )}
+
+                  <div className="relative z-10">
+                    {/* Map name + Duration */}
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                      {battle.event.map && (
+                        <span className="text-[10px] uppercase font-bold text-slate-400 font-['Lilita_One']">
+                          {battle.event.map}
+                        </span>
+                      )}
+                      {battle.battle.duration > 0 && (
+                        <span className="text-[10px] uppercase font-bold text-slate-500 bg-black/30 px-3 py-1 rounded-full">
+                          {Math.floor(battle.battle.duration / 60)}:{String(battle.battle.duration % 60).padStart(2, '0')}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* VS layout */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {teams.map((team, teamIdx) => {
+                        const isMyTeam = teamIdx === myTeamIdx
+                        const teamColor = isMyTeam ? '#4EC0FA' : '#F82F41'
+                        return (
+                          <div key={teamIdx}>
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }} />
+                              <span className="text-[10px] uppercase font-bold font-['Lilita_One']" style={{ color: teamColor }}>
+                                {isMyTeam ? t('teamBlue') : t('teamRed')}
+                              </span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {team.map(player => {
+                                const isOpponent = !isMyTeam
+                                return (
+                                  <PlayerRow
+                                    key={player.tag}
+                                    player={player}
+                                    isMe={player.tag === cleanTag}
+                                    isStar={player.tag === starTag}
+                                    isOpponent={isOpponent}
+                                    onCompare={isOpponent ? handleCompare : undefined}
+                                  />
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                )}
-
-                {/* VS layout: teams side by side on desktop, stacked on mobile */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {teams.map((team, teamIdx) => {
-                    const isBlue = teamIdx === 0
-                    const teamColor = isBlue ? '#4EC0FA' : '#F82F41'
-                    return (
-                      <div key={teamIdx}>
-                        {/* Team label */}
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }} />
-                          <span className="text-[10px] uppercase font-bold font-['Lilita_One']" style={{ color: teamColor }}>
-                            {isBlue ? t('teamBlue') : t('teamRed')}
-                          </span>
-                        </div>
-                        {/* Players */}
-                        <div className="space-y-1.5">
-                          {team.map(player => (
-                            <PlayerRow
-                              key={player.tag}
-                              player={player}
-                              isMe={player.tag === cleanTag}
-                              isStar={player.tag === starTag}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
                 </div>
-
-                {/* VS badge overlay on desktop */}
-                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                  {/* Intentionally empty — visual separator is the grid gap */}
-                </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* Expanded detail — Showdown */}
             {isOpen && !teams.length && battle.battle.players && (
               <div className="brawl-row rounded-b-2xl rounded-t-none px-4 pb-4 pt-2 animate-fade-in"
                 style={{ borderLeft: `4px solid ${colors.accent}` }}>
                 <div className="space-y-1.5">
-                  {battle.battle.players.map(player => (
-                    <PlayerRow
-                      key={player.tag}
-                      player={player}
-                      isMe={player.tag === cleanTag}
-                      isStar={false}
-                    />
-                  ))}
+                  {battle.battle.players.map(player => {
+                    const isOpponent = player.tag !== cleanTag
+                    return (
+                      <PlayerRow
+                        key={player.tag}
+                        player={player}
+                        isMe={player.tag === cleanTag}
+                        isStar={false}
+                        isOpponent={isOpponent}
+                        onCompare={isOpponent ? handleCompare : undefined}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             )}
