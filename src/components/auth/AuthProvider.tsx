@@ -77,9 +77,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase])
 
   useEffect(() => {
+    // Safety timeout: never stay in loading state more than 5s
+    const timeout = setTimeout(() => setLoading(false), 5000)
+
     supabase.auth.getUser().then(({ data: { user: u } }: { data: { user: User | null } }) => {
+      clearTimeout(timeout)
       setUser(u)
       if (u) fetchProfile(u.id)
+      setLoading(false)
+    }).catch(() => {
+      clearTimeout(timeout)
       setLoading(false)
     })
 

@@ -59,9 +59,14 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   }
 
   const handleLogout = async () => {
-    // 1. Sign out from Supabase first (before clearing storage)
+    // 1. Sign out from Supabase (with timeout to prevent hanging)
     try {
-      if (user) await signOut()
+      if (user) {
+        await Promise.race([
+          signOut(),
+          new Promise(resolve => setTimeout(resolve, 3000)),
+        ])
+      }
     } catch { /* ignore lock errors */ }
 
     // 2. Clear ALL app data from localStorage
@@ -76,7 +81,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       keysToRemove.forEach(k => localStorage.removeItem(k))
     } catch { /* ignore */ }
 
-    // 3. Hard redirect to landing
+    // 3. Hard redirect to landing (always, even if signOut hung)
     window.location.href = `/${locale}`
   }
 
@@ -157,7 +162,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           </Link>
           <LocaleSwitcher />
           {playerTag && (
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-400 transition-colors rounded-xl hover:bg-white/5" title={t('logout')}>
+            <button onClick={handleLogout} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-red-400 active:text-red-500 transition-colors rounded-xl hover:bg-white/5 active:bg-white/10" title={t('logout')}>
               <LogOut className="w-5 h-5" />
             </button>
           )}

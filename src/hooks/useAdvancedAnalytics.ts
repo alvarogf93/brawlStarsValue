@@ -10,9 +10,9 @@ interface UseAdvancedAnalyticsResult {
   refresh: () => void
 }
 
-export function useAdvancedAnalytics(): UseAdvancedAnalyticsResult {
+export function useAdvancedAnalytics(enabled = true): UseAdvancedAnalyticsResult {
   const [data, setData] = useState<AdvancedAnalytics | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAnalytics = () => {
@@ -30,8 +30,8 @@ export function useAdvancedAnalytics(): UseAdvancedAnalyticsResult {
   }
 
   useEffect(() => {
-    fetchAnalytics()
-  }, [])
+    if (enabled) fetchAnalytics()
+  }, [enabled])
 
   return { data, loading, error, refresh: fetchAnalytics }
 }

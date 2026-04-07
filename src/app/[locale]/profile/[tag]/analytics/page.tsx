@@ -42,7 +42,8 @@ export default function AnalyticsPage() {
   const { profile, loading: authLoading } = useAuth()
   const hasPremium = isPremium(profile as Profile | null)
   const isLoggedIn = !!profile
-  const { data: analytics, loading, error } = useAdvancedAnalytics()
+  // Only fetch analytics after auth resolves AND user is premium
+  const { data: analytics, loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [playNow, setPlayNow] = useState<PlayNowRecommendation[]>([])
   const [authOpen, setAuthOpen] = useState(false)
