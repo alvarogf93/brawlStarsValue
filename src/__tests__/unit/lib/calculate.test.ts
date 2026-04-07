@@ -122,4 +122,43 @@ describe('calculateValue — real verified gems only', () => {
     expect(result.stats.estimatedTotalMatches).toBe(1200)
     expect(result.stats.estimatedHoursPlayed).toBe(40)
   })
+
+  it('handles 0 victories without division by zero', () => {
+    const player = makePlayer({ soloVictories: 0, duoVictories: 0, '3vs3Victories': 0 })
+    const result = calculateValue(player, { winRate: 0, rarityMap: MOCK_RARITY })
+    expect(result.stats.estimatedTotalMatches).toBe(0)
+    expect(result.stats.estimatedHoursPlayed).toBe(0)
+  })
+
+  it('uses 100% win rate correctly', () => {
+    const player = makePlayer({ soloVictories: 100, duoVictories: 0, '3vs3Victories': 0 })
+    const result = calculateValue(player, { winRate: 1, rarityMap: MOCK_RARITY })
+    expect(result.stats.estimatedTotalMatches).toBe(100)
+  })
+
+  it('calculates correctly with fully maxed brawler', () => {
+    const maxed = makeBrawler(16000000, {
+      power: 11,
+      gadgets: [{ id: 1, name: 'G1' }, { id: 2, name: 'G2' }],
+      starPowers: [{ id: 1, name: 'SP1' }, { id: 2, name: 'SP2' }],
+      hyperCharges: [{ id: 1, name: 'HC1' }],
+      gears: [{ id: 1, name: 'Gear1', level: 1 }, { id: 2, name: 'Gear2', level: 1 }],
+      buffies: { gadget: true, starPower: true, hyperCharge: true },
+    })
+    const player = makePlayer({ brawlers: [maxed] })
+    const result = calculateValue(player, { rarityMap: MOCK_RARITY })
+    // 1151 + 200 + 400 + 500 + 200 + 900 = 3351
+    expect(result.totalGems).toBe(1151 + 200 + 400 + 500 + 200 + 900)
+  })
+
+  it('returns valid timestamp', () => {
+    const result = calculateValue(makePlayer(), { rarityMap: MOCK_RARITY })
+    expect(result.timestamp).toBeInstanceOf(Date)
+  })
+
+  it('defaults win rate to 0.5 when not provided', () => {
+    const player = makePlayer({ soloVictories: 50, duoVictories: 0, '3vs3Victories': 0 })
+    const result = calculateValue(player, { rarityMap: MOCK_RARITY })
+    expect(result.stats.winRateUsed).toBe(0.5)
+  })
 })

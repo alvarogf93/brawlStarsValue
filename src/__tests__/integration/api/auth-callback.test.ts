@@ -36,13 +36,13 @@ describe('GET /api/auth/callback', () => {
     expect(res.headers.get('location')).toBe('http://localhost:3000/')
   })
 
-  it('redirects to error page when no code', async () => {
+  it('redirects to home when no code (no auth-error page)', async () => {
     const res = await GET(makeRequest('http://localhost:3000/api/auth/callback'))
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toContain('/auth-error')
+    expect(res.headers.get('location')).toBe('http://localhost:3000/')
   })
 
-  it('redirects to error page on exchange failure', async () => {
+  it('redirects to next param even on exchange failure (graceful)', async () => {
     const { createServerClient } = await import('@supabase/ssr')
     vi.mocked(createServerClient).mockReturnValue({
       auth: {
@@ -50,8 +50,9 @@ describe('GET /api/auth/callback', () => {
       },
     } as never)
 
-    const res = await GET(makeRequest('http://localhost:3000/api/auth/callback?code=badcode'))
+    const res = await GET(makeRequest('http://localhost:3000/api/auth/callback?code=badcode&next=/es'))
     expect(res.status).toBe(307)
-    expect(res.headers.get('location')).toContain('/auth-error')
+    // Route always redirects to next (or /) even on error — graceful failure
+    expect(res.headers.get('location')).toBe('http://localhost:3000/es')
   })
 })

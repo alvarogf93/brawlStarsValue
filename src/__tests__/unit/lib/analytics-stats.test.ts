@@ -106,6 +106,24 @@ describe('isWin / isLoss', () => {
   })
 })
 
+describe('wilsonLowerBound edge cases', () => {
+  it('handles very large numbers', () => {
+    const result = wilsonLowerBound(50000, 100000)
+    expect(result).toBeGreaterThan(0.49)
+    expect(result).toBeLessThan(0.51)
+  })
+
+  it('handles 0 wins out of many', () => {
+    const result = wilsonLowerBound(0, 1000)
+    expect(result).toBe(0)
+  })
+
+  it('all wins in large sample converges near 1', () => {
+    const result = wilsonLowerBound(1000, 1000)
+    expect(result).toBeGreaterThan(0.99)
+  })
+})
+
 describe('avg', () => {
   it('returns null for empty array', () => {
     expect(avg([])).toBe(null)

@@ -78,7 +78,7 @@ describe('statusToTier', () => {
     expect(statusToTier('subscription_updated', 'active')).toEqual({ tier: 'premium', subscriptionStatus: 'active' })
   })
 
-  it('maps subscription_updated with past_due status', () => {
-    expect(statusToTier('subscription_updated', 'past_due')).toEqual({ tier: 'premium', subscriptionStatus: 'past_due' })
+  it('maps subscription_updated with past_due status to free (access revoked)', () => {
+    expect(statusToTier('subscription_updated', 'past_due')).toEqual({ tier: 'free', subscriptionStatus: 'past_due' })
   })
 })

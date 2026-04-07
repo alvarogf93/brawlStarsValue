@@ -68,6 +68,28 @@ describe('computeAdvancedAnalytics', () => {
       const result = computeAdvancedAnalytics([])
       expect(result.overview.totalBattles).toBe(0)
       expect(result.overview.overallWinRate).toBe(0)
+      expect(result.overview.trophyChange).toBe(0)
+      expect(result.byBrawler).toEqual([])
+      expect(result.sessions).toEqual([])
+    })
+
+    it('handles single battle', () => {
+      const result = computeAdvancedAnalytics([makeBattle({ result: 'victory' })])
+      expect(result.overview.totalBattles).toBe(1)
+      expect(result.overview.totalWins).toBe(1)
+      expect(result.overview.overallWinRate).toBe(100)
+    })
+
+    it('handles all-draw battles', () => {
+      const draws = [
+        makeBattle({ result: 'draw', trophy_change: 0, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ result: 'draw', trophy_change: 0, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ result: 'draw', trophy_change: 0, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+      const result = computeAdvancedAnalytics(draws)
+      expect(result.overview.overallWinRate).toBe(0)
+      expect(result.overview.totalWins).toBe(0)
+      expect(result.overview.trophyChange).toBe(0)
     })
   })
 
@@ -137,16 +159,17 @@ describe('computeAdvancedAnalytics', () => {
   })
 
   describe('brawlerMapMatrix', () => {
-    it('filters entries below MIN_GAMES threshold', () => {
+    it('includes entries at or above MIN_GAMES (1)', () => {
       const battles = [
         makeBattle({ map: 'MapA', my_brawler: { id: 1, name: 'SHELLY', power: 11, trophies: 500, gadgets: [], starPowers: [], hypercharges: [] } }),
         makeBattle({ map: 'MapA', my_brawler: { id: 1, name: 'SHELLY', power: 11, trophies: 500, gadgets: [], starPowers: [], hypercharges: [] } }),
-        // Only 2 games — below MIN_GAMES (3)
       ]
 
       const result = computeAdvancedAnalytics(battles)
       const shellyMapA = result.brawlerMapMatrix.find(e => e.brawlerName === 'SHELLY' && e.map === 'MapA')
-      expect(shellyMapA).toBeUndefined()
+      // MIN_GAMES = 1, so 2 games should be included
+      expect(shellyMapA).toBeDefined()
+      expect(shellyMapA!.total).toBe(2)
     })
 
     it('includes entries at MIN_GAMES threshold', () => {
@@ -323,15 +346,16 @@ describe('computeAdvancedAnalytics', () => {
       expect(shelly!.points[2].winRate).toBe(66.7)  // day 3: 4/6 cumulative
     })
 
-    it('excludes brawlers with too few games', () => {
+    it('includes brawlers with games at mastery threshold', () => {
       const battles = [
         makeBattle({ my_brawler: { id: 1, name: 'SHELLY', power: 11, trophies: 500, gadgets: [], starPowers: [], hypercharges: [] } }),
         makeBattle({ my_brawler: { id: 1, name: 'SHELLY', power: 11, trophies: 500, gadgets: [], starPowers: [], hypercharges: [] } }),
-        // Only 2 games — below MIN_GAMES*2 = 6
       ]
 
       const result = computeAdvancedAnalytics(battles)
-      expect(result.brawlerMastery.length).toBe(0)
+      // MIN_GAMES = 1, so 2 games qualifies for mastery tracking
+      expect(result.brawlerMastery.length).toBe(1)
+      expect(result.brawlerMastery[0].brawlerName).toBe('SHELLY')
     })
   })
 })

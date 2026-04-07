@@ -24,7 +24,12 @@ function makeRequest(body: unknown) {
 }
 
 describe('POST /api/checkout', () => {
-  beforeEach(() => { vi.clearAllMocks() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.LEMONSQUEEZY_VARIANT_MONTHLY = 'variant-monthly-123'
+    process.env.LEMONSQUEEZY_VARIANT_QUARTERLY = 'variant-quarterly-123'
+    process.env.LEMONSQUEEZY_VARIANT_YEARLY = 'variant-yearly-123'
+  })
 
   it('returns 401 when not authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
