@@ -2,7 +2,6 @@ import { useTranslations, useLocale } from 'next-intl'
 import { InputForm } from '@/components/landing/InputForm'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import Link from 'next/link'
-import { BarChart3, Shield, Users, Zap } from 'lucide-react'
 
 export default function LandingPage() {
   const t = useTranslations('landing')
@@ -34,49 +33,43 @@ export default function LandingPage() {
           <InputForm />
         </div>
 
-        {/* Features grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-[700px] w-full mt-10">
-          <div className="text-center">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-[#FFC91B]/10 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-[#FFC91B]" />
+        {/* Features — brawl cards style */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-[720px] w-full mt-10">
+          {[
+            { emoji: '💎', key: 'feature1', color: 'var(--color-brawl-gold)' },
+            { emoji: '📊', key: 'feature2', color: 'var(--color-brawl-sky)' },
+            { emoji: '🤝', key: 'feature3', color: '#4ade80' },
+            { emoji: '🛡️', key: 'feature4', color: 'var(--color-brawl-red)' },
+          ].map(f => (
+            <div key={f.key} className="brawl-card-dark p-4 text-center">
+              <div
+                className="w-12 h-12 mx-auto mb-2 rounded-xl border-4 border-[var(--color-brawl-dark)] flex items-center justify-center shadow-[0_3px_0_0_rgba(18,26,47,1)]"
+                style={{ backgroundColor: f.color + '30' }}
+              >
+                <span className="text-2xl">{f.emoji}</span>
+              </div>
+              <p className="font-['Lilita_One'] text-xs text-white tracking-wide">{t(f.key)}</p>
             </div>
-            <p className="text-xs font-bold text-slate-400">{t('feature1')}</p>
-          </div>
-          <div className="text-center">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-[#4EC0FA]/10 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-[#4EC0FA]" />
-            </div>
-            <p className="text-xs font-bold text-slate-400">{t('feature2')}</p>
-          </div>
-          <div className="text-center">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-green-400" />
-            </div>
-            <p className="text-xs font-bold text-slate-400">{t('feature3')}</p>
-          </div>
-          <div className="text-center">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-[#F82F41]/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-[#F82F41]" />
-            </div>
-            <p className="text-xs font-bold text-slate-400">{t('feature4')}</p>
-          </div>
+          ))}
         </div>
       </main>
 
-      {/* Footer with privacy + contact */}
-      <footer className="py-6 px-4 text-center border-t border-white/5">
-        <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-          <Link href={`/${locale}/privacy`} className="hover:text-white transition-colors">
-            {t('privacyLink')}
-          </Link>
-          <span>·</span>
-          <a href="mailto:contact@brawlvision.com" className="hover:text-white transition-colors">
-            {t('contact')}
-          </a>
-          <span>·</span>
-          <span>© {new Date().getFullYear()} BrawlVision</span>
+      {/* Footer */}
+      <footer className="py-4 px-4">
+        <div className="brawl-card-dark px-6 py-3 max-w-[720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-3 text-xs font-['Lilita_One']">
+            <Link href={`/${locale}/privacy`} className="text-slate-400 hover:text-[var(--color-brawl-gold)] transition-colors">
+              {t('privacyLink')}
+            </Link>
+            <span className="text-slate-600">·</span>
+            <a href="mailto:contact@brawlvision.com" className="text-slate-400 hover:text-[var(--color-brawl-gold)] transition-colors">
+              {t('contact')}
+            </a>
+          </div>
+          <p className="text-[10px] text-slate-500 text-center sm:text-right">
+            © {new Date().getFullYear()} BrawlVision · {t('disclaimer')}
+          </p>
         </div>
-        <p className="text-[10px] text-slate-600 mt-2">{t('disclaimer')}</p>
       </footer>
     </div>
   )
