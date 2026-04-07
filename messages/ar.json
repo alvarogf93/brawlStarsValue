@@ -88,7 +88,9 @@
     "topTeammate": "أفضل زميل",
     "topTeammates": "أفضل الزملاء",
     "gamesShort": "مباريات",
-    "winRateByMode": "نسبة الفوز حسب الوضع"
+    "winRateByMode": "نسبة الفوز حسب الوضع",
+    "teamBlue": "الفريق الأزرق",
+    "teamRed": "الفريق الأحمر"
   },
   "profile": {
     "gemEquivalent": "ما يعادل الجواهر",

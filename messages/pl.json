@@ -88,7 +88,9 @@
     "topTeammate": "Najlepszy Współgracz",
     "topTeammates": "Najlepsi Współgracze",
     "gamesShort": "gier",
-    "winRateByMode": "Procent Wygranych wg Trybu"
+    "winRateByMode": "Procent Wygranych wg Trybu",
+    "teamBlue": "Niebieska drużyna",
+    "teamRed": "Czerwona drużyna"
   },
   "profile": {
     "gemEquivalent": "Równoważnik w klejnotach",

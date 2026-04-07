@@ -88,7 +88,9 @@
     "topTeammate": "최고의 팀원",
     "topTeammates": "최고의 팀원들",
     "gamesShort": "게임",
-    "winRateByMode": "모드별 승률"
+    "winRateByMode": "모드별 승률",
+    "teamBlue": "블루 팀",
+    "teamRed": "레드 팀"
   },
   "profile": {
     "gemEquivalent": "젬 환산 가치",

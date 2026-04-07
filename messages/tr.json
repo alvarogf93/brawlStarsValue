@@ -88,7 +88,9 @@
     "topTeammate": "En İyi Takım Arkadaşı",
     "topTeammates": "En İyi Takım Arkadaşları",
     "gamesShort": "oyun",
-    "winRateByMode": "Moda Göre Kazanma Oranı"
+    "winRateByMode": "Moda Göre Kazanma Oranı",
+    "teamBlue": "Mavi Takım",
+    "teamRed": "Kırmızı Takım"
   },
   "profile": {
     "gemEquivalent": "Gem Karşılığı",

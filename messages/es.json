@@ -88,7 +88,9 @@
     "topTeammate": "Mejor Compañero",
     "topTeammates": "Mejores Compañeros",
     "gamesShort": "partidas",
-    "winRateByMode": "% Victoria por Modo"
+    "winRateByMode": "% Victoria por Modo",
+    "teamBlue": "Equipo Azul",
+    "teamRed": "Equipo Rojo"
   },
   "profile": {
     "gemEquivalent": "Gemas Equivalentes",

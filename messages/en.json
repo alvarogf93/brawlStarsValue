@@ -88,7 +88,9 @@
     "topTeammate": "Top Teammate",
     "topTeammates": "Top Teammates",
     "gamesShort": "games",
-    "winRateByMode": "Win Rate by Mode"
+    "winRateByMode": "Win Rate by Mode",
+    "teamBlue": "Blue Team",
+    "teamRed": "Red Team"
   },
   "profile": {
     "gemEquivalent": "Gem Equivalent",

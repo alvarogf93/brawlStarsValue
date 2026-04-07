@@ -88,7 +88,9 @@
     "topTeammate": "Bester Teamkamerad",
     "topTeammates": "Beste Teamkameraden",
     "gamesShort": "Spiele",
-    "winRateByMode": "Siegesrate nach Modus"
+    "winRateByMode": "Siegesrate nach Modus",
+    "teamBlue": "Blaues Team",
+    "teamRed": "Rotes Team"
   },
   "profile": {
     "gemEquivalent": "Edelstein-Äquivalent",
