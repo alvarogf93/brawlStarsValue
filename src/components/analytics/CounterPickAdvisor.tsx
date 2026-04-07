@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 
 // ── Static brawler list for autocomplete ───────────────────────
 
@@ -148,6 +149,7 @@ function BrawlerInput({
 // ── Main component ─────────────────────────────────────────────
 
 export function CounterPickAdvisor() {
+  const t = useTranslations('advancedAnalytics')
   const [enemies, setEnemies] = useState(['', '', ''])
   const [maps, setMaps] = useState<Array<{ map: string; mode: string }>>([])
   const [selectedMap, setSelectedMap] = useState('')
@@ -213,12 +215,12 @@ export function CounterPickAdvisor() {
       const json = await res.json()
       const data: CounterResult[] = json.results ?? json
       if (!data || data.length === 0) {
-        setError('Not enough data against these opponents. Play more games!')
+        setError(t('counterEmpty'))
       } else {
         setResults(data)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(err instanceof Error ? err.message : t('errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -228,13 +230,13 @@ export function CounterPickAdvisor() {
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       {/* Header */}
       <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">🛡️</span> Counter-Pick Advisor
+        <span className="text-xl">🛡️</span> {t('counterTitle')}
       </h3>
 
       {/* ── Input section ────────────────────────────────────── */}
       <div className="space-y-3 mb-4">
         <p className="text-[11px] text-slate-500 uppercase font-bold">
-          Enemy Brawlers
+          {t('enemyBrawlers')}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {enemies.map((val, i) => (
@@ -242,7 +244,7 @@ export function CounterPickAdvisor() {
               key={i}
               value={val}
               onChange={v => updateEnemy(i, v)}
-              placeholder={`Enemy ${i + 1}${i === 0 ? ' (required)' : ' (optional)'}`}
+              placeholder={`${t('enemy')} ${i + 1}`}
             />
           ))}
         </div>
@@ -250,7 +252,7 @@ export function CounterPickAdvisor() {
         {/* Map filter (optional) */}
         <div>
           <p className="text-[11px] text-slate-500 uppercase font-bold mb-1.5">
-            Map (optional)
+            {t('mapOptional')}
           </p>
           <select
             value={selectedMap}
@@ -258,7 +260,7 @@ export function CounterPickAdvisor() {
             disabled={eventsLoading}
             className="w-full sm:w-auto bg-[#0D1321] text-sm text-slate-300 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-[#FFC91B]/40 transition-colors disabled:opacity-50"
           >
-            <option value="" className="bg-[#0B1120]">Any map</option>
+            <option value="" className="bg-[#0B1120]">{t('anyMap')}</option>
             {maps.map(m => (
               <option key={`${m.mode}-${m.map}`} value={m.map} className="bg-[#0B1120]">
                 {m.map} ({m.mode})
@@ -280,10 +282,10 @@ export function CounterPickAdvisor() {
           {loading ? (
             <span className="flex items-center gap-2">
               <span className="w-3.5 h-3.5 border-2 border-[#090E17]/30 border-t-[#090E17] rounded-full animate-spin" />
-              Analyzing...
+              {t('analyzing')}
             </span>
           ) : (
-            <span>🎯 Find Counters</span>
+            <span>🎯 {t('findCounter')}</span>
           )}
         </button>
       </div>
@@ -301,7 +303,7 @@ export function CounterPickAdvisor() {
       {loading && (
         <div className="flex flex-col items-center justify-center py-10">
           <div className="w-8 h-8 border-3 border-[#FFC91B]/30 border-t-[#FFC91B] rounded-full animate-spin mb-3" />
-          <p className="text-sm text-slate-500">Crunching your battle data...</p>
+          <p className="text-sm text-slate-500">{t('crunchingData')}</p>
         </div>
       )}
 
@@ -309,7 +311,7 @@ export function CounterPickAdvisor() {
       {results && results.length > 0 && (
         <div>
           <p className="text-[11px] text-slate-500 uppercase font-bold mb-3">
-            Your Best Picks (sorted by confidence)
+            {t('yourBestPicks')}
           </p>
           <div className="space-y-2">
             {results.map((r, i) => (
@@ -338,7 +340,7 @@ export function CounterPickAdvisor() {
                       {r.brawlerName}
                     </p>
                     <p className="text-[10px] text-slate-500">
-                      {r.gamesPlayed} games
+                      {r.gamesPlayed} {t('games')}
                     </p>
                   </div>
 
@@ -383,7 +385,7 @@ export function CounterPickAdvisor() {
         <div className="flex flex-col items-center justify-center py-6 text-center">
           <span className="text-3xl mb-2 opacity-40">⚔️</span>
           <p className="text-[11px] text-slate-600">
-            Enter enemy brawlers above and hit Find Counters
+            {t('enterEnemiesHint')}
           </p>
         </div>
       )}

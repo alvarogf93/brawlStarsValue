@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
 import type { BrawlerMapEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
@@ -29,6 +30,7 @@ const MODE_ICONS: Record<string, string> = {
 }
 
 export function BrawlerMapHeatmap({ data }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
 
   const { brawlers, filtered } = useMemo(() => {
@@ -51,12 +53,12 @@ export function BrawlerMapHeatmap({ data }: Props) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2 mb-4">
-          <span className="text-xl">🗺️</span> Brawler &times; Map
+          <span className="text-xl">🗺️</span> {t('brawlerMapTitle')}
         </h3>
         <div className="flex flex-col items-center py-8 text-center">
           <span className="text-3xl mb-2">📊</span>
-          <p className="font-['Lilita_One'] text-sm text-slate-400">Not enough map data yet</p>
-          <p className="text-[11px] text-slate-600 mt-1">Play 3+ games with the same brawler on a map to see performance.</p>
+          <p className="font-['Lilita_One'] text-sm text-slate-400">{t('brawlerMapEmpty')}</p>
+          <p className="text-[11px] text-slate-600 mt-1">{t('brawlerMapEmptyHint')}</p>
         </div>
       </div>
     )
@@ -66,15 +68,15 @@ export function BrawlerMapHeatmap({ data }: Props) {
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
-          <span className="text-xl">🗺️</span> Brawler &times; Map
-          <InfoTooltip className="ml-1.5" text="Shows your win rate for each brawler on each map. Green = strong (60%+), gold = average, red = weak. Only combos with 3+ games shown. Ranked by statistical confidence." />
+          <span className="text-xl">🗺️</span> {t('brawlerMapTitle')}
+          <InfoTooltip className="ml-1.5" text={t('tipBrawlerMap')} />
         </h3>
         <select
           value={selectedBrawler}
           onChange={e => setSelectedBrawler(e.target.value)}
           className="bg-white/[0.06] text-xs text-white border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-[#FFC91B]/40"
         >
-          <option value="all">All Brawlers</option>
+          <option value="all">{t('allBrawlers')}</option>
           {brawlers.map(b => (
             <option key={b.id} value={String(b.id)}>{b.name} ({b.total}g)</option>
           ))}

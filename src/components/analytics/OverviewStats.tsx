@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { AdvancedAnalytics } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
@@ -15,6 +16,7 @@ function formatDuration(seconds: number | null): string {
 }
 
 export function OverviewStats({ overview }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const {
     totalBattles,
     overallWinRate,
@@ -56,11 +58,12 @@ export function OverviewStats({ overview }: Props) {
                   streak.currentType === 'win' ? 'text-green-400' : 'text-red-400'
                 }`}
               >
-                {streak.currentCount}{' '}
-                {streak.currentType === 'win' ? 'Win' : 'Loss'} Streak
+                {streak.currentType === 'win'
+                  ? t('streakWin', { count: streak.currentCount })
+                  : t('streakLoss', { count: streak.currentCount })}
               </p>
               <p className="text-[10px] uppercase font-bold text-slate-500">
-                Current streak
+                {t('currentStreak')}
               </p>
             </div>
             <span className="text-3xl">
@@ -86,7 +89,7 @@ export function OverviewStats({ overview }: Props) {
             {overallWinRate.toFixed(1)}%
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Win Rate
+            {t('winRateLabel')}
           </p>
         </div>
 
@@ -98,7 +101,7 @@ export function OverviewStats({ overview }: Props) {
             <span className="text-red-400">{totalLosses}</span>
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            W / L
+            {t('record')}
           </p>
         </div>
 
@@ -117,7 +120,7 @@ export function OverviewStats({ overview }: Props) {
             {trophyChange}
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Trophies
+            {t('trophyChange')}
           </p>
         </div>
 
@@ -127,8 +130,8 @@ export function OverviewStats({ overview }: Props) {
             {starPlayerRate.toFixed(1)}%
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1 flex items-center justify-center gap-1">
-            ⭐ Star Player ({starPlayerCount})
-            <InfoTooltip className="ml-1.5" text="Star Player rate shows how often you were the MVP of the match. Higher = you're carrying your team." />
+            ⭐ {t('starPlayer')} ({starPlayerCount})
+            <InfoTooltip className="ml-1.5" text={t('tipStarPlayer')} />
           </p>
         </div>
 
@@ -138,7 +141,7 @@ export function OverviewStats({ overview }: Props) {
             {formatDuration(avgDuration)}
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Avg Duration
+            {t('avgDuration')}
           </p>
         </div>
 
@@ -159,7 +162,7 @@ export function OverviewStats({ overview }: Props) {
               {streak.currentType === 'loss' && ' 💀'}
             </p>
             <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-              Current Streak
+              {t('currentStreak')}
             </p>
           </div>
         )}
@@ -170,7 +173,7 @@ export function OverviewStats({ overview }: Props) {
             {streak.longestWin} 🔥
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Best Win Streak
+            {t('bestWinStreak')}
           </p>
         </div>
 
@@ -180,7 +183,7 @@ export function OverviewStats({ overview }: Props) {
             {streak.longestLoss} 💀
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Worst Loss Streak
+            {t('worstLossStreak')}
           </p>
         </div>
       </div>

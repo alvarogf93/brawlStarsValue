@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 
@@ -10,9 +11,9 @@ function wrColor(wr: number): string {
   return 'text-red-400'
 }
 
-function computeTimeLeft(endTimeStr: string): string {
+function computeTimeLeft(endTimeStr: string, endedLabel: string): string {
   const diff = new Date(endTimeStr).getTime() - Date.now()
-  if (diff <= 0) return 'Ended'
+  if (diff <= 0) return endedLabel
   const totalMin = Math.floor(diff / 60_000)
   const h = Math.floor(totalMin / 60)
   const m = totalMin % 60
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export function PlayNowDashboard({ recommendations }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const [, setTick] = useState(0)
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60_000)
@@ -42,12 +44,12 @@ export function PlayNowDashboard({ recommendations }: Props) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-          <span className="text-xl">🎯</span> Play Now
+          <span className="text-xl">🎯</span> {t('playNowTitle')}
         </h3>
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <span className="text-4xl mb-3">🎮</span>
           <p className="font-['Lilita_One'] text-sm text-slate-400">
-            Play some more games to unlock recommendations!
+            {t('playNowEmpty')}
           </p>
         </div>
       </div>
@@ -57,12 +59,13 @@ export function PlayNowDashboard({ recommendations }: Props) {
   return (
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">🎯</span> Play Now
+        <span className="text-xl">🎯</span> {t('playNowTitle')}
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {recommendations.map(slot => {
-          const timeLeft = computeTimeLeft(slot.slotEndTime)
+          const endedLabel = t('ended')
+          const timeLeft = computeTimeLeft(slot.slotEndTime, endedLabel)
           const modeIcon = MODE_ICONS[slot.mode] || '🎮'
           const top3 = slot.recommendations.slice(0, 3)
           const best = top3[0]
@@ -89,7 +92,7 @@ export function PlayNowDashboard({ recommendations }: Props) {
                     {modeIcon}
                   </span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm border ${
-                    timeLeft === 'Ended'
+                    timeLeft === endedLabel
                       ? 'bg-red-500/30 text-red-300 border-red-500/30'
                       : 'bg-black/40 text-[#4EC0FA] border-[#4EC0FA]/20'
                   }`}>
@@ -119,7 +122,7 @@ export function PlayNowDashboard({ recommendations }: Props) {
                           <span className={`font-bold ${wrColor(best.winRate)}`}>{best.winRate.toFixed(1)}%</span>
                           <span className="text-slate-500 ml-1">· {best.gamesPlayed}g</span>
                           {best.bestTeammateBrawler && (
-                            <span className="text-slate-500"> · with <span className="text-slate-300">{best.bestTeammateBrawler}</span></span>
+                            <span className="text-slate-500"> · {t('withPlayer')} <span className="text-slate-300">{best.bestTeammateBrawler}</span></span>
                           )}
                         </p>
                       </div>
@@ -131,7 +134,7 @@ export function PlayNowDashboard({ recommendations }: Props) {
               {/* Remaining picks (2nd and 3rd) */}
               {top3.length > 1 && (
                 <div className="bg-[#0A0E1A] px-3 py-2 flex gap-2">
-                  {top3.slice(1).map((rec, i) => (
+                  {top3.slice(1).map((rec) => (
                     <div key={rec.brawlerId} className="flex items-center gap-2 flex-1 bg-white/[0.04] rounded-lg px-2.5 py-1.5">
                       <img
                         src={getBrawlerPortraitUrl(rec.brawlerId)}

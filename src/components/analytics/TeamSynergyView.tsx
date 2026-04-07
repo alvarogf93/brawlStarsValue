@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl } from '@/lib/utils'
 import type { BrawlerSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
@@ -43,6 +44,7 @@ type Tab = 'combos' | 'teammates'
 // ── Component ──────────────────────────────────────────────────
 
 export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const [tab, setTab] = useState<Tab>('combos')
   const [expanded, setExpanded] = useState(false)
   const [filterBrawler, setFilterBrawler] = useState<string>('all')
@@ -82,12 +84,12 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-          <span className="text-xl">🤝</span> Team Synergy
+          <span className="text-xl">🤝</span> {t('teamTitle')}
         </h3>
         <div className="flex flex-col items-center py-8 text-center">
           <span className="text-3xl mb-2">👥</span>
-          <p className="font-['Lilita_One'] text-sm text-slate-400">Not enough team data yet</p>
-          <p className="text-[11px] text-slate-600 mt-1">Play more games with the same teammates or brawler combos to see synergy stats.</p>
+          <p className="font-['Lilita_One'] text-sm text-slate-400">{t('teamEmpty')}</p>
+          <p className="text-[11px] text-slate-600 mt-1">{t('teamEmptyHint')}</p>
         </div>
       </div>
     )
@@ -97,8 +99,8 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       {/* Header */}
       <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">🤝</span> Team Synergy
-        <InfoTooltip className="ml-1.5" text="Brawler Combos shows which brawler pairs work best together. Teammates shows your win rate with specific players. Ranked by Wilson score — a statistical method that accounts for sample size." />
+        <span className="text-xl">🤝</span> {t('teamTitle')}
+        <InfoTooltip className="ml-1.5" text={t('tipTeam')} />
       </h3>
 
       {/* Tab bar */}
@@ -111,7 +113,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
               : 'text-slate-500 hover:text-white'
           }`}
         >
-          Brawler Combos 🤝
+          {t('brawlerCombos')} 🤝
         </button>
         <button
           onClick={() => { setTab('teammates'); setExpanded(false) }}
@@ -121,7 +123,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
               : 'text-slate-500 hover:text-white'
           }`}
         >
-          Teammates 👥
+          {t('teammates')} 👥
         </button>
       </div>
 
@@ -136,7 +138,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
                 onChange={e => { setFilterBrawler(e.target.value); setExpanded(false) }}
                 className="bg-[#0D1321] text-slate-300 text-xs rounded-lg px-3 py-1.5 border border-white/5 focus:outline-none focus:border-[#FFC91B]/40"
               >
-                <option value="all">All Brawlers</option>
+                <option value="all">{t('allBrawlers')}</option>
                 {myBrawlers.map(([name]) => (
                   <option key={name} value={name}>{name}</option>
                 ))}
@@ -145,7 +147,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
           )}
 
           {filteredCombos.length === 0 ? (
-            <p className="text-sm text-slate-500">No combo data available.</p>
+            <p className="text-sm text-slate-500">{t('noComboData')}</p>
           ) : (
             <div className="space-y-1.5">
               {visibleCombos.map((c, i) => (
@@ -179,7 +181,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
                     <p className="font-['Lilita_One'] text-xs text-white truncate">
                       {c.myBrawlerName} + {c.teammateBrawlerName}
                     </p>
-                    <p className="text-[10px] text-slate-500">{c.total} games</p>
+                    <p className="text-[10px] text-slate-500">{c.total} {t('games')}</p>
                   </div>
 
                   {/* Win rate */}
@@ -198,8 +200,8 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
               className="mt-3 w-full py-2 text-xs font-bold text-slate-400 hover:text-[#FFC91B] transition-colors rounded-lg bg-white/[0.02] hover:bg-white/[0.04]"
             >
               {expanded
-                ? 'Show less'
-                : `Show all ${filteredCombos.length} combos`}
+                ? t('showLess')
+                : t('showAllCombos', { count: filteredCombos.length })}
             </button>
           )}
         </div>
@@ -209,7 +211,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
       {tab === 'teammates' && (
         <div>
           {sortedTeammates.length === 0 ? (
-            <p className="text-sm text-slate-500">No teammate data available.</p>
+            <p className="text-sm text-slate-500">{t('noTeammateData')}</p>
           ) : (
             <div className="space-y-1.5">
               {visibleTeammates.map((tm, i) => (
@@ -235,7 +237,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className="text-[10px] text-slate-500">
-                        {tm.total} games
+                        {tm.total} {t('games')}
                       </span>
                       {tm.bestMode && tm.bestModeWR !== null && (
                         <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
@@ -264,8 +266,8 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
               className="mt-3 w-full py-2 text-xs font-bold text-slate-400 hover:text-[#FFC91B] transition-colors rounded-lg bg-white/[0.02] hover:bg-white/[0.04]"
             >
               {expanded
-                ? 'Show less'
-                : `Show all ${sortedTeammates.length} teammates`}
+                ? t('showLess')
+                : t('showAllTeammates', { count: sortedTeammates.length })}
             </button>
           )}
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 interface HourData {
@@ -33,6 +34,7 @@ function barGlow(wr: number, total: number): string {
 }
 
 export function TimeOfDayChart({ data }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const [hovered, setHovered] = useState<number | null>(null)
 
   const currentHour = new Date().getHours()
@@ -67,8 +69,8 @@ export function TimeOfDayChart({ data }: Props) {
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       {/* Title */}
       <h3 className="font-['Lilita_One'] text-lg text-white mb-5 flex items-center gap-2">
-        <span className="text-xl">&#x1F550;</span> Performance by Hour
-        <InfoTooltip className="ml-1.5" text="Your win rate broken down by hour of day (UTC). The highlighted bar is the current hour. Helps identify when you play best and worst." />
+        <span className="text-xl">&#x1F550;</span> {t('timeTitle')}
+        <InfoTooltip className="ml-1.5" text={t('tipTimeOfDay')} />
       </h3>
 
       {/* Bar chart */}
@@ -118,7 +120,7 @@ export function TimeOfDayChart({ data }: Props) {
                         {h.total === 0 ? '--' : `${h.winRate.toFixed(1)}%`}
                       </p>
                       <p className="text-[10px] text-slate-500">
-                        {h.total} {h.total === 1 ? 'game' : 'games'}
+                        {h.total} {t('games')}
                       </p>
                     </div>
                   </div>
@@ -153,7 +155,7 @@ export function TimeOfDayChart({ data }: Props) {
         <div className="mt-4 pt-3 border-t border-white/[0.04] flex flex-col sm:flex-row gap-2 sm:gap-6">
           {best && (
             <p className="text-xs text-slate-400">
-              <span className="text-green-400 font-['Lilita_One']">Best hour:</span>{' '}
+              <span className="text-green-400 font-['Lilita_One']">{t('bestHour')}:</span>{' '}
               <span className="font-['Lilita_One'] text-white">
                 {padHour(best.hour)}:00
               </span>{' '}
@@ -164,7 +166,7 @@ export function TimeOfDayChart({ data }: Props) {
           )}
           {worst && (
             <p className="text-xs text-slate-400">
-              <span className="text-red-400 font-['Lilita_One']">Worst hour:</span>{' '}
+              <span className="text-red-400 font-['Lilita_One']">{t('worstHour')}:</span>{' '}
               <span className="font-['Lilita_One'] text-white">
                 {padHour(worst.hour)}:00
               </span>{' '}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 interface DailyPoint {
@@ -268,15 +269,17 @@ function LineChart({
 /* ─────────────────────── main component ─────────────────────── */
 
 export function TrendsChart({ dailyTrend }: Props) {
+  const t = useTranslations('advancedAnalytics')
+
   if (dailyTrend.length === 0) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white mb-3 flex items-center gap-2">
-          <span className="text-xl">📈</span> Trends
-          <InfoTooltip className="ml-1.5" text="Daily win rate trend and cumulative trophy progression. The dashed line at 50% is the break-even point. Look for upward trends as a sign of improvement." />
+          <span className="text-xl">📈</span> {t('trendsTitle')}
+          <InfoTooltip className="ml-1.5" text={t('tipTrends')} />
         </h3>
         <p className="text-slate-500 text-sm text-center py-6">
-          Need more data for trends
+          {t('trendsEmpty')}
         </p>
       </div>
     )
@@ -297,15 +300,15 @@ export function TrendsChart({ dailyTrend }: Props) {
   return (
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       <h3 className="font-['Lilita_One'] text-lg text-white mb-5 flex items-center gap-2">
-        <span className="text-xl">📈</span> Trends
-        <InfoTooltip className="ml-1.5" text="Daily win rate trend and cumulative trophy progression. The dashed line at 50% is the break-even point. Look for upward trends as a sign of improvement." />
+        <span className="text-xl">📈</span> {t('trendsTitle')}
+        <InfoTooltip className="ml-1.5" text={t('tipTrends')} />
       </h3>
 
       <div className="space-y-6">
         {/* ── Chart 1: Win Rate Trend ── */}
         <div>
           <p className="text-xs font-bold uppercase text-slate-500 mb-2 tracking-wider">
-            Win Rate Trend
+            {t('winRateTrend')}
           </p>
           <LineChart
             data={dailyTrend}
@@ -326,7 +329,7 @@ export function TrendsChart({ dailyTrend }: Props) {
         {/* ── Chart 2: Trophy Progression ── */}
         <div>
           <p className="text-xs font-bold uppercase text-slate-500 mb-2 tracking-wider">
-            Trophy Progression
+            {t('trophyProgression')}
           </p>
           <LineChart
             data={dailyTrend}

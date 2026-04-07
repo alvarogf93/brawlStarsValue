@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 interface TiltData {
@@ -41,6 +42,7 @@ function formatSessionDate(iso: string): string {
 }
 
 export function TiltDetector({ tilt, sessions }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const hasData = tilt.wrNormal !== null && tilt.wrAfterTilt !== null
   const delta = hasData ? (tilt.wrNormal! - tilt.wrAfterTilt!) : 0
   const significantDelta = hasData && Math.abs(delta) >= 5
@@ -54,8 +56,8 @@ export function TiltDetector({ tilt, sessions }: Props) {
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       {/* Title */}
       <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">&#x1F525;</span> Tilt Detector
-        <InfoTooltip className="ml-1.5" text="Tilt = 3+ consecutive losses in a session. This analysis compares your win rate during normal play vs after tilting. A big drop suggests you should take breaks after losing streaks." />
+        <span className="text-xl">&#x1F525;</span> {t('tiltTitle')}
+        <InfoTooltip className="ml-1.5" text={t('tipTilt')} />
       </h3>
 
       {/* ── Hero Banner ────────────────────────────────────── */}
@@ -70,18 +72,13 @@ export function TiltDetector({ tilt, sessions }: Props) {
             <span className="text-2xl flex-shrink-0 mt-0.5">&#x26A0;&#xFE0F;</span>
             <div>
               <p className="font-['Lilita_One'] text-base text-red-400">
-                Tilt Alert
+                {t('tiltAlert')}
               </p>
               <p className="text-sm text-slate-300 mt-1 leading-relaxed">
-                Your WR drops from{' '}
-                <span className="font-['Lilita_One'] text-green-400 tabular-nums">
-                  {tilt.wrNormal!.toFixed(1)}%
-                </span>{' '}
-                to{' '}
-                <span className="font-['Lilita_One'] text-red-400 tabular-nums">
-                  {tilt.wrAfterTilt!.toFixed(1)}%
-                </span>{' '}
-                after 3+ losses. Consider taking breaks.
+                {t('tiltAlertDesc', {
+                  normal: tilt.wrNormal!.toFixed(1),
+                  tilt: tilt.wrAfterTilt!.toFixed(1),
+                })}
               </p>
             </div>
           </div>
@@ -96,7 +93,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
           <div className="flex items-center gap-3">
             <span className="text-2xl flex-shrink-0">&#x2705;</span>
             <p className="font-['Lilita_One'] text-sm text-green-400">
-              You handle losing streaks well
+              {t('tiltOk')}
             </p>
           </div>
         </div>
@@ -110,7 +107,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
           <div className="flex items-center gap-3">
             <span className="text-2xl flex-shrink-0">&#x1F4CA;</span>
             <p className="font-['Lilita_One'] text-sm text-slate-400">
-              Not enough data yet
+              {t('tiltNoData')}
             </p>
           </div>
         </div>
@@ -126,7 +123,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
             {tilt.wrNormal !== null ? `${tilt.wrNormal.toFixed(1)}%` : '--'}
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Normal WR
+            {t('normalWR')}
           </p>
         </div>
 
@@ -138,7 +135,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
             {tilt.wrAfterTilt !== null ? `${tilt.wrAfterTilt.toFixed(1)}%` : '--'}
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Tilt WR
+            {t('tiltWR')}
           </p>
           {/* Delta badge */}
           {significantDelta && (
@@ -154,7 +151,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
             {tilt.tiltEpisodes}
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Tilt Episodes
+            {t('tiltEpisodes')}
           </p>
         </div>
 
@@ -164,7 +161,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
             {tilt.avgGamesInTilt > 0 ? tilt.avgGamesInTilt.toFixed(1) : '--'}
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            Avg Games in Tilt
+            {t('avgGamesInTilt')}
           </p>
         </div>
       </div>
@@ -173,7 +170,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
       {recentSessions.length > 0 && (
         <div>
           <h4 className="font-['Lilita_One'] text-sm text-slate-400 mb-2.5">
-            Recent Sessions
+            {t('recentSessions')}
           </h4>
           <div className="space-y-1.5">
             {recentSessions.map((s, i) => (
@@ -189,7 +186,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
                     {formatSessionDate(s.end)}
                   </p>
                   <p className="text-[10px] text-slate-500 mt-0.5">
-                    {s.battles} {s.battles === 1 ? 'battle' : 'battles'}
+                    {s.battles} {t('battles')}
                   </p>
                 </div>
 

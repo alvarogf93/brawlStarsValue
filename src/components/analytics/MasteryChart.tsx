@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl } from '@/lib/utils'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
@@ -36,7 +37,6 @@ const INNER_H = CHART_H - PAD.top - PAD.bottom
 const CYAN = '#4EC0FA'
 const GREEN = '#4ade80'
 const RED = '#ef4444'
-const GOLD = '#FFC91B'
 
 /* ─────────────────────── helpers ─────────────────────── */
 
@@ -270,7 +270,6 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
       {chartPoints.map((cp, i) => {
         const p = points[i]
         const wr = cumulativeWR(p)
-        const color = wr >= 50 ? GREEN : RED
         return (
           <g key={i}>
             <circle cx={cp.x} cy={cp.y} r={6} fill={CYAN} opacity={0.15} />
@@ -296,7 +295,7 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
                   label: p.date,
                   lines: [
                     `WR: ${wr.toFixed(1)}%`,
-                    `Record: ${p.cumulativeWins}W / ${p.cumulativeTotal - p.cumulativeWins}L`,
+                    `${p.cumulativeWins}W / ${p.cumulativeTotal - p.cumulativeWins}L`,
                     `Day: ${p.wins}W / ${p.total - p.wins}L`,
                   ],
                 })
@@ -314,7 +313,7 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
 
 /* ─────────────────────── summary stats ─────────────────────── */
 
-function SummaryStats({ points, name }: { points: MasteryPoint[]; name: string }) {
+function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typeof useTranslations> }) {
   const first = points[0]
   const last = points[points.length - 1]
   const firstWR = cumulativeWR(first)
@@ -330,7 +329,7 @@ function SummaryStats({ points, name }: { points: MasteryPoint[]; name: string }
           {totalGames}
         </p>
         <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
-          Total Games
+          {t('totalGames')}
         </p>
       </div>
 
@@ -348,7 +347,7 @@ function SummaryStats({ points, name }: { points: MasteryPoint[]; name: string }
           {currentWR.toFixed(1)}%
         </p>
         <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
-          Current WR
+          {t('currentWR')}
         </p>
       </div>
 
@@ -358,7 +357,7 @@ function SummaryStats({ points, name }: { points: MasteryPoint[]; name: string }
           {firstWR.toFixed(1)}%
         </p>
         <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
-          First Recorded WR
+          {t('firstWR')}
         </p>
       </div>
 
@@ -373,7 +372,7 @@ function SummaryStats({ points, name }: { points: MasteryPoint[]; name: string }
           {Math.abs(delta).toFixed(1)}%
         </p>
         <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
-          WR Change
+          {t('wrChange')}
         </p>
       </div>
     </div>
@@ -383,6 +382,7 @@ function SummaryStats({ points, name }: { points: MasteryPoint[]; name: string }
 /* ─────────────────────── main component ─────────────────────── */
 
 export function MasteryChart({ data }: Props) {
+  const t = useTranslations('advancedAnalytics')
   const [selectedId, setSelectedId] = useState<number | null>(
     data.length > 0 ? data[0].brawlerId : null,
   )
@@ -391,11 +391,11 @@ export function MasteryChart({ data }: Props) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white mb-3 flex items-center gap-2">
-          <span className="text-xl">📈</span> Mastery Curves
-          <InfoTooltip className="ml-1.5" text="Shows how your cumulative win rate with each brawler evolves over time. An upward curve means you're mastering the brawler. Select different brawlers to compare." />
+          <span className="text-xl">📈</span> {t('masteryTitle')}
+          <InfoTooltip className="ml-1.5" text={t('tipMastery')} />
         </h3>
         <p className="text-slate-500 text-sm text-center py-6">
-          Not enough data for mastery curves
+          {t('masteryEmpty')}
         </p>
       </div>
     )
@@ -408,8 +408,8 @@ export function MasteryChart({ data }: Props) {
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
       {/* Header */}
       <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">📈</span> Mastery Curves
-        <InfoTooltip className="ml-1.5" text="Shows how your cumulative win rate with each brawler evolves over time. An upward curve means you're mastering the brawler. Select different brawlers to compare." />
+        <span className="text-xl">📈</span> {t('masteryTitle')}
+        <InfoTooltip className="ml-1.5" text={t('tipMastery')} />
       </h3>
 
       {/* Brawler selector */}
@@ -428,11 +428,11 @@ export function MasteryChart({ data }: Props) {
       {hasEnoughPoints ? (
         <>
           <MasteryLineChart points={selected.points} />
-          <SummaryStats points={selected.points} name={selected.brawlerName} />
+          <SummaryStats points={selected.points} t={t} />
         </>
       ) : (
         <p className="text-slate-500 text-sm text-center py-8">
-          Not enough data for {selected.brawlerName} mastery curve
+          {t('masteryEmpty')}
         </p>
       )}
     </div>

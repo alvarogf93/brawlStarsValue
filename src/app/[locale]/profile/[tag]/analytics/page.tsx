@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
   }
 
   if (error || !analytics) {
-    return <div className="glass p-8 rounded-2xl text-center border-red-500/30"><p className="text-red-400">{error || 'Failed to load analytics'}</p></div>
+    return <div className="glass p-8 rounded-2xl text-center border-red-500/30"><p className="text-red-400">{error || t('loading')}</p></div>
   }
 
   return (
