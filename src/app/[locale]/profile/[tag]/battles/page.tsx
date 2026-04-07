@@ -31,6 +31,12 @@ function formatBattleTime(iso: string): string {
   } catch { return iso }
 }
 
+const RESULT_COLORS: Record<string, { bg: string; border: string; text: string; accent: string; glow: string }> = {
+  victory: { bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400', accent: '#22c55e', glow: 'shadow-[0_0_12px_rgba(34,197,94,0.15)]' },
+  defeat: { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400', accent: '#ef4444', glow: 'shadow-[0_0_12px_rgba(239,68,68,0.15)]' },
+  draw: { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', text: 'text-yellow-400', accent: '#eab308', glow: 'shadow-[0_0_12px_rgba(234,179,8,0.15)]' },
+}
+
 const RESULT_STYLES: Record<string, string> = {
   victory: 'bg-green-500/20 text-green-400 border-green-500/30',
   defeat: 'bg-red-500/20 text-red-400 border-red-500/30',
@@ -219,7 +225,46 @@ export default function BattlesPage() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Battle list with expandable detail panels                         */
+/*  Player row inside expanded battle detail                          */
+/* ------------------------------------------------------------------ */
+
+function PlayerRow({ player, isMe, isStar }: {
+  player: { tag: string; name: string; brawler: { id: number; name: string; power: number; trophies: number } }
+  isMe: boolean
+  isStar: boolean
+}) {
+  return (
+    <div className={`brawl-row flex items-center gap-3 rounded-xl px-3 py-2 ${isMe ? 'ring-2 ring-[#4EC0FA]/50 bg-[#4EC0FA]/10' : ''}`}>
+      <BrawlImg
+        src={getBrawlerPortraitUrl(player.brawler.id)}
+        alt={player.brawler.name}
+        fallbackText={player.brawler.name}
+        className="w-11 h-11 rounded-xl border-2 border-black/30 shadow-[0_2px_0_rgba(0,0,0,0.3)]"
+      />
+      <div className="flex-1 min-w-0">
+        <p className={`font-['Lilita_One'] text-sm truncate ${isMe ? 'text-[#4EC0FA]' : 'text-white'}`}>
+          {player.name} {isStar && <span className="inline-block ml-0.5 animate-pulse">⭐</span>}
+        </p>
+        <p className="text-[10px] text-slate-500 font-['Inter'] font-semibold">
+          {player.brawler.name}
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <span className="font-['Lilita_One'] text-xs text-[#B23DFF] bg-[#B23DFF]/15 px-2 py-0.5 rounded-md border border-[#B23DFF]/30">
+          P{player.brawler.power}
+        </span>
+      </div>
+      <div className="text-right shrink-0 w-14">
+        <span className="font-['Lilita_One'] text-xs text-[#FFC91B]">
+          {player.brawler.trophies}🏆
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Battle list with expandable detail panels — Brawl Stars style     */
 /* ------------------------------------------------------------------ */
 
 function BattleList({ battles, playerTag, resultText }: {
@@ -229,9 +274,10 @@ function BattleList({ battles, playerTag, resultText }: {
 }) {
   const [expanded, setExpanded] = useState<number | null>(null)
   const t = useTranslations('battles')
+  const cleanTag = `#${playerTag.replace('#', '')}`
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {battles.map((battle, i) => {
         const result = battle.battle.result
         const mode = battle.battle.mode || battle.event.mode
@@ -239,110 +285,115 @@ function BattleList({ battles, playerTag, resultText }: {
         const isOpen = expanded === i
         const teams = battle.battle.teams || []
         const starTag = battle.battle.starPlayer?.tag
+        const colors = RESULT_COLORS[result] || RESULT_COLORS.draw
 
         return (
-          <div key={i}>
+          <div key={i} className={`${isOpen ? colors.glow : ''} rounded-2xl transition-shadow`}>
             {/* Battle row — clickable */}
             <button
               onClick={() => setExpanded(isOpen ? null : i)}
-              className={`w-full p-4 rounded-xl border-2 ${RESULT_STYLES[result] || 'bg-white/5 border-white/10'} flex items-center gap-4 text-left transition-all ${isOpen ? 'rounded-b-none' : ''}`}
+              className={`w-full brawl-row rounded-2xl ${isOpen ? 'rounded-b-none' : ''} px-4 py-3 flex items-center gap-3 text-left transition-all group`}
+              style={{ borderLeft: `4px solid ${colors.accent}` }}
             >
-              <span className="text-2xl">{icon}</span>
+              {/* Mode icon */}
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-2xl"
+                style={{ backgroundColor: `${colors.accent}20` }}>
+                {icon}
+              </div>
+
+              {/* Mode + Map + Time */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-['Lilita_One'] text-sm uppercase">{mode}</span>
-                  <span className="text-xs text-slate-400">{battle.event.map}</span>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">{formatBattleTime(battle.battleTime)}</p>
-              </div>
-              <div className="text-right flex items-center gap-2">
-                <div>
-                  <span className="font-['Lilita_One'] uppercase text-sm">{resultText[result] ?? result}</span>
-                  {battle.battle.trophyChange !== undefined && (
-                    <p className={`text-xs font-bold ${battle.battle.trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {battle.battle.trophyChange >= 0 ? '+' : ''}{battle.battle.trophyChange}🏆
-                    </p>
+                  <span className="font-['Lilita_One'] text-sm text-white uppercase">{mode}</span>
+                  {battle.event.map && (
+                    <span className="text-[10px] text-slate-500 font-['Inter'] font-semibold truncate hidden sm:inline">
+                      {battle.event.map}
+                    </span>
                   )}
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <p className="text-[10px] text-slate-600 font-['Inter']">{formatBattleTime(battle.battleTime)}</p>
               </div>
+
+              {/* Result badge */}
+              <div className={`font-['Lilita_One'] text-xs uppercase px-3 py-1.5 rounded-lg border ${colors.bg} ${colors.border} ${colors.text}`}>
+                {resultText[result] ?? result}
+              </div>
+
+              {/* Trophy change */}
+              {battle.battle.trophyChange !== undefined && (
+                <span className={`font-['Lilita_One'] text-sm tabular-nums w-10 text-right ${battle.battle.trophyChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {battle.battle.trophyChange >= 0 ? '+' : ''}{battle.battle.trophyChange}
+                </span>
+              )}
+
+              {/* Chevron */}
+              <ChevronDown className={`w-4 h-4 text-slate-600 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} group-hover:text-slate-400`} />
             </button>
 
-            {/* Expanded detail panel */}
+            {/* Expanded detail — Team mode */}
             {isOpen && teams.length > 0 && (
-              <div className={`border-2 border-t-0 rounded-b-xl p-4 space-y-3 ${RESULT_STYLES[result]?.replace(/rounded/g, '') || 'bg-white/5 border-white/10'} animate-fade-in`}>
-                {/* Duration */}
+              <div className="brawl-row rounded-b-2xl rounded-t-none px-4 pb-4 pt-2 animate-fade-in"
+                style={{ borderLeft: `4px solid ${colors.accent}` }}>
+
+                {/* Duration pill */}
                 {battle.battle.duration > 0 && (
-                  <p className="text-[10px] uppercase font-bold text-slate-500 text-center">
-                    {Math.floor(battle.battle.duration / 60)}:{String(battle.battle.duration % 60).padStart(2, '0')} min
-                  </p>
+                  <div className="flex justify-center mb-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 bg-black/20 px-3 py-1 rounded-full">
+                      {Math.floor(battle.battle.duration / 60)}:{String(battle.battle.duration % 60).padStart(2, '0')}
+                    </span>
+                  </div>
                 )}
 
-                {teams.map((team, teamIdx) => (
-                  <div key={teamIdx}>
-                    <p className="text-[10px] uppercase font-bold text-slate-500 mb-1.5">
-                      {teamIdx === 0 ? (t('teamBlue') || 'Team Blue') : (t('teamRed') || 'Team Red')}
-                    </p>
-                    <div className="space-y-1">
-                      {team.map(player => {
-                        const isStar = player.tag === starTag
-                        const isMe = player.tag === `#${playerTag.replace('#', '')}`
-                        return (
-                          <div
-                            key={player.tag}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg ${isMe ? 'bg-white/10 border border-white/20' : 'bg-white/[0.03]'}`}
-                          >
-                            <BrawlImg
-                              src={getBrawlerPortraitUrl(player.brawler.id)}
-                              alt={player.brawler.name}
-                              fallbackText={player.brawler.name}
-                              className="w-9 h-9 rounded-lg"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className={`font-['Lilita_One'] text-sm truncate ${isMe ? 'text-[#4EC0FA]' : 'text-white'}`}>
-                                {player.name} {isStar && '⭐'}
-                              </p>
-                              <p className="text-[10px] text-slate-500">
-                                {player.brawler.name} · P{player.brawler.power} · {player.brawler.trophies}🏆
-                              </p>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Showdown: players array instead of teams */}
-            {isOpen && !teams.length && battle.battle.players && (
-              <div className={`border-2 border-t-0 rounded-b-xl p-4 ${RESULT_STYLES[result]?.replace(/rounded/g, '') || 'bg-white/5 border-white/10'} animate-fade-in`}>
-                <div className="space-y-1">
-                  {battle.battle.players.map(player => {
-                    const isMe = player.tag === `#${playerTag.replace('#', '')}`
+                {/* VS layout: teams side by side on desktop, stacked on mobile */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {teams.map((team, teamIdx) => {
+                    const isBlue = teamIdx === 0
+                    const teamColor = isBlue ? '#4EC0FA' : '#F82F41'
                     return (
-                      <div
-                        key={player.tag}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg ${isMe ? 'bg-white/10 border border-white/20' : 'bg-white/[0.03]'}`}
-                      >
-                        <BrawlImg
-                          src={getBrawlerPortraitUrl(player.brawler.id)}
-                          alt={player.brawler.name}
-                          fallbackText={player.brawler.name}
-                          className="w-9 h-9 rounded-lg"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-['Lilita_One'] text-sm truncate ${isMe ? 'text-[#4EC0FA]' : 'text-white'}`}>
-                            {player.name}
-                          </p>
-                          <p className="text-[10px] text-slate-500">
-                            {player.brawler.name} · P{player.brawler.power} · {player.brawler.trophies}🏆
-                          </p>
+                      <div key={teamIdx}>
+                        {/* Team label */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }} />
+                          <span className="text-[10px] uppercase font-bold font-['Lilita_One']" style={{ color: teamColor }}>
+                            {isBlue ? t('teamBlue') : t('teamRed')}
+                          </span>
+                        </div>
+                        {/* Players */}
+                        <div className="space-y-1.5">
+                          {team.map(player => (
+                            <PlayerRow
+                              key={player.tag}
+                              player={player}
+                              isMe={player.tag === cleanTag}
+                              isStar={player.tag === starTag}
+                            />
+                          ))}
                         </div>
                       </div>
                     )
                   })}
+                </div>
+
+                {/* VS badge overlay on desktop */}
+                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                  {/* Intentionally empty — visual separator is the grid gap */}
+                </div>
+              </div>
+            )}
+
+            {/* Expanded detail — Showdown */}
+            {isOpen && !teams.length && battle.battle.players && (
+              <div className="brawl-row rounded-b-2xl rounded-t-none px-4 pb-4 pt-2 animate-fade-in"
+                style={{ borderLeft: `4px solid ${colors.accent}` }}>
+                <div className="space-y-1.5">
+                  {battle.battle.players.map(player => (
+                    <PlayerRow
+                      key={player.tag}
+                      player={player}
+                      isMe={player.tag === cleanTag}
+                      isStar={false}
+                    />
+                  ))}
                 </div>
               </div>
             )}
