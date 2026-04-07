@@ -4,8 +4,11 @@ import type {
   BrawlerMapEntry, BrawlerModeEntry, MatchupEntry, BrawlerSynergy,
   TeammateSynergy, HourPerformance, DailyTrend, BrawlerMastery, MasteryPoint,
   StreakInfo, TiltAnalysis, SessionInfo,
+  ClutchAnalysis, OpponentStrengthBreakdown, BrawlerComfort, PowerLevelImpact,
+  SessionEfficiency, WarmUpAnalysis, CarryAnalysis, GadgetStarPowerImpact,
+  RecoveryAnalysis, WeeklyPattern,
 } from './types'
-import { MIN_GAMES, MIN_GAMES_SOFT, getConfidence } from './types'
+import { MIN_GAMES, MIN_GAMES_SOFT, CONFIDENT_GAMES, getConfidence } from './types'
 import {
   wilsonPct, winRate, groupBy, compositeKey, parseCompositeKey,
   isWin, isLoss, avg,
@@ -25,6 +28,8 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
     (a, b) => new Date(a.battle_time).getTime() - new Date(b.battle_time).getTime()
   )
 
+  const sessions = computeSessions(battles)
+
   return {
     overview: computeOverview(battles),
     byBrawler: computeByBrawler(battles),
@@ -39,7 +44,18 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
     dailyTrend: computeDailyTrend(battles),
     brawlerMastery: computeBrawlerMastery(battles),
     tilt: computeTiltAnalysis(battles),
-    sessions: computeSessions(battles),
+    sessions,
+    // New metrics
+    clutch: computeClutch(battles),
+    opponentStrength: computeOpponentStrength(battles),
+    brawlerComfort: computeBrawlerComfort(battles),
+    powerLevelImpact: computePowerLevelImpact(battles),
+    sessionEfficiency: computeSessionEfficiency(sessions),
+    warmUp: computeWarmUp(battles, sessions),
+    carry: computeCarry(battles),
+    gadgetImpact: computeGadgetImpact(battles),
+    recovery: computeRecovery(battles, sessions),
+    weeklyPattern: computeWeeklyPattern(battles, timezone),
   }
 }
 
@@ -581,4 +597,296 @@ function computeSessions(battles: Battle[]): SessionInfo[] {
   }
 
   return sessions
+}
+
+// ══════════════════════════════════════════════════════════════
+//  NEW METRICS
+// ══════════════════════════════════════════════════════════════
+
+// ── Clutch Factor (Star Player correlation) ────────────────
+
+function computeClutch(battles: Battle[]): ClutchAnalysis {
+  const starBattles = battles.filter(b => b.is_star_player)
+  const nonStarBattles = battles.filter(b => !b.is_star_player)
+  const starWins = starBattles.filter(b => isWin(b.result)).length
+  const nonStarWins = nonStarBattles.filter(b => isWin(b.result)).length
+
+  const wrAsStar = starBattles.length >= MIN_GAMES ? winRate(starWins, starBattles.length) : null
+  const wrNotStar = nonStarBattles.length >= MIN_GAMES ? winRate(nonStarWins, nonStarBattles.length) : null
+  const delta = wrAsStar !== null && wrNotStar !== null ? Math.round((wrAsStar - wrNotStar) * 10) / 10 : null
+
+  return { wrAsStar, wrNotStar, starGames: starBattles.length, nonStarGames: nonStarBattles.length, delta }
+}
+
+// ── Opponent Strength Index ────────────────────────────────
+
+function computeOpponentStrength(battles: Battle[]): OpponentStrengthBreakdown[] {
+  const tiers: Array<{ tier: 'weak' | 'even' | 'strong'; wins: number; total: number; trophySum: number }> = [
+    { tier: 'weak', wins: 0, total: 0, trophySum: 0 },
+    { tier: 'even', wins: 0, total: 0, trophySum: 0 },
+    { tier: 'strong', wins: 0, total: 0, trophySum: 0 },
+  ]
+
+  for (const b of battles) {
+    const myTrophies = b.my_brawler?.trophies ?? 0
+    const opponents = (b.opponents ?? []) as Array<{ brawler: { trophies: number } }>
+    if (opponents.length === 0) continue
+
+    const avgOppTrophies = opponents.reduce((s, o) => s + (o.brawler.trophies ?? 0), 0) / opponents.length
+    const diff = avgOppTrophies - myTrophies
+
+    const tierIdx = diff < -50 ? 0 : diff > 50 ? 2 : 1
+    tiers[tierIdx].total++
+    tiers[tierIdx].trophySum += avgOppTrophies
+    if (isWin(b.result)) tiers[tierIdx].wins++
+  }
+
+  return tiers.map(t => ({
+    tier: t.tier,
+    wins: t.wins,
+    total: t.total,
+    winRate: winRate(t.wins, t.total),
+    avgOpponentTrophies: t.total > 0 ? Math.round(t.trophySum / t.total) : 0,
+  }))
+}
+
+// ── Brawler Comfort Score ──────────────────────────────────
+
+function computeBrawlerComfort(battles: Battle[]): BrawlerComfort[] {
+  const grouped = groupBy(battles, b => b.my_brawler?.id ?? 0)
+  const maxGames = Math.max(1, ...Array.from(grouped.values()).map(g => g.length))
+  const results: BrawlerComfort[] = []
+
+  for (const [id, group] of grouped) {
+    if (group.length < CONFIDENT_GAMES) continue
+    const wins = group.filter(b => isWin(b.result)).length
+    const wr = winRate(wins, group.length)
+    const wilson = wilsonPct(wins, group.length)
+    // Consistency: std dev of results (0=loss, 1=win)
+    const outcomes: number[] = group.map(b => isWin(b.result) ? 1 : 0)
+    const mean = outcomes.reduce((s, v) => s + v, 0) / outcomes.length
+    const variance = outcomes.reduce((s, v) => s + (v - mean) ** 2, 0) / outcomes.length
+    const consistency = 1 - Math.sqrt(variance) // higher = more consistent
+
+    const comfort = Math.round(
+      wilson * 0.6 + (group.length / maxGames) * 30 + consistency * 10
+    )
+
+    results.push({
+      brawlerId: id,
+      brawlerName: group[0].my_brawler?.name ?? 'Unknown',
+      comfortScore: Math.min(100, comfort),
+      gamesPlayed: group.length,
+      winRate: wr,
+      wilsonScore: wilson,
+      consistency,
+    })
+  }
+
+  return results.sort((a, b) => b.comfortScore - a.comfortScore).slice(0, 10)
+}
+
+// ── Power Level Impact ─────────────────────────────────────
+
+function computePowerLevelImpact(battles: Battle[]): PowerLevelImpact[] {
+  const grouped = groupBy(battles, b => b.my_brawler?.power ?? 0)
+  const results: PowerLevelImpact[] = []
+
+  for (const [power, group] of grouped) {
+    if (power === 0) continue
+    const wins = group.filter(b => isWin(b.result)).length
+    results.push({
+      powerLevel: power,
+      wins,
+      total: group.length,
+      winRate: winRate(wins, group.length),
+    })
+  }
+
+  return results.sort((a, b) => a.powerLevel - b.powerLevel)
+}
+
+// ── Session Efficiency ─────────────────────────────────────
+
+function computeSessionEfficiency(sessions: SessionInfo[]): SessionEfficiency[] {
+  // Group sessions by length buckets: 1-3, 4-6, 7-10, 11-15, 16+
+  const buckets: Array<{ min: number; max: number; label: number }> = [
+    { min: 1, max: 3, label: 3 },
+    { min: 4, max: 6, label: 6 },
+    { min: 7, max: 10, label: 10 },
+    { min: 11, max: 15, label: 15 },
+    { min: 16, max: Infinity, label: 20 },
+  ]
+
+  return buckets.map(bucket => {
+    const matching = sessions.filter(s => s.battles >= bucket.min && s.battles <= bucket.max)
+    if (matching.length === 0) return { sessionLength: bucket.label, count: 0, avgWinRate: 0, avgTrophiesPerGame: 0 }
+
+    const totalGames = matching.reduce((s, m) => s + m.battles, 0)
+    const totalTrophies = matching.reduce((s, m) => s + m.trophyChange, 0)
+    const avgWR = matching.reduce((s, m) => s + m.winRate, 0) / matching.length
+
+    return {
+      sessionLength: bucket.label,
+      count: matching.length,
+      avgWinRate: Math.round(avgWR * 10) / 10,
+      avgTrophiesPerGame: totalGames > 0 ? Math.round((totalTrophies / totalGames) * 10) / 10 : 0,
+    }
+  }).filter(b => b.count > 0)
+}
+
+// ── Warm-Up Analysis ───────────────────────────────────────
+
+function computeWarmUp(battles: Battle[], sessions: SessionInfo[]): WarmUpAnalysis {
+  let warmUpWins = 0, warmUpTotal = 0
+  let peakWins = 0, peakTotal = 0
+
+  for (const session of sessions) {
+    const sessionBattles = battles.filter(b => b.battle_time >= session.start && b.battle_time <= session.end)
+    sessionBattles.forEach((b, idx) => {
+      if (idx < 2) {
+        warmUpTotal++
+        if (isWin(b.result)) warmUpWins++
+      } else {
+        peakTotal++
+        if (isWin(b.result)) peakWins++
+      }
+    })
+  }
+
+  const wrWarmUp = warmUpTotal >= MIN_GAMES ? winRate(warmUpWins, warmUpTotal) : null
+  const wrPeak = peakTotal >= MIN_GAMES ? winRate(peakWins, peakTotal) : null
+  const delta = wrWarmUp !== null && wrPeak !== null ? Math.round((wrPeak - wrWarmUp) * 10) / 10 : null
+
+  return { warmUpWR: wrWarmUp, peakWR: wrPeak, warmUpGames: warmUpTotal, peakGames: peakTotal, delta }
+}
+
+// ── Carry Analysis ─────────────────────────────────────────
+
+function computeCarry(battles: Battle[]): CarryAnalysis {
+  let carryWins = 0, carryTotal = 0
+  let normalWins = 0, normalTotal = 0
+
+  for (const b of battles) {
+    const teammates = (b.teammates ?? []) as Array<{ brawler: { trophies: number } }>
+    const opponents = (b.opponents ?? []) as Array<{ brawler: { trophies: number } }>
+    if (teammates.length === 0 || opponents.length === 0) continue
+
+    const myTrophies = b.my_brawler?.trophies ?? 0
+    const teamAvg = (teammates.reduce((s, t) => s + (t.brawler.trophies ?? 0), 0) + myTrophies) / (teammates.length + 1)
+    const oppAvg = opponents.reduce((s, o) => s + (o.brawler.trophies ?? 0), 0) / opponents.length
+
+    if (teamAvg < oppAvg - 30) {
+      carryTotal++
+      if (isWin(b.result)) carryWins++
+    } else {
+      normalTotal++
+      if (isWin(b.result)) normalWins++
+    }
+  }
+
+  return {
+    carryWR: carryTotal >= MIN_GAMES ? winRate(carryWins, carryTotal) : null,
+    normalWR: normalTotal >= MIN_GAMES ? winRate(normalWins, normalTotal) : null,
+    carryGames: carryTotal,
+    normalGames: normalTotal,
+  }
+}
+
+// ── Gadget / Star Power Impact ─────────────────────────────
+
+function computeGadgetImpact(battles: Battle[]): GadgetStarPowerImpact {
+  const withG = battles.filter(b => (b.my_brawler?.gadgets?.length ?? 0) > 0)
+  const withoutG = battles.filter(b => (b.my_brawler?.gadgets?.length ?? 0) === 0)
+  const withSP = battles.filter(b => (b.my_brawler?.starPowers?.length ?? 0) > 0)
+  const withoutSP = battles.filter(b => (b.my_brawler?.starPowers?.length ?? 0) === 0)
+
+  const calc = (arr: Battle[]) => ({
+    wins: arr.filter(b => isWin(b.result)).length,
+    total: arr.length,
+    winRate: winRate(arr.filter(b => isWin(b.result)).length, arr.length),
+  })
+
+  return {
+    withGadgets: calc(withG),
+    withoutGadgets: calc(withoutG),
+    withStarPowers: calc(withSP),
+    withoutStarPowers: calc(withoutSP),
+  }
+}
+
+// ── Recovery Speed ─────────────────────────────────────────
+
+function computeRecovery(battles: Battle[], sessions: SessionInfo[]): RecoveryAnalysis {
+  let totalGamesToRecover = 0
+  let recoveryEpisodes = 0
+  let successfulRecoveries = 0
+
+  for (const session of sessions) {
+    const sessionBattles = battles.filter(b => b.battle_time >= session.start && b.battle_time <= session.end)
+    let consecutiveLosses = 0
+    let tiltTrophyDebt = 0
+    let inRecovery = false
+
+    for (const b of sessionBattles) {
+      const change = b.trophy_change ?? 0
+
+      if (!inRecovery && isLoss(b.result)) {
+        consecutiveLosses++
+        if (consecutiveLosses >= 3) {
+          inRecovery = true
+          tiltTrophyDebt = change // already negative
+          recoveryEpisodes++
+        }
+      } else if (inRecovery) {
+        tiltTrophyDebt += change
+        totalGamesToRecover++
+        if (tiltTrophyDebt >= 0) {
+          successfulRecoveries++
+          inRecovery = false
+          consecutiveLosses = 0
+          tiltTrophyDebt = 0
+        }
+      } else {
+        consecutiveLosses = 0
+      }
+    }
+  }
+
+  return {
+    avgGamesToRecover: recoveryEpisodes > 0 ? Math.round(totalGamesToRecover / recoveryEpisodes) : null,
+    recoveryEpisodes,
+    successRate: recoveryEpisodes > 0 ? winRate(successfulRecoveries, recoveryEpisodes) : null,
+  }
+}
+
+// ── Weekly Pattern ─────────────────────────────────────────
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+function computeWeeklyPattern(battles: Battle[], timezone?: string): WeeklyPattern[] {
+  const days = Array.from({ length: 7 }, () => ({ wins: 0, total: 0 }))
+
+  for (const b of battles) {
+    let dayIdx: number
+    if (timezone) {
+      const localDay = new Date(b.battle_time).toLocaleString('en-US', {
+        timeZone: timezone, weekday: 'short',
+      })
+      const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+      dayIdx = map[localDay] ?? new Date(b.battle_time).getDay()
+    } else {
+      dayIdx = new Date(b.battle_time).getUTCDay()
+    }
+    days[dayIdx].total++
+    if (isWin(b.result)) days[dayIdx].wins++
+  }
+
+  return days.map((d, i) => ({
+    dayOfWeek: i,
+    dayName: DAY_NAMES[i],
+    wins: d.wins,
+    total: d.total,
+    winRate: winRate(d.wins, d.total),
+  }))
 }

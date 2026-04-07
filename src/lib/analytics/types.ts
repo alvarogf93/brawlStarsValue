@@ -219,6 +219,84 @@ export interface CounterPickResult {
   }>
 }
 
+// ── New metrics ────────────────────────────────────────────────
+
+export interface ClutchAnalysis {
+  wrAsStar: number | null
+  wrNotStar: number | null
+  starGames: number
+  nonStarGames: number
+  delta: number | null
+}
+
+export interface OpponentStrengthBreakdown {
+  tier: 'weak' | 'even' | 'strong'
+  wins: number
+  total: number
+  winRate: number
+  avgOpponentTrophies: number
+}
+
+export interface BrawlerComfort {
+  brawlerId: number
+  brawlerName: string
+  comfortScore: number
+  gamesPlayed: number
+  winRate: number
+  wilsonScore: number
+  consistency: number
+}
+
+export interface PowerLevelImpact {
+  powerLevel: number
+  wins: number
+  total: number
+  winRate: number
+}
+
+export interface SessionEfficiency {
+  sessionLength: number
+  count: number
+  avgWinRate: number
+  avgTrophiesPerGame: number
+}
+
+export interface WarmUpAnalysis {
+  warmUpWR: number | null
+  peakWR: number | null
+  warmUpGames: number
+  peakGames: number
+  delta: number | null
+}
+
+export interface CarryAnalysis {
+  carryWR: number | null
+  normalWR: number | null
+  carryGames: number
+  normalGames: number
+}
+
+export interface GadgetStarPowerImpact {
+  withGadgets: { wins: number; total: number; winRate: number }
+  withoutGadgets: { wins: number; total: number; winRate: number }
+  withStarPowers: { wins: number; total: number; winRate: number }
+  withoutStarPowers: { wins: number; total: number; winRate: number }
+}
+
+export interface RecoveryAnalysis {
+  avgGamesToRecover: number | null
+  recoveryEpisodes: number
+  successRate: number | null
+}
+
+export interface WeeklyPattern {
+  dayOfWeek: number
+  dayName: string
+  wins: number
+  total: number
+  winRate: number
+}
+
 // ── Top-level aggregate ─────────────────────────────────────────
 
 export interface AdvancedAnalytics {
@@ -245,4 +323,15 @@ export interface AdvancedAnalytics {
   brawlerMastery: BrawlerMastery[]
   tilt: TiltAnalysis
   sessions: SessionInfo[]
+  // New metrics
+  clutch: ClutchAnalysis
+  opponentStrength: OpponentStrengthBreakdown[]
+  brawlerComfort: BrawlerComfort[]
+  powerLevelImpact: PowerLevelImpact[]
+  sessionEfficiency: SessionEfficiency[]
+  warmUp: WarmUpAnalysis
+  carry: CarryAnalysis
+  gadgetImpact: GadgetStarPowerImpact
+  recovery: RecoveryAnalysis
+  weeklyPattern: WeeklyPattern[]
 }
