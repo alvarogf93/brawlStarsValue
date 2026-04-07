@@ -81,7 +81,17 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       keysToRemove.forEach(k => localStorage.removeItem(k))
     } catch { /* ignore */ }
 
-    // 3. Hard redirect to landing (always, even if signOut hung)
+    // 3. Clear Supabase auth cookies (fallback if signOut failed)
+    try {
+      document.cookie.split(';').forEach(c => {
+        const name = c.trim().split('=')[0]
+        if (name.startsWith('sb-')) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+        }
+      })
+    } catch { /* ignore */ }
+
+    // 4. Hard redirect to landing (always, even if signOut hung)
     window.location.href = `/${locale}`
   }
 
