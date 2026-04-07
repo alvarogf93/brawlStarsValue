@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { getBrawlerPortraitUrl, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
@@ -255,13 +256,11 @@ export default function BrawlersPage() {
               className="group relative pt-6"
             >
               {/* Brawler portrait — 25% outside, 75% inside */}
-              <img
+              <BrawlImg
                 src={getBrawlerPortraitUrl(brawler.id)}
                 alt={brawler.name}
-                width={100}
-                height={100}
-                className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2"
-                loading="lazy"
+                fallbackText={brawler.name}
+                className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2 w-[100px] h-[100px] rounded-xl"
               />
 
               {/* Card body */}
@@ -316,31 +315,25 @@ export default function BrawlersPage() {
 
                 {/* Upgrade icons — real CDN images */}
                 <div className="px-3 py-2 flex items-center gap-1 flex-wrap">
-                  {/* Star Powers — show actual icons */}
+                  {/* Star Powers */}
                   {brawler.starPowers.map(sp => (
-                    <img
+                    <BrawlImg
                       key={sp.id}
                       src={getStarPowerImageUrl(sp.id)}
                       alt={sp.name}
-                      title={sp.name}
-                      width={20}
-                      height={20}
-                      className="rounded-sm"
-                      loading="lazy"
+                      fallbackText="SP"
+                      className="w-5 h-5 rounded-sm"
                     />
                   ))}
 
-                  {/* Gadgets — show actual icons */}
+                  {/* Gadgets */}
                   {brawler.gadgets.map(g => (
-                    <img
+                    <BrawlImg
                       key={g.id}
                       src={getGadgetImageUrl(g.id)}
                       alt={g.name}
-                      title={g.name}
-                      width={20}
-                      height={20}
-                      className="rounded-sm"
-                      loading="lazy"
+                      fallbackText="G"
+                      className="w-5 h-5 rounded-sm"
                     />
                   ))}
 

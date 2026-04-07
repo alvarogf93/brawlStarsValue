@@ -1,10 +1,14 @@
+'use client'
+
+import { useState } from 'react'
 import { getGameModeImageUrl } from '@/lib/utils'
 
 const FALLBACK_EMOJI: Record<string, string> = {
   brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀', soloShowdown: '💀',
   heist: '🔒', bounty: '⭐', hotZone: '🔥', knockout: '🥊', wipeout: '💥',
   payload: '🚚', paintBrawl: '🎨', duels: '⚔️', basketBrawl: '🏀', volleyBrawl: '🏐',
-  hunters: '🎯', botDrop: '🤖', trophyEscape: '🏆', brawlHockey: '🏒',
+  hunters: '🎯', botDrop: '🤖', trophyEscape: '🏆', brawlHockey: '🏒', dodgebrawl: '🏐',
+  lastStand: '🛡️', trioShowdown: '💀',
 }
 
 interface Props {
@@ -14,9 +18,10 @@ interface Props {
 }
 
 export function ModeIcon({ mode, size = 16, className = '' }: Props) {
+  const [failed, setFailed] = useState(false)
   const url = getGameModeImageUrl(mode)
 
-  if (url) {
+  if (url && !failed) {
     return (
       <img
         src={url}
@@ -25,6 +30,7 @@ export function ModeIcon({ mode, size = 16, className = '' }: Props) {
         height={size}
         className={`inline-block ${className}`}
         loading="lazy"
+        onError={() => setFailed(true)}
       />
     )
   }
