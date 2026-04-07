@@ -60,19 +60,20 @@ export function handleApiError(error: unknown): ApiErrorObj {
   return new ApiErrorObj(500, error instanceof Error ? error.message : 'Unknown error')
 }
 export function getBrawlerPortraitUrl(id: number): string {
-  return `https://cdn.brawlify.com/brawlers/borders/${id}.png`
+  return `/assets/brawlers/${id}.png`
 }
 
 export function getMapImageUrl(eventId: number): string {
+  // Maps are not in our local assets — keep Brawlify for now
   return `https://cdn.brawlify.com/maps/regular/${eventId}.png`
 }
 
 export function getGadgetImageUrl(id: number): string {
-  return `https://cdn.brawlify.com/gadgets/borderless/${id}.png`
+  return `/assets/gadgets/${id}.png`
 }
 
 export function getStarPowerImageUrl(id: number): string {
-  return `https://cdn.brawlify.com/star-powers/borderless/${id}.png`
+  return `/assets/star-powers/${id}.png`
 }
 
 /** Map Supercell API mode string → Brawlify scId for mode icon */
@@ -103,5 +104,6 @@ const MODE_SC_IDS: Record<string, number> = {
 
 export function getGameModeImageUrl(mode: string): string | null {
   const scId = MODE_SC_IDS[mode]
+  // Game mode icons still from Brawlify (not downloaded yet)
   return scId ? `https://cdn.brawlify.com/game-modes/regular/${scId}.png` : null
 }
