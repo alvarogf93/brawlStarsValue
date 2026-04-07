@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { AdvancedAnalytics } from '@/lib/analytics/types'
 
 interface UseAdvancedAnalyticsResult {
@@ -14,24 +14,35 @@ export function useAdvancedAnalytics(enabled = true): UseAdvancedAnalyticsResult
   const [data, setData] = useState<AdvancedAnalytics | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const controllerRef = useRef<AbortController | null>(null)
 
-  const fetchAnalytics = () => {
+  const fetchAnalytics = useCallback(() => {
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
+
     setLoading(true)
     setError(null)
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
-    fetch(`/api/analytics?tz=${encodeURIComponent(tz)}`)
+    fetch(`/api/analytics?tz=${encodeURIComponent(tz)}`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
       .then(json => setData(json as AdvancedAnalytics))
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false))
-  }
+      .catch(err => {
+        if (err.name === 'AbortError') return
+        setError(err.message)
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
+  }, [])
 
   useEffect(() => {
     if (enabled) fetchAnalytics()
-  }, [enabled])
+    return () => controllerRef.current?.abort()
+  }, [enabled, fetchAnalytics])
 
   return { data, loading, error, refresh: fetchAnalytics }
 }

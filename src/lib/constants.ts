@@ -178,9 +178,3 @@ export const BRAWLER_RARITY_MAP: RarityMap = {
   16000102: 'Ultra Legendary',
   16000103: 'Mythic',
 }
-
-export const SEO = {
-  title: '¿Cuánto poder tiene tu cuenta de Brawl Stars?',
-  description: 'Calcula el valor real en Gemas de tu cuenta de Brawl Stars. Resultado instantáneo.',
-  siteName: 'BrawlVision',
-} as const

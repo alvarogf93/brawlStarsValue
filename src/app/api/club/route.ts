@@ -5,8 +5,8 @@ export async function POST(req: Request) {
   try {
     const { clubTag } = await req.json()
 
-    if (!clubTag || typeof clubTag !== 'string') {
-      return NextResponse.json({ error: 'Missing clubTag', code: 400 }, { status: 400 })
+    if (!clubTag || typeof clubTag !== 'string' || !/^#[0-9A-Z]{3,12}$/.test(clubTag.toUpperCase())) {
+      return NextResponse.json({ error: 'Invalid or missing clubTag', code: 400 }, { status: 400 })
     }
 
     const data = await fetchClub(clubTag)

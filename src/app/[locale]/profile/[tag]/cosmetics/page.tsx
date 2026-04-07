@@ -9,6 +9,7 @@ import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { SKIN_TIER_PRICES, SKIN_TIER_LABELS, PIN_TIER_PRICES, PIN_TIER_LABELS } from '@/lib/constants'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { Minus, Plus } from 'lucide-react'
+import { StatsSkeleton } from '@/components/ui/Skeleton'
 
 const SKIN_TIERS = [
   { key: 'special',       color: '#22c55e', icon: '🟢' },
@@ -37,11 +38,7 @@ export default function CosmeticsPage() {
   const pinLabels = PIN_TIER_LABELS[locale] || PIN_TIER_LABELS.en
 
   if (isLoading) {
-    return (
-      <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
-      </div>
-    )
+    return <StatsSkeleton />
   }
 
   if (error || !data) {

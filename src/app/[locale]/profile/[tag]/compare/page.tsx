@@ -11,6 +11,7 @@ import { CompareTrophyChart } from '@/components/battles/CompareTrophyChart'
 import { formatPlaytime } from '@/lib/utils'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import type { GemScore } from '@/lib/types'
+import { StatsSkeleton } from '@/components/ui/Skeleton'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -234,6 +235,21 @@ export default function ComparePage() {
     setOpponentData(null)
     setOpponentLoading(true)
 
+    // Check sessionStorage cache first
+    const cacheKey = `brawlvalue:compare:${formatted}`
+    try {
+      const cached = sessionStorage.getItem(cacheKey)
+      if (cached) {
+        const result: GemScore = JSON.parse(cached)
+        setOpponentData(result)
+        setOpponentTag(formatted)
+        setOpponentLoading(false)
+        return
+      }
+    } catch {
+      // Ignore sessionStorage errors (e.g. quota, disabled)
+    }
+
     try {
       const res = await fetch('/api/calculate', {
         method: 'POST',
@@ -249,6 +265,13 @@ export default function ComparePage() {
       const result: GemScore = await res.json()
       setOpponentData(result)
       setOpponentTag(formatted)
+
+      // Cache in sessionStorage
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(result))
+      } catch {
+        // Ignore storage errors
+      }
     } catch (err) {
       setOpponentError(err instanceof Error ? err.message : t('fetchError'))
     } finally {
@@ -263,11 +286,7 @@ export default function ComparePage() {
 
   /* ---- Loading state for current player ---- */
   if (p1Loading) {
-    return (
-      <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
-      </div>
-    )
+    return <StatsSkeleton />
   }
 
   if (p1Error || !player1) {

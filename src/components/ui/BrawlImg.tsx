@@ -2,19 +2,34 @@
 
 import { useState } from 'react'
 
+/** CDN fallback base for assets not found locally */
+const CDN_FALLBACK = 'https://cdn.brawlify.com/brawler'
+
 interface BrawlImgProps {
   src: string
   alt: string
   fallbackText?: string
+  fallbackSrc?: string
   className?: string
 }
 
 /**
- * Image with automatic fallback on load error.
- * Shows a colored circle with initials when the CDN returns 404.
+ * Image with automatic fallback chain:
+ * 1. Try local src
+ * 2. Try fallbackSrc (e.g. Brawlify CDN)
+ * 3. Show initials placeholder
  */
-export function BrawlImg({ src, alt, fallbackText, className = '' }: BrawlImgProps) {
+export function BrawlImg({ src, alt, fallbackText, fallbackSrc, className = '' }: BrawlImgProps) {
+  const [currentSrc, setCurrentSrc] = useState(src)
   const [failed, setFailed] = useState(false)
+
+  const handleError = () => {
+    if (currentSrc === src && fallbackSrc) {
+      setCurrentSrc(fallbackSrc)
+    } else {
+      setFailed(true)
+    }
+  }
 
   if (failed) {
     const initials = (fallbackText || alt || '?').slice(0, 2).toUpperCase()
@@ -30,11 +45,11 @@ export function BrawlImg({ src, alt, fallbackText, className = '' }: BrawlImgPro
 
   return (
     <img
-      src={src}
+      src={currentSrc}
       alt={alt}
       className={className}
       loading="lazy"
-      onError={() => setFailed(true)}
+      onError={handleError}
     />
   )
 }

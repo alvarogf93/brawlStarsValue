@@ -55,18 +55,23 @@ export function InputForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full" role="search" aria-label="Player search">
       <div className="relative">
-        <input 
-          type="text" 
+        <label htmlFor="player-tag-input" className="sr-only">Player Tag</label>
+        <input
+          id="player-tag-input"
+          type="text"
           value={tag}
           onChange={(e) => handleTagChange(e.target.value)}
-          placeholder={t('placeholder')} 
+          placeholder={t('placeholder')}
           disabled={isLoading}
+          aria-invalid={error}
+          aria-describedby={error ? 'tag-error' : undefined}
+          autoComplete="off"
           className={`w-full h-16 bg-white border-4 ${error ? 'border-red-500' : 'border-[var(--color-brawl-dark)]'} rounded-xl px-4 text-2xl outline-none text-center font-['Lilita_One'] placeholder:font-['Inter'] placeholder:text-slate-400 placeholder:text-base text-[var(--color-brawl-dark)] shadow-[3px_4px_0_0_rgba(18,26,47,1)] transition-transform focus:scale-[1.02] disabled:opacity-50`}
         />
         {error && (
-          <p className="absolute -bottom-7 left-0 right-0 text-white font-['Lilita_One'] text-shadow-sm text-lg text-center animate-fade-in bg-red-500 rounded-lg mx-auto w-max px-3 border-2 border-[var(--color-brawl-dark)]">
+          <p id="tag-error" role="alert" className="absolute -bottom-7 left-0 right-0 text-white font-['Lilita_One'] text-shadow-sm text-lg text-center animate-fade-in bg-red-500 rounded-lg mx-auto w-max px-3 border-2 border-[var(--color-brawl-dark)]">
             {t('invalidTag')}
           </p>
         )}

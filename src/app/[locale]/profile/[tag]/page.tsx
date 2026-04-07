@@ -8,6 +8,7 @@ import { GemIcon } from '@/components/ui/GemIcon'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { useSkinClassifications } from '@/hooks/useSkinClassifications'
 import Link from 'next/link'
 
@@ -31,11 +32,17 @@ export default function OverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+      <div className="flex flex-col items-center justify-center py-20 space-y-8 animate-fade-in">
         <div className="brawl-card-dark inline-block px-12 py-6 border-8 border-black transform scale-[1.1] rotate-[-2deg] shadow-[0_12px_0_0_rgba(18,26,47,1),inset_0_4px_0_rgba(255,255,255,0.2)]">
-          <h2 className="text-7xl md:text-8xl font-['Lilita_One'] text-white text-stroke-brawl tracking-wider">
-            <AnimatedCounter value={0} duration={2000} />
-          </h2>
+          <Skeleton className="h-16 w-40 mx-auto rounded-xl" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-3xl">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="brawl-card-dark rounded-xl p-4 space-y-2">
+              <Skeleton className="h-8 w-16 mx-auto" />
+              <Skeleton className="h-3 w-12 mx-auto" />
+            </div>
+          ))}
         </div>
       </div>
     )

@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 import { BRAWLER_RARITY_MAP } from '@/lib/constants'
 import type { BrawlerRarityName } from '@/lib/types'
 
@@ -37,12 +37,10 @@ function ParadeRow({ ids, direction }: { ids: number[]; direction: 'left' | 'rig
               className="w-16 h-16 shrink-0 rounded-xl overflow-hidden"
               style={{ border: `3px solid ${borderColor}` }}
             >
-              <Image
+              <BrawlImg
                 src={getBrawlerPortraitUrl(id)}
+                fallbackSrc={getBrawlerPortraitFallback(id)}
                 alt={`Brawler ${id}`}
-                width={64}
-                height={64}
-                loading="lazy"
                 className="w-full h-full object-cover"
               />
             </div>

@@ -100,7 +100,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       <header className="h-[var(--header-height)] shrink-0 bg-[#0F172A] border-b-4 border-[#030712] flex items-center justify-between px-6 md:px-8 z-50 shadow-[0_4px_15px_rgba(0,0,0,0.5)]">
         <div className="flex items-center gap-4">
           {onMenuToggle && (
-            <button onClick={onMenuToggle} className="md:hidden p-2 text-[var(--color-brawl-dark)] hover:bg-[var(--color-brawl-light)] transition-colors rounded-xl border-2 border-transparent hover:border-[var(--color-brawl-dark)]">
+            <button onClick={onMenuToggle} aria-label="Toggle menu" className="md:hidden p-2 text-[var(--color-brawl-dark)] hover:bg-[var(--color-brawl-light)] transition-colors rounded-xl border-2 border-transparent hover:border-[var(--color-brawl-dark)]">
               <Menu className="w-6 h-6 stroke-[3px]" />
             </button>
           )}
@@ -161,6 +161,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             <button
               onClick={handleSync}
               disabled={syncing}
+              aria-label={t('sync')}
               className="p-2 text-slate-400 hover:text-[#4EC0FA] transition-colors rounded-xl hover:bg-white/5 disabled:opacity-50"
               title={t('sync')}
             >
@@ -172,7 +173,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           </Link>
           <LocaleSwitcher />
           {playerTag && (
-            <button onClick={handleLogout} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-red-400 active:text-red-500 transition-colors rounded-xl hover:bg-white/5 active:bg-white/10" title={t('logout')}>
+            <button onClick={handleLogout} aria-label={t('logout')} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-red-400 active:text-red-500 transition-colors rounded-xl hover:bg-white/5 active:bg-white/10" title={t('logout')}>
               <LogOut className="w-5 h-5" />
             </button>
           )}

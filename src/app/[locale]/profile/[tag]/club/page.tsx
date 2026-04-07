@@ -13,6 +13,7 @@ import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { ClubTrophyChart } from '@/components/club/ClubTrophyChart'
 import { useClubTrophyChanges } from '@/hooks/useClubTrophyChanges'
 import { formatPlaytime } from '@/lib/utils'
+import { ClubSkeleton } from '@/components/ui/Skeleton'
 import { Crown, Shield, Star, Users, Trophy, Lock, Unlock, Mail, TrendingUp, TrendingDown, BarChart3, UserCheck, ChevronDown, Gem, Swords, Clock } from 'lucide-react'
 import type { ClubMember } from '@/lib/api'
 
@@ -103,14 +104,7 @@ export default function ClubPage() {
 
   /* ── Loading ──── */
   if (isLoading) {
-    return (
-      <div className="animate-pulse py-20 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 bg-slate-700/50 rounded-2xl animate-bounce" />
-          <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
-        </div>
-      </div>
-    )
+    return <ClubSkeleton />
   }
 
   if (clubError) {

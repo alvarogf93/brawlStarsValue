@@ -19,7 +19,8 @@ const BRAWLER_NAMES = [
   'Lou', 'Ruffs', 'Leon', 'Sandy', 'Amber', 'Spike', 'Crow',
 ]
 
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 
 function wrColor(wr: number): string {
   if (wr >= 60) return 'text-green-400'
@@ -327,11 +328,11 @@ export function CounterPickAdvisor() {
                   </span>
 
                   {/* Portrait */}
-                  <img
+                  <BrawlImg
                     src={getBrawlerPortraitUrl(r.brawlerId)}
+                    fallbackSrc={getBrawlerPortraitFallback(r.brawlerId)}
                     alt={r.brawlerName}
                     className="w-9 h-9 rounded-lg flex-shrink-0"
-                    loading="lazy"
                   />
 
                   {/* Name + games */}

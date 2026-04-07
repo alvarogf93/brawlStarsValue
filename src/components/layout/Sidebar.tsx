@@ -35,11 +35,13 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden" onClick={onClose} />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden" onClick={onClose} aria-hidden="true" />
       )}
 
       {/* Sidebar: mobile=fixed overlay, desktop=static flex column inside parent */}
       <aside
+        role="navigation"
+        aria-label="Profile navigation"
         className={`
           w-[var(--sidebar-width)] bg-[#121A2F] border-r-4 border-[#0F172A]
           flex flex-col shrink-0 overflow-y-auto
@@ -48,7 +50,7 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <nav className="flex flex-col gap-2 p-4 flex-1">
+        <nav className="flex flex-col gap-2 p-4 flex-1" aria-label="Profile sections">
           {NAV_ITEMS.map((item) => {
             const href = `${basePath}${item.path}`
             const isActive = pathname === href || (item.path === '' && pathname === basePath)

@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useRef } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 /* ─────────────────────── types ─────────────────────── */
@@ -145,11 +146,11 @@ function BrawlerSelector({
           }`}
           title={b.brawlerName}
         >
-          <img
+          <BrawlImg
             src={getBrawlerPortraitUrl(b.brawlerId)}
+            fallbackSrc={getBrawlerPortraitFallback(b.brawlerId)}
             alt={b.brawlerName}
             className="w-10 h-10 rounded-md"
-            loading="lazy"
           />
         </button>
       ))}

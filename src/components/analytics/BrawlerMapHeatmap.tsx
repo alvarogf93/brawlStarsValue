@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { BrawlerMapEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
@@ -96,11 +97,11 @@ export function BrawlerMapHeatmap({ data }: Props) {
 
             {/* Top: Brawler + WR */}
             <div className="flex items-center justify-between relative z-10">
-              <img
+              <BrawlImg
                 src={getBrawlerPortraitUrl(entry.brawlerId)}
+                fallbackSrc={getBrawlerPortraitFallback(entry.brawlerId)}
                 alt={entry.brawlerName}
                 className="w-8 h-8 rounded-lg flex-shrink-0"
-                loading="lazy"
               />
               <span className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(entry.winRate)}`} style={{ textShadow: '0 1px 0 rgba(0,0,0,0.4)' }}>
                 {entry.winRate}%

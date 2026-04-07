@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { BrawlerSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
@@ -157,17 +158,17 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
 
                   {/* Brawler portraits */}
                   <div className="flex items-center -space-x-2">
-                    <img
+                    <BrawlImg
                       src={getBrawlerPortraitUrl(c.myBrawlerId)}
+                      fallbackSrc={getBrawlerPortraitFallback(c.myBrawlerId)}
                       alt={c.myBrawlerName}
                       className="w-8 h-8 rounded-lg ring-2 ring-[#090E17] relative z-10"
-                      loading="lazy"
                     />
-                    <img
+                    <BrawlImg
                       src={getBrawlerPortraitUrl(c.teammateBrawlerId)}
+                      fallbackSrc={getBrawlerPortraitFallback(c.teammateBrawlerId)}
                       alt={c.teammateBrawlerName}
                       className="w-8 h-8 rounded-lg ring-2 ring-[#090E17]"
-                      loading="lazy"
                     />
                   </div>
 

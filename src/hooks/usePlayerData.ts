@@ -54,6 +54,8 @@ export function usePlayerData(tag: string) {
       return
     }
 
+    const controller = new AbortController()
+
     // Fetch from API
     setIsLoading(true)
     setError(null)
@@ -62,6 +64,7 @@ export function usePlayerData(tag: string) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerTag: tag }),
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -75,11 +78,14 @@ export function usePlayerData(tag: string) {
         setData(result)
       })
       .catch((err) => {
+        if (err.name === 'AbortError') return
         setError(err.message)
       })
       .finally(() => {
-        setIsLoading(false)
+        if (!controller.signal.aborted) setIsLoading(false)
       })
+
+    return () => controller.abort()
   }, [tag])
 
   return { data, isLoading, error }

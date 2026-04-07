@@ -5,8 +5,10 @@ import { computeAdvancedAnalytics } from '@/lib/analytics/compute'
 import type { Profile, Battle } from '@/lib/supabase/types'
 
 export async function GET(request: Request) {
+  try {
   const { searchParams } = new URL(request.url)
-  const timezone = searchParams.get('tz') || undefined
+  const rawTz = searchParams.get('tz') || undefined
+  const timezone = rawTz && /^[A-Za-z0-9/_+-]+$/.test(rawTz) ? rawTz : undefined
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -39,4 +41,7 @@ export async function GET(request: Request) {
   const analytics = computeAdvancedAnalytics((battles ?? []) as Battle[], timezone)
 
   return NextResponse.json(analytics)
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

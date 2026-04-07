@@ -61,11 +61,14 @@ export function useBattlelog(tag: string) {
       }
     } catch { /* ignore */ }
 
+    const controller = new AbortController()
     setIsLoading(true)
+    setError(null)
     fetch('/api/battlelog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerTag: tag }),
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Error ${res.status}`)
@@ -77,8 +80,15 @@ export function useBattlelog(tag: string) {
         setData(stats)
         try { localStorage.setItem(getCacheKey(tag), JSON.stringify({ data: stats, timestamp: Date.now() })) } catch { /* ignore */ }
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setIsLoading(false))
+      .catch((err) => {
+        if (err.name === 'AbortError') return
+        setError(err.message)
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false)
+      })
+
+    return () => controller.abort()
   }, [tag])
 
   return { data, isLoading, error }

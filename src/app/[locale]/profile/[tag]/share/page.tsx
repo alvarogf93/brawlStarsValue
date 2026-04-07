@@ -6,6 +6,7 @@ import { useState, useRef, useCallback } from 'react'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { Download } from 'lucide-react'
+import { StatsSkeleton } from '@/components/ui/Skeleton'
 
 export default function SharePage() {
   const params = useParams<{ tag: string; locale: string }>()
@@ -19,11 +20,7 @@ export default function SharePage() {
   const cardRef = useRef<HTMLDivElement>(null)
 
   if (isLoading) {
-    return (
-      <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
-      </div>
-    )
+    return <StatsSkeleton />
   }
 
   if (error || !data) {

@@ -7,7 +7,7 @@ import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from '@/i18n/routing'
-import { Home, Trophy, Loader2 } from 'lucide-react'
+import { Home, Trophy, Loader2, Search, ChevronDown } from 'lucide-react'
 import type { RankedPlayer } from '@/lib/api'
 
 export default function LeaderboardPage() {
@@ -16,9 +16,29 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [country, setCountry] = useState('global')
+  const [search, setSearch] = useState('')
   const locale = useLocale()
   const router = useRouter()
   const { profile } = useAuth()
+
+  const COUNTRIES: Array<{ code: string; flag: string; label: string }> = [
+    { code: 'global', flag: '🌍', label: t('global') },
+    { code: 'ES', flag: '🇪🇸', label: 'Spain' },
+    { code: 'US', flag: '🇺🇸', label: 'USA' },
+    { code: 'BR', flag: '🇧🇷', label: 'Brazil' },
+    { code: 'DE', flag: '🇩🇪', label: 'Germany' },
+    { code: 'FR', flag: '🇫🇷', label: 'France' },
+    { code: 'TR', flag: '🇹🇷', label: 'Turkey' },
+    { code: 'RU', flag: '🇷🇺', label: 'Russia' },
+    { code: 'MX', flag: '🇲🇽', label: 'Mexico' },
+    { code: 'KR', flag: '🇰🇷', label: 'Korea' },
+    { code: 'JP', flag: '🇯🇵', label: 'Japan' },
+    { code: 'CN', flag: '🇨🇳', label: 'China' },
+    { code: 'AR', flag: '🇦🇷', label: 'Argentina' },
+    { code: 'GB', flag: '🇬🇧', label: 'UK' },
+    { code: 'IT', flag: '🇮🇹', label: 'Italy' },
+    { code: 'PL', flag: '🇵🇱', label: 'Poland' },
+  ]
 
   const handlePlayerClick = (playerTag: string) => {
     const myTag = profile?.player_tag
@@ -52,6 +72,10 @@ export default function LeaderboardPage() {
 
   const top3 = players.slice(0, 3)
   const rest = players.slice(3)
+  const filteredRest = search
+    ? rest.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+    : rest
+  const selectedCountry = COUNTRIES.find(c => c.code === country)
   const podiumOrder = [1, 0, 2] // 2nd, 1st, 3rd
   const podiumColors = ['#94A3B8', '#F59E0B', '#B45309']
   const podiumHeights = ['h-[200px]', 'h-[260px]', 'h-[170px]']
@@ -82,19 +106,36 @@ export default function LeaderboardPage() {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex justify-center mb-16 relative z-10">
-        <div className="bg-[#121A2F] p-2 rounded-full flex border-4 border-black/50 shadow-[0_4px_0_0_rgba(0,0,0,0.5)]">
-          <button
-            onClick={() => setCountry('global')}
-            className={`px-8 py-3 rounded-full font-['Lilita_One'] text-xl transition-all ${country === 'global' ? 'bg-[var(--color-brawl-gold)] text-[#121A2F] shadow-[0_4px_0_0_#B45309]' : 'text-slate-400 hover:text-white'}`}>
-            {t('global')} 🌍
-          </button>
-          <button
-            onClick={() => setCountry('ES')}
-            className={`px-8 py-3 rounded-full font-['Lilita_One'] text-xl transition-all ${country === 'ES' ? 'bg-[var(--color-brawl-sky)] text-[#121A2F] shadow-[0_4px_0_0_#0284c7]' : 'text-slate-400 hover:text-white'}`}>
-            {t('local')} 🇪🇸
-          </button>
+      {/* Country selector + search */}
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-16 relative z-10 max-w-4xl mx-auto px-2">
+        {/* Country chips - scrollable */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide w-full md:w-auto">
+          {COUNTRIES.map(c => (
+            <button
+              key={c.code}
+              onClick={() => setCountry(c.code)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-['Lilita_One'] text-sm whitespace-nowrap transition-all border-2 shrink-0 ${
+                country === c.code
+                  ? 'bg-[var(--color-brawl-gold)]/20 text-[var(--color-brawl-gold)] border-[var(--color-brawl-gold)]/40 shadow-[0_0_12px_rgba(255,201,27,0.15)]'
+                  : 'bg-[#0F172A] text-slate-400 border-[#1E293B] hover:bg-[#1E293B] hover:text-white'
+              }`}
+            >
+              <span>{c.flag}</span>
+              <span className="hidden md:inline">{c.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Search input */}
+        <div className="relative w-full md:w-64 shrink-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('searchPlaceholder') || 'Search player...'}
+            className="w-full bg-[#0F172A] border-2 border-[#1E293B] rounded-xl pl-9 pr-4 py-2.5 font-['Inter'] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[var(--color-brawl-sky)] transition-colors"
+          />
         </div>
       </div>
 
@@ -147,7 +188,7 @@ export default function LeaderboardPage() {
 
           {/* Rest of list */}
           <div className="flex flex-col gap-4 relative z-10 max-w-4xl mx-auto px-2">
-            {rest.map((p) => (
+            {filteredRest.map((p) => (
               <div key={p.tag} onClick={() => handlePlayerClick(p.tag)} className="bg-white/5 border-4 border-white/10 backdrop-blur-md rounded-[2rem] p-4 flex items-center hover:bg-white/10 hover:border-white/30 transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer">
                 <div className="w-14 h-14 rounded-2xl bg-[#121A2F] border-2 border-white/20 flex items-center justify-center shrink-0">
                   <span className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-sky)]">{p.rank}</span>

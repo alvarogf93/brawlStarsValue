@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { MatchupEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
@@ -129,21 +130,21 @@ export function MatchupMatrix({ data }: Props) {
               className="flex items-center gap-2 brawl-row rounded-xl px-3 py-2"
             >
               {/* My brawler */}
-              <img
+              <BrawlImg
                 src={getBrawlerPortraitUrl(m.myBrawlerId)}
+                fallbackSrc={getBrawlerPortraitFallback(m.myBrawlerId)}
                 alt={m.myBrawlerName}
                 className="w-6 h-6 rounded-md flex-shrink-0"
-                loading="lazy"
               />
 
               <span className="text-[10px] text-slate-500 font-bold flex-shrink-0">vs</span>
 
               {/* Opponent brawler */}
-              <img
+              <BrawlImg
                 src={getBrawlerPortraitUrl(m.opponentBrawlerId)}
+                fallbackSrc={getBrawlerPortraitFallback(m.opponentBrawlerId)}
                 alt={m.opponentBrawlerName}
                 className="w-6 h-6 rounded-md flex-shrink-0"
-                loading="lazy"
               />
 
               {/* Win rate bar */}

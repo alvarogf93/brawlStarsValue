@@ -10,10 +10,11 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
-import { getBrawlerPortraitUrl, getMapImageUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl } from '@/lib/utils'
 import { ChevronDown } from 'lucide-react'
 import type { Profile } from '@/lib/supabase/types'
 import type { BattlelogEntry } from '@/lib/api'
+import { BattlesSkeleton } from '@/components/ui/Skeleton'
 
 const MODE_ICONS: Record<string, string> = {
   brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀',
@@ -52,7 +53,7 @@ export default function BattlesPage() {
   const hasPremium = isPremium(profile as Profile | null)
 
   if (isLoading) {
-    return <div className="animate-pulse py-20 text-center"><p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p></div>
+    return <BattlesSkeleton />
   }
 
   if (error || !data) {
@@ -243,6 +244,7 @@ function PlayerRow({ player, isMe, isStar, isOpponent, onCompare }: {
     >
       <BrawlImg
         src={getBrawlerPortraitUrl(player.brawler.id)}
+        fallbackSrc={getBrawlerPortraitFallback(player.brawler.id)}
         alt={player.brawler.name}
         fallbackText={player.brawler.name}
         className="w-11 h-11 rounded-xl border-2 border-black/30 shadow-[0_2px_0_rgba(0,0,0,0.3)]"

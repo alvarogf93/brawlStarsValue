@@ -7,6 +7,7 @@ import { GemIcon } from '@/components/ui/GemIcon'
 import { GEM_COSTS } from '@/lib/constants'
 import { formatPlaytime } from '@/lib/utils'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { StatsSkeleton } from '@/components/ui/Skeleton'
 
 export default function StatsPage() {
   const params = useParams<{ tag: string }>()
@@ -17,11 +18,7 @@ export default function StatsPage() {
   const { data, isLoading, error } = usePlayerData(tag)
 
   if (isLoading) {
-    return (
-      <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{tStats('loading')}</p>
-      </div>
-    )
+    return <StatsSkeleton />
   }
 
   if (error || !data?.player) {
@@ -203,14 +200,43 @@ export default function StatsPage() {
 
       {/* Gem Breakdown Table */}
       <div className="brawl-card-dark p-6 sm:p-8 border-[#090E17]">
-        <div className="flex items-center gap-3 mb-6">
-          <GemIcon className="w-8 h-8" />
-          <h2 className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-gold)] tracking-widest">
-            {tStats('gemBreakdown')}
-          </h2>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <GemIcon className="w-8 h-8" />
+            <h2 className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-gold)] tracking-widest">
+              {tStats('gemBreakdown')}
+            </h2>
+          </div>
+          <button
+            onClick={() => {
+              const rows = [
+                [tStats('concept'), tStats('quantity'), tStats('gems')],
+                [t('powerLevels'), String(bd.powerLevels.count), String(bd.powerLevels.gems)],
+                [t('gadgets'), String(bd.gadgets.count), String(bd.gadgets.gems)],
+                [t('starPowers'), String(bd.starPowers.count), String(bd.starPowers.gems)],
+                [t('hypercharges'), String(bd.hypercharges.count), String(bd.hypercharges.gems)],
+                [t('buffies'), String(bd.buffies.count), String(bd.buffies.gems)],
+                [t('gears'), String(bd.gears.count), String(bd.gears.gems)],
+                ['TOTAL', '', String(data.totalGems)],
+              ]
+              const csv = rows.map(r => r.join(',')).join('\n')
+              const blob = new Blob([csv], { type: 'text/csv' })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `${data.playerName}_gems.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-colors text-xs font-['Lilita_One']"
+            title="Export CSV"
+          >
+            📥 CSV
+          </button>
         </div>
 
-        <div className="space-y-1">
+        <div className="overflow-x-auto -mx-2 px-2">
+        <div className="space-y-1 min-w-[320px]">
           <div className="grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-2 text-xs font-bold uppercase text-slate-500">
             <span>{tStats('concept')}</span>
             <span className="text-right w-20">{tStats('quantity')}</span>
@@ -247,6 +273,7 @@ export default function StatsPage() {
               {data.totalGems.toLocaleString()}
             </span>
           </div>
+        </div>
         </div>
       </div>
 

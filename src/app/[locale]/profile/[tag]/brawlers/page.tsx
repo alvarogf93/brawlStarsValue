@@ -1,16 +1,17 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useParams } from 'next/navigation'
+import { useState, useMemo, useCallback } from 'react'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { usePlayerData } from '@/hooks/usePlayerData'
-import { getBrawlerPortraitUrl, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
+import { BrawlersSkeleton } from '@/components/ui/Skeleton'
 
 const RARITY_COLORS: Record<BrawlerRarityName, string> = {
   'Trophy Road': '#95A5A6',
@@ -71,15 +72,55 @@ function sortBrawlers(brawlers: BrawlerStat[], sortBy: SortOption): BrawlerStat[
 
 export default function BrawlersPage() {
   const params = useParams<{ tag: string }>()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const t = useTranslations('brawlers')
   const tProfile = useTranslations('profile')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
 
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<SortOption>('gems')
-  const [activeRarities, setActiveRarities] = useState<Set<BrawlerRarityName>>(new Set())
+  // Read filter state from URL search params
+  const searchQuery = searchParams.get('search') ?? ''
+  const sortBy: SortOption = (SORT_OPTIONS.some(o => o.value === searchParams.get('sort'))
+    ? searchParams.get('sort') as SortOption
+    : 'gems')
+  const activeRarities = useMemo(() => {
+    const raw = searchParams.get('rarity') ?? ''
+    if (!raw) return new Set<BrawlerRarityName>()
+    const names = raw.split(',').filter((r): r is BrawlerRarityName =>
+      ALL_RARITIES.includes(r as BrawlerRarityName)
+    )
+    return new Set<BrawlerRarityName>(names)
+  }, [searchParams])
   const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  // Helper to update URL search params without full navigation
+  const updateParams = useCallback((updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams.toString())
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === '') {
+        next.delete(key)
+      } else {
+        next.set(key, value)
+      }
+    }
+    const qs = next.toString()
+    router.replace(`?${qs}`, { scroll: false })
+  }, [searchParams, router])
+
+  const setSearchQuery = useCallback((value: string) => {
+    updateParams({ search: value || null })
+  }, [updateParams])
+
+  const setSortBy = useCallback((value: SortOption) => {
+    updateParams({ sort: value === 'gems' ? null : value })
+  }, [updateParams])
+
+  const setActiveRarities = useCallback((updater: Set<BrawlerRarityName> | ((prev: Set<BrawlerRarityName>) => Set<BrawlerRarityName>)) => {
+    const next = typeof updater === 'function' ? updater(activeRarities) : updater
+    const serialized = Array.from(next).join(',')
+    updateParams({ rarity: serialized || null })
+  }, [updateParams, activeRarities])
 
   const brawlers = data?.player?.brawlers ?? []
 
@@ -119,11 +160,7 @@ export default function BrawlersPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="animate-pulse py-20 text-center">
-        <p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p>
-      </div>
-    )
+    return <BrawlersSkeleton />
   }
 
   if (error || !data?.player?.brawlers) {
@@ -258,6 +295,7 @@ export default function BrawlersPage() {
               {/* Brawler portrait — 25% outside, 75% inside */}
               <BrawlImg
                 src={getBrawlerPortraitUrl(brawler.id)}
+                fallbackSrc={getBrawlerPortraitFallback(brawler.id)}
                 alt={brawler.name}
                 fallbackText={brawler.name}
                 className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2 w-[100px] h-[100px] rounded-xl"

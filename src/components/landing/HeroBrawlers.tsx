@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
-import { getBrawlerPortraitUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { BrawlImg } from '@/components/ui/BrawlImg'
 
 const LEFT_BRAWLERS = [
   { id: 16000000, name: 'Shelly', top: '15%', left: '2%', size: 100, delay: 0 },
@@ -27,12 +27,11 @@ export function HeroBrawlers() {
           animate={{ y: [0, -12, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: b.delay }}
         >
-          <Image
+          <BrawlImg
             src={getBrawlerPortraitUrl(b.id)}
+            fallbackSrc={getBrawlerPortraitFallback(b.id)}
             alt={b.name}
-            width={b.size}
-            height={b.size}
-            className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+            className={`drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]`}
           />
         </motion.div>
       ))}
@@ -44,12 +43,11 @@ export function HeroBrawlers() {
           animate={{ y: [0, -12, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: b.delay }}
         >
-          <Image
+          <BrawlImg
             src={getBrawlerPortraitUrl(b.id)}
+            fallbackSrc={getBrawlerPortraitFallback(b.id)}
             alt={b.name}
-            width={b.size}
-            height={b.size}
-            className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+            className={`drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]`}
           />
         </motion.div>
       ))}

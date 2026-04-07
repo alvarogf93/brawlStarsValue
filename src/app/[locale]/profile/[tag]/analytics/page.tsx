@@ -11,6 +11,7 @@ import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { FlaskConical, LogIn } from 'lucide-react'
+import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
@@ -25,15 +26,26 @@ import { TiltDetector } from '@/components/analytics/TiltDetector'
 import { MasteryChart } from '@/components/analytics/MasteryChart'
 import { PlayNowDashboard } from '@/components/analytics/PlayNowDashboard'
 import { CounterPickAdvisor } from '@/components/analytics/CounterPickAdvisor'
+import { ManageSubscription } from '@/components/premium/ManageSubscription'
+import { ClutchCard } from '@/components/analytics/ClutchCard'
+import { WarmUpCard } from '@/components/analytics/WarmUpCard'
+import { PowerLevelChart } from '@/components/analytics/PowerLevelChart'
+import { BrawlerComfortList } from '@/components/analytics/BrawlerComfortList'
+import { WeeklyPatternChart } from '@/components/analytics/WeeklyPatternChart'
+import { OpponentStrengthCard } from '@/components/analytics/OpponentStrengthCard'
+import { CarryCard } from '@/components/analytics/CarryCard'
+import { SessionEfficiencyCard } from '@/components/analytics/SessionEfficiencyCard'
+import { RecoveryCard } from '@/components/analytics/RecoveryCard'
+import { GadgetImpactCard } from '@/components/analytics/GadgetImpactCard'
 
-const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'tools'] as const
+const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'insights', 'tools'] as const
 type TabId = (typeof TAB_IDS)[number]
 const TAB_ICONS: Record<TabId, string> = {
-  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '🤝', trends: '📈', tools: '🛡️',
+  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '🤝', trends: '📈', insights: '💡', tools: '🛡️',
 }
 const TAB_KEYS: Record<TabId, string> = {
   overview: 'tabOverview', performance: 'tabPerformance', matchups: 'tabMatchups',
-  team: 'tabTeam', trends: 'tabTrends', tools: 'tabTools',
+  team: 'tabTeam', trends: 'tabTrends', insights: 'tabInsights', tools: 'tabTools',
 }
 
 export default function AnalyticsPage() {
@@ -47,7 +59,17 @@ export default function AnalyticsPage() {
   const tag = decodeURIComponent(params.tag)
   const { data: analytics, loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
   const { data: freeStats, isLoading: freeLoading } = useBattlelog(tag)
-  const [activeTab, setActiveTab] = useState<TabId>('overview')
+  const [activeTab, setActiveTabState] = useState<TabId>(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '') as TabId
+      if (TAB_IDS.includes(hash as typeof TAB_IDS[number])) return hash
+    }
+    return 'overview'
+  })
+  const setActiveTab = (tab: TabId) => {
+    setActiveTabState(tab)
+    window.location.hash = tab
+  }
   const [playNow, setPlayNow] = useState<PlayNowRecommendation[]>([])
   const [authOpen, setAuthOpen] = useState(false)
 
@@ -160,7 +182,7 @@ export default function AnalyticsPage() {
   }
 
   if (authLoading || loading) {
-    return <div className="animate-pulse py-20 text-center"><p className="text-slate-400 font-['Lilita_One'] text-2xl">{t('loading')}</p></div>
+    return <AnalyticsSkeleton />
   }
 
   if (error || !analytics) {
@@ -210,19 +232,29 @@ export default function AnalyticsPage() {
           <OverviewStats overview={analytics.overview} />
           {playNow.length > 0 && <PlayNowDashboard recommendations={playNow} />}
           <TiltDetector tilt={analytics.tilt} sessions={analytics.sessions} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ClutchCard data={analytics.clutch} />
+            <WarmUpCard data={analytics.warmUp} />
+          </div>
         </div>
       )}
 
       {activeTab === 'performance' && (
         <div className="space-y-6">
           <BrawlerMapHeatmap data={analytics.brawlerMapMatrix} />
-          <TimeOfDayChart data={analytics.byHour} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TimeOfDayChart data={analytics.byHour} />
+            <WeeklyPatternChart data={analytics.weeklyPattern} />
+          </div>
+          <PowerLevelChart data={analytics.powerLevelImpact} />
+          <BrawlerComfortList data={analytics.brawlerComfort} />
         </div>
       )}
 
       {activeTab === 'matchups' && (
         <div className="space-y-6">
           <MatchupMatrix data={analytics.matchups} />
+          <OpponentStrengthCard data={analytics.opponentStrength} />
         </div>
       )}
 
@@ -232,6 +264,7 @@ export default function AnalyticsPage() {
             brawlerSynergy={analytics.brawlerSynergy}
             teammateSynergy={analytics.teammateSynergy}
           />
+          <CarryCard data={analytics.carry} />
         </div>
       )}
 
@@ -239,12 +272,37 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           <TrendsChart dailyTrend={analytics.dailyTrend} />
           <MasteryChart data={analytics.brawlerMastery} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SessionEfficiencyCard data={analytics.sessionEfficiency} />
+            <RecoveryCard data={analytics.recovery} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'insights' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ClutchCard data={analytics.clutch} />
+            <WarmUpCard data={analytics.warmUp} />
+          </div>
+          <OpponentStrengthCard data={analytics.opponentStrength} />
+          <CarryCard data={analytics.carry} />
+          <GadgetImpactCard data={analytics.gadgetImpact} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SessionEfficiencyCard data={analytics.sessionEfficiency} />
+            <RecoveryCard data={analytics.recovery} />
+          </div>
+          <WeeklyPatternChart data={analytics.weeklyPattern} />
+          <PowerLevelChart data={analytics.powerLevelImpact} />
+          <BrawlerComfortList data={analytics.brawlerComfort} />
         </div>
       )}
 
       {activeTab === 'tools' && (
         <div className="space-y-6">
           <CounterPickAdvisor />
+          <GadgetImpactCard data={analytics.gadgetImpact} />
+          <ManageSubscription />
         </div>
       )}
     </div>

@@ -26,11 +26,14 @@ export function useClub(clubTag: string | null) {
       }
     } catch { /* ignore */ }
 
+    const controller = new AbortController()
     setIsLoading(true)
+    setError(null)
     fetch('/api/club', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clubTag }),
+      signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Error ${res.status}`)
@@ -40,8 +43,15 @@ export function useClub(clubTag: string | null) {
         setData(result)
         try { localStorage.setItem(getCacheKey(clubTag), JSON.stringify({ data: result, timestamp: Date.now() })) } catch { /* ignore */ }
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setIsLoading(false))
+      .catch((err) => {
+        if (err.name === 'AbortError') return
+        setError(err.message)
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false)
+      })
+
+    return () => controller.abort()
   }, [clubTag])
 
   return { data, isLoading, error }

@@ -63,6 +63,11 @@ export function getBrawlerPortraitUrl(id: number): string {
   return `/assets/brawlers/${id}.png`
 }
 
+/** CDN fallback for brawler portraits not in local assets (new brawlers) */
+export function getBrawlerPortraitFallback(id: number): string {
+  return `https://cdn.brawlify.com/brawler/${id}/avatar.png`
+}
+
 export function getMapImageUrl(eventId: number): string {
   // Maps are not in our local assets — keep Brawlify for now
   return `https://cdn.brawlify.com/maps/regular/${eventId}.png`
