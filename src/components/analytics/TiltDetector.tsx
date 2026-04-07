@@ -48,7 +48,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
   const significantDelta = hasData && Math.abs(delta) >= 5
 
   const recentSessions = useMemo(
-    () => sessions.slice(0, 5),
+    () => [...sessions].reverse().slice(0, 5),
     [sessions],
   )
 
