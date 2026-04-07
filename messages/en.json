@@ -84,7 +84,11 @@
     "resultVictory": "Victory",
     "resultDefeat": "Defeat",
     "resultDraw": "Draw",
-    "starPlayer": "Star Player"
+    "starPlayer": "Star Player",
+    "topTeammate": "Top Teammate",
+    "topTeammates": "Top Teammates",
+    "gamesShort": "games",
+    "winRateByMode": "Win Rate by Mode"
   },
   "profile": {
     "gemEquivalent": "Gem Equivalent",

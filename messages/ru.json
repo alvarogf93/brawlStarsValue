@@ -84,7 +84,11 @@
     "resultVictory": "Победа",
     "resultDefeat": "Поражение",
     "resultDraw": "Ничья",
-    "starPlayer": "Звёздный игрок"
+    "starPlayer": "Звёздный игрок",
+    "topTeammate": "Лучший Напарник",
+    "topTeammates": "Лучшие Напарники",
+    "gamesShort": "игр",
+    "winRateByMode": "% Побед по Режиму"
   },
   "profile": {
     "gemEquivalent": "Эквивалент в гемах",
@@ -455,6 +459,8 @@
     "errorGeneric": "Что-то пошло не так",
     "withPlayer": "с",
     "showAllCombos": "Показать все комбо ({count})",
-    "showAllTeammates": "Показать всех напарников ({count})"
+    "showAllTeammates": "Показать всех напарников ({count})",
+    "loginRequired": "Войдите через Google для доступа к аналитике",
+    "loginButton": "Войти через Google"
   }
 }

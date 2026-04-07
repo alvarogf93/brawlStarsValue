@@ -84,7 +84,11 @@
     "resultVictory": "Vitória",
     "resultDefeat": "Derrota",
     "resultDraw": "Empate",
-    "starPlayer": "Jogador Estrela"
+    "starPlayer": "Jogador Estrela",
+    "topTeammate": "Melhor Companheiro",
+    "topTeammates": "Melhores Companheiros",
+    "gamesShort": "partidas",
+    "winRateByMode": "Taxa de Vitória por Modo"
   },
   "profile": {
     "gemEquivalent": "Equivalente em gemas",
@@ -455,6 +459,8 @@
     "errorGeneric": "Algo deu errado",
     "withPlayer": "com",
     "showAllCombos": "Ver todos os combos ({count})",
-    "showAllTeammates": "Ver todos os companheiros ({count})"
+    "showAllTeammates": "Ver todos os companheiros ({count})",
+    "loginRequired": "Faça login com o Google para acessar suas análises",
+    "loginButton": "Entrar com Google"
   }
 }

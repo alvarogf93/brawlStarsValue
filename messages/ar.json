@@ -84,7 +84,11 @@
     "resultVictory": "فوز",
     "resultDefeat": "هزيمة",
     "resultDraw": "تعادل",
-    "starPlayer": "نجم المباراة"
+    "starPlayer": "نجم المباراة",
+    "topTeammate": "أفضل زميل",
+    "topTeammates": "أفضل الزملاء",
+    "gamesShort": "مباريات",
+    "winRateByMode": "نسبة الفوز حسب الوضع"
   },
   "profile": {
     "gemEquivalent": "ما يعادل الجواهر",
@@ -455,6 +459,8 @@
     "errorGeneric": "حدث خطأ ما",
     "withPlayer": "مع",
     "showAllCombos": "عرض كل الكومبو ({count})",
-    "showAllTeammates": "عرض كل الزملاء ({count})"
+    "showAllTeammates": "عرض كل الزملاء ({count})",
+    "loginRequired": "سجل الدخول بحساب Google للوصول إلى التحليلات",
+    "loginButton": "تسجيل الدخول بـ Google"
   }
 }

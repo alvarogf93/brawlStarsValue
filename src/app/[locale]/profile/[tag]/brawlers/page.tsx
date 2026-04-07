@@ -249,20 +249,18 @@ export default function BrawlersPage() {
           const rarity = BRAWLER_RARITY_MAP[brawler.id] ?? 'Trophy Road'
           const gemValue = calcBrawlerGemValue(brawler)
           const color = RARITY_COLORS[rarity]
-          const buffieCount = [brawler.buffies?.gadget, brawler.buffies?.starPower, brawler.buffies?.hyperCharge].filter(Boolean).length
-
           return (
             <div
               key={brawler.id}
-              className="group relative pt-12"
+              className="group relative pt-6"
             >
-              {/* Brawler portrait — 3D pop-out above card */}
+              {/* Brawler portrait — 25% outside, 75% inside */}
               <img
                 src={getBrawlerPortraitUrl(brawler.id)}
                 alt={brawler.name}
                 width={100}
                 height={100}
-                className="absolute top-0 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2"
+                className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2"
                 loading="lazy"
               />
 
@@ -272,7 +270,7 @@ export default function BrawlersPage() {
               >
                 {/* Rarity color header */}
                 <div
-                  className="w-full h-16 border-b-4 border-[var(--color-brawl-dark)] relative"
+                  className="w-full h-20 border-b-4 border-[var(--color-brawl-dark)] relative"
                   style={{ backgroundColor: color }}
                 >
                   <div className="absolute inset-0 opacity-20 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
@@ -327,7 +325,7 @@ export default function BrawlersPage() {
                       title={sp.name}
                       width={20}
                       height={20}
-                      className="rounded-sm border border-yellow-500/50"
+                      className="rounded-sm"
                       loading="lazy"
                     />
                   ))}
@@ -341,7 +339,7 @@ export default function BrawlersPage() {
                       title={g.name}
                       width={20}
                       height={20}
-                      className="rounded-sm border border-green-500/50"
+                      className="rounded-sm"
                       loading="lazy"
                     />
                   ))}
@@ -353,10 +351,20 @@ export default function BrawlersPage() {
                     </span>
                   )}
 
-                  {/* Buffies */}
-                  {buffieCount > 0 && (
-                    <span className="text-[10px] bg-sky-500 text-white border-2 border-sky-700 px-1.5 rounded-sm font-black shadow-sm" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
-                      B×{buffieCount}
+                  {/* Buffies — individual indicators */}
+                  {brawler.buffies?.gadget && (
+                    <span className="text-[10px] bg-green-600 text-white border-2 border-green-800 px-1 rounded-sm font-black shadow-sm" title="Gadget Buffy" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.4)' }}>
+                      🅱️G
+                    </span>
+                  )}
+                  {brawler.buffies?.starPower && (
+                    <span className="text-[10px] bg-yellow-500 text-[#1a1a1a] border-2 border-yellow-700 px-1 rounded-sm font-black shadow-sm">
+                      🅱️S
+                    </span>
+                  )}
+                  {brawler.buffies?.hyperCharge && (
+                    <span className="text-[10px] bg-purple-600 text-white border-2 border-purple-800 px-1 rounded-sm font-black shadow-sm" title="HyperCharge Buffy" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.4)' }}>
+                      🅱️H
                     </span>
                   )}
 

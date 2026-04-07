@@ -104,12 +104,14 @@ export function statusToTier(eventName: string, status: string): { tier: string;
     case 'subscription_created':
       return { tier: 'premium', subscriptionStatus: 'active' }
     case 'subscription_updated':
-      return { tier: status === 'active' ? 'premium' : 'premium', subscriptionStatus: status }
+      return { tier: (status === 'active' || status === 'cancelled') ? 'premium' : 'free', subscriptionStatus: status }
     case 'subscription_cancelled':
       return { tier: 'premium', subscriptionStatus: 'cancelled' }
     case 'subscription_expired':
       return { tier: 'free', subscriptionStatus: 'expired' }
+    case 'subscription_payment_failed':
+      return { tier: 'free', subscriptionStatus: 'past_due' }
     default:
-      return { tier: 'premium', subscriptionStatus: status }
+      return { tier: 'free', subscriptionStatus: status }
   }
 }

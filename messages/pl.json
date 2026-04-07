@@ -84,7 +84,11 @@
     "resultVictory": "Zwycięstwo",
     "resultDefeat": "Porażka",
     "resultDraw": "Remis",
-    "starPlayer": "Gwiazda meczu"
+    "starPlayer": "Gwiazda meczu",
+    "topTeammate": "Najlepszy Współgracz",
+    "topTeammates": "Najlepsi Współgracze",
+    "gamesShort": "gier",
+    "winRateByMode": "Procent Wygranych wg Trybu"
   },
   "profile": {
     "gemEquivalent": "Równoważnik w klejnotach",
@@ -455,6 +459,8 @@
     "errorGeneric": "Coś poszło nie tak",
     "withPlayer": "z",
     "showAllCombos": "Pokaż wszystkie combo ({count})",
-    "showAllTeammates": "Pokaż wszystkich ({count})"
+    "showAllTeammates": "Pokaż wszystkich ({count})",
+    "loginRequired": "Zaloguj się przez Google, aby uzyskać dostęp do analiz",
+    "loginButton": "Zaloguj się przez Google"
   }
 }

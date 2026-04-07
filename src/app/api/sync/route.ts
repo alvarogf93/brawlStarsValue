@@ -44,7 +44,11 @@ export async function POST() {
   const result = await syncBattles(profile.player_tag)
 
   if (result.error) {
-    return NextResponse.json({ error: result.error }, { status: 502 })
+    const isApiDown = result.error.includes('fetch failed') || result.error.includes('ECONNREFUSED') || result.error.includes('ETIMEDOUT')
+    return NextResponse.json(
+      { error: isApiDown ? 'Brawl Stars API temporarily unavailable. Try again in a few minutes.' : result.error },
+      { status: 502 },
+    )
   }
 
   return NextResponse.json(result)

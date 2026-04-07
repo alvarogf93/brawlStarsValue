@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Lock } from 'lucide-react'
@@ -14,6 +14,7 @@ interface BlurredTeaserProps {
 export function BlurredTeaser({ children, redirectTo }: BlurredTeaserProps) {
   const { user } = useAuth()
   const t = useTranslations('premium')
+  const locale = useLocale()
   const [authOpen, setAuthOpen] = useState(false)
 
   return (
@@ -34,7 +35,7 @@ export function BlurredTeaser({ children, redirectTo }: BlurredTeaserProps) {
               const res = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ interval: 'monthly' }),
+                body: JSON.stringify({ interval: 'monthly', locale }),
               })
               const data = await res.json()
               if (data.url) window.location.href = data.url

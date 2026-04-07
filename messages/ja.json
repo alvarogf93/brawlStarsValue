@@ -84,7 +84,11 @@
     "resultVictory": "勝利",
     "resultDefeat": "敗北",
     "resultDraw": "引き分け",
-    "starPlayer": "スタープレイヤー"
+    "starPlayer": "スタープレイヤー",
+    "topTeammate": "ベストチームメイト",
+    "topTeammates": "トップチームメイト",
+    "gamesShort": "試合",
+    "winRateByMode": "モード別勝率"
   },
   "profile": {
     "gemEquivalent": "ジェム換算値",
@@ -455,6 +459,8 @@
     "errorGeneric": "エラーが発生しました",
     "withPlayer": "と",
     "showAllCombos": "すべてのコンボを表示 ({count})",
-    "showAllTeammates": "すべてのチームメイトを表示 ({count})"
+    "showAllTeammates": "すべてのチームメイトを表示 ({count})",
+    "loginRequired": "分析にアクセスするにはGoogleでログインしてください",
+    "loginButton": "Googleでログイン"
   }
 }

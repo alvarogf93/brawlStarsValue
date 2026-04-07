@@ -84,7 +84,11 @@
     "resultVictory": "Victoire",
     "resultDefeat": "Défaite",
     "resultDraw": "Égalité",
-    "starPlayer": "Joueur Vedette"
+    "starPlayer": "Joueur Vedette",
+    "topTeammate": "Meilleur Coéquipier",
+    "topTeammates": "Meilleurs Coéquipiers",
+    "gamesShort": "parties",
+    "winRateByMode": "Taux de Victoire par Mode"
   },
   "profile": {
     "gemEquivalent": "Équivalent en gemmes",
@@ -455,6 +459,8 @@
     "errorGeneric": "Une erreur est survenue",
     "withPlayer": "avec",
     "showAllCombos": "Voir tous les combos ({count})",
-    "showAllTeammates": "Voir tous les équipiers ({count})"
+    "showAllTeammates": "Voir tous les équipiers ({count})",
+    "loginRequired": "Connectez-vous avec Google pour accéder à vos analyses",
+    "loginButton": "Se connecter avec Google"
   }
 }

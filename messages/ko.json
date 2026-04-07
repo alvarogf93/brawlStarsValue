@@ -84,7 +84,11 @@
     "resultVictory": "승리",
     "resultDefeat": "패배",
     "resultDraw": "무승부",
-    "starPlayer": "스타 플레이어"
+    "starPlayer": "스타 플레이어",
+    "topTeammate": "최고의 팀원",
+    "topTeammates": "최고의 팀원들",
+    "gamesShort": "게임",
+    "winRateByMode": "모드별 승률"
   },
   "profile": {
     "gemEquivalent": "젬 환산 가치",
@@ -455,6 +459,8 @@
     "errorGeneric": "문제가 발생했습니다",
     "withPlayer": "와(과)",
     "showAllCombos": "모든 콤보 보기 ({count})",
-    "showAllTeammates": "모든 팀원 보기 ({count})"
+    "showAllTeammates": "모든 팀원 보기 ({count})",
+    "loginRequired": "분석에 액세스하려면 Google로 로그인하세요",
+    "loginButton": "Google로 로그인"
   }
 }

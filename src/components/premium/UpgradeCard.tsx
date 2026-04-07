@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Crown, Shield, Check } from 'lucide-react'
@@ -18,6 +18,7 @@ const FEATURES = [
 export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
   const { user } = useAuth()
   const t = useTranslations('premium')
+  const locale = useLocale()
   const [loading, setLoading] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
@@ -31,7 +32,7 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ interval }),
+        body: JSON.stringify({ interval, locale }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url

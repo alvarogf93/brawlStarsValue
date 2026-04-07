@@ -84,7 +84,11 @@
     "resultVictory": "Sieg",
     "resultDefeat": "Niederlage",
     "resultDraw": "Unentschieden",
-    "starPlayer": "Star Player"
+    "starPlayer": "Star Player",
+    "topTeammate": "Bester Teamkamerad",
+    "topTeammates": "Beste Teamkameraden",
+    "gamesShort": "Spiele",
+    "winRateByMode": "Siegesrate nach Modus"
   },
   "profile": {
     "gemEquivalent": "Edelstein-Äquivalent",
@@ -455,6 +459,8 @@
     "errorGeneric": "Etwas ist schiefgelaufen",
     "withPlayer": "mit",
     "showAllCombos": "Alle Combos anzeigen ({count})",
-    "showAllTeammates": "Alle Teamkameraden anzeigen ({count})"
+    "showAllTeammates": "Alle Teamkameraden anzeigen ({count})",
+    "loginRequired": "Melde dich mit Google an, um auf deine Analysen zuzugreifen",
+    "loginButton": "Mit Google anmelden"
   }
 }

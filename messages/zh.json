@@ -84,7 +84,11 @@
     "resultVictory": "胜利",
     "resultDefeat": "失败",
     "resultDraw": "平局",
-    "starPlayer": "明星球员"
+    "starPlayer": "明星球员",
+    "topTeammate": "最佳队友",
+    "topTeammates": "顶级队友",
+    "gamesShort": "场",
+    "winRateByMode": "各模式胜率"
   },
   "profile": {
     "gemEquivalent": "宝石等值",
@@ -455,6 +459,8 @@
     "errorGeneric": "出现了错误",
     "withPlayer": "与",
     "showAllCombos": "显示所有组合 ({count})",
-    "showAllTeammates": "显示所有队友 ({count})"
+    "showAllTeammates": "显示所有队友 ({count})",
+    "loginRequired": "使用Google登录以访问您的分析",
+    "loginButton": "使用Google登录"
   }
 }

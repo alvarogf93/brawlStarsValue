@@ -44,7 +44,9 @@ export async function POST(request: Request) {
   }
 
   const { origin } = new URL(request.url)
-  const redirectUrl = `${origin}/profile/${encodeURIComponent(profile.player_tag)}?upgraded=true`
+  // Include locale in redirect so user doesn't land on a 404
+  const locale = body.locale || 'es'
+  const redirectUrl = `${origin}/${locale}/profile/${encodeURIComponent(profile.player_tag)}?upgraded=true`
 
   const url = await createCheckoutUrl({
     variantId,

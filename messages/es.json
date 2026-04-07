@@ -84,7 +84,11 @@
     "resultVictory": "Victoria",
     "resultDefeat": "Derrota",
     "resultDraw": "Empate",
-    "starPlayer": "Jugador Estrella"
+    "starPlayer": "Jugador Estrella",
+    "topTeammate": "Mejor Compañero",
+    "topTeammates": "Mejores Compañeros",
+    "gamesShort": "partidas",
+    "winRateByMode": "% Victoria por Modo"
   },
   "profile": {
     "gemEquivalent": "Gemas Equivalentes",

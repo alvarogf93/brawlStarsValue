@@ -103,7 +103,7 @@ export default function BattlesPage() {
         <div className="brawl-card-dark p-4 text-center border-[#090E17]">
           <span className="text-3xl block mb-1">⭐</span>
           <p className="font-['Lilita_One'] text-2xl text-[#FFC91B]">{data.starPlayerPct}%</p>
-          <p className="text-[10px] uppercase font-bold text-slate-500">Star Player</p>
+          <p className="text-[10px] uppercase font-bold text-slate-500">{t('starPlayer')}</p>
           <p className="text-[10px] text-slate-600">{data.starPlayerCount}/{data.battles.length}</p>
         </div>
         <div className="brawl-card-dark p-4 text-center border-[#090E17]">
@@ -117,8 +117,8 @@ export default function BattlesPage() {
           <div className="brawl-card-dark p-4 text-center border-[#090E17] col-span-2 md:col-span-1">
             <span className="text-3xl block mb-1">👥</span>
             <p className="font-['Lilita_One'] text-lg text-[#4EC0FA] truncate">{data.teammates[0].name}</p>
-            <p className="text-[10px] uppercase font-bold text-slate-500">Top Teammate</p>
-            <p className="text-[10px] text-slate-600">{data.teammates[0].gamesPlayed} games · {data.teammates[0].winRate}% WR</p>
+            <p className="text-[10px] uppercase font-bold text-slate-500">{t('topTeammate')}</p>
+            <p className="text-[10px] text-slate-600">{data.teammates[0].gamesPlayed} {t('gamesShort')} · {data.teammates[0].winRate}% WR</p>
           </div>
         )}
       </div>
@@ -127,7 +127,7 @@ export default function BattlesPage() {
       {data.modeWinRates.length > 0 && (
         <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
           <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-            <span className="text-xl">📊</span> Win Rate by Mode
+            <span className="text-xl">📊</span> {t('winRateByMode')}
           </h3>
           <div className="space-y-2.5">
             {data.modeWinRates.map(m => {
@@ -162,7 +162,7 @@ export default function BattlesPage() {
       {data.teammates.length > 1 && (
         <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
           <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-            <span className="text-xl">👥</span> Top Teammates
+            <span className="text-xl">👥</span> {t('topTeammates')}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {data.teammates.map((tm, i) => (
@@ -172,7 +172,7 @@ export default function BattlesPage() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="font-['Lilita_One'] text-sm text-white truncate">{tm.name}</p>
-                  <p className="text-[10px] text-slate-500">{tm.gamesPlayed} games</p>
+                  <p className="text-[10px] text-slate-500">{tm.gamesPlayed} {t('gamesShort')}</p>
                 </div>
                 <span className={`font-['Lilita_One'] text-sm ${tm.winRate >= 60 ? 'text-green-400' : tm.winRate >= 45 ? 'text-[#FFC91B]' : 'text-red-400'}`}>
                   {tm.winRate}%

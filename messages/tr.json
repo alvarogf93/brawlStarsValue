@@ -84,7 +84,11 @@
     "resultVictory": "Zafer",
     "resultDefeat": "Yenilgi",
     "resultDraw": "Beraberlik",
-    "starPlayer": "Yıldız Oyuncu"
+    "starPlayer": "Yıldız Oyuncu",
+    "topTeammate": "En İyi Takım Arkadaşı",
+    "topTeammates": "En İyi Takım Arkadaşları",
+    "gamesShort": "oyun",
+    "winRateByMode": "Moda Göre Kazanma Oranı"
   },
   "profile": {
     "gemEquivalent": "Gem Karşılığı",
@@ -455,6 +459,8 @@
     "errorGeneric": "Bir hata oluştu",
     "withPlayer": "ile",
     "showAllCombos": "Tüm komboları göster ({count})",
-    "showAllTeammates": "Tüm takım arkadaşlarını göster ({count})"
+    "showAllTeammates": "Tüm takım arkadaşlarını göster ({count})",
+    "loginRequired": "Analizlerinize erişmek için Google ile giriş yapın",
+    "loginButton": "Google ile giriş yap"
   }
 }
