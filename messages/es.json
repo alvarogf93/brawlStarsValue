@@ -6,7 +6,14 @@
     "cta": "Calcular Poder",
     "calculating": "Calculando...",
     "invalidTag": "Formato inválido. Ejemplo: #2P0Q8C2C0",
-    "error": "Error de conexión"
+    "error": "Error de conexión",
+    "feature1": "Valor en Gemas",
+    "feature2": "Analytics Avanzados",
+    "feature3": "Sinergias de Equipo",
+    "feature4": "Counter-Picks",
+    "privacyLink": "Política de Privacidad",
+    "contact": "Contacto",
+    "disclaimer": "BrawlVision no está afiliado con Supercell Oy. Brawl Stars es marca registrada de Supercell."
   },
   "nav": {
     "overview": "Vista General",

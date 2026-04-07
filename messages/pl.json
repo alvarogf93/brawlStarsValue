@@ -1,12 +1,19 @@
 {
   "landing": {
-    "title": "Jak potężne jest twoje konto?",
-    "subtitle": "Wpisz tag gracza, aby odkryć swój wynik Gem Power",
+    "title": "How powerful is your account?",
+    "subtitle": "Enter your Player Tag and discover your Gem Power Score",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Oblicz moc",
-    "calculating": "Obliczanie...",
-    "invalidTag": "Nieprawidłowy format. Przykład: #2P0Q8C2C0",
-    "error": "Błąd połączenia"
+    "cta": "Calculate Power",
+    "calculating": "Calculating...",
+    "invalidTag": "Invalid format. Example: #2P0Q8C2C0",
+    "error": "Connection error",
+    "feature1": "Gem Value",
+    "feature2": "Advanced Analytics",
+    "feature3": "Team Synergies",
+    "feature4": "Counter-Picks",
+    "privacyLink": "Privacy Policy",
+    "contact": "Contact",
+    "disclaimer": "BrawlVision is not affiliated with Supercell Oy. Brawl Stars is a trademark of Supercell."
   },
   "nav": {
     "overview": "Przegląd",

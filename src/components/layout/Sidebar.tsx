@@ -108,6 +108,11 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
             <span className="font-['Lilita_One'] text-xl text-[var(--color-brawl-gold)] text-stroke-brawl-brand tracking-wider transform rotate-[-1deg]">BrawlVision</span>
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">combat analytics</span>
           </div>
+          <div className="flex items-center justify-center gap-2 mt-2 text-[10px] text-slate-600">
+            <a href={`/${locale}/privacy`} className="hover:text-slate-400 transition-colors">Privacy</a>
+            <span>·</span>
+            <a href="mailto:contact@brawlvision.com" className="hover:text-slate-400 transition-colors">Contact</a>
+          </div>
         </div>
       </aside>
     </>

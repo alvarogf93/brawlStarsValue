@@ -59,11 +59,18 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   }
 
   const handleLogout = async () => {
-    if (user) {
-      await signOut()
-    }
-    try { localStorage.removeItem('brawlvalue:user') } catch { /* ignore */ }
-    router.replace(`/${locale}`)
+    // Clear all app data
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key?.startsWith('brawlvalue:')) localStorage.removeItem(key)
+      }
+    } catch { /* ignore */ }
+
+    if (user) await signOut()
+
+    // Hard redirect to landing (avoids auto-redirect from stale state)
+    window.location.href = `/${locale}`
   }
 
   return (
