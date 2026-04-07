@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
+import { useBattlelog } from '@/hooks/useBattlelog'
 import { isPremium } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { Profile } from '@/lib/supabase/types'
@@ -43,7 +44,9 @@ export default function AnalyticsPage() {
   const hasPremium = isPremium(profile as Profile | null)
   const isLoggedIn = !!profile
   // Only fetch analytics after auth resolves AND user is premium
+  const tag = decodeURIComponent(params.tag)
   const { data: analytics, loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
+  const { data: freeStats, isLoading: freeLoading } = useBattlelog(tag)
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [playNow, setPlayNow] = useState<PlayNowRecommendation[]>([])
   const [authOpen, setAuthOpen] = useState(false)
@@ -100,7 +103,7 @@ export default function AnalyticsPage() {
     )
   }
 
-  // Logged in but not premium: show upgrade card
+  // Logged in but not premium: show free preview + upgrade card
   if (!authLoading && !hasPremium) {
     return (
       <div className="animate-fade-in w-full pb-10 space-y-6">
@@ -117,6 +120,40 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
+
+        {/* Free analytics preview from public battlelog */}
+        {!freeLoading && freeStats && (
+          <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
+            <h3 className="font-['Lilita_One'] text-lg text-white mb-4">{ta('freePreviewTitle') || 'Quick Stats (Last 25 Battles)'}</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.winRate >= 60 ? 'text-green-400' : freeStats.winRate >= 45 ? 'text-[#FFC91B]' : 'text-red-400'}`}>
+                  {freeStats.winRate.toFixed(1)}%
+                </p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('winRateLabel')}</p>
+              </div>
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className="font-['Lilita_One'] text-2xl tabular-nums text-white">
+                  {freeStats.recentWins}W {freeStats.recentLosses}L
+                </p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('record')}</p>
+              </div>
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA] truncate">
+                  {freeStats.mostPlayedBrawler}
+                </p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('freePreviewFavorite') || 'Favorite'}</p>
+              </div>
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.trophyChange > 0 ? 'text-green-400' : freeStats.trophyChange < 0 ? 'text-red-400' : 'text-slate-500'}`}>
+                  {freeStats.trophyChange > 0 ? '+' : ''}{freeStats.trophyChange}
+                </p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('trophyChange')}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
       </div>
     )

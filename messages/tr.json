@@ -118,7 +118,8 @@
     "addCosmetics": "Ekle",
     "classifySkins": "Skin'lerinizi ve pinlerinizi sınıflandırın",
     "calculateAnother": "Başka bir hesap hesapla",
-    "loadError": "Profil bilgileri yüklenemedi."
+    "loadError": "Profil bilgileri yüklenemedi.",
+    "retry": "Tekrar dene"
   },
   "share": {
     "title": "Brawl Stars Güç Puanım",
@@ -461,6 +462,8 @@
     "showAllCombos": "Tüm komboları göster ({count})",
     "showAllTeammates": "Tüm takım arkadaşlarını göster ({count})",
     "loginRequired": "Analizlerinize erişmek için Google ile giriş yapın",
-    "loginButton": "Google ile giriş yap"
+    "loginButton": "Google ile giriş yap",
+    "freePreviewTitle": "Hızlı istatistikler (Son 25 savaş)",
+    "freePreviewFavorite": "Favori"
   }
 }

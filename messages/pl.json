@@ -118,7 +118,8 @@
     "addCosmetics": "Dodaj",
     "classifySkins": "Sklasyfikuj swoje skórki i piny",
     "calculateAnother": "Oblicz inne konto",
-    "loadError": "Nie można załadować informacji o profilu."
+    "loadError": "Nie można załadować informacji o profilu.",
+    "retry": "Ponów"
   },
   "share": {
     "title": "Mój wynik mocy w Brawl Stars",
@@ -461,6 +462,8 @@
     "showAllCombos": "Pokaż wszystkie combo ({count})",
     "showAllTeammates": "Pokaż wszystkich ({count})",
     "loginRequired": "Zaloguj się przez Google, aby uzyskać dostęp do analiz",
-    "loginButton": "Zaloguj się przez Google"
+    "loginButton": "Zaloguj się przez Google",
+    "freePreviewTitle": "Szybki podgląd (ostatnie 25 bitew)",
+    "freePreviewFavorite": "Ulubiony"
   }
 }

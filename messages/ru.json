@@ -118,7 +118,8 @@
     "addCosmetics": "Добавить",
     "classifySkins": "Классифицируйте ваши Skins и пины",
     "calculateAnother": "Рассчитать другой аккаунт",
-    "loadError": "Не удалось загрузить информацию профиля."
+    "loadError": "Не удалось загрузить информацию профиля.",
+    "retry": "Повторить"
   },
   "share": {
     "title": "Мой счёт мощи в Brawl Stars",
@@ -461,6 +462,8 @@
     "showAllCombos": "Показать все комбо ({count})",
     "showAllTeammates": "Показать всех напарников ({count})",
     "loginRequired": "Войдите через Google для доступа к аналитике",
-    "loginButton": "Войти через Google"
+    "loginButton": "Войти через Google",
+    "freePreviewTitle": "Быстрый обзор (последние 25 боёв)",
+    "freePreviewFavorite": "Любимый"
   }
 }

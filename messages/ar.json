@@ -118,7 +118,8 @@
     "addCosmetics": "إضافة",
     "classifySkins": "صنّف أزياءك ودبابيسك",
     "calculateAnother": "احسب حسابًا آخر",
-    "loadError": "تعذر تحميل معلومات الملف الشخصي."
+    "loadError": "تعذر تحميل معلومات الملف الشخصي.",
+    "retry": "إعادة المحاولة"
   },
   "share": {
     "title": "نقاط قوتي في Brawl Stars",
@@ -461,6 +462,8 @@
     "showAllCombos": "عرض كل الكومبو ({count})",
     "showAllTeammates": "عرض كل الزملاء ({count})",
     "loginRequired": "سجل الدخول بحساب Google للوصول إلى التحليلات",
-    "loginButton": "تسجيل الدخول بـ Google"
+    "loginButton": "تسجيل الدخول بـ Google",
+    "freePreviewTitle": "نظرة سريعة (آخر 25 معركة)",
+    "freePreviewFavorite": "المفضل"
   }
 }

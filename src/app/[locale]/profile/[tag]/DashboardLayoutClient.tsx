@@ -7,6 +7,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Footer } from '@/components/common/Footer'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import type { Profile } from '@/lib/supabase/types'
 
 const AUTO_SYNC_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
@@ -67,7 +68,9 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
         {/* Scrollable main content */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-16">
-            {children}
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

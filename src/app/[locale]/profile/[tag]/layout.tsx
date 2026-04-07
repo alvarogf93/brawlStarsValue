@@ -14,16 +14,46 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
     languages[loc] = `${BASE_URL}/${loc}/profile/${encodedTag}`
   }
 
+  // Try to fetch real player data for richer metadata
+  let playerName = ''
+  let trophies = 0
+  let brawlerCount = 0
+  try {
+    const apiUrl = process.env.BRAWLSTARS_API_URL || 'http://141.253.197.60:3001/v1'
+    const res = await fetch(`${apiUrl}/players/${encodedTag}`, {
+      headers: process.env.BRAWLSTARS_API_KEY
+        ? { Authorization: `Bearer ${process.env.BRAWLSTARS_API_KEY}` }
+        : {},
+      next: { revalidate: 3600 },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      playerName = data.name || ''
+      trophies = data.trophies || 0
+      brawlerCount = data.brawlers?.length || 0
+    }
+  } catch {
+    // Fallback to generic metadata
+  }
+
+  const titleBase = playerName
+    ? `${playerName} (#${cleanTag.toUpperCase()}) — ${trophies.toLocaleString()} Trophies`
+    : `Player #${cleanTag.toUpperCase()} Stats`
+
+  const descBase = playerName
+    ? `Brawl Stars stats for ${playerName}. ${trophies.toLocaleString()} trophies, ${brawlerCount} brawlers. Battle analytics, win rates and gem value on BrawlVision.`
+    : `Brawl Stars stats, battle analytics, win rates and gem value for player #${cleanTag.toUpperCase()} on BrawlVision.`
+
   return {
-    title: `Player #${cleanTag.toUpperCase()} Stats`,
-    description: `Brawl Stars stats, battle analytics, win rates and gem value for player #${cleanTag.toUpperCase()} on BrawlVision.`,
+    title: titleBase,
+    description: descBase,
     alternates: {
       canonical: `${BASE_URL}/${locale}/profile/${encodedTag}`,
       languages,
     },
     openGraph: {
-      title: `#${cleanTag.toUpperCase()} — BrawlVision Stats`,
-      description: `Detailed brawler stats, win rates, and analytics for #${cleanTag.toUpperCase()}`,
+      title: `${playerName || `#${cleanTag.toUpperCase()}`} — BrawlVision Stats`,
+      description: descBase,
       url: `${BASE_URL}/${locale}/profile/${encodedTag}`,
     },
   }

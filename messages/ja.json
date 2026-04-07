@@ -118,7 +118,8 @@
     "addCosmetics": "追加",
     "classifySkins": "スキンとピンを分類する",
     "calculateAnother": "別のアカウントを計算",
-    "loadError": "プロフィール情報を読み込めませんでした。"
+    "loadError": "プロフィール情報を読み込めませんでした。",
+    "retry": "再試行"
   },
   "share": {
     "title": "私のBrawl Starsパワースコア",
@@ -461,6 +462,8 @@
     "showAllCombos": "すべてのコンボを表示 ({count})",
     "showAllTeammates": "すべてのチームメイトを表示 ({count})",
     "loginRequired": "分析にアクセスするにはGoogleでログインしてください",
-    "loginButton": "Googleでログイン"
+    "loginButton": "Googleでログイン",
+    "freePreviewTitle": "クイック統計（直近25戦）",
+    "freePreviewFavorite": "お気に入り"
   }
 }

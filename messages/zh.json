@@ -118,7 +118,8 @@
     "addCosmetics": "添加",
     "classifySkins": "分类您的皮肤和表情",
     "calculateAnother": "计算另一个账号",
-    "loadError": "无法加载个人资料信息。"
+    "loadError": "无法加载个人资料信息。",
+    "retry": "重试"
   },
   "share": {
     "title": "我的 Brawl Stars 能量分数",
@@ -461,6 +462,8 @@
     "showAllCombos": "显示所有组合 ({count})",
     "showAllTeammates": "显示所有队友 ({count})",
     "loginRequired": "使用Google登录以访问您的分析",
-    "loginButton": "使用Google登录"
+    "loginButton": "使用Google登录",
+    "freePreviewTitle": "快速统计（最近25场）",
+    "freePreviewFavorite": "最爱"
   }
 }

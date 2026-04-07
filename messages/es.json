@@ -118,7 +118,8 @@
     "addCosmetics": "Añadir",
     "classifySkins": "Clasifica tus skins y reacciones",
     "calculateAnother": "Calcular otra cuenta",
-    "loadError": "No se pudo cargar la información del perfil."
+    "loadError": "No se pudo cargar la información del perfil.",
+    "retry": "Reintentar"
   },
   "share": {
     "title": "Mi Puntuación de Poder en Brawl Stars",
@@ -461,6 +462,8 @@
     "showAllCombos": "Ver todos los combos ({count})",
     "showAllTeammates": "Ver todos los compañeros ({count})",
     "loginRequired": "Inicia sesión con Google para acceder a tus analytics",
-    "loginButton": "Iniciar sesión con Google"
+    "loginButton": "Iniciar sesión con Google",
+    "freePreviewTitle": "Vista rápida (últimas 25 batallas)",
+    "freePreviewFavorite": "Favorito"
   }
 }

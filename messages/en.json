@@ -118,7 +118,8 @@
     "addCosmetics": "Add",
     "classifySkins": "Classify your skins & pins",
     "calculateAnother": "Calculate another account",
-    "loadError": "Could not load profile information."
+    "loadError": "Could not load profile information.",
+    "retry": "Retry"
   },
   "share": {
     "title": "My Brawl Stars Power Score",
@@ -461,6 +462,8 @@
     "showAllCombos": "Show all combos ({count})",
     "showAllTeammates": "Show all teammates ({count})",
     "loginRequired": "Sign in with Google to access your analytics",
-    "loginButton": "Sign in with Google"
+    "loginButton": "Sign in with Google",
+    "freePreviewTitle": "Quick Stats (Last 25 Battles)",
+    "freePreviewFavorite": "Favorite"
   }
 }
