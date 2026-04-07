@@ -455,6 +455,8 @@
     "errorGeneric": "Something went wrong",
     "withPlayer": "with",
     "showAllCombos": "Show all combos ({count})",
-    "showAllTeammates": "Show all teammates ({count})"
+    "showAllTeammates": "Show all teammates ({count})",
+    "loginRequired": "Sign in with Google to access your analytics",
+    "loginButton": "Sign in with Google"
   }
 }

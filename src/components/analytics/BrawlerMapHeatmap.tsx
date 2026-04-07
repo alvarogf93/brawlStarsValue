@@ -16,10 +16,10 @@ function wrColor(wr: number): string {
   return 'text-red-400'
 }
 
-function wrBg(wr: number): string {
-  if (wr >= 60) return 'bg-green-500'
-  if (wr >= 45) return 'bg-[#FFC91B]'
-  return 'bg-red-500'
+function wrBorderColor(wr: number): string {
+  if (wr >= 60) return 'border-l-green-500'
+  if (wr >= 45) return 'border-l-[#FFC91B]'
+  return 'border-l-red-500'
 }
 
 const MODE_ICONS: Record<string, string> = {
@@ -74,7 +74,7 @@ export function BrawlerMapHeatmap({ data }: Props) {
         <select
           value={selectedBrawler}
           onChange={e => setSelectedBrawler(e.target.value)}
-          className="bg-white/[0.06] text-xs text-white border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-[#FFC91B]/40"
+          className="bg-[var(--color-brawl-dark)] text-xs text-white border-2 border-[var(--color-brawl-dark)] rounded-xl px-3 py-2 outline-none font-['Lilita_One'] shadow-[0_2px_0_rgba(0,0,0,0.3)] focus:border-[var(--color-brawl-gold)]"
         >
           <option value="all">{t('allBrawlers')}</option>
           {brawlers.map(b => (
@@ -83,58 +83,61 @@ export function BrawlerMapHeatmap({ data }: Props) {
         </select>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {filtered.map(entry => (
           <div
             key={`${entry.brawlerId}-${entry.map}`}
-            className="flex items-center gap-3 bg-white/[0.03] rounded-xl px-3 py-2.5"
+            className={`relative rounded-xl border-l-4 ${wrBorderColor(entry.winRate)} overflow-hidden p-3 flex flex-col gap-2 transition-all hover:scale-[1.03] brawl-row`}
           >
-            {/* Brawler portrait */}
-            <img
-              src={getBrawlerPortraitUrl(entry.brawlerId)}
-              alt={entry.brawlerName}
-              className="w-9 h-9 rounded-lg flex-shrink-0"
-              loading="lazy"
-            />
-
-            {/* Map thumbnail */}
+            {/* Map background image */}
             {entry.eventId && (
               <img
                 src={getMapImageUrl(entry.eventId)}
-                alt={entry.map}
-                className="w-12 h-9 rounded-md object-cover flex-shrink-0 border border-white/10 hidden sm:block"
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
                 loading="lazy"
               />
             )}
 
-            {/* Map + mode info */}
-            <div className="flex-1 min-w-0">
-              <p className="font-['Lilita_One'] text-sm text-white truncate">
-                {selectedBrawler !== 'all'
-                  ? entry.map
-                  : <>{entry.brawlerName}<span className="text-slate-500 font-normal mx-1.5">·</span>{entry.map}</>
-                }
-              </p>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[10px] text-slate-500">
-                  {MODE_ICONS[entry.mode] || '🎮'} {entry.mode}
-                </span>
-                <span className="text-[10px] text-slate-600">{entry.total}g</span>
-              </div>
-            </div>
-
-            {/* Win rate bar + percentage */}
-            <div className="flex items-center gap-2.5 flex-shrink-0">
-              <div className="w-20 h-2 bg-[#0D1321] rounded-full overflow-hidden hidden sm:block">
-                <div
-                  className={`h-full rounded-full ${wrBg(entry.winRate)}`}
-                  style={{ width: `${entry.winRate}%` }}
-                />
-              </div>
-              <span className={`font-['Lilita_One'] text-sm tabular-nums w-12 text-right ${wrColor(entry.winRate)}`}>
+            {/* Top: Brawler + WR */}
+            <div className="flex items-center justify-between relative z-10">
+              <img
+                src={getBrawlerPortraitUrl(entry.brawlerId)}
+                alt={entry.brawlerName}
+                className="w-8 h-8 rounded-lg flex-shrink-0"
+                loading="lazy"
+              />
+              <span className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(entry.winRate)}`} style={{ textShadow: '0 1px 0 rgba(0,0,0,0.4)' }}>
                 {entry.winRate}%
               </span>
             </div>
+
+            {/* Middle: Names */}
+            <div className="min-w-0 relative z-10">
+              {selectedBrawler === 'all' && (
+                <p className="font-['Lilita_One'] text-xs text-white truncate" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
+                  {entry.brawlerName}
+                </p>
+              )}
+              <p className="text-[11px] text-slate-300 truncate" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.3)' }}>
+                {entry.map}
+              </p>
+            </div>
+
+            {/* Bottom: Mode + games */}
+            <div className="flex items-center justify-between relative z-10">
+              <span className="text-[10px] text-slate-400">
+                {MODE_ICONS[entry.mode] || '🎮'} {entry.mode}
+              </span>
+              <span className="text-[10px] text-slate-400 font-['Lilita_One']">
+                {entry.total}g
+              </span>
+            </div>
+
+            {/* Confidence dot */}
+            {entry.confidence === 'low' && (
+              <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-slate-600 z-10" title="Low confidence" />
+            )}
           </div>
         ))}
       </div>

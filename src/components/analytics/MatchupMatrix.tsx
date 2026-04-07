@@ -126,7 +126,7 @@ export function MatchupMatrix({ data }: Props) {
           return (
             <div
               key={`${m.myBrawlerId}-${m.opponentBrawlerId}`}
-              className="flex items-center gap-2 bg-white/[0.03] rounded-xl px-3 py-2"
+              className="flex items-center gap-2 brawl-row rounded-xl px-3 py-2"
             >
               {/* My brawler */}
               <img

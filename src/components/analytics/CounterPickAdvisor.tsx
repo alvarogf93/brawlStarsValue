@@ -317,7 +317,7 @@ export function CounterPickAdvisor() {
             {results.map((r, i) => (
               <div
                 key={r.brawlerId}
-                className="bg-white/[0.03] rounded-xl px-4 py-3"
+                className="brawl-row rounded-xl px-4 py-3"
               >
                 {/* Main row */}
                 <div className="flex items-center gap-3">

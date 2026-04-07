@@ -153,7 +153,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
               {visibleCombos.map((c, i) => (
                 <div
                   key={`${c.myBrawlerId}-${c.teammateBrawlerId}`}
-                  className="flex items-center gap-3 bg-white/[0.03] rounded-xl px-4 py-2.5"
+                  className="flex items-center gap-3 brawl-row rounded-xl px-4 py-2.5"
                 >
                   {/* Rank */}
                   <span className="font-['Lilita_One'] text-xs text-slate-600 w-5 text-right tabular-nums">
@@ -217,7 +217,7 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
               {visibleTeammates.map((tm, i) => (
                 <div
                   key={tm.tag}
-                  className="flex items-center gap-3 bg-white/[0.03] rounded-xl px-4 py-3"
+                  className="flex items-center gap-3 brawl-row rounded-xl px-4 py-3"
                 >
                   {/* Rank / Medal */}
                   <span className="w-6 text-center flex-shrink-0">

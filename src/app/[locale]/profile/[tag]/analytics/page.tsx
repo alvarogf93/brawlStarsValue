@@ -9,10 +9,11 @@ import { isPremium } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
-import { FlaskConical } from 'lucide-react'
+import { FlaskConical, LogIn } from 'lucide-react'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
+import { AuthModal } from '@/components/auth/AuthModal'
 import { OverviewStats } from '@/components/analytics/OverviewStats'
 import { BrawlerMapHeatmap } from '@/components/analytics/BrawlerMapHeatmap'
 import { MatchupMatrix } from '@/components/analytics/MatchupMatrix'
@@ -40,9 +41,11 @@ export default function AnalyticsPage() {
   const ta = useTranslations('advancedAnalytics')
   const { profile, loading: authLoading } = useAuth()
   const hasPremium = isPremium(profile as Profile | null)
+  const isLoggedIn = !!profile
   const { data: analytics, loading, error } = useAdvancedAnalytics()
   const [activeTab, setActiveTab] = useState<TabId>('overview')
   const [playNow, setPlayNow] = useState<PlayNowRecommendation[]>([])
+  const [authOpen, setAuthOpen] = useState(false)
 
   // Fetch current events for "Play Now"
   useEffect(() => {
@@ -60,7 +63,43 @@ export default function AnalyticsPage() {
       .catch(err => console.warn('Failed to fetch events for Play Now:', err))
   }, [analytics])
 
-  // Not premium: show upgrade card
+  // Not logged in: prompt to sign in with Google
+  if (!authLoading && !isLoggedIn) {
+    return (
+      <div className="animate-fade-in w-full pb-10 space-y-6">
+        <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[var(--color-brawl-sky)] to-[#121A2F]">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-[#121A2F] border-4 border-[var(--color-brawl-sky)] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
+              <LogIn className="w-8 h-8 text-[var(--color-brawl-sky)]" />
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">
+                {t('title')}
+              </h1>
+              <p className="font-['Inter'] font-semibold text-[var(--color-brawl-sky)]">{t('premiumOnly')}</p>
+            </div>
+          </div>
+        </div>
+        <div className="brawl-card p-6 text-center">
+          <p className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] mb-4">
+            {ta('loginRequired') || 'Sign in with Google to access your analytics'}
+          </p>
+          <button
+            onClick={() => setAuthOpen(true)}
+            className="brawl-button px-6 py-3 text-base"
+          >
+            <span className="flex items-center gap-2">
+              <LogIn className="w-5 h-5" />
+              {ta('loginButton') || 'Sign in with Google'}
+            </span>
+          </button>
+        </div>
+        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+      </div>
+    )
+  }
+
+  // Logged in but not premium: show upgrade card
   if (!authLoading && !hasPremium) {
     return (
       <div className="animate-fade-in w-full pb-10 space-y-6">

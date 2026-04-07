@@ -157,6 +157,16 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Brawl row — glass-like row elements with hover + backdrop blur */
+.brawl-row {
+  background-color: color-mix(in oklab, var(--color-white) 3%, transparent);
+  backdrop-filter: blur(3px);
+  transition: background-color 0.15s ease;
+}
+.brawl-row:hover {
+  background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+}
+
 /* Brawler Parade — infinite scroll */
 @keyframes parade-left {
   0% { transform: translateX(0); }

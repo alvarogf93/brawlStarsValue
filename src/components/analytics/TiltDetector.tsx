@@ -116,7 +116,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
       {/* ── Stats Grid ─────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-2.5 mb-5">
         {/* Normal WR */}
-        <div className="bg-white/[0.03] rounded-xl p-4 text-center">
+        <div className="brawl-row rounded-xl p-4 text-center">
           <p className={`font-['Lilita_One'] text-2xl tabular-nums ${
             tilt.wrNormal !== null ? wrColor(tilt.wrNormal) : 'text-slate-500'
           }`}>
@@ -128,7 +128,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
         </div>
 
         {/* Tilt WR */}
-        <div className="bg-white/[0.03] rounded-xl p-4 text-center relative">
+        <div className="brawl-row rounded-xl p-4 text-center relative">
           <p className={`font-['Lilita_One'] text-2xl tabular-nums ${
             tilt.wrAfterTilt !== null ? wrColor(tilt.wrAfterTilt) : 'text-slate-500'
           }`}>
@@ -146,7 +146,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
         </div>
 
         {/* Tilt Episodes */}
-        <div className="bg-white/[0.03] rounded-xl p-4 text-center">
+        <div className="brawl-row rounded-xl p-4 text-center">
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#FFC91B]">
             {tilt.tiltEpisodes}
           </p>
@@ -156,7 +156,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
         </div>
 
         {/* Avg Games While Tilted */}
-        <div className="bg-white/[0.03] rounded-xl p-4 text-center">
+        <div className="brawl-row rounded-xl p-4 text-center">
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA]">
             {tilt.avgGamesInTilt > 0 ? tilt.avgGamesInTilt.toFixed(1) : '--'}
           </p>
@@ -176,7 +176,7 @@ export function TiltDetector({ tilt, sessions }: Props) {
             {recentSessions.map((s, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 bg-white/[0.03] rounded-xl px-4 py-2.5"
+                className="flex items-center gap-3 brawl-row rounded-xl px-4 py-2.5"
               >
                 {/* Date range */}
                 <div className="flex-1 min-w-0">

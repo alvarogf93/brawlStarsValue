@@ -324,7 +324,7 @@ function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typ
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
       {/* Total Games */}
-      <div className="bg-white/[0.03] rounded-xl p-3 text-center">
+      <div className="brawl-row rounded-xl p-3 text-center">
         <p className="font-['Lilita_One'] text-xl tabular-nums text-white">
           {totalGames}
         </p>
@@ -334,7 +334,7 @@ function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typ
       </div>
 
       {/* Current WR */}
-      <div className="bg-white/[0.03] rounded-xl p-3 text-center">
+      <div className="brawl-row rounded-xl p-3 text-center">
         <p
           className={`font-['Lilita_One'] text-xl tabular-nums ${
             currentWR >= 60
@@ -352,7 +352,7 @@ function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typ
       </div>
 
       {/* First WR */}
-      <div className="bg-white/[0.03] rounded-xl p-3 text-center">
+      <div className="brawl-row rounded-xl p-3 text-center">
         <p className="font-['Lilita_One'] text-xl tabular-nums text-slate-300">
           {firstWR.toFixed(1)}%
         </p>
@@ -362,7 +362,7 @@ function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typ
       </div>
 
       {/* Delta */}
-      <div className="bg-white/[0.03] rounded-xl p-3 text-center">
+      <div className="brawl-row rounded-xl p-3 text-center">
         <p
           className={`font-['Lilita_One'] text-xl tabular-nums ${
             delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-slate-400'
