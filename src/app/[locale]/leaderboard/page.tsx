@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { useAuth } from '@/hooks/useAuth'
 import { Link } from '@/i18n/routing'
-import NextLink from 'next/link'
 import { Home, Trophy, Loader2 } from 'lucide-react'
 import type { RankedPlayer } from '@/lib/api'
 
@@ -16,9 +17,25 @@ export default function LeaderboardPage() {
   const [error, setError] = useState('')
   const [country, setCountry] = useState('global')
   const locale = useLocale()
+  const router = useRouter()
+  const { profile } = useAuth()
 
-  const profileUrl = (tag: string) =>
-    `/${locale}/profile/${encodeURIComponent(tag)}`
+  const handlePlayerClick = (playerTag: string) => {
+    const myTag = profile?.player_tag
+    if (myTag) {
+      // Navigate to MY compare page with this player pre-loaded
+      router.push(`/${locale}/profile/${encodeURIComponent(myTag)}/compare?vs=${encodeURIComponent(playerTag)}`)
+    } else {
+      // Not logged in: try from localStorage or navigate to their profile
+      let storedTag: string | null = null
+      try { storedTag = localStorage.getItem('brawlvalue:user') } catch {}
+      if (storedTag) {
+        router.push(`/${locale}/profile/${encodeURIComponent(storedTag)}/compare?vs=${encodeURIComponent(playerTag)}`)
+      } else {
+        router.push(`/${locale}/profile/${encodeURIComponent(playerTag)}`)
+      }
+    }
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -100,7 +117,7 @@ export default function LeaderboardPage() {
               if (!p) return null
               const isFirst = idx === 0
               return (
-                <NextLink href={profileUrl(p.tag)} key={p.tag} className={`${podiumWidths[pos]} flex flex-col items-center relative group brawl-tilt ${isFirst ? 'z-20 transform scale-105' : ''} cursor-pointer`}>
+                <div onClick={() => handlePlayerClick(p.tag)} key={p.tag} className={`${podiumWidths[pos]} flex flex-col items-center relative group brawl-tilt ${isFirst ? 'z-20 transform scale-105' : ''} cursor-pointer`}>
                   <div className={`absolute ${isFirst ? '-top-28' : '-top-16'} ${isFirst ? 'animate-float' : ''} z-30 flex flex-col items-center`}>
                     {isFirst && <span className="text-4xl mb-[-10px] z-40 transform rotate-12 drop-shadow-md">👑</span>}
                     <div className={`bg-white ${isFirst ? 'w-28 h-28 rounded-[2rem]' : 'w-20 h-20 rounded-3xl'} border-4 flex items-center justify-center text-4xl ${isFirst ? 'text-6xl' : ''} group-hover:scale-110 transition-transform`}
@@ -120,7 +137,7 @@ export default function LeaderboardPage() {
                       <Trophy className="w-5 h-5" />
                     </span>
                   </div>
-                </NextLink>
+                </div>
               )
             })}
           </div>
@@ -131,7 +148,7 @@ export default function LeaderboardPage() {
           {/* Rest of list */}
           <div className="flex flex-col gap-4 relative z-10 max-w-4xl mx-auto px-2">
             {rest.map((p) => (
-              <NextLink key={p.tag} href={profileUrl(p.tag)} className="bg-white/5 border-4 border-white/10 backdrop-blur-md rounded-[2rem] p-4 flex items-center hover:bg-white/10 hover:border-white/30 transition-all duration-300 transform hover:-translate-y-1 group">
+              <div key={p.tag} onClick={() => handlePlayerClick(p.tag)} className="bg-white/5 border-4 border-white/10 backdrop-blur-md rounded-[2rem] p-4 flex items-center hover:bg-white/10 hover:border-white/30 transition-all duration-300 transform hover:-translate-y-1 group cursor-pointer">
                 <div className="w-14 h-14 rounded-2xl bg-[#121A2F] border-2 border-white/20 flex items-center justify-center shrink-0">
                   <span className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-sky)]">{p.rank}</span>
                 </div>
@@ -146,7 +163,7 @@ export default function LeaderboardPage() {
                     <AnimatedCounter value={p.trophies} /> <Trophy className="w-5 h-5 md:w-6 md:h-6" />
                   </span>
                 </div>
-              </NextLink>
+              </div>
             ))}
           </div>
         </>
