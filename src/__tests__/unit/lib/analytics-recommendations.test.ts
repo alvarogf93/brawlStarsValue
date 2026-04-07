@@ -139,7 +139,7 @@ describe('computePlayNowRecommendations', () => {
 
   it('returns recommendations when map data exists', () => {
     const mapMatrix: BrawlerMapEntry[] = [
-      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45 },
+      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
     ]
     const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
     const result = computePlayNowRecommendations(mapMatrix, [], events)
@@ -150,7 +150,7 @@ describe('computePlayNowRecommendations', () => {
 
   it('falls back to mode data when no map match', () => {
     const mapMatrix: BrawlerMapEntry[] = [
-      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Other Map', mode: 'brawlBall', wins: 5, total: 10, winRate: 50, wilsonScore: 30 },
+      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Other Map', mode: 'brawlBall', wins: 5, total: 10, winRate: 50, wilsonScore: 30, eventId: null, confidence: 'medium' as const },
     ]
     const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Unknown Map' } }]
     const result = computePlayNowRecommendations(mapMatrix, [], events)
@@ -167,6 +167,8 @@ describe('computePlayNowRecommendations', () => {
       total: 10,
       winRate: 50 + i * 5,
       wilsonScore: 30 + i * 3,
+      eventId: null,
+      confidence: 'medium' as const,
     }))
     const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
     const result = computePlayNowRecommendations(mapMatrix, [], events)
