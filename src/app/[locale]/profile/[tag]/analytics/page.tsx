@@ -171,6 +171,7 @@ export default function AnalyticsPage() {
     // Default: show subscription packages (logged in or not, no premium)
     return (
       <div className="animate-fade-in w-full pb-10 space-y-6">
+        <TrialBanner />
         <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#FFC91B] to-[#121A2F]">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-[#121A2F] border-4 border-[#FFC91B] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
