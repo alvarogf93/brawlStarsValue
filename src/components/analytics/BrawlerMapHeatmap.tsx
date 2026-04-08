@@ -8,6 +8,7 @@ import type { BrawlerMapEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
+import { useMapImages } from '@/hooks/useMapImages'
 
 interface Props {
   data: BrawlerMapEntry[]
@@ -25,6 +26,7 @@ function wrBorderColor(wr: number): string {
 export function BrawlerMapHeatmap({ data }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
+  const mapImages = useMapImages()
 
   const { brawlers, filtered } = useMemo(() => {
     const brawlerMap = new Map<number, { id: number; name: string; total: number }>()
@@ -83,9 +85,9 @@ export function BrawlerMapHeatmap({ data }: Props) {
             className={`relative rounded-xl border-l-4 ${wrBorderColor(entry.winRate)} overflow-hidden p-3 flex flex-col gap-2 transition-all hover:scale-[1.03] brawl-row`}
           >
             {/* Map background image */}
-            {entry.eventId && (
+            {(entry.eventId || mapImages[entry.map]) && (
               <img
-                src={getMapImageUrl(entry.eventId)}
+                src={entry.eventId ? getMapImageUrl(entry.eventId) : mapImages[entry.map]}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none"
                 loading="lazy"
