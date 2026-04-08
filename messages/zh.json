@@ -74,7 +74,8 @@
     "lastSync": "上次同步",
     "manage": "管理订阅",
     "profile": "个人资料",
-    "picks": "选择"
+    "picks": "选择",
+    "exit": "首页"
   },
   "battles": {
     "title": "最近战斗",

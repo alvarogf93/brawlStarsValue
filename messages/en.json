@@ -74,7 +74,8 @@
     "lastSync": "Last sync",
     "manage": "Manage subscription",
     "profile": "Profile",
-    "picks": "Picks"
+    "picks": "Picks",
+    "exit": "Home"
   },
   "battles": {
     "title": "RECENT BATTLES",

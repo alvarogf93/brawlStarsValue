@@ -74,7 +74,8 @@
     "lastSync": "最終同期",
     "manage": "サブスク管理",
     "profile": "プロフィール",
-    "picks": "ピック"
+    "picks": "ピック",
+    "exit": "ホーム"
   },
   "battles": {
     "title": "最近のバトル",
