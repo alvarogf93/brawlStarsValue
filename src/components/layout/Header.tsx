@@ -174,20 +174,22 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               <button
                 onClick={() => setProfileMenuOpen(prev => !prev)}
                 aria-label={t('profile')}
-                className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all hover:scale-105 active:scale-95 overflow-hidden ${hasPremium ? 'border-[#FFC91B] shadow-[0_0_8px_rgba(255,201,27,0.3)]' : 'border-white/20 hover:border-white/40'}`}
+                className="relative transition-all hover:scale-105 active:scale-95"
               >
-                {user.user_metadata?.avatar_url ? (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <User className="w-5 h-5 text-slate-400" />
-                )}
+                <div className={`w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center ${hasPremium ? 'border-[#FFC91B] shadow-[0_0_8px_rgba(255,201,27,0.3)]' : 'border-white/20 hover:border-white/40'}`}>
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <User className="w-5 h-5 text-slate-400" />
+                  )}
+                </div>
                 {hasPremium && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FFC91B] rounded-full flex items-center justify-center border border-[#0F172A]">
+                  <span className="absolute -top-1 -right-1 z-10 w-4 h-4 bg-[#FFC91B] rounded-full flex items-center justify-center border-2 border-[#0F172A]">
                     <Crown className="w-2.5 h-2.5 text-[#121A2F]" />
                   </span>
                 )}
