@@ -1,10 +1,66 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Crown, Shield, Check } from 'lucide-react'
+
+function HookCarousel() {
+  const t = useTranslations('premium')
+  const [index, setIndex] = useState(0)
+  const [fade, setFade] = useState(true)
+
+  // Read hooks array from translations
+  const hooks: string[] = t.raw('hooks') as string[] ?? []
+  const subs: string[] = t.raw('hookSubs') as string[] ?? []
+  const count = hooks.length
+
+  const advance = useCallback(() => {
+    setFade(false)
+    setTimeout(() => {
+      setIndex(i => (i + 1) % count)
+      setFade(true)
+    }, 300)
+  }, [count])
+
+  useEffect(() => {
+    if (count <= 1) return
+    const interval = setInterval(advance, 8000)
+    return () => clearInterval(interval)
+  }, [count, advance])
+
+  if (count === 0) return null
+
+  return (
+    <div className="mx-6 md:mx-8 mt-4">
+      <div
+        className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1C5CF1] to-[#B23DFF] p-4 cursor-pointer select-none"
+        onClick={advance}
+      >
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
+        <div className={`transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>
+          <p className="font-['Lilita_One'] text-sm md:text-base text-white text-stroke-brawl leading-snug relative z-10">
+            {hooks[index]}
+          </p>
+          {subs[index] && (
+            <p className="font-['Inter'] text-[11px] text-white/80 mt-2 relative z-10 font-bold italic">
+              {subs[index]}
+            </p>
+          )}
+        </div>
+        {/* Dots indicator */}
+        {count > 1 && (
+          <div className="flex justify-center gap-1.5 mt-3 relative z-10">
+            {hooks.map((_, i) => (
+              <span key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === index ? 'bg-white scale-125' : 'bg-white/30'}`} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 interface UpgradeCardProps {
   redirectTo?: string
@@ -56,18 +112,8 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
           </div>
         </div>
 
-        {/* Hook banner */}
-        <div className="mx-6 md:mx-8 mt-4">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1C5CF1] to-[#B23DFF] p-4">
-            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
-            <p className="font-['Lilita_One'] text-sm md:text-base text-white text-stroke-brawl leading-snug relative z-10">
-              {t('hookLine1')}
-            </p>
-            <p className="font-['Inter'] text-[11px] text-white/70 mt-1.5 relative z-10 font-semibold">
-              {t('hookLine2')}
-            </p>
-          </div>
-        </div>
+        {/* Hook carousel */}
+        <HookCarousel />
 
         {/* Features */}
         <div className="px-6 md:px-8 py-5">

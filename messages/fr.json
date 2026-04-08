@@ -354,8 +354,28 @@
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
     "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
-    "hookLine1": "Tu paies déjà pour un autre skin ? Pour le même prix, passe au niveau supérieur.",
-    "hookLine2": "Des analyses qui s'améliorent plus tu joues. Le Brawl Pass est toujours pareil — ceci grandit avec toi."
+    "hooks": [
+      "Bro, encore un skin ? Sérieux. Pour le même prix t'as un système qui garde TOUTES tes parties et qui devient plus malin chaque jour. À toi de choisir : avoir l'air pro ou jouer comme un vrai.",
+      "T'as tous les brawlers au 11, tous les skins, tout l'or du monde. Et maintenant ? Maintenant le vrai jeu commence : savoir comment tu joues vraiment.",
+      "Ce Kenji qui t'a détruit 4 fois de suite n'est pas meilleur que toi. Il sait juste quoi jouer et quand. Maintenant toi aussi tu vas le savoir.",
+      "3 saisons à acheter le Brawl Pass et t'es toujours au même nombre de trophées. Un Léon te tue, un Spike te déchire et toi tu sais même pas quoi pick. C'est fini.",
+      "T'as dépensé plus en skins qu'en bouffe ce mois-ci et tu perds toujours contre le même Mortis. Et si pour une fois tu dépenses pour quelque chose qui te fait GAGNER ?",
+      "Tu perds et tu sais pas pourquoi. Tu gagnes et tu sais pas comment le refaire. Mystère résolu : chaque partie gardée, chaque rival analysé.",
+      "Ton pote avec les skins par défaut te bat parce qu'il sait quel brawler jouer sur chaque map. Toi t'as 200 skins et aucune idée de pourquoi un Edgar random te détruit. Tu vas le découvrir ici.",
+      "Tu vaux combien vraiment sur Brawl Stars ? Pas tes trophées, pas tes skins — ton vrai niveau. Découvre-le ici. Attention : parfois ça fait mal.",
+      "Quand ton pote dit qu'il est meilleur que toi, montre-lui les données. Win rate réel, matchups, historique complet. On verra qui parle maintenant."
+    ],
+    "hookSubs": [
+      "C'est pas une dépense. C'est arrêter de donner des trophées.",
+      "Le seul upgrade que le Brawl Pass peut pas te donner.",
+      "Moins de skins, plus de wins.",
+      "Ton avantage injuste commence ici.",
+      "Chaque défaite analysée est une défaite qui ne se répétera pas.",
+      "Arrêter de perdre c'est pas de la chance. C'est de l'info.",
+      "Tes données. Ta vérité. Sans excuses.",
+      "Si t'as déjà tout maxé, c'est ce qui te manque.",
+      "Les données mentent pas. Ton pote si."
+    ]
   },
   "analytics": {
     "title": "Analytics",
