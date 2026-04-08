@@ -20,10 +20,16 @@ async function getBrawlApiMaps(): Promise<Map<string, { id: number; imageUrl: st
 
     const map = new Map<string, { id: number; imageUrl: string }>()
     for (const m of list) {
-      // BrawlAPI uses hyphens, our data uses spaces
-      const normalized = m.name.replace(/-/g, ' ')
-      if (m.imageUrl) {
-        map.set(normalized, { id: m.id, imageUrl: m.imageUrl })
+      if (!m.imageUrl) continue
+      // BrawlAPI uses hyphens and no apostrophes: "Belles-Rock" → we store "Belle's Rock"
+      // Create multiple normalized keys to maximize matching
+      const withSpaces = m.name.replace(/-/g, ' ')
+      map.set(withSpaces, { id: m.id, imageUrl: m.imageUrl })
+      map.set(m.name, { id: m.id, imageUrl: m.imageUrl })
+      // Also try common apostrophe patterns: "Belles Rock" → "Belle's Rock"
+      const withApostrophe = withSpaces.replace(/(\w)s\s/g, "$1's ")
+      if (withApostrophe !== withSpaces) {
+        map.set(withApostrophe, { id: m.id, imageUrl: m.imageUrl })
       }
     }
     brawlApiMaps = map

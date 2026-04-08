@@ -14,7 +14,7 @@ import { TeamSlots } from './TeamSlots'
 import { BrawlerGrid } from './BrawlerGrid'
 import { RecommendationPanel } from './RecommendationPanel'
 import { getGameModeImageUrl, getMapImageUrl } from '@/lib/utils'
-import { RotateCcw, Undo2, Swords, ChevronRight } from 'lucide-react'
+import { RotateCcw, Undo2, ChevronRight } from 'lucide-react'
 
 export function DraftSimulator() {
   const t = useTranslations('draft')
@@ -99,7 +99,7 @@ export function DraftSimulator() {
       {/* ── Header + Reset ── */}
       <div className="flex items-center justify-between">
         <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
-          <Swords className="w-5 h-5 text-[#FFC91B]" /> {t('draftTitle')}
+          <img src="/assets/modes/48000028.png" alt="" className="w-6 h-6" width={24} height={24} /> {t('draftTitle')}
         </h3>
         {state.phase !== 'IDLE' && (
           <button onClick={() => { dispatch({ type: 'RESET' }); setSelectedMapImage(null) }}
