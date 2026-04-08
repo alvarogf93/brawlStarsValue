@@ -137,7 +137,7 @@ export async function GET(request: Request) {
         }
       })
 
-      await supabase.rpc('bulk_upsert_meta_stats', { rows: JSON.stringify(statRows) })
+      await supabase.rpc('bulk_upsert_meta_stats', { rows: statRows })
     }
 
     // 5. Bulk upsert meta_matchups (single RPC call instead of thousands)
@@ -156,7 +156,7 @@ export async function GET(request: Request) {
         }
       })
 
-      await supabase.rpc('bulk_upsert_meta_matchups', { rows: JSON.stringify(matchupRows) })
+      await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows })
     }
 
     // 6. Update cursors
