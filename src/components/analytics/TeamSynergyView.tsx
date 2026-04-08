@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback , wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { BrawlerSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
@@ -11,11 +11,7 @@ import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 // ── Helpers ────────────────────────────────────────────────────
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 45) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
+
 
 function medal(i: number): string {
   if (i === 0) return '🥇'

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor, barGradient } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { MatchupEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
@@ -14,17 +14,9 @@ interface Props {
 
 const INITIAL_LIMIT = 20
 
-function wrColor(wr: number) {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 50) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
 
-function barGradient(wr: number) {
-  if (wr >= 60) return 'from-green-500 to-green-400'
-  if (wr >= 50) return 'from-[#FFC91B] to-yellow-300'
-  return 'from-red-500 to-red-400'
-}
+
+
 
 
 export function MatchupMatrix({ data }: Props) {

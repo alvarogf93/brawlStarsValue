@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { BrawlerMapEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
@@ -13,11 +13,7 @@ interface Props {
   data: BrawlerMapEntry[]
 }
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 45) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
+
 
 function wrBorderColor(wr: number): string {
   if (wr >= 60) return 'border-l-green-500'

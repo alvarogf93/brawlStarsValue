@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl , wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 45) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
+
 
 function computeTimeLeft(endTimeStr: string, endedLabel: string): string {
   const diff = new Date(endTimeStr).getTime() - Date.now()

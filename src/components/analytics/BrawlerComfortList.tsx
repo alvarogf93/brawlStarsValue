@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { BrawlImg } from '@/components/ui/BrawlImg'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import type { BrawlerComfort } from '@/lib/analytics/types'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
@@ -12,11 +12,7 @@ interface Props {
   data: BrawlerComfort[]
 }
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 45) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
+
 
 function comfortColor(score: number): string {
   if (score >= 70) return 'text-green-400'

@@ -1,16 +1,12 @@
 'use client'
 
 import { useMemo } from 'react'
+import { wrColor } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
 import type { BrawlerEntry } from '@/lib/brawler-registry'
 import type { Recommendation } from '@/lib/draft/scoring'
 import { RotateCcw } from 'lucide-react'
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 50) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
 
 interface Props {
   blueTeam: number[]

@@ -1,61 +1,65 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Crown, Shield, Check } from 'lucide-react'
 
-function HookCarousel() {
+/**
+ * Smart hook: picks ONE phrase based on player context.
+ * Segments: 0-1 maxed, 2-3 competitive, 4-5 frustrated, 6-7 curious, 8 social
+ */
+function HookBanner() {
   const t = useTranslations('premium')
-  const [index, setIndex] = useState(0)
-  const [fade, setFade] = useState(true)
+  const { profile } = useAuth()
 
-  // Read hooks array from translations
-  const hooks: string[] = t.raw('hooks') as string[] ?? []
-  const subs: string[] = t.raw('hookSubs') as string[] ?? []
-  const count = hooks.length
+  const hooks: string[] = (t.raw('hooks') as string[]) ?? []
+  const subs: string[] = (t.raw('hookSubs') as string[]) ?? []
 
-  const advance = useCallback(() => {
-    setFade(false)
-    setTimeout(() => {
-      setIndex(i => (i + 1) % count)
-      setFade(true)
-    }, 300)
-  }, [count])
+  const index = useMemo(() => {
+    if (hooks.length === 0) return 0
+    // Try to detect player segment from profile context
+    if (profile) {
+      // Check if player data is in localStorage
+      try {
+        const cached = localStorage.getItem(`brawlvalue:player:${profile.player_tag.toUpperCase()}`)
+        if (cached) {
+          const { gemScore } = JSON.parse(cached)
+          const brawlers = gemScore?.player?.brawlers ?? []
+          const maxed = brawlers.filter((b: { power: number }) => b.power >= 11).length
+          const totalBrawlers = brawlers.length
+          const trophies = gemScore?.player?.trophies ?? 0
 
-  useEffect(() => {
-    if (count <= 1) return
-    const interval = setInterval(advance, 8000)
-    return () => clearInterval(interval)
-  }, [count, advance])
+          // Maxed player: many brawlers at power 11
+          if (maxed > totalBrawlers * 0.6) return Math.random() < 0.5 ? 0 : 1
+          // Competitive: high trophies
+          if (trophies > 30000) return Math.random() < 0.5 ? 2 : 3
+          // Curious/newer: lower trophies
+          if (trophies < 15000) return Math.random() < 0.5 ? 6 : 7
+        }
+      } catch { /* ignore */ }
+    }
+    // Default: random from the "punchier" hooks (frustrated + social)
+    const punchy = [4, 5, 8]
+    return punchy[Math.floor(Math.random() * punchy.length)]
+  }, [hooks.length, profile])
 
-  if (count === 0) return null
+  if (hooks.length === 0) return null
+
+  const safeIndex = index < hooks.length ? index : 0
 
   return (
     <div className="mx-6 md:mx-8 mt-4">
-      <div
-        className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1C5CF1] to-[#B23DFF] p-4 cursor-pointer select-none"
-        onClick={advance}
-      >
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1C5CF1] to-[#B23DFF] p-4">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
-        <div className={`transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}>
-          <p className="font-['Lilita_One'] text-sm md:text-base text-white text-stroke-brawl leading-snug relative z-10">
-            {hooks[index]}
+        <p className="font-['Lilita_One'] text-sm md:text-base text-white text-stroke-brawl leading-snug relative z-10">
+          {hooks[safeIndex]}
+        </p>
+        {subs[safeIndex] && (
+          <p className="font-['Inter'] text-[11px] text-white/80 mt-2 relative z-10 font-bold italic">
+            {subs[safeIndex]}
           </p>
-          {subs[index] && (
-            <p className="font-['Inter'] text-[11px] text-white/80 mt-2 relative z-10 font-bold italic">
-              {subs[index]}
-            </p>
-          )}
-        </div>
-        {/* Dots indicator */}
-        {count > 1 && (
-          <div className="flex justify-center gap-1.5 mt-3 relative z-10">
-            {hooks.map((_, i) => (
-              <span key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === index ? 'bg-white scale-125' : 'bg-white/30'}`} />
-            ))}
-          </div>
         )}
       </div>
     </div>
@@ -112,8 +116,8 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
           </div>
         </div>
 
-        {/* Hook carousel */}
-        <HookCarousel />
+        {/* Context-aware hook phrase */}
+        <HookBanner />
 
         {/* Features */}
         <div className="px-6 md:px-8 py-5">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { wrColor } from '@/lib/utils'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import type { OpponentStrengthBreakdown } from '@/lib/analytics/types'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
@@ -9,11 +10,7 @@ interface Props {
   data: OpponentStrengthBreakdown[]
 }
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 45) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
+
 
 const TIER_ICONS: Record<string, string> = {
   weak: '🟢',
