@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { fetchBattlelog } from '@/lib/api'
 import { parseBattlelog } from '@/lib/battle-parser'
+import { isDraftMode } from '@/lib/draft/constants'
+import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
 
 const BATCH_SIZE = 10
 const SYNC_INTERVAL_MS = 20 * 60 * 1000 // 20 minutes
@@ -55,6 +57,36 @@ export async function GET(request: Request) {
         ignoreDuplicates: true,
         count: 'exact',
       })
+
+      // Aggregate into meta_stats/meta_matchups (source='users')
+      const acc: MetaAccumulators = { stats: new Map(), matchups: new Map() }
+      const today = new Date().toISOString().slice(0, 10)
+      for (const b of parsed) {
+        if (!isDraftMode(b.mode) || !b.map) continue
+        if (b.result !== 'victory' && b.result !== 'defeat') continue
+        const opponentIds = (b.opponents as Array<{ brawler: { id: number } }>).map(o => o.brawler.id)
+        processBattleForMeta(acc, {
+          myBrawlerId: (b.my_brawler as { id: number }).id,
+          opponentBrawlerIds: opponentIds,
+          map: b.map,
+          mode: b.mode,
+          result: b.result,
+        })
+      }
+      if (acc.stats.size > 0) {
+        const statRows = Array.from(acc.stats.entries()).map(([key, val]) => {
+          const [brawlerId, map, mode] = key.split('|')
+          return { brawler_id: Number(brawlerId), map, mode, source: 'users', date: today, wins: val.wins, losses: val.losses, total: val.total }
+        })
+        try { await supabase.rpc('bulk_upsert_meta_stats', { rows: statRows }) } catch { /* meta aggregation is best-effort */ }
+      }
+      if (acc.matchups.size > 0) {
+        const matchupRows = Array.from(acc.matchups.entries()).map(([key, val]) => {
+          const [brawlerId, opponentId, mode] = key.split('|')
+          return { brawler_id: Number(brawlerId), opponent_id: Number(opponentId), mode, source: 'users', date: today, wins: val.wins, losses: val.losses, total: val.total }
+        })
+        try { await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows }) } catch { /* meta aggregation is best-effort */ }
+      }
 
       await supabase.from('profiles').update({ last_sync: new Date().toISOString() }).eq('player_tag', player_tag)
       results.push({ tag: player_tag, fetched: entries.length, inserted: count ?? parsed.length })
