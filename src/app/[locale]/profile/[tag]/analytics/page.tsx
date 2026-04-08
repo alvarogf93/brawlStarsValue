@@ -38,14 +38,14 @@ import { SessionEfficiencyCard } from '@/components/analytics/SessionEfficiencyC
 import { RecoveryCard } from '@/components/analytics/RecoveryCard'
 import { GadgetImpactCard } from '@/components/analytics/GadgetImpactCard'
 
-const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'insights', 'tools'] as const
+const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'tools'] as const
 type TabId = (typeof TAB_IDS)[number]
 const TAB_ICONS: Record<TabId, string> = {
-  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '🤝', trends: '📈', insights: '💡', tools: '🛡️',
+  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '🤝', trends: '📈', tools: '🛡️',
 }
 const TAB_KEYS: Record<TabId, string> = {
   overview: 'tabOverview', performance: 'tabPerformance', matchups: 'tabMatchups',
-  team: 'tabTeam', trends: 'tabTrends', insights: 'tabInsights', tools: 'tabTools',
+  team: 'tabTeam', trends: 'tabTrends', tools: 'tabTools',
 }
 
 export default function AnalyticsPage() {
@@ -295,6 +295,7 @@ export default function AnalyticsPage() {
             <WeeklyPatternChart data={analytics.weeklyPattern} />
           </div>
           <PowerLevelChart data={analytics.powerLevelImpact} />
+          <GadgetImpactCard data={analytics.gadgetImpact} />
           <BrawlerComfortList data={analytics.brawlerComfort} />
         </div>
       )}
@@ -327,29 +328,9 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {activeTab === 'insights' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ClutchCard data={analytics.clutch} />
-            <WarmUpCard data={analytics.warmUp} />
-          </div>
-          <OpponentStrengthCard data={analytics.opponentStrength} />
-          <CarryCard data={analytics.carry} />
-          <GadgetImpactCard data={analytics.gadgetImpact} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SessionEfficiencyCard data={analytics.sessionEfficiency} />
-            <RecoveryCard data={analytics.recovery} />
-          </div>
-          <WeeklyPatternChart data={analytics.weeklyPattern} />
-          <PowerLevelChart data={analytics.powerLevelImpact} />
-          <BrawlerComfortList data={analytics.brawlerComfort} />
-        </div>
-      )}
-
       {activeTab === 'tools' && (
         <div className="space-y-6">
           <CounterPickAdvisor />
-          <GadgetImpactCard data={analytics.gadgetImpact} />
           <ManageSubscription />
         </div>
       )}
