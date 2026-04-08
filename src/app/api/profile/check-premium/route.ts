@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 
 /**
  * GET /api/profile/check-premium?tag=#TAG
  * Returns { hasPremium: boolean } for a given player tag.
  * No auth required — only returns a boolean, no profile data.
+ * Uses service client to bypass RLS (safe: only returns a boolean).
  */
 export async function GET(request: Request) {
   try {
@@ -15,7 +16,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ hasPremium: false })
     }
 
-    const supabase = await createClient()
+    const supabase = await createServiceClient()
     const { data: profile } = await supabase
       .from('profiles')
       .select('tier, ls_subscription_status')
