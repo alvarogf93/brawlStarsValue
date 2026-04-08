@@ -137,24 +137,20 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               <span className="hidden sm:inline">{t('login')}</span>
             </button>
           )}
-          {!loading && user && profile?.tier === 'free' && (
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch('/api/checkout/paypal', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ interval: 'monthly', locale }),
-                  })
-                  const data = await res.json()
-                  if (data.url) window.location.href = data.url
-                } catch { /* ignore */ }
-              }}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-[#FFC91B] bg-[#FFC91B]/10 hover:bg-[#FFC91B]/20 rounded-xl transition-colors border border-[#FFC91B]/30"
+          {!loading && user && profile && !isPremium(profile as Profile) && (
+            <Link
+              href={`/${locale}/profile/${encodeURIComponent(profile.player_tag)}/analytics`}
+              className="cursor-pointer flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-slate-400 bg-white/5 hover:bg-white/10 hover:text-[#FFC91B] rounded-xl transition-colors border border-white/10 hover:border-[#FFC91B]/30"
             >
               <Crown className="w-4 h-4" />
               <span className="hidden sm:inline">{t('upgrade')}</span>
-            </button>
+            </Link>
+          )}
+          {!loading && user && profile && isPremium(profile as Profile) && (
+            <div className="flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-[#FFC91B] bg-[#FFC91B]/10 rounded-xl border border-[#FFC91B]/30">
+              <Crown className="w-4 h-4" />
+              <span className="hidden sm:inline">PRO</span>
+            </div>
           )}
 
           {playerTag && (
