@@ -279,7 +279,8 @@
     "quantity": "Cantidad",
     "gems": "Gemas",
     "totalGems": "TOTAL GEMAS REALES",
-    "timeTooltip": "Tiempo estimado basándose en el Win Rate actual ({winRate}%).\n\nJugadores con mayor win rate requirieron de menos horas reales para llegar a estas estadísticas."
+    "timeTooltip": "Tiempo estimado basándose en el Win Rate actual ({winRate}%).\n\nJugadores con mayor win rate requirieron de menos horas reales para llegar a estas estadísticas.",
+    "exportCsv": "Exportar CSV"
   },
   "notFound": {
     "title": "Página no encontrada",
@@ -526,6 +527,11 @@
     "withStarPowers": "Con Star Powers",
     "withoutStarPowers": "Sin Star Powers",
     "tipGadget": "Compara tu win rate con y sin gadgets/star powers equipados.",
-    "gamesCount": "{count} partidas"
+    "gamesCount": "{count} partidas",
+    "clutchBetterStar": "Rindes {delta}% mejor como Star Player",
+    "clutchNoBoost": "Ser Star Player no mejora tu WR ({delta}%)",
+    "warmUpImprove": "Mejoras +{delta}% tras calentar",
+    "warmUpDropOff": "Empiezas fuerte pero caes {delta}% tras calentar",
+    "carryMaintain": "¡Mantienes {wr}% de WR incluso haciendo carry!"
   }
 }

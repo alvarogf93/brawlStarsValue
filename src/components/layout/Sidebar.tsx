@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LayoutDashboard, Users, Swords, BarChart3, Shield, GitCompareArrows, Palette, Share2, FlaskConical } from 'lucide-react'
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
   const t = useTranslations('nav')
+  const tLanding = useTranslations('landing')
   const pathname = usePathname()
   const basePath = `/${locale}/profile/${encodeURIComponent(tag)}`
 
@@ -111,9 +113,9 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">combat analytics</span>
           </div>
           <div className="flex items-center justify-center gap-2 mt-2 text-[10px] text-slate-600">
-            <Link href={`/${locale}/privacy`} className="hover:text-slate-400 transition-colors">Privacy</Link>
+            <Link href={`/${locale}/privacy`} className="hover:text-slate-400 transition-colors">{tLanding('privacyLink')}</Link>
             <span>·</span>
-            <a href="mailto:contact@brawlvision.com" className="hover:text-slate-400 transition-colors">Contact</a>
+            <a href="mailto:contact@brawlvision.com" className="hover:text-slate-400 transition-colors">{tLanding('contact')}</a>
           </div>
         </div>
       </aside>

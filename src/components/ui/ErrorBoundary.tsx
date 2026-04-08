@@ -27,8 +27,8 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="brawl-card p-8 text-center max-w-md">
             <p className="text-4xl mb-3">💥</p>
-            <h2 className="font-['Lilita_One'] text-xl text-white mb-2">Something went wrong</h2>
-            <p className="text-sm text-slate-400 mb-4">An unexpected error occurred</p>
+            <h2 className="font-['Lilita_One'] text-xl text-white mb-2">Oops!</h2>
+            <p className="text-sm text-slate-400 mb-4">Error 💀</p>
             <button
               onClick={() => {
                 this.setState({ hasError: false })
@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
               }}
               className="brawl-button px-6 py-2.5 text-sm"
             >
-              Reload page
+              🔄 Reload
             </button>
           </div>
         </div>

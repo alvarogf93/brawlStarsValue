@@ -526,6 +526,11 @@
     "withStarPowers": "Star Powers装備時",
     "withoutStarPowers": "Star Powers未装備",
     "tipGadget": "Gadgets/Star Powersの装備有無による勝率を比較。",
-    "gamesCount": "{count} 試合"
+    "gamesCount": "{count} 試合",
+    "clutchBetterStar": "Star Player時に{delta}%パフォーマンスが向上します",
+    "clutchNoBoost": "Star PlayerはWRを向上させません ({delta}%)",
+    "warmUpImprove": "ウォームアップ後に+{delta}%向上します",
+    "warmUpDropOff": "序盤は好調ですがウォームアップ後に{delta}%低下します",
+    "carryMaintain": "carry中でも{wr}%のWRを維持しています！"
   }
 }

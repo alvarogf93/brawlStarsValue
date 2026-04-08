@@ -43,8 +43,8 @@ export function ClutchCard({ data }: Props) {
             >
               <p className={`font-['Lilita_One'] text-sm text-center ${data.delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {data.delta > 0
-                  ? `You perform ${data.delta.toFixed(1)}% better as Star Player`
-                  : `Star Player doesn't boost your WR (${data.delta.toFixed(1)}%)`}
+                  ? t('clutchBetterStar', { delta: data.delta.toFixed(1) })
+                  : t('clutchNoBoost', { delta: data.delta.toFixed(1) })}
               </p>
             </div>
           )}

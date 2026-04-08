@@ -526,6 +526,11 @@
     "withStarPowers": "装备 Star Powers",
     "withoutStarPowers": "未装备 Star Powers",
     "tipGadget": "比较装备和未装备 Gadgets/Star Powers 时的胜率。",
-    "gamesCount": "{count} 场"
+    "gamesCount": "{count} 场",
+    "clutchBetterStar": "作为 Star Player 时你的表现好 {delta}%",
+    "clutchNoBoost": "Star Player 没有提升你的 WR ({delta}%)",
+    "warmUpImprove": "热身后你提升了 +{delta}%",
+    "warmUpDropOff": "你开局强势但热身后下降了 {delta}%",
+    "carryMaintain": "即使 carry 也能保持 {wr}% 的 WR！"
   }
 }

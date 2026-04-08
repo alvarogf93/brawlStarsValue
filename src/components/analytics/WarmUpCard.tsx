@@ -42,8 +42,8 @@ export function WarmUpCard({ data }: Props) {
             >
               <p className={`font-['Lilita_One'] text-sm text-center ${data.delta > 0 ? 'text-green-400' : 'text-amber-400'}`}>
                 {data.delta > 0
-                  ? `You improve +${data.delta.toFixed(1)}% after warm-up`
-                  : `You start strong but drop ${Math.abs(data.delta).toFixed(1)}% after warm-up`}
+                  ? t('warmUpImprove', { delta: data.delta.toFixed(1) })
+                  : t('warmUpDropOff', { delta: Math.abs(data.delta).toFixed(1) })}
               </p>
             </div>
           )}

@@ -526,6 +526,11 @@
     "withStarPowers": "مع Star Powers",
     "withoutStarPowers": "بدون Star Powers",
     "tipGadget": "يقارن معدل فوزك مع وبدون gadgets/star powers مجهزة.",
-    "gamesCount": "{count} مباريات"
+    "gamesCount": "{count} مباريات",
+    "clutchBetterStar": "أداؤك أفضل بنسبة {delta}% كـ Star Player",
+    "clutchNoBoost": "Star Player لا يحسّن نسبة WR لديك ({delta}%)",
+    "warmUpImprove": "تتحسّن بنسبة +{delta}% بعد الإحماء",
+    "warmUpDropOff": "تبدأ بقوة لكن تنخفض بنسبة {delta}% بعد الإحماء",
+    "carryMaintain": "تحافظ على {wr}% WR حتى أثناء الـ carry!"
   }
 }

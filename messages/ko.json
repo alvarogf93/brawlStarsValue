@@ -526,6 +526,11 @@
     "withStarPowers": "Star Powers 장착",
     "withoutStarPowers": "Star Powers 미장착",
     "tipGadget": "Gadgets/Star Powers 장착 여부에 따른 승률을 비교합니다.",
-    "gamesCount": "{count} 게임"
+    "gamesCount": "{count} 게임",
+    "clutchBetterStar": "Star Player일 때 {delta}% 더 잘합니다",
+    "clutchNoBoost": "Star Player가 WR을 높이지 않습니다 ({delta}%)",
+    "warmUpImprove": "워밍업 후 +{delta}% 향상됩니다",
+    "warmUpDropOff": "강하게 시작하지만 워밍업 후 {delta}% 하락합니다",
+    "carryMaintain": "carry 중에도 {wr}% WR을 유지합니다!"
   }
 }

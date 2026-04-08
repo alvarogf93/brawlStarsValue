@@ -526,6 +526,11 @@
     "withStarPowers": "Star Powers ile",
     "withoutStarPowers": "Star Powers olmadan",
     "tipGadget": "Gadgets/Star Powers takılıyken ve takılı değilken kazanma oranınızı karşılaştırır.",
-    "gamesCount": "{count} oyun"
+    "gamesCount": "{count} oyun",
+    "clutchBetterStar": "Star Player olarak {delta}% daha iyi performans gösteriyorsun",
+    "clutchNoBoost": "Star Player WR'ını artırmıyor ({delta}%)",
+    "warmUpImprove": "Isınmadan sonra +{delta}% gelişiyorsun",
+    "warmUpDropOff": "Güçlü başlıyorsun ama ısınmadan sonra {delta}% düşüyorsun",
+    "carryMaintain": "Carry yaparken bile {wr}% WR koruyorsun!"
   }
 }

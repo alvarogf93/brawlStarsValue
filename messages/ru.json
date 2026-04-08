@@ -526,6 +526,11 @@
     "withStarPowers": "С Star Powers",
     "withoutStarPowers": "Без Star Powers",
     "tipGadget": "Сравнивает ваш винрейт с экипированными и без gadgets/star powers.",
-    "gamesCount": "{count} игр"
+    "gamesCount": "{count} игр",
+    "clutchBetterStar": "Вы играете на {delta}% лучше как Star Player",
+    "clutchNoBoost": "Star Player не повышает ваш WR ({delta}%)",
+    "warmUpImprove": "Вы улучшаетесь на +{delta}% после разогрева",
+    "warmUpDropOff": "Вы начинаете сильно, но падаете на {delta}% после разогрева",
+    "carryMaintain": "Вы держите {wr}% WR даже при carry!"
   }
 }

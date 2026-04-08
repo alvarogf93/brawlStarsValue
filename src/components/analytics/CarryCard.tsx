@@ -34,7 +34,7 @@ export function CarryCard({ data }: Props) {
           {data.carryWR! >= 45 && data.carryGames >= 5 && (
             <div className="rounded-xl p-4 mb-4 border border-green-500/20" style={{ background: 'linear-gradient(135deg, rgba(74,222,128,0.10) 0%, rgba(34,197,94,0.03) 100%)' }}>
               <p className="font-['Lilita_One'] text-sm text-center text-green-400">
-                You maintain {data.carryWR!.toFixed(1)}% WR even when carrying!
+                {t('carryMaintain', { wr: data.carryWR!.toFixed(1) })}
               </p>
             </div>
           )}

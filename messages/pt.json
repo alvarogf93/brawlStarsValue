@@ -526,6 +526,11 @@
     "withStarPowers": "Com Star Powers",
     "withoutStarPowers": "Sem Star Powers",
     "tipGadget": "Compara sua taxa de vitória com e sem gadgets/star powers equipados.",
-    "gamesCount": "{count} partidas"
+    "gamesCount": "{count} partidas",
+    "clutchBetterStar": "Você rende {delta}% melhor como Star Player",
+    "clutchNoBoost": "Star Player não melhora seu WR ({delta}%)",
+    "warmUpImprove": "Você melhora +{delta}% após o aquecimento",
+    "warmUpDropOff": "Você começa forte mas cai {delta}% após o aquecimento",
+    "carryMaintain": "Você mantém {wr}% de WR mesmo fazendo carry!"
   }
 }
