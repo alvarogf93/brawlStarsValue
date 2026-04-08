@@ -48,8 +48,8 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
         aria-label="Profile navigation"
         className={`
           w-[var(--sidebar-width)] bg-[#121A2F] border-r-4 border-[#0F172A]
-          flex flex-col shrink-0 overflow-y-auto
-          fixed inset-y-0 left-0 top-[var(--header-height)] z-50 transition-transform duration-300
+          flex flex-col shrink-0 overflow-y-auto min-h-0
+          fixed left-0 top-[var(--header-height)] bottom-0 z-50 transition-transform duration-300
           md:static md:translate-x-0
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
