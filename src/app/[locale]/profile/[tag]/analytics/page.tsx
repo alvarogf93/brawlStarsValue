@@ -40,7 +40,7 @@ import { GadgetImpactCard } from '@/components/analytics/GadgetImpactCard'
 const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'draft'] as const
 type TabId = (typeof TAB_IDS)[number]
 const TAB_ICONS: Record<TabId, string> = {
-  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '', trends: '📈', draft: '',
+  overview: '📊', performance: '', matchups: '⚔️', team: '', trends: '📈', draft: '',
 }
 const TAB_KEYS: Record<TabId, string> = {
   overview: 'tabOverview', performance: 'tabPerformance', matchups: 'tabMatchups',
@@ -271,6 +271,8 @@ export default function AnalyticsPage() {
               <img src="/assets/modes/48000028.png" alt="" className="w-5 h-5" width={20} height={20} />
             ) : id === 'team' ? (
               <img src="/assets/modes/48000058.png" alt="" className="w-5 h-5" width={20} height={20} />
+            ) : id === 'performance' ? (
+              <img src="/assets/modes/record-12.png" alt="" className="w-5 h-5" width={20} height={20} />
             ) : (
               <span>{TAB_ICONS[id]}</span>
             )}
