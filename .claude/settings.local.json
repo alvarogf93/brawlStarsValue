@@ -12,7 +12,8 @@
       "Bash(npx next:*)",
       "Bash(npx vitest:*)",
       "Bash(ssh:*)",
-      "Bash(grep -E \"\\\\.ts$|/$\")"
+      "Bash(grep -E \"\\\\.ts$|/$\")",
+      "Bash(node:*)"
     ]
   }
 }

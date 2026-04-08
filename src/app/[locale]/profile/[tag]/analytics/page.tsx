@@ -46,6 +46,14 @@ const TAB_KEYS: Record<TabId, string> = {
   overview: 'tabOverview', performance: 'tabPerformance', matchups: 'tabMatchups',
   team: 'tabTeam', trends: 'tabTrends', draft: 'tabDraft',
 }
+const TAB_IMAGE_ICONS: Partial<Record<TabId, string>> = {
+  overview: '/assets/modes/record-3.png',
+  performance: '/assets/modes/record-12.png',
+  matchups: '/assets/modes/record-6.png',
+  team: '/assets/modes/48000058.png',
+  trends: '/assets/modes/record-8.png',
+  draft: '/assets/modes/48000028.png',
+}
 
 export default function AnalyticsPage() {
   const params = useParams<{ tag: string; locale: string }>()
@@ -267,12 +275,8 @@ export default function AnalyticsPage() {
                 : 'bg-[#0F172A] text-slate-400 border-[#1E293B] hover:bg-[#1E293B] hover:text-white'
             }`}
           >
-            {id === 'draft' ? (
-              <img src="/assets/modes/48000028.png" alt="" className="w-5 h-5" width={20} height={20} />
-            ) : id === 'team' ? (
-              <img src="/assets/modes/48000058.png" alt="" className="w-5 h-5" width={20} height={20} />
-            ) : id === 'performance' ? (
-              <img src="/assets/modes/record-12.png" alt="" className="w-5 h-5" width={20} height={20} />
+            {TAB_IMAGE_ICONS[id] ? (
+              <img src={TAB_IMAGE_ICONS[id]} alt="" className="w-5 h-5" width={20} height={20} />
             ) : (
               <span>{TAB_ICONS[id]}</span>
             )}
