@@ -121,7 +121,7 @@ export async function GET(request: Request) {
       await new Promise(r => setTimeout(r, META_POLL_DELAY_MS))
     }
 
-    // 4. Bulk upsert meta_stats
+    // 4. Bulk upsert meta_stats (single RPC call instead of hundreds)
     if (acc.stats.size > 0) {
       const statRows = Array.from(acc.stats.entries()).map(([key, val]) => {
         const [brawlerId, map, mode] = key.split('|')
@@ -137,14 +137,10 @@ export async function GET(request: Request) {
         }
       })
 
-      // Supabase doesn't support ON CONFLICT DO UPDATE with increment in bulk,
-      // so we use RPC or process in chunks with raw SQL
-      for (const row of statRows) {
-        await supabase.rpc('upsert_meta_stat', row)
-      }
+      await supabase.rpc('bulk_upsert_meta_stats', { rows: JSON.stringify(statRows) })
     }
 
-    // 5. Bulk upsert meta_matchups
+    // 5. Bulk upsert meta_matchups (single RPC call instead of thousands)
     if (acc.matchups.size > 0) {
       const matchupRows = Array.from(acc.matchups.entries()).map(([key, val]) => {
         const [brawlerId, opponentId, mode] = key.split('|')
@@ -160,9 +156,7 @@ export async function GET(request: Request) {
         }
       })
 
-      for (const row of matchupRows) {
-        await supabase.rpc('upsert_meta_matchup', row)
-      }
+      await supabase.rpc('bulk_upsert_meta_matchups', { rows: JSON.stringify(matchupRows) })
     }
 
     // 6. Update cursors
