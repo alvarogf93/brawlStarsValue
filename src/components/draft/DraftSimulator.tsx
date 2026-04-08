@@ -13,6 +13,7 @@ import { MapSelector } from './MapSelector'
 import { TeamSlots } from './TeamSlots'
 import { BrawlerGrid } from './BrawlerGrid'
 import { RecommendationPanel } from './RecommendationPanel'
+import { DraftSummary } from './DraftSummary'
 import { getGameModeImageUrl, getMapImageUrl } from '@/lib/utils'
 import { RotateCcw, Undo2, ChevronRight } from 'lucide-react'
 
@@ -68,7 +69,7 @@ export function DraftSimulator() {
   }, [state.map, state.mode, state.phase])
 
   const recommendations = useMemo(() => {
-    if (!draftData || state.phase !== 'DRAFTING') return []
+    if (!draftData || (state.phase !== 'DRAFTING' && state.phase !== 'COMPLETE')) return []
     return computeRecommendations({
       meta: draftData.meta, matchups: draftData.matchups,
       blueTeam: state.blueTeam.filter((id): id is number => id !== null),
@@ -249,30 +250,15 @@ export function DraftSimulator() {
 
       {/* ── Phase: Complete ── */}
       {state.phase === 'COMPLETE' && (
-        <div className="text-center space-y-5">
-          <div className="relative py-4">
-            <h3 className="font-['Lilita_One'] text-2xl text-[#FFC91B] mb-1">{t('draftComplete')}</h3>
-            {state.map && (
-              <p className="font-['Lilita_One'] text-sm text-slate-400 flex items-center justify-center gap-2">
-                {modeIconUrl && <img src={modeIconUrl} alt="" className="w-4 h-4" width={16} height={16} />}
-                {state.map}
-              </p>
-            )}
-          </div>
-
-          <div className="bg-white/[0.03] rounded-2xl p-5 border border-white/5">
-            <TeamSlots
-              blueTeam={state.blueTeam} redTeam={state.redTeam}
-              brawlerMap={brawlerMap} currentTeam={state.currentTeam}
-              picksCompletedInTurn={0} phase={state.phase}
-            />
-          </div>
-
-          <button onClick={() => { dispatch({ type: 'RESET' }); setSelectedMapImage(null) }}
-            className="brawl-button px-6 py-2.5 inline-flex items-center gap-2 text-sm">
-            <RotateCcw className="w-4 h-4" /> {t('newDraft')}
-          </button>
-        </div>
+        <DraftSummary
+          blueTeam={state.blueTeam.filter((id): id is number => id !== null)}
+          redTeam={state.redTeam.filter((id): id is number => id !== null)}
+          brawlerMap={brawlerMap}
+          recommendations={recommendations}
+          modeIconUrl={modeIconUrl}
+          mapName={state.map}
+          onReset={() => { dispatch({ type: 'RESET' }); setSelectedMapImage(null) }}
+        />
       )}
     </div>
   )

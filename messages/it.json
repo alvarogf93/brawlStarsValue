@@ -74,7 +74,8 @@
     "lastSync": "Ultima sinc.",
     "manage": "Gestisci abbonamento",
     "profile": "Profilo",
-    "picks": "Picks"
+    "picks": "Picks",
+    "exit": "Home"
   },
   "battles": {
     "title": "BATTAGLIE RECENTI",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "Caricamento...",
     "loadingMeta": "Caricamento dati...",
     "noMapsForMode": "Nessuna mappa attiva",
-    "bansComingSoon": "Ban — Prossimamente"
+    "bansComingSoon": "Ban — Prossimamente",
+    "winProbability": "Probabilità di vittoria"
   }
 }

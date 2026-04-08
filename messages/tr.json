@@ -74,7 +74,8 @@
     "lastSync": "Son senk.",
     "manage": "Aboneliği yönet",
     "profile": "Profil",
-    "picks": "Picks"
+    "picks": "Picks",
+    "exit": "Ana Sayfa"
   },
   "battles": {
     "title": "SON SAVAŞLAR",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "Yükleniyor...",
     "loadingMeta": "Veri yükleniyor...",
     "noMapsForMode": "Aktif harita yok",
-    "bansComingSoon": "Banlar — Yakında"
+    "bansComingSoon": "Banlar — Yakında",
+    "winProbability": "Kazanma olasılığı"
   }
 }

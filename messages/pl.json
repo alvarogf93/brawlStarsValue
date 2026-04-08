@@ -74,7 +74,8 @@
     "lastSync": "Ostatnia synch.",
     "manage": "Zarządzaj subskrypcją",
     "profile": "Profil",
-    "picks": "Picki"
+    "picks": "Picki",
+    "exit": "Strona główna"
   },
   "battles": {
     "title": "OSTATNIE BITWY",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "Ładowanie...",
     "loadingMeta": "Ładowanie danych...",
     "noMapsForMode": "Brak aktywnych map",
-    "bansComingSoon": "Bany — Wkrótce"
+    "bansComingSoon": "Bany — Wkrótce",
+    "winProbability": "Szansa na wygraną"
   }
 }

@@ -74,7 +74,8 @@
     "lastSync": "最終同期",
     "manage": "サブスク管理",
     "profile": "プロフィール",
-    "picks": "ピック"
+    "picks": "ピック",
+    "exit": "ホーム"
   },
   "battles": {
     "title": "最近のバトル",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "読込中...",
     "loadingMeta": "データ読込中...",
     "noMapsForMode": "アクティブマップなし",
-    "bansComingSoon": "バン — 近日公開"
+    "bansComingSoon": "バン — 近日公開",
+    "winProbability": "勝率"
   }
 }

@@ -74,7 +74,8 @@
     "lastSync": "Послед. синхр.",
     "manage": "Управление подпиской",
     "profile": "Профиль",
-    "picks": "Пики"
+    "picks": "Пики",
+    "exit": "Главная"
   },
   "battles": {
     "title": "НЕДАВНИЕ БИТВЫ",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "Загрузка...",
     "loadingMeta": "Загрузка данных...",
     "noMapsForMode": "Нет активных карт",
-    "bansComingSoon": "Баны — Скоро"
+    "bansComingSoon": "Баны — Скоро",
+    "winProbability": "Вероятность победы"
   }
 }

@@ -74,7 +74,8 @@
     "lastSync": "آخر مزامنة",
     "manage": "إدارة الاشتراك",
     "profile": "الملف الشخصي",
-    "picks": "اختيارات"
+    "picks": "اختيارات",
+    "exit": "الرئيسية"
   },
   "battles": {
     "title": "المعارك الأخيرة",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "جار التحميل...",
     "loadingMeta": "تحميل البيانات...",
     "noMapsForMode": "لا توجد خرائط",
-    "bansComingSoon": "الحظر — قريباً"
+    "bansComingSoon": "الحظر — قريباً",
+    "winProbability": "احتمال الفوز"
   }
 }

@@ -74,7 +74,8 @@
     "lastSync": "Last sync",
     "manage": "Manage subscription",
     "profile": "Profile",
-    "picks": "Picks"
+    "picks": "Picks",
+    "exit": "Home"
   },
   "battles": {
     "title": "RECENT BATTLES",
@@ -588,6 +589,7 @@
     "loadingBrawlers": "Loading brawlers...",
     "loadingMeta": "Loading meta data...",
     "noMapsForMode": "No active maps for this mode",
-    "bansComingSoon": "Bans — Coming Soon"
+    "bansComingSoon": "Bans — Coming Soon",
+    "winProbability": "Win probability"
   }
 }

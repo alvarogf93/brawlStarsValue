@@ -74,7 +74,8 @@
     "lastSync": "마지막 동기화",
     "manage": "구독 관리",
     "profile": "프로필",
-    "picks": "픽"
+    "picks": "픽",
+    "exit": "홈"
   },
   "battles": {
     "title": "최근 전투",
@@ -587,6 +588,7 @@
     "loadingBrawlers": "로딩...",
     "loadingMeta": "데이터 로딩...",
     "noMapsForMode": "활성 맵 없음",
-    "bansComingSoon": "밴 — 곧 출시"
+    "bansComingSoon": "밴 — 곧 출시",
+    "winProbability": "승률"
   }
 }

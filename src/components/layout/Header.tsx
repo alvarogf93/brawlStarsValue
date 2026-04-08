@@ -8,7 +8,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
-import { Menu, LogOut, RefreshCw, User, Crown } from 'lucide-react'
+import { Menu, LogOut, RefreshCw, User, Crown, Home } from 'lucide-react'
 import Link from 'next/link'
 
 function formatTimeAgo(iso: string): string {
@@ -167,6 +167,18 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             🏆 <span className="hidden sm:inline-block">{t('leaderboard')}</span>
           </Link>
           <LocaleSwitcher />
+
+          {/* Exit button for non-logged-in users viewing a profile */}
+          {!loading && !user && playerTag && (
+            <Link
+              href={`/${locale}`}
+              onClick={() => { try { localStorage.removeItem('brawlvalue:user') } catch {} }}
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-xl hover:bg-white/5"
+              title={t('exit')}
+            >
+              <Home className="w-5 h-5" />
+            </Link>
+          )}
 
           {/* Profile avatar dropdown (logged in) */}
           {!loading && user && (
