@@ -634,3 +634,13 @@ CREATE TRIGGER tr_protect_trial
 ```
 
 This ensures that even if RLS allows UPDATE, the sensitive fields cannot be changed by the client.
+
+## Review Pass 4: Data Quality + Integration
+
+11. **Freemium analytics data is VERY sparse (25 battles)** — Most matchups have 1 battle. Mastery has no curve. Synergy has no repeated pairs. The blur hides this, BUT the PersonalizedHook (visible metric) MUST have a minimum threshold: ≥3 battles for the specific data point. If not met, fall back to next segment or show generic message "Descubre tus estadísticas avanzadas".
+
+12. **PlayNowDashboard in freemium overview** — needs `playNow` computed from `freemiumAnalytics.brawlerMapMatrix + events`. Task 3 must compute this separately for View B, not rely on the premium `playNow` variable.
+
+13. **Variable naming** — Plan references `freeData?.rawEntries` but actual code destructures as `{ data: freeStats }`. After Task 7: `const { data: freeStats, isLoading: freeLoading, rawEntries } = useBattlelog(tag)`. Use `rawEntries` directly, not `freeData?.rawEntries`.
+
+14. **PersonalizedHook fallback chain** — If detected segment's data is empty, try next segment in priority order: tilt → main → competitive → explorer → streak → generic. Never show an empty hook card.
