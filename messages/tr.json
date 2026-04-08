@@ -52,7 +52,9 @@
     "premiumProF5": "Reklamsız",
     "finalTitle": "Domine etmeye hazır mısın?",
     "finalSubtitle": "Sonsuza kadar ücretsiz. Profesyoneller için Premium.",
-    "finalGoogle": "Google ile giriş yap"
+    "finalGoogle": "Google ile giriş yap",
+    "picksTitle": "Harita Bazlı En İyi Seçimler",
+    "picksDesc": "Mevcut rotasyondaki her harita için en iyi brawlerları keşfet"
   },
   "nav": {
     "overview": "Genel Bakış",

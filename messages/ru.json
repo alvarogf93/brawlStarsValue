@@ -52,7 +52,9 @@
     "premiumProF5": "Без Рекламы",
     "finalTitle": "Готовы доминировать?",
     "finalSubtitle": "Бесплатно навсегда. Премиум для профи.",
-    "finalGoogle": "Войти через Google"
+    "finalGoogle": "Войти через Google",
+    "picksTitle": "Лучшие пики по картам",
+    "picksDesc": "Узнайте лучших бойцов для каждой карты текущей ротации"
   },
   "nav": {
     "overview": "Обзор",

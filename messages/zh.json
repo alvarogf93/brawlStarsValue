@@ -52,7 +52,9 @@
     "premiumProF5": "无广告",
     "finalTitle": "准备好统治了吗？",
     "finalSubtitle": "永久免费。专业版为职业玩家。",
-    "finalGoogle": "使用Google登录"
+    "finalGoogle": "使用Google登录",
+    "picksTitle": "地图最佳选择",
+    "picksDesc": "发现当前轮换中每张地图上胜率最高的英雄"
   },
   "nav": {
     "overview": "概览",

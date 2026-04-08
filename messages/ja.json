@@ -52,7 +52,9 @@
     "premiumProF5": "広告なし",
     "finalTitle": "支配する準備はできましたか？",
     "finalSubtitle": "永遠に無料。プロのためのプレミアム。",
-    "finalGoogle": "Googleでログイン"
+    "finalGoogle": "Googleでログイン",
+    "picksTitle": "マップ別ベストピック",
+    "picksDesc": "現在のローテーションの各マップで最高の勝率を持つブロウラーを見つけよう"
   },
   "nav": {
     "overview": "概要",

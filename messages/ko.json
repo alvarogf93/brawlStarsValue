@@ -52,7 +52,9 @@
     "premiumProF5": "광고 없음",
     "finalTitle": "지배할 준비가 되셨나요?",
     "finalSubtitle": "영원히 무료. 프로를 위한 프리미엄.",
-    "finalGoogle": "Google로 로그인"
+    "finalGoogle": "Google로 로그인",
+    "picksTitle": "맵별 최고의 픽",
+    "picksDesc": "현재 로테이션의 각 맵에서 최고의 승률을 가진 브롤러를 확인하세요"
   },
   "nav": {
     "overview": "개요",

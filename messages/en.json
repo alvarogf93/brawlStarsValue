@@ -52,7 +52,9 @@
     "premiumProF5": "No Ads",
     "finalTitle": "Ready to dominate?",
     "finalSubtitle": "Free forever. Premium for pros.",
-    "finalGoogle": "Sign in with Google"
+    "finalGoogle": "Sign in with Google",
+    "picksTitle": "Best Picks by Map",
+    "picksDesc": "Discover the best win rate brawlers for every map in the current rotation"
   },
   "nav": {
     "overview": "Overview",
