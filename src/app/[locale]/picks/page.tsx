@@ -87,7 +87,9 @@ async function fetchMetaEvents(): Promise<MetaEvent[]> {
 
 export default async function PicksPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const events = await fetchMetaEvents()
+  const allEvents = await fetchMetaEvents()
+  // Only show maps that have actual data
+  const events = allEvents.filter(e => e.topBrawlers.length > 0)
 
   return <PicksContent events={events} locale={locale} />
 }

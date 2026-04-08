@@ -29,7 +29,7 @@ export default function ProfilePicksPage() {
   useEffect(() => {
     fetch('/api/meta')
       .then(r => r.json())
-      .then(data => setEvents(data.events ?? []))
+      .then(data => setEvents((data.events ?? []).filter((e: { topBrawlers: unknown[] }) => e.topBrawlers.length > 0)))
       .catch(() => setEvents([]))
       .finally(() => setLoading(false))
   }, [])
