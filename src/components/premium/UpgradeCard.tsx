@@ -56,6 +56,19 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
           </div>
         </div>
 
+        {/* Hook banner */}
+        <div className="mx-6 md:mx-8 mt-4">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1C5CF1] to-[#B23DFF] p-4">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
+            <p className="font-['Lilita_One'] text-sm md:text-base text-white text-stroke-brawl leading-snug relative z-10">
+              {t('hookLine1')}
+            </p>
+            <p className="font-['Inter'] text-[11px] text-white/70 mt-1.5 relative z-10 font-semibold">
+              {t('hookLine2')}
+            </p>
+          </div>
+        </div>
+
         {/* Features */}
         <div className="px-6 md:px-8 py-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -89,14 +102,14 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
               disabled={loading}
               className="cursor-pointer relative py-5 px-3 text-center font-['Lilita_One'] bg-[#4EC0FA]/[0.08] text-white rounded-xl border-2 border-[#4EC0FA]/30 shadow-[0_3px_0_0_rgba(78,192,250,0.15)] hover:border-[#4EC0FA]/60 hover:bg-[#4EC0FA]/[0.15] hover:-translate-y-1 hover:shadow-[0_6px_12px_rgba(78,192,250,0.15)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-[#4EC0FA] text-white px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_4px_rgba(78,192,250,0.3)]">{t('saveQuarterly')}</span>
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold font-['Lilita_One'] bg-[#4EC0FA] text-white px-3 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_6px_rgba(78,192,250,0.4)] border-2 border-[#4EC0FA]/60">{t('saveQuarterly')}</span>
               <span className="block text-2xl leading-tight group-hover:scale-110 transition-transform">{t('planQuarterly')}</span>
               <span className="block text-[10px] text-slate-500 font-normal mt-1">{t('planQuarterlyPeriod')}</span>
             </button>
 
             {/* Yearly — best value — brawl-button style with lift+glow */}
             <div className="relative group">
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 text-[8px] font-bold font-['Lilita_One'] bg-green-500 text-white px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_4px_rgba(34,197,94,0.4)] animate-pulse">{t('saveYearly')}</span>
+              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20 text-[11px] font-bold font-['Lilita_One'] bg-green-500 text-white px-3.5 py-1 rounded-full whitespace-nowrap shadow-[0_3px_8px_rgba(34,197,94,0.5)] animate-pulse border-2 border-green-400">{t('saveYearly')}</span>
               <button
                 onClick={() => handleUpgrade('yearly')}
                 disabled={loading}

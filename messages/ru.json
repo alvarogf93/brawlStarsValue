@@ -353,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "Уже платишь за очередной скин? За ту же цену — выведи игру на новый уровень.",
+    "hookLine2": "Аналитика, которая улучшается с каждой игрой. Brawl Pass всегда одинаковый — это растёт вместе с тобой."
   },
   "analytics": {
     "title": "Аналитика",
@@ -393,7 +395,6 @@
     "tabMatchups": "Матчапы",
     "tabTeam": "Команда",
     "tabTrends": "Тренды",
-    "tabTools": "Инструменты",
     "allBrawlers": "Все",
     "showAll": "Показать все",
     "showLess": "Свернуть",
@@ -587,6 +588,9 @@
     "loadingBrawlers": "Загрузка...",
     "loadingMeta": "Загрузка данных...",
     "noMapsForMode": "Нет активных карт",
-    "bansComingSoon": "Баны — Скоро"
+    "bansComingSoon": "Баны — Скоро",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
+    "winProbability": "Вероятность победы"
   }
 }

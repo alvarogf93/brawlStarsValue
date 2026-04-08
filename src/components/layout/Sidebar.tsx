@@ -98,7 +98,11 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
                       </span>
                       <span>{t(sub.key)}</span>
                       {sub.key === 'analytics' && (
-                        <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-[#FFC91B]/20 text-[#FFC91B] font-bold uppercase">PRO</span>
+                        <span className={`ml-auto text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${
+                          subActive
+                            ? 'bg-[var(--color-brawl-dark)] text-[var(--color-brawl-gold)]'
+                            : 'bg-[#FFC91B]/20 text-[#FFC91B]'
+                        }`}>PRO</span>
                       )}
                     </Link>
                   )

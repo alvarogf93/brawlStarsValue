@@ -353,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "또 다른 스킨에 돈을 쓰고 있나요? 같은 가격으로 게임을 다음 레벨로 끌어올리세요.",
+    "hookLine2": "플레이할수록 좋아지는 분석. 브롤 패스는 항상 같지만 — 이것은 매일 성장합니다."
   },
   "analytics": {
     "title": "분석",
@@ -393,7 +395,6 @@
     "tabMatchups": "매치업",
     "tabTeam": "팀",
     "tabTrends": "추세",
-    "tabTools": "도구",
     "allBrawlers": "전체",
     "showAll": "전체보기",
     "showLess": "접기",
@@ -587,6 +588,9 @@
     "loadingBrawlers": "로딩...",
     "loadingMeta": "데이터 로딩...",
     "noMapsForMode": "활성 맵 없음",
-    "bansComingSoon": "밴 — 곧 출시"
+    "bansComingSoon": "밴 — 곧 출시",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
+    "winProbability": "승률"
   }
 }

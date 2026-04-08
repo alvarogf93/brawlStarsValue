@@ -353,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "Zahlst du schon für noch einen Skin? Zum gleichen Preis — bring dein Spiel aufs nächste Level.",
+    "hookLine2": "Analysen, die besser werden, je mehr du spielst. Der Brawl Pass ist immer gleich — das hier wächst mit dir."
   },
   "analytics": {
     "title": "Analytics",
@@ -393,7 +395,6 @@
     "tabMatchups": "Duelle",
     "tabTeam": "Team",
     "tabTrends": "Trends",
-    "tabTools": "Werkzeuge",
     "allBrawlers": "Alle",
     "showAll": "Alle zeigen",
     "showLess": "Weniger",
@@ -587,6 +588,9 @@
     "loadingBrawlers": "Lade...",
     "loadingMeta": "Lade Meta-Daten...",
     "noMapsForMode": "Keine aktiven Karten",
-    "bansComingSoon": "Bans — Demnächst"
+    "bansComingSoon": "Bans — Demnächst",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
+    "winProbability": "Siegwahrscheinlichkeit"
   }
 }

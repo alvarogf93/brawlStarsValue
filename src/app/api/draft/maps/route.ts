@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchEventRotation } from '@/lib/api'
-import { isDraftMode, META_ROLLING_DAYS } from '@/lib/draft/constants'
+import { META_ROLLING_DAYS, isDraftMode } from '@/lib/draft/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,8 +52,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const mode = searchParams.get('mode')
 
-  if (!mode) {
-    return NextResponse.json({ error: 'mode is required' }, { status: 400 })
+  if (!mode || !isDraftMode(mode)) {
+    return NextResponse.json({ error: 'Valid draft mode is required' }, { status: 400 })
   }
 
   // 1. Get BrawlAPI map images

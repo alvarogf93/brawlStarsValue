@@ -353,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "Zaten başka bir kostüm için ödüyor musun? Aynı fiyata oyununu bir üst seviyeye taşı.",
+    "hookLine2": "Oynadıkça gelişen analizler. Brawl Pass hep aynı — bu seninle birlikte büyür."
   },
   "analytics": {
     "title": "Analitik",
@@ -393,7 +395,6 @@
     "tabMatchups": "Eşleşmeler",
     "tabTeam": "Takım",
     "tabTrends": "Trendler",
-    "tabTools": "Araçlar",
     "allBrawlers": "Hepsi",
     "showAll": "Tümünü göster",
     "showLess": "Daha az",
@@ -587,6 +588,9 @@
     "loadingBrawlers": "Yükleniyor...",
     "loadingMeta": "Veri yükleniyor...",
     "noMapsForMode": "Aktif harita yok",
-    "bansComingSoon": "Banlar — Yakında"
+    "bansComingSoon": "Banlar — Yakında",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
+    "winProbability": "Kazanma olasılığı"
   }
 }
