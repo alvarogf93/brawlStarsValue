@@ -71,7 +71,8 @@
     "analytics": "Analytics",
     "lastSync": "Last sync",
     "manage": "Manage subscription",
-    "profile": "Profile"
+    "profile": "Profile",
+    "picks": "Picks"
   },
   "battles": {
     "title": "RECENT BATTLES",

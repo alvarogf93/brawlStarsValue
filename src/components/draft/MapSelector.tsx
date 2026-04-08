@@ -29,10 +29,6 @@ export function MapSelector({ mode, onSelect }: Props) {
           .filter(e => e.event.mode === mode && isDraftMode(e.event.mode))
           .map(e => ({ map: e.event.map, eventId: e.event.id }))
         setMaps(matching)
-        // Auto-select if only 1 map
-        if (matching.length === 1) {
-          onSelect(matching[0].map, matching[0].eventId)
-        }
       })
       .catch(() => setMaps([]))
       .finally(() => setLoading(false))

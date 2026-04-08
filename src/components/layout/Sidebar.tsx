@@ -24,7 +24,9 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
       { key: 'cosmetics', path: '/cosmetics', icon: <Palette className="w-4 h-4" /> },
     ] },
     { key: 'brawlers', path: '/brawlers', icon: <Users className="w-5 h-5" /> },
-    { key: 'battles', path: '/battles', icon: <Swords className="w-5 h-5" /> },
+    { key: 'battles', path: '/battles', icon: <Swords className="w-5 h-5" />, sub: [
+      { key: 'picks', path: '/picks', icon: <Swords className="w-4 h-4" />, isGlobal: true },
+    ] },
     { key: 'stats', path: '/stats', icon: <BarChart3 className="w-5 h-5" />, sub: [
       { key: 'analytics', path: '/analytics', icon: <FlaskConical className="w-4 h-4" /> },
     ] },
@@ -77,7 +79,7 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
 
                 {/* Sub-items */}
                 {item.sub?.map((sub) => {
-                  const subHref = `${basePath}${sub.path}`
+                  const subHref = (sub as { isGlobal?: boolean }).isGlobal ? `/${locale}${sub.path}` : `${basePath}${sub.path}`
                   const subActive = pathname === subHref
                   return (
                     <Link

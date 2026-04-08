@@ -71,7 +71,8 @@
     "analytics": "Analytics",
     "lastSync": "آخر مزامنة",
     "manage": "إدارة الاشتراك",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "picks": "اختيارات"
   },
   "battles": {
     "title": "المعارك الأخيرة",

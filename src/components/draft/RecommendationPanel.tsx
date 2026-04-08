@@ -22,17 +22,17 @@ export function RecommendationPanel({ recommendations, brawlerMap, currentTeam }
 
   if (currentTeam === 'red') {
     return (
-      <div className="bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3 text-center">
-        <p className="font-['Lilita_One'] text-sm text-red-400">{t('enemyTurn')}</p>
-        <p className="text-[11px] text-slate-500 mt-0.5">{t('selectEnemyPick')}</p>
+      <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-4 text-center">
+        <p className="font-['Lilita_One'] text-base text-red-400">{t('enemyTurn')}</p>
+        <p className="text-xs text-slate-400 mt-1 font-semibold">{t('selectEnemyPick')}</p>
       </div>
     )
   }
 
   if (top3.length === 0) {
     return (
-      <div className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-center">
-        <p className="text-sm text-slate-500">{t('noRecommendations')}</p>
+      <div className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-4 text-center">
+        <p className="font-['Lilita_One'] text-sm text-slate-300">{t('noRecommendations')}</p>
       </div>
     )
   }

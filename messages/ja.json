@@ -71,7 +71,8 @@
     "analytics": "Analytics",
     "lastSync": "最終同期",
     "manage": "サブスク管理",
-    "profile": "プロフィール"
+    "profile": "プロフィール",
+    "picks": "ピック"
   },
   "battles": {
     "title": "最近のバトル",

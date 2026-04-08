@@ -13,6 +13,7 @@ import { MapSelector } from './MapSelector'
 import { TeamSlots } from './TeamSlots'
 import { BrawlerGrid } from './BrawlerGrid'
 import { RecommendationPanel } from './RecommendationPanel'
+import { getGameModeImageUrl, getMapImageUrl } from '@/lib/utils'
 import { RotateCcw, Undo2, Swords } from 'lucide-react'
 
 export function DraftSimulator() {
@@ -158,6 +159,17 @@ export function DraftSimulator() {
       {/* Phase: Drafting */}
       {state.phase === 'DRAFTING' && (
         <div className="space-y-3">
+          {/* Context: selected mode + map */}
+          <div className="flex items-center gap-3 bg-white/[0.03] rounded-xl px-3 py-2">
+            {state.mode && getGameModeImageUrl(state.mode) && (
+              <img src={getGameModeImageUrl(state.mode)!} alt={state.mode} className="w-6 h-6" width={24} height={24} />
+            )}
+            {state.eventId && (
+              <img src={getMapImageUrl(state.eventId)} alt={state.map ?? ''} className="w-16 h-10 rounded-md object-cover border border-white/10" width={64} height={40} />
+            )}
+            <span className="font-['Lilita_One'] text-sm text-white">{state.map}</span>
+          </div>
+
           {/* Team slots (sticky on mobile) */}
           <div className="sticky top-0 z-10 bg-[#24355B] py-2 -mx-4 px-4 md:-mx-6 md:px-6 border-b border-white/5">
             <TeamSlots
@@ -203,6 +215,12 @@ export function DraftSimulator() {
       {state.phase === 'COMPLETE' && (
         <div className="text-center space-y-4">
           <h3 className="font-['Lilita_One'] text-xl text-[#FFC91B]">{t('draftComplete')}</h3>
+          <div className="flex items-center justify-center gap-3">
+            {state.mode && getGameModeImageUrl(state.mode) && (
+              <img src={getGameModeImageUrl(state.mode)!} alt={state.mode} className="w-6 h-6" width={24} height={24} />
+            )}
+            <span className="font-['Lilita_One'] text-sm text-slate-300">{state.map}</span>
+          </div>
           <TeamSlots
             blueTeam={state.blueTeam}
             redTeam={state.redTeam}
