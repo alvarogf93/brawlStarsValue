@@ -58,18 +58,18 @@ export function MapCard({ mode, map, eventId, endTime, totalBattles, topBrawlers
   const modeIconUrl = getGameModeImageUrl(mode)
   const mapImageUrl = getMapImageUrl(eventId)
   const timeLeft = computeTimeLeft(endTime, t('ended'))
-  const visible = expanded ? topBrawlers : topBrawlers.slice(0, 5)
-  const hasMore = topBrawlers.length > 5
+  const visible = expanded ? topBrawlers : topBrawlers.slice(0, 3)
+  const hasMore = topBrawlers.length > 3
   const isLimited = totalBattles < 100
 
   return (
     <div className="brawl-card-dark overflow-hidden border-[#090E17]">
       {/* Map header with background */}
-      <div className="relative h-28 overflow-hidden">
+      <div className="relative h-40 overflow-hidden">
         <img
           src={mapImageUrl}
           alt={map}
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
+          className="absolute inset-0 w-full h-full object-cover opacity-60"
           loading="lazy"
           width={400}
           height={112}
