@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { TagThenLogin } from '@/components/landing/TagThenLogin'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 export function HeroSignIn() {
   const t = useTranslations('landing')
@@ -18,7 +18,7 @@ export function HeroSignIn() {
           {t('heroSignIn')} →
         </button>
       </p>
-      <TagThenLogin open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   )
 }

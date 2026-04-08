@@ -299,7 +299,13 @@
     "loading": "Connecting...",
     "disclaimer": "By signing up, you agree to our Privacy Policy.",
     "login": "Login",
-    "upgrade": "Premium"
+    "upgrade": "Premium",
+    "linkTagTitle": "Link your Player Tag",
+    "linkTagDesc": "Enter your Brawl Stars player tag to complete setup",
+    "linkTagButton": "Link Tag",
+    "invalidTag": "Invalid tag format (e.g. #2P0Q8C2C0)",
+    "tagNotFound": "Player not found. Check your tag.",
+    "signOutInstead": "Sign out instead"
   },
   "premium": {
     "title": "BrawlVision Premium",

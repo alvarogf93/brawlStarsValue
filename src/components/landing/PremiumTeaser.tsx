@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { TagThenLogin } from '@/components/landing/TagThenLogin'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 export function PremiumTeaser() {
   const t = useTranslations('landing')
@@ -79,7 +79,7 @@ export function PremiumTeaser() {
         </div>
       </div>
 
-      <TagThenLogin open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   )
 }

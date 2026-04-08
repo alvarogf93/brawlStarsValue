@@ -3,6 +3,7 @@ import { getMessages } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { CookieConsent } from '@/components/ui/CookieConsent'
 import { AuthProvider } from '@/components/auth/AuthProvider'
+import { TagRequiredModal } from '@/components/auth/TagRequiredModal'
 import { AdSenseScript } from '@/components/ads/AdSenseScript'
 import '../globals.css'
 
@@ -94,6 +95,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             {children}
+            <TagRequiredModal />
             <CookieConsent />
           </AuthProvider>
         </NextIntlClientProvider>

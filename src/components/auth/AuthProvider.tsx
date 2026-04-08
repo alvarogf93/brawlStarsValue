@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [needsTag, setNeedsTag] = useState(false)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const supabase = useMemo(() => createClient(), [])
@@ -41,41 +42,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data) {
       setProfile(data as Profile)
+      setNeedsTag(false)
       return
     }
 
-    // First login — validate tag exists before creating profile
-    const currentTag = extractPlayerTag()
-    if (!currentTag) {
-      setProfile(null)
-      return
-    }
+    // No profile yet — user needs to link a player tag
+    setProfile(null)
+    setNeedsTag(true)
+  }, [supabase])
 
-    // Verify the player actually exists in Brawl Stars API
+  /** Link a player tag to the authenticated user (called from TagRequiredModal) */
+  const linkTag = useCallback(async (tag: string): Promise<{ ok: boolean; error?: string }> => {
+    if (!user) return { ok: false, error: 'Not authenticated' }
+
+    // Validate tag exists in Brawl Stars API
     try {
       const res = await fetch('/api/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ playerTag: currentTag }),
+        body: JSON.stringify({ playerTag: tag }),
       })
-      if (!res.ok) {
-        // Tag doesn't exist — don't associate it
-        setProfile(null)
-        return
-      }
+      if (!res.ok) return { ok: false, error: 'Tag not found' }
     } catch {
-      setProfile(null)
-      return
+      return { ok: false, error: 'Connection error' }
     }
 
-    const { data: newProfile } = await supabase
+    // Create profile
+    const { data: newProfile, error } = await supabase
       .from('profiles')
-      .insert({ id: userId, player_tag: currentTag })
+      .insert({ id: user.id, player_tag: tag })
       .select()
       .single()
 
-    setProfile(newProfile ? (newProfile as Profile) : null)
-  }, [supabase])
+    if (error || !newProfile) {
+      return { ok: false, error: error?.message || 'Could not create profile' }
+    }
+
+    setProfile(newProfile as Profile)
+    setNeedsTag(false)
+    try { localStorage.setItem('brawlvalue:user', tag) } catch { /* ignore */ }
+    return { ok: true }
+  }, [user, supabase])
 
   useEffect(() => {
     // Safety timeout: never stay in loading state more than 5s
@@ -99,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await fetchProfile(u.id)
         } else {
           setProfile(null)
+          setNeedsTag(false)
         }
         setLoading(false)
       }
@@ -122,10 +130,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
     setUser(null)
     setProfile(null)
+    setNeedsTag(false)
     try { localStorage.removeItem('brawlvalue:user') } catch { /* ignore */ }
   }, [supabase])
 
-  const value: AuthState = { user, profile, loading, signIn, signOut }
+  const value: AuthState = { user, profile, loading, needsTag, signIn, signOut, linkTag }
 
   return (
     <AuthContext value={value}>

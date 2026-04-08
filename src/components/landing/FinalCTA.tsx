@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { TagThenLogin } from '@/components/landing/TagThenLogin'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 export function FinalCTA() {
   const t = useTranslations('landing')
@@ -33,7 +33,7 @@ export function FinalCTA() {
         </p>
       </div>
 
-      <TagThenLogin open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   )
 }

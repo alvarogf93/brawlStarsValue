@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
@@ -52,11 +52,23 @@ export default function AnalyticsPage() {
   const params = useParams<{ tag: string; locale: string }>()
   const t = useTranslations('analytics')
   const ta = useTranslations('advancedAnalytics')
+  const router = useRouter()
   const { user, profile, loading: authLoading } = useAuth()
   const hasPremium = isPremium(profile as Profile | null)
   const isLoggedIn = !!user
   // Only fetch analytics after auth resolves AND user is premium
   const tag = decodeURIComponent(params.tag)
+
+  // SECURITY: Premium user viewing a different tag → redirect to own tag
+  // Analytics are always for the authenticated user, so URL must match
+  useEffect(() => {
+    if (authLoading || !hasPremium || !profile?.player_tag) return
+    const ownTag = profile.player_tag.toUpperCase().replace('#', '')
+    const urlTag = tag.toUpperCase().replace('#', '')
+    if (ownTag !== urlTag) {
+      router.replace(`/${params.locale}/profile/${encodeURIComponent(profile.player_tag)}/analytics`)
+    }
+  }, [authLoading, hasPremium, profile, tag, params.locale, router])
   const { data: analytics, loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
   const { data: freeStats, isLoading: freeLoading } = useBattlelog(tag)
   const [tagHasPremium, setTagHasPremium] = useState<boolean | null>(null)
