@@ -57,7 +57,7 @@ export function MapCard({ mode, map, eventId, endTime, totalBattles, topBrawlers
 
   const modeIconUrl = getGameModeImageUrl(mode)
   const mapImageUrl = getMapImageUrl(eventId)
-  const timeLeft = computeTimeLeft(endTime, t('ended'))
+  const timeLeft = endTime ? computeTimeLeft(endTime, t('ended')) : null
   const visible = expanded ? topBrawlers : topBrawlers.slice(0, 3)
   const hasMore = topBrawlers.length > 3
   const isLimited = totalBattles < 100
@@ -83,13 +83,15 @@ export function MapCard({ mode, map, eventId, endTime, totalBattles, topBrawlers
               <img src={modeIconUrl} alt={mode} className="w-5 h-5" width={20} height={20} />
             </span>
           )}
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm border ${
-            timeLeft === t('ended')
-              ? 'bg-red-500/30 text-red-300 border-red-500/30'
-              : 'bg-black/40 text-[#4EC0FA] border-[#4EC0FA]/20'
-          }`}>
-            {timeLeft}
-          </span>
+          {timeLeft && (
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm border ${
+              timeLeft === t('ended')
+                ? 'bg-red-500/30 text-red-300 border-red-500/30'
+                : 'bg-black/40 text-[#4EC0FA] border-[#4EC0FA]/20'
+            }`}>
+              {timeLeft}
+            </span>
+          )}
         </div>
 
         {/* Map name */}
