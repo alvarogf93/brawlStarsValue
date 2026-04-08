@@ -292,9 +292,11 @@ export default function BrawlersPage() {
               key={brawler.id}
               className="group relative pt-6"
             >
-              {/* Brawler portrait — 25% outside, 75% inside */}
+              {/* Brawler portrait — prestige version if applicable */}
               <BrawlImg
-                src={getBrawlerPortraitUrl(brawler.id)}
+                src={brawler.prestigeLevel > 0
+                  ? `https://cdn.brawlify.com/tiers/tiered/prestige-${brawler.prestigeLevel}/${brawler.id}.png`
+                  : getBrawlerPortraitUrl(brawler.id)}
                 fallbackSrc={getBrawlerPortraitFallback(brawler.id)}
                 alt={brawler.name}
                 fallbackText={brawler.name}
@@ -323,10 +325,16 @@ export default function BrawlersPage() {
                     {brawler.power}
                   </div>
 
-                  {/* Prestige */}
+                  {/* Prestige badge — uses Brawlify CDN tiered prestige icons */}
                   {brawler.prestigeLevel > 0 && (
-                    <div className="absolute bottom-1 right-1.5 text-[10px] font-bold text-yellow-400 z-10">
-                      P{brawler.prestigeLevel} 👑
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30">
+                      <img
+                        src={`https://cdn.brawlify.com/tiers/tiered/prestige-${brawler.prestigeLevel}/${brawler.id}.png`}
+                        alt={`Prestige ${brawler.prestigeLevel}`}
+                        className="w-10 h-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                        width={40}
+                        height={40}
+                      />
                     </div>
                   )}
                 </div>
