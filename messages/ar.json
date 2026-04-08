@@ -70,7 +70,8 @@
     "upgrade": "بريميوم",
     "analytics": "Analytics",
     "lastSync": "آخر مزامنة",
-    "manage": "إدارة الاشتراك"
+    "manage": "إدارة الاشتراك",
+    "profile": "الملف الشخصي"
   },
   "battles": {
     "title": "المعارك الأخيرة",

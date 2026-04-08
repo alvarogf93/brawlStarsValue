@@ -70,7 +70,8 @@
     "upgrade": "高级版",
     "analytics": "Analytics",
     "lastSync": "上次同步",
-    "manage": "管理订阅"
+    "manage": "管理订阅",
+    "profile": "个人资料"
   },
   "battles": {
     "title": "最近战斗",

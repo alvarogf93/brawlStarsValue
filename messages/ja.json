@@ -70,7 +70,8 @@
     "upgrade": "プレミアム",
     "analytics": "Analytics",
     "lastSync": "最終同期",
-    "manage": "サブスク管理"
+    "manage": "サブスク管理",
+    "profile": "プロフィール"
   },
   "battles": {
     "title": "最近のバトル",

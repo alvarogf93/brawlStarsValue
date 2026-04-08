@@ -70,7 +70,8 @@
     "upgrade": "프리미엄",
     "analytics": "Analytics",
     "lastSync": "마지막 동기화",
-    "manage": "구독 관리"
+    "manage": "구독 관리",
+    "profile": "프로필"
   },
   "battles": {
     "title": "최근 전투",

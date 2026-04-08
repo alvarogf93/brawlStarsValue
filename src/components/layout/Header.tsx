@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
@@ -8,7 +8,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
-import { Menu, LogOut, RefreshCw, User, Crown, Settings } from 'lucide-react'
+import { Menu, LogOut, RefreshCw, User, Crown } from 'lucide-react'
 import Link from 'next/link'
 
 function formatTimeAgo(iso: string): string {
@@ -33,6 +33,21 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
 
   const [syncing, setSyncing] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false)
+      }
+    }
+    if (profileMenuOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [profileMenuOpen])
+
+  const hasPremium = !loading && user && profile && isPremium(profile as Profile)
 
   const handleSync = async () => {
     setSyncing(true)
@@ -106,19 +121,9 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           )}
           <span className="font-black text-2xl font-['Lilita_One'] tracking-wider text-[var(--color-brawl-gold)] text-stroke-brawl-brand transform rotate-[-2deg]">BrawlVision</span>
           {playerTag && (
-            <div className="hidden sm:flex items-center gap-2 ml-2">
-              <span className="text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white drop-shadow-[0_2px_0_rgba(18,26,47,1)]">
-                {playerTag}
-              </span>
-              {user?.user_metadata?.avatar_url && (
-                <img
-                  src={user.user_metadata.avatar_url}
-                  alt=""
-                  className="w-8 h-8 rounded-full border-2 border-[var(--color-brawl-gold)] shadow-[0_2px_0_rgba(0,0,0,0.3)]"
-                  referrerPolicy="no-referrer"
-                />
-              )}
-            </div>
+            <span className="hidden sm:inline text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white drop-shadow-[0_2px_0_rgba(18,26,47,1)] ml-2">
+              {playerTag}
+            </span>
           )}
           {!loading && user && isPremium(profile as Profile) && profile?.last_sync && (
             <span className="text-[10px] text-slate-500 font-semibold hidden md:inline-block">
@@ -146,24 +151,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               <span className="hidden sm:inline">{t('upgrade')}</span>
             </Link>
           )}
-          {!loading && user && profile && isPremium(profile as Profile) && (
-            <div className="flex items-center gap-1">
-              <div className="flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-[#FFC91B] bg-[#FFC91B]/10 rounded-xl border border-[#FFC91B]/30">
-                <Crown className="w-4 h-4" />
-                <span className="hidden sm:inline">PRO</span>
-              </div>
-              <a
-                href="https://www.paypal.com/myaccount/autopay/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={t('manage')}
-                title={t('manage')}
-                className="p-2 text-slate-400 hover:text-[#FFC91B] transition-colors rounded-xl hover:bg-white/5"
-              >
-                <Settings className="w-4 h-4" />
-              </a>
-            </div>
-          )}
 
           {playerTag && (
             <button
@@ -180,10 +167,72 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             🏆 <span className="hidden sm:inline-block">{t('leaderboard')}</span>
           </Link>
           <LocaleSwitcher />
-          {playerTag && (
-            <button onClick={handleLogout} aria-label={t('logout')} className="p-3 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-red-400 active:text-red-500 transition-colors rounded-xl hover:bg-white/5 active:bg-white/10" title={t('logout')}>
-              <LogOut className="w-5 h-5" />
-            </button>
+
+          {/* Profile avatar dropdown (logged in) */}
+          {!loading && user && (
+            <div ref={profileMenuRef} className="relative">
+              <button
+                onClick={() => setProfileMenuOpen(prev => !prev)}
+                aria-label={t('profile')}
+                className={`relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all hover:scale-105 active:scale-95 overflow-hidden ${hasPremium ? 'border-[#FFC91B] shadow-[0_0_8px_rgba(255,201,27,0.3)]' : 'border-white/20 hover:border-white/40'}`}
+              >
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <User className="w-5 h-5 text-slate-400" />
+                )}
+                {hasPremium && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#FFC91B] rounded-full flex items-center justify-center border border-[#0F172A]">
+                    <Crown className="w-2.5 h-2.5 text-[#121A2F]" />
+                  </span>
+                )}
+              </button>
+
+              {profileMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-[#1A2744] border-2 border-[#090E17] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden z-50">
+                  {/* User info */}
+                  <div className="px-4 py-3 border-b border-white/5">
+                    <p className="text-sm font-semibold text-white truncate">{user.user_metadata?.full_name || user.email}</p>
+                    {profile?.player_tag && (
+                      <p className="text-[10px] text-slate-500 font-['Lilita_One']">{profile.player_tag}</p>
+                    )}
+                  </div>
+
+                  {/* Manage subscription */}
+                  {hasPremium ? (
+                    <a
+                      href="https://www.paypal.com/myaccount/autopay/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors"
+                    >
+                      <Crown className="w-4 h-4 text-[#FFC91B]" />
+                      {t('manage')}
+                    </a>
+                  ) : (
+                    <div className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 cursor-not-allowed">
+                      <Crown className="w-4 h-4" />
+                      {t('manage')}
+                    </div>
+                  )}
+
+                  {/* Logout */}
+                  <button
+                    onClick={() => { setProfileMenuOpen(false); handleLogout() }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-red-400 transition-colors border-t border-white/5"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {t('logout')}
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </header>

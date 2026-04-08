@@ -70,7 +70,8 @@
     "upgrade": "Premium",
     "analytics": "Analytics",
     "lastSync": "Dernière synchro.",
-    "manage": "Gérer l'abonnement"
+    "manage": "Gérer l'abonnement",
+    "profile": "Profil"
   },
   "battles": {
     "title": "COMBATS RÉCENTS",
