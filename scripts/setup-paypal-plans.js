@@ -78,7 +78,7 @@ async function main() {
 
   const monthly = await createPlan(token, productId, 'BrawlVision Monthly', '2.99', 'MONTH', 1)
   const quarterly = await createPlan(token, productId, 'BrawlVision Quarterly', '5.99', 'MONTH', 3)
-  const yearly = await createPlan(token, productId, 'BrawlVision Yearly', '19.99', 'YEAR', 1)
+  const yearly = await createPlan(token, productId, 'BrawlVision Yearly', '14.99', 'YEAR', 1)
 
   console.log('\n── Add these to .env.local ──')
   console.log(`PAYPAL_PLAN_MONTHLY=${monthly}`)

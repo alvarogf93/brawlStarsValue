@@ -72,37 +72,37 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
 
         {/* 3 pricing tiers */}
         <div className="px-6 md:px-8 pb-6 md:pb-8 space-y-3">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {/* Monthly */}
             <button
               onClick={() => handleUpgrade('monthly')}
               disabled={loading}
-              className="py-4 px-2 text-center font-['Lilita_One'] bg-white/[0.06] text-white rounded-xl border-2 border-white/10 hover:border-[#FFC91B]/30 hover:bg-white/[0.08] transition-all disabled:opacity-50"
+              className="cursor-pointer py-5 px-3 text-center font-['Lilita_One'] bg-white/[0.06] text-white rounded-xl border-2 border-white/10 shadow-[0_3px_0_0_rgba(255,255,255,0.05)] hover:border-[#FFC91B]/40 hover:bg-white/[0.12] hover:-translate-y-1 hover:shadow-[0_6px_12px_rgba(255,201,27,0.1)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-              <span className="block text-lg leading-tight">{t('planMonthly')}</span>
-              <span className="block text-[10px] text-slate-500 font-normal mt-0.5">{t('planMonthlyPeriod')}</span>
+              <span className="block text-2xl leading-tight group-hover:scale-110 transition-transform">{t('planMonthly')}</span>
+              <span className="block text-[10px] text-slate-500 font-normal mt-1">{t('planMonthlyPeriod')}</span>
             </button>
 
             {/* Quarterly */}
             <button
               onClick={() => handleUpgrade('quarterly')}
               disabled={loading}
-              className="relative py-4 px-2 text-center font-['Lilita_One'] bg-white/[0.06] text-white rounded-xl border-2 border-[#4EC0FA]/30 hover:border-[#4EC0FA]/60 hover:bg-white/[0.08] transition-all disabled:opacity-50"
+              className="cursor-pointer relative py-5 px-3 text-center font-['Lilita_One'] bg-[#4EC0FA]/[0.08] text-white rounded-xl border-2 border-[#4EC0FA]/30 shadow-[0_3px_0_0_rgba(78,192,250,0.15)] hover:border-[#4EC0FA]/60 hover:bg-[#4EC0FA]/[0.15] hover:-translate-y-1 hover:shadow-[0_6px_12px_rgba(78,192,250,0.15)] active:translate-y-0 active:shadow-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-[#4EC0FA] text-white px-2 py-0.5 rounded-full whitespace-nowrap">{t('saveQuarterly')}</span>
-              <span className="block text-lg leading-tight">{t('planQuarterly')}</span>
-              <span className="block text-[10px] text-slate-500 font-normal mt-0.5">{t('planQuarterlyPeriod')}</span>
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-[#4EC0FA] text-white px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_4px_rgba(78,192,250,0.3)]">{t('saveQuarterly')}</span>
+              <span className="block text-2xl leading-tight group-hover:scale-110 transition-transform">{t('planQuarterly')}</span>
+              <span className="block text-[10px] text-slate-500 font-normal mt-1">{t('planQuarterlyPeriod')}</span>
             </button>
 
             {/* Yearly — best value */}
             <button
               onClick={() => handleUpgrade('yearly')}
               disabled={loading}
-              className="relative py-4 px-2 text-center font-['Lilita_One'] bg-[#FFC91B] text-[#121A2F] rounded-xl border-2 border-[#FFC91B] shadow-[0_3px_0_0_rgba(18,26,47,1)] hover:translate-y-[1px] hover:shadow-[0_2px_0_0_rgba(18,26,47,1)] transition-all disabled:opacity-50"
+              className="cursor-pointer relative py-5 px-3 text-center font-['Lilita_One'] bg-[#FFC91B] text-[#121A2F] rounded-xl border-2 border-[#FFC91B] shadow-[0_4px_0_0_#B45309] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#B45309,0_8px_16px_rgba(255,201,27,0.25)] active:translate-y-[2px] active:shadow-[0_1px_0_0_#B45309] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group ring-2 ring-[#FFC91B]/30 ring-offset-2 ring-offset-[#121A2F]"
             >
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-green-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">{t('saveYearly')}</span>
-              <span className="block text-lg leading-tight">{t('planYearly')}</span>
-              <span className="block text-[10px] text-[#121A2F]/60 font-normal mt-0.5">{t('planYearlyPeriod')}</span>
+              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-green-500 text-white px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_4px_rgba(34,197,94,0.4)] animate-pulse">{t('saveYearly')}</span>
+              <span className="block text-2xl leading-tight group-hover:scale-110 transition-transform">{t('planYearly')}</span>
+              <span className="block text-[10px] text-[#121A2F]/60 font-normal mt-1">{t('planYearlyPeriod')}</span>
             </button>
           </div>
 
