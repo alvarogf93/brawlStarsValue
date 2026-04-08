@@ -355,8 +355,28 @@
     "emailCta": "Abrir BrawlVision",
     "emailFeatures": "Lo que tienes ahora:",
     "emailFooter": "Si tienes alguna pregunta, responde a este email. ¡Nos vemos en la arena!",
-    "hookLine1": "¿Ya pagas por otra skin más? Por el mismo precio, lleva tu juego al siguiente nivel.",
-    "hookLine2": "Analíticas que mejoran cuanto más juegas. El Brawl Pass siempre es lo mismo — esto crece contigo día a día."
+    "hooks": [
+      "Bro, ¿otra skin más? En serio. Por lo mismo tienes un sistema que guarda TODAS tus partidas y cada día es más listo. Tú decides: parecer pro o jugar como uno de verdad.",
+      "Ya tienes todos los brawlers al 11, todas las skins, todo el oro del mundo. ¿Y ahora qué? Ahora empieza lo bueno: saber de verdad cómo juegas.",
+      "Ese Kenji que te reventó 4 veces seguidas no es mejor que tú. Solo sabe qué jugar y cuándo. Ahora tú también vas a saberlo.",
+      "Llevas 3 temporadas comprando el Brawl Pass y sigues en las mismas copas. Un León te mata, un Spike te destroza y tú sin saber ni qué pick elegir. Se acabó.",
+      "Te has gastado más en skins que en comer este mes y sigues perdiendo contra el mismo Mortis. ¿Y si por una vez gastas en algo que te haga GANAR?",
+      "Pierdes y no sabes por qué. Ganas y no sabes cómo repetirlo. Aquí se acaba el misterio: cada partida guardada, cada rival analizado, cada error visible.",
+      "Tu colega con skins de default te gana porque sabe qué brawler jugar en cada mapa. Tú tienes 200 skins y ni idea de por qué un Edgar random te elimina siempre. Aquí lo vas a descubrir.",
+      "¿Cuánto vales realmente en Brawl Stars? No tus copas, no tus skins — tu nivel real. Aquí lo descubres. Y te aviso: a veces duele.",
+      "Cuando tu colega te diga que es mejor que tú, enséñale los datos. Win rate real, matchups, historial completo. A ver quién habla ahora."
+    ],
+    "hookSubs": [
+      "No es un gasto. Es dejar de regalar copas.",
+      "El único upgrade que no viene en el Brawl Pass.",
+      "Menos skins, más wins.",
+      "Tu ventaja injusta empieza aquí.",
+      "Cada derrota analizada es una derrota que no se repite.",
+      "Dejar de perder no es suerte. Es información.",
+      "Tus datos. Tu verdad. Sin excusas.",
+      "Si ya maxeaste la cuenta, esto es lo que falta.",
+      "Los datos no mienten. Tu colega sí."
+    ]
   },
   "analytics": {
     "title": "Analytics",

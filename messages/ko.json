@@ -354,8 +354,28 @@
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
     "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
-    "hookLine1": "또 다른 스킨에 돈을 쓰고 있나요? 같은 가격으로 게임을 다음 레벨로 끌어올리세요.",
-    "hookLine2": "플레이할수록 좋아지는 분석. 브롤 패스는 항상 같지만 — 이것은 매일 성장합니다."
+    "hooks": [
+      "Bro, another skin? Seriously. For the same price you get a system that saves ALL your matches and gets smarter every day. Your call: look pro or play like one.",
+      "You've got every brawler at 11, every skin, all the gold. Now what? Now the real game starts: knowing how you actually play.",
+      "That Kenji who wrecked you 4 times in a row isn't better than you. He just knows what to pick and when. Now you will too.",
+      "3 seasons buying the Brawl Pass and you're still stuck at the same trophies. A Leon kills you, a Spike shreds you and you don't even know what to pick. It's over.",
+      "You've spent more on skins than on food this month and you're still losing to the same Mortis. What if for once you spend on something that makes you WIN?",
+      "You lose and don't know why. You win and can't repeat it. Mystery solved: every match saved, every rival analyzed, every mistake visible.",
+      "Your friend with default skins beats you because he knows what brawler to play on each map. You have 200 skins and no idea why a random Edgar keeps killing you. You'll find out here.",
+      "How much are you really worth in Brawl Stars? Not your trophies, not your skins — your real level. Find out here. Fair warning: sometimes it hurts.",
+      "When your friend says he's better than you, show him the data. Real win rate, matchups, full history. Let's see who talks now."
+    ],
+    "hookSubs": [
+      "It's not spending. It's stop giving away trophies.",
+      "The only upgrade the Brawl Pass can't give you.",
+      "Less skins, more wins.",
+      "Your unfair advantage starts here.",
+      "Every analyzed defeat is a defeat that won't repeat.",
+      "Stopping losses isn't luck. It's information.",
+      "Your data. Your truth. No excuses.",
+      "If you've maxed your account, this is what's missing.",
+      "Data doesn't lie. Your friend does."
+    ]
   },
   "analytics": {
     "title": "분석",
