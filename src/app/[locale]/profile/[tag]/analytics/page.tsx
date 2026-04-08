@@ -123,40 +123,95 @@ export default function AnalyticsPage() {
       .catch(err => console.warn('Failed to fetch events for Play Now:', err))
   }, [analytics])
 
-  // Case: Tag has premium account but user isn't logged in → prompt sign in
-  if (!authLoading && !hasPremium && tagHasPremium === null) {
-    return <AnalyticsSkeleton />
-  }
+  // Case: Not premium — show subscription packages (stable flow)
+  if (!authLoading && !hasPremium) {
+    if (tagHasPremium === null) return <AnalyticsSkeleton />
 
-  if (!authLoading && !hasPremium && tagHasPremium && !isLoggedIn) {
+    // Tag has premium but user not logged in → sign in prompt
+    if (tagHasPremium && !isLoggedIn) {
+      return (
+        <div className="animate-fade-in w-full pb-10 space-y-6">
+          <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[var(--color-brawl-sky)] to-[#121A2F]">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-[#121A2F] border-4 border-[var(--color-brawl-sky)] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
+                <LogIn className="w-8 h-8 text-[var(--color-brawl-sky)]" />
+              </div>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">{t('title')}</h1>
+                <p className="font-['Inter'] font-semibold text-[var(--color-brawl-sky)]">{t('premiumOnly')}</p>
+              </div>
+            </div>
+          </div>
+          <div className="brawl-card p-6 text-center">
+            <p className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] mb-4">{ta('loginRequired')}</p>
+            <button onClick={() => setAuthOpen(true)} className="brawl-button px-6 py-3 text-base">
+              <span className="flex items-center gap-2"><LogIn className="w-5 h-5" /> {ta('loginButton')}</span>
+            </button>
+          </div>
+          <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+        </div>
+      )
+    }
+
+    // Default: free user → show trial banner + free preview + subscription packages
     return (
       <div className="animate-fade-in w-full pb-10 space-y-6">
-        <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[var(--color-brawl-sky)] to-[#121A2F]">
+        <TrialBanner />
+        <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#FFC91B] to-[#121A2F]">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[#121A2F] border-4 border-[var(--color-brawl-sky)] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
-              <LogIn className="w-8 h-8 text-[var(--color-brawl-sky)]" />
+            <div className="w-16 h-16 bg-[#121A2F] border-4 border-[#FFC91B] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
+              <FlaskConical className="w-8 h-8 text-[#FFC91B]" />
             </div>
             <div>
-              <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">
-                {t('title')}
-              </h1>
-              <p className="font-['Inter'] font-semibold text-[var(--color-brawl-sky)]">{t('premiumOnly')}</p>
+              <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">{t('title')}</h1>
+              <p className="font-['Inter'] font-semibold text-[#FFC91B]">{t('premiumOnly')}</p>
             </div>
           </div>
         </div>
-        <div className="brawl-card p-6 text-center">
-          <p className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] mb-4">{ta('loginRequired')}</p>
-          <button onClick={() => setAuthOpen(true)} className="brawl-button px-6 py-3 text-base">
-            <span className="flex items-center gap-2"><LogIn className="w-5 h-5" /> {ta('loginButton')}</span>
-          </button>
+
+        {!freeLoading && freeStats && (
+          <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
+            <h3 className="font-['Lilita_One'] text-lg text-white mb-4">{ta('freePreviewTitle') || 'Quick Stats (Last 25 Battles)'}</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.winRate >= 60 ? 'text-green-400' : freeStats.winRate >= 45 ? 'text-[#FFC91B]' : 'text-red-400'}`}>{freeStats.winRate.toFixed(1)}%</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('winRateLabel')}</p>
+              </div>
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className="font-['Lilita_One'] text-2xl tabular-nums text-white">{freeStats.recentWins}W {freeStats.recentLosses}L</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('record')}</p>
+              </div>
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA] truncate">{freeStats.mostPlayedBrawler}</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('freePreviewFavorite') || 'Favorite'}</p>
+              </div>
+              <div className="brawl-row rounded-xl p-4 text-center">
+                <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.trophyChange > 0 ? 'text-green-400' : freeStats.trophyChange < 0 ? 'text-red-400' : 'text-slate-500'}`}>{freeStats.trophyChange > 0 ? '+' : ''}{freeStats.trophyChange}</p>
+                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('trophyChange')}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div id="upgrade-section">
+          <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+          <ReferralCard />
         </div>
-        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+
+        {!isLoggedIn && (
+          <>
+            <div className="brawl-card-dark p-5 text-center border-[#090E17]">
+              <p className="text-sm text-slate-400 mb-3">{ta('loginRequired')}</p>
+              <button onClick={() => setAuthOpen(true)} className="brawl-button px-5 py-2.5 text-sm">
+                <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> {ta('loginButton')}</span>
+              </button>
+            </div>
+            <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+          </>
+        )}
       </div>
     )
   }
-
-  // For non-premium: show UpgradeCard above tabs (the freemium view)
-  const showUpgrade = !authLoading && !hasPremium
 
   if (authLoading || loading) {
     return <AnalyticsSkeleton />
@@ -185,65 +240,10 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Trial banner */}
+      {/* Trial banner (shown for trial users) */}
       <TrialBanner />
 
-      {/* Upgrade section for non-premium users */}
-      {showUpgrade && (
-        <>
-          {/* Free analytics preview */}
-          {!freeLoading && freeStats && (
-            <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-              <h3 className="font-['Lilita_One'] text-lg text-white mb-4">{ta('freePreviewTitle') || 'Quick Stats (Last 25 Battles)'}</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                <div className="brawl-row rounded-xl p-4 text-center">
-                  <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.winRate >= 60 ? 'text-green-400' : freeStats.winRate >= 45 ? 'text-[#FFC91B]' : 'text-red-400'}`}>
-                    {freeStats.winRate.toFixed(1)}%
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('winRateLabel')}</p>
-                </div>
-                <div className="brawl-row rounded-xl p-4 text-center">
-                  <p className="font-['Lilita_One'] text-2xl tabular-nums text-white">
-                    {freeStats.recentWins}W {freeStats.recentLosses}L
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('record')}</p>
-                </div>
-                <div className="brawl-row rounded-xl p-4 text-center">
-                  <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA] truncate">
-                    {freeStats.mostPlayedBrawler}
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('freePreviewFavorite') || 'Favorite'}</p>
-                </div>
-                <div className="brawl-row rounded-xl p-4 text-center">
-                  <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.trophyChange > 0 ? 'text-green-400' : freeStats.trophyChange < 0 ? 'text-red-400' : 'text-slate-500'}`}>
-                    {freeStats.trophyChange > 0 ? '+' : ''}{freeStats.trophyChange}
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('trophyChange')}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div id="upgrade-section">
-            <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
-            <ReferralCard />
-          </div>
-
-          {!isLoggedIn && (
-            <>
-              <div className="brawl-card-dark p-5 text-center border-[#090E17]">
-                <p className="text-sm text-slate-400 mb-3">{ta('loginRequired')}</p>
-                <button onClick={() => setAuthOpen(true)} className="brawl-button px-5 py-2.5 text-sm">
-                  <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> {ta('loginButton')}</span>
-                </button>
-              </div>
-              <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
-            </>
-          )}
-        </>
-      )}
-
-      {/* Tab Navigation — always visible */}
+      {/* Tab Navigation */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
         {TAB_IDS.map(id => (
           <button
@@ -279,52 +279,44 @@ export default function AnalyticsPage() {
       )}
 
       {activeTab === 'performance' && (
-        <PremiumGate blur>
-          <div className="space-y-6">
-            <BrawlerMapHeatmap data={analytics?.brawlerMapMatrix ?? []} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <TimeOfDayChart data={analytics?.byHour ?? []} />
-              <WeeklyPatternChart data={analytics?.weeklyPattern ?? []} />
-            </div>
-            <PowerLevelChart data={analytics?.powerLevelImpact ?? []} />
-            <GadgetImpactCard data={analytics?.gadgetImpact ?? { withGadget: { winRate: 0, total: 0 }, withoutGadget: { winRate: 0, total: 0 }, withStarPower: { winRate: 0, total: 0 }, withoutStarPower: { winRate: 0, total: 0 } }} />
-            <BrawlerComfortList data={analytics?.brawlerComfort ?? []} />
+        <div className="space-y-6">
+          <BrawlerMapHeatmap data={analytics.brawlerMapMatrix} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TimeOfDayChart data={analytics.byHour} />
+            <WeeklyPatternChart data={analytics.weeklyPattern} />
           </div>
-        </PremiumGate>
+          <PowerLevelChart data={analytics.powerLevelImpact} />
+          <GadgetImpactCard data={analytics.gadgetImpact} />
+          <BrawlerComfortList data={analytics.brawlerComfort} />
+        </div>
       )}
 
       {activeTab === 'matchups' && (
-        <PremiumGate blur>
-          <div className="space-y-6">
-            <MatchupMatrix data={analytics?.matchups ?? []} />
-            <OpponentStrengthCard data={analytics?.opponentStrength ?? []} />
-          </div>
-        </PremiumGate>
+        <div className="space-y-6">
+          <MatchupMatrix data={analytics.matchups} />
+          <OpponentStrengthCard data={analytics.opponentStrength} />
+        </div>
       )}
 
       {activeTab === 'team' && (
-        <PremiumGate blur>
-          <div className="space-y-6">
-            <TeamSynergyView
-              brawlerSynergy={analytics?.brawlerSynergy ?? []}
-              teammateSynergy={analytics?.teammateSynergy ?? []}
-            />
-            <CarryCard data={analytics?.carry ?? { carryWR: null, normalWR: null, carryGames: 0, normalGames: 0 }} />
-          </div>
-        </PremiumGate>
+        <div className="space-y-6">
+          <TeamSynergyView
+            brawlerSynergy={analytics.brawlerSynergy}
+            teammateSynergy={analytics.teammateSynergy}
+          />
+          <CarryCard data={analytics.carry} />
+        </div>
       )}
 
       {activeTab === 'trends' && (
-        <PremiumGate blur>
-          <div className="space-y-6">
-            <TrendsChart dailyTrend={analytics?.dailyTrend ?? []} />
-            <MasteryChart data={analytics?.brawlerMastery ?? []} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SessionEfficiencyCard data={analytics?.sessionEfficiency ?? []} />
-              <RecoveryCard data={analytics?.recovery ?? { recoveryEpisodes: 0, avgGamesToRecover: null, recoveryRate: null }} />
-            </div>
+        <div className="space-y-6">
+          <TrendsChart dailyTrend={analytics.dailyTrend} />
+          <MasteryChart data={analytics.brawlerMastery} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SessionEfficiencyCard data={analytics.sessionEfficiency} />
+            <RecoveryCard data={analytics.recovery} />
           </div>
-        </PremiumGate>
+        </div>
       )}
 
       {activeTab === 'draft' && (
