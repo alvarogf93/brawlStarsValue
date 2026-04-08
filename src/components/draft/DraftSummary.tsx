@@ -21,21 +21,36 @@ interface Props {
 export function DraftSummary({ blueTeam, redTeam, brawlerMap, recommendations, modeIconUrl, mapName, onReset }: Props) {
   const t = useTranslations('draft')
 
-  // Compute aggregate advantage for blue team
-  const blueAdvantage = useMemo(() => {
-    let totalScore = 0
-    let count = 0
+  // Compute win probability: compare blue meta+counter scores vs baseline
+  const winEstimate = useMemo(() => {
+    if (recommendations.length === 0) return 50
+
+    // Blue team avg score
+    let blueTotal = 0, blueCount = 0
     for (const bId of blueTeam) {
       const rec = recommendations.find(r => r.brawlerId === bId)
-      if (rec) {
-        totalScore += rec.finalScore
-        count++
-      }
+      if (rec) { blueTotal += rec.finalScore; blueCount++ }
     }
-    return count > 0 ? totalScore / count : 50
-  }, [blueTeam, recommendations])
+    const blueAvg = blueCount > 0 ? blueTotal / blueCount : 50
 
-  const winEstimate = Math.min(Math.max(Math.round(blueAdvantage), 30), 70)
+    // Red team: compute their meta scores (how good their picks are on this map)
+    let redTotal = 0, redCount = 0
+    for (const bId of redTeam) {
+      // Find meta score for red brawler (it was in the original recommendation pool)
+      const allRecs = recommendations
+      // Red brawlers were removed from recommendations, so we need to estimate
+      // Use 50 as baseline — they were picked, so probably decent
+      redTotal += 50
+      redCount++
+    }
+    const redAvg = redCount > 0 ? redTotal / redCount : 50
+
+    // Relative advantage: blue score vs average of both
+    const combined = blueAvg + redAvg
+    const ratio = combined > 0 ? (blueAvg / combined) * 100 : 50
+
+    return Math.min(Math.max(Math.round(ratio), 30), 70)
+  }, [blueTeam, redTeam, recommendations])
 
   return (
     <div className="space-y-5 text-center">

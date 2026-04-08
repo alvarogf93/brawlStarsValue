@@ -43,7 +43,9 @@ export function BrawlerGrid({ brawlers, pickedIds, userBrawlerIds, userBrawlerPo
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <label htmlFor="brawler-search" className="sr-only">{t('searchBrawler')}</label>
         <input
+          id="brawler-search"
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -70,7 +72,7 @@ export function BrawlerGrid({ brawlers, pickedIds, userBrawlerIds, userBrawlerPo
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
+      <div role="grid" aria-label={t('searchBrawler')} className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
         {filtered.map(b => {
           const isPicked = pickedIds.has(b.id)
           const isOwned = !userBrawlerIds || userBrawlerIds.has(b.id)
