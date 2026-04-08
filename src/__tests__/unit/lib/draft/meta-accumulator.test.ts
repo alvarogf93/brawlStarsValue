@@ -1,0 +1,99 @@
+import { describe, it, expect } from 'vitest'
+import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
+
+function makeAccumulators(): MetaAccumulators {
+  return { stats: new Map(), matchups: new Map() }
+}
+
+describe('processBattleForMeta', () => {
+  it('accumulates a victory correctly', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: 1,
+      opponentBrawlerIds: [10, 11, 12],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+
+    // Check meta_stats accumulator
+    const statKey = '1|Hard Rock Mine|gemGrab'
+    const stat = acc.stats.get(statKey)!
+    expect(stat.wins).toBe(1)
+    expect(stat.losses).toBe(0)
+    expect(stat.total).toBe(1)
+
+    // Check meta_matchups accumulators (one per opponent)
+    expect(acc.matchups.size).toBe(3)
+    const m1 = acc.matchups.get('1|10|gemGrab')!
+    expect(m1.wins).toBe(1)
+    expect(m1.losses).toBe(0)
+  })
+
+  it('accumulates a defeat correctly', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: 5,
+      opponentBrawlerIds: [20, 21, 22],
+      map: 'Sneaky Fields',
+      mode: 'brawlBall',
+      result: 'defeat',
+    })
+
+    const statKey = '5|Sneaky Fields|brawlBall'
+    const stat = acc.stats.get(statKey)!
+    expect(stat.wins).toBe(0)
+    expect(stat.losses).toBe(1)
+    expect(stat.total).toBe(1)
+
+    const m = acc.matchups.get('5|20|brawlBall')!
+    expect(m.wins).toBe(0)
+    expect(m.losses).toBe(1)
+  })
+
+  it('accumulates multiple battles for the same brawler/map', () => {
+    const acc = makeAccumulators()
+    const battle = {
+      myBrawlerId: 1,
+      opponentBrawlerIds: [10, 11, 12],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+    }
+
+    processBattleForMeta(acc, { ...battle, result: 'victory' })
+    processBattleForMeta(acc, { ...battle, result: 'victory' })
+    processBattleForMeta(acc, { ...battle, result: 'defeat' })
+
+    const stat = acc.stats.get('1|Hard Rock Mine|gemGrab')!
+    expect(stat.wins).toBe(2)
+    expect(stat.losses).toBe(1)
+    expect(stat.total).toBe(3)
+  })
+
+  it('skips battles with null map', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: 1,
+      opponentBrawlerIds: [10],
+      map: null,
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+
+    expect(acc.stats.size).toBe(0)
+    expect(acc.matchups.size).toBe(0)
+  })
+
+  it('skips draws', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: 1,
+      opponentBrawlerIds: [10],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'draw',
+    })
+
+    expect(acc.stats.size).toBe(0)
+  })
+})
