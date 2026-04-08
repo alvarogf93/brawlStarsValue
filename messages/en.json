@@ -544,5 +544,20 @@
     "confidenceHigh": "Reliable data (10+ matches)",
     "confidenceMedium": "Limited data (3-9 matches)",
     "confidenceLow": "Insufficient data (1-2 matches)"
+  },
+  "picks": {
+    "title": "Best Picks",
+    "subtitle": "Top brawlers for every map in the current rotation",
+    "ended": "Ended",
+    "limitedData": "Limited data",
+    "noData": "No data yet",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "collecting": "Collecting meta data",
+    "collectingHint": "Recommendations will appear soon as we process more matches",
+    "ctaTitle": "Personalized picks",
+    "ctaDescription": "With Premium, access the 1-2-2-1 Competitive Draft and recommendations based on your history",
+    "ctaButton": "Go PRO",
+    "ctaSignup": "Start free"
   }
 }

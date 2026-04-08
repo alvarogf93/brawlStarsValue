@@ -543,5 +543,20 @@
     "confidenceHigh": "可靠数据 (10+场)",
     "confidenceMedium": "有限数据 (3-9场)",
     "confidenceLow": "数据不足 (1-2场)"
+  },
+  "picks": {
+    "title": "最佳选择",
+    "subtitle": "当前轮换中每张地图的最佳英雄",
+    "ended": "已结束",
+    "limitedData": "数据有限",
+    "noData": "暂无数据",
+    "showMore": "查看更多",
+    "showLess": "收起",
+    "collecting": "正在收集数据",
+    "collectingHint": "推荐将很快出现",
+    "ctaTitle": "个性化选择",
+    "ctaDescription": "Premium可使用1-2-2-1竞技选人",
+    "ctaButton": "成为PRO",
+    "ctaSignup": "免费开始"
   }
 }

@@ -543,5 +543,20 @@
     "confidenceHigh": "بيانات موثوقة (10+ مباريات)",
     "confidenceMedium": "بيانات محدودة (3-9 مباريات)",
     "confidenceLow": "بيانات غير كافية (1-2 مباراة)"
+  },
+  "picks": {
+    "title": "أفضل الاختيارات",
+    "subtitle": "أفضل المقاتلين لكل خريطة في الدورة الحالية",
+    "ended": "انتهى",
+    "limitedData": "بيانات محدودة",
+    "noData": "لا توجد بيانات بعد",
+    "showMore": "المزيد",
+    "showLess": "أقل",
+    "collecting": "جمع بيانات الميتا",
+    "collectingHint": "ستظهر التوصيات قريباً",
+    "ctaTitle": "اختيارات مخصصة",
+    "ctaDescription": "مع Premium: درافت تنافسي 1-2-2-1",
+    "ctaButton": "كن PRO",
+    "ctaSignup": "ابدأ مجاناً"
   }
 }

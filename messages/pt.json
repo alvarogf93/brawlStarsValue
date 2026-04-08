@@ -543,5 +543,20 @@
     "confidenceHigh": "Dado confiável (10+ partidas)",
     "confidenceMedium": "Dado limitado (3-9 partidas)",
     "confidenceLow": "Dado insuficiente (1-2 partidas)"
+  },
+  "picks": {
+    "title": "Melhores Picks",
+    "subtitle": "Os melhores brawlers para cada mapa da rotação atual",
+    "ended": "Encerrado",
+    "limitedData": "Dados limitados",
+    "noData": "Sem dados ainda",
+    "showMore": "Ver mais",
+    "showLess": "Ver menos",
+    "collecting": "Coletando dados do meta",
+    "collectingHint": "As recomendações aparecerão em breve",
+    "ctaTitle": "Picks personalizados",
+    "ctaDescription": "Com Premium, acesse o Draft Competitivo 1-2-2-1",
+    "ctaButton": "Seja PRO",
+    "ctaSignup": "Comece grátis"
   }
 }

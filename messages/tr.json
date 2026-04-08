@@ -543,5 +543,20 @@
     "confidenceHigh": "Güvenilir veri (10+ maç)",
     "confidenceMedium": "Sınırlı veri (3-9 maç)",
     "confidenceLow": "Yetersiz veri (1-2 maç)"
+  },
+  "picks": {
+    "title": "En İyi Seçimler",
+    "subtitle": "Mevcut rotasyondaki her harita için en iyi brawlerlar",
+    "ended": "Bitti",
+    "limitedData": "Sınırlı veri",
+    "noData": "Henüz veri yok",
+    "showMore": "Daha fazla",
+    "showLess": "Daha az",
+    "collecting": "Meta verileri toplanıyor",
+    "collectingHint": "Öneriler yakında görünecek",
+    "ctaTitle": "Kişisel seçimler",
+    "ctaDescription": "Premium ile: 1-2-2-1 Rekabetçi Draft",
+    "ctaButton": "PRO ol",
+    "ctaSignup": "Ücretsiz başla"
   }
 }

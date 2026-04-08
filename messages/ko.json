@@ -543,5 +543,20 @@
     "confidenceHigh": "신뢰할 수 있는 데이터 (10+ 경기)",
     "confidenceMedium": "제한된 데이터 (3-9 경기)",
     "confidenceLow": "부족한 데이터 (1-2 경기)"
+  },
+  "picks": {
+    "title": "최고의 픽",
+    "subtitle": "현재 로테이션의 각 맵에 대한 최고의 브롤러",
+    "ended": "종료",
+    "limitedData": "제한된 데이터",
+    "noData": "아직 데이터 없음",
+    "showMore": "더 보기",
+    "showLess": "접기",
+    "collecting": "메타 데이터 수집 중",
+    "collectingHint": "곧 추천이 표시됩니다",
+    "ctaTitle": "맞춤 픽",
+    "ctaDescription": "Premium으로 1-2-2-1 경쟁 드래프트 이용",
+    "ctaButton": "PRO 되기",
+    "ctaSignup": "무료 시작"
   }
 }

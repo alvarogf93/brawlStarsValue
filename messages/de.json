@@ -543,5 +543,20 @@
     "confidenceHigh": "Zuverlässig (10+ Spiele)",
     "confidenceMedium": "Begrenzt (3-9 Spiele)",
     "confidenceLow": "Unzureichend (1-2 Spiele)"
+  },
+  "picks": {
+    "title": "Beste Picks",
+    "subtitle": "Die besten Brawler für jede Karte der aktuellen Rotation",
+    "ended": "Beendet",
+    "limitedData": "Begrenzte Daten",
+    "noData": "Noch keine Daten",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen",
+    "collecting": "Meta-Daten werden gesammelt",
+    "collectingHint": "Empfehlungen erscheinen bald",
+    "ctaTitle": "Personalisierte Picks",
+    "ctaDescription": "Mit Premium: 1-2-2-1 Draft und persönliche Empfehlungen",
+    "ctaButton": "PRO werden",
+    "ctaSignup": "Kostenlos starten"
   }
 }

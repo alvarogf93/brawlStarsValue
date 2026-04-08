@@ -543,5 +543,20 @@
     "confidenceHigh": "Wiarygodne dane (10+ meczów)",
     "confidenceMedium": "Ograniczone dane (3-9 meczów)",
     "confidenceLow": "Niewystarczające dane (1-2 mecze)"
+  },
+  "picks": {
+    "title": "Najlepsze Picki",
+    "subtitle": "Najlepsi brawlerzy na każdą mapę w aktualnej rotacji",
+    "ended": "Zakończone",
+    "limitedData": "Ograniczone dane",
+    "noData": "Brak danych",
+    "showMore": "Pokaż więcej",
+    "showLess": "Pokaż mniej",
+    "collecting": "Zbieranie danych meta",
+    "collectingHint": "Rekomendacje pojawią się wkrótce",
+    "ctaTitle": "Spersonalizowane picki",
+    "ctaDescription": "Z Premium: Draft Konkurencyjny 1-2-2-1",
+    "ctaButton": "Zostań PRO",
+    "ctaSignup": "Zacznij za darmo"
   }
 }

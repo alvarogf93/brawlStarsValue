@@ -543,5 +543,20 @@
     "confidenceHigh": "信頼できるデータ (10+試合)",
     "confidenceMedium": "限定データ (3-9試合)",
     "confidenceLow": "不十分なデータ (1-2試合)"
+  },
+  "picks": {
+    "title": "ベストピック",
+    "subtitle": "現在のローテーションの各マップのベストブロウラー",
+    "ended": "終了",
+    "limitedData": "限定データ",
+    "noData": "データなし",
+    "showMore": "もっと見る",
+    "showLess": "閉じる",
+    "collecting": "メタデータ収集中",
+    "collectingHint": "まもなくレコメンドが表示されます",
+    "ctaTitle": "パーソナルピック",
+    "ctaDescription": "Premiumで1-2-2-1競技ドラフト利用可能",
+    "ctaButton": "PROになる",
+    "ctaSignup": "無料で始める"
   }
 }
