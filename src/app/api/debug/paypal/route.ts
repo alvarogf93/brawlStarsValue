@@ -6,9 +6,9 @@ import { NextResponse } from 'next/server'
  * Shows env var state without exposing full secrets.
  */
 export async function GET() {
-  const clientId = process.env.PAYPAL_CLIENT_ID ?? ''
-  const secret = process.env.PAYPAL_SECRET ?? ''
-  const mode = process.env.PAYPAL_MODE
+  const clientId = (process.env.PAYPAL_CLIENT_ID ?? '').trim()
+  const secret = (process.env.PAYPAL_SECRET ?? '').trim()
+  const mode = process.env.PAYPAL_MODE?.trim()
   const nodeEnv = process.env.NODE_ENV
 
   const base = mode === 'live'

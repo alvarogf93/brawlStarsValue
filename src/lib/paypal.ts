@@ -1,5 +1,5 @@
 function getPayPalBase(): string {
-  const mode = process.env.PAYPAL_MODE
+  const mode = process.env.PAYPAL_MODE?.trim()
   // If PAYPAL_MODE is explicitly set, use it; otherwise default to live in production
   const isLive = mode ? mode === 'live' : process.env.NODE_ENV === 'production'
   return isLive
@@ -9,8 +9,8 @@ function getPayPalBase(): string {
 
 /** Get an OAuth2 access token from PayPal */
 async function getAccessToken(): Promise<string> {
-  const clientId = process.env.PAYPAL_CLIENT_ID
-  const secret = process.env.PAYPAL_SECRET
+  const clientId = process.env.PAYPAL_CLIENT_ID?.trim()
+  const secret = process.env.PAYPAL_SECRET?.trim()
 
   if (!clientId || !secret) {
     throw new Error('PayPal credentials not configured')
