@@ -25,6 +25,21 @@ function barGradient(wr: number) {
   return 'from-red-500 to-red-400'
 }
 
+function confidenceDot(confidence: 'low' | 'medium' | 'high') {
+  switch (confidence) {
+    case 'high':
+      return 'bg-green-400'
+    case 'medium':
+      return 'bg-amber-400'
+    case 'low':
+      return 'bg-slate-600'
+  }
+}
+
+function confidenceOpacity(confidence: 'low' | 'medium' | 'high') {
+  return confidence === 'low' ? 'opacity-50' : ''
+}
+
 export function MatchupMatrix({ data }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
@@ -127,8 +142,14 @@ export function MatchupMatrix({ data }: Props) {
           return (
             <div
               key={`${m.myBrawlerId}-${m.opponentBrawlerId}`}
-              className="flex items-center gap-2 brawl-row rounded-xl px-3 py-2"
+              className={`flex items-center gap-2 brawl-row rounded-xl px-3 py-2 ${confidenceOpacity(m.confidence)}`}
             >
+              {/* Confidence dot */}
+              <span
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${confidenceDot(m.confidence)}`}
+                title={`${m.confidence} confidence`}
+              />
+
               {/* My brawler */}
               <BrawlImg
                 src={getBrawlerPortraitUrl(m.myBrawlerId)}

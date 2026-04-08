@@ -341,15 +341,45 @@ export default function ClubPage() {
                   {i + 1}
                 </span>
 
-                {/* Name + role */}
-                <div className="relative z-10 flex items-center gap-2 min-w-0">
-                  <span className={`font-['Lilita_One'] text-[21px] tracking-wide truncate text-stroke-none transition-colors ${
-                      isMe ? 'text-[#FFC91B] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' : 
-                      'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-[#4EC0FA]'
-                  }`}>
-                    {member.name}
-                  </span>
-                  <RoleBadge role={member.role} t={t} />
+                {/* Name + role + mobile stats */}
+                <div className="relative z-10 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`font-['Lilita_One'] text-[21px] tracking-wide truncate text-stroke-none transition-colors ${
+                        isMe ? 'text-[#FFC91B] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]' :
+                        'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] group-hover:text-[#4EC0FA]'
+                    }`}>
+                      {member.name}
+                    </span>
+                    <RoleBadge role={member.role} t={t} />
+                  </div>
+
+                  {/* Mobile-only compact stats row */}
+                  <div className="flex sm:hidden items-center gap-3 mt-1 text-xs font-bold">
+                    <span className="flex items-center gap-1 text-[#FFC91B]">
+                      <Trophy size={12} />
+                      {member.trophies.toLocaleString()}
+                    </span>
+                    {member.loaded && wr !== null && (
+                      <span className={`${wr >= 55 ? 'text-[#4ADE80]' : wr <= 45 ? 'text-[#F87171]' : 'text-slate-300'}`}>
+                        {wr}%
+                      </span>
+                    )}
+                    {member.loaded && member.totalGems != null && (
+                      <span className="flex items-center gap-0.5 text-white/70">
+                        <GemIcon className="w-3 h-3" />
+                        {member.totalGems.toLocaleString()}
+                      </span>
+                    )}
+                    {member.loaded && member.totalVictories != null && (
+                      <span className="flex items-center gap-0.5 text-slate-400">
+                        <Swords size={11} />
+                        {member.totalVictories.toLocaleString()}
+                      </span>
+                    )}
+                    {!member.loaded && (
+                      <span className="h-3 w-20 bg-[#090E17] rounded animate-pulse" />
+                    )}
+                  </div>
                 </div>
 
                 {/* Trophies */}

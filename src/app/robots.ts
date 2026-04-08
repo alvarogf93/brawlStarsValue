@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/', '/_next/'],
       },
     ],
-    sitemap: 'https://brawlvision.com/sitemap.xml',
-    host: 'https://brawlvision.com',
+    sitemap: 'https://www.brawlvision.com/sitemap.xml',
+    host: 'https://www.brawlvision.com',
   }
 }
