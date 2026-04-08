@@ -43,6 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data) {
       setProfile(data as Profile)
       setNeedsTag(false)
+      // Restore localStorage tag so InputForm auto-redirects on next visit
+      try { localStorage.setItem('brawlvalue:user', data.player_tag) } catch { /* ignore */ }
       return
     }
 
@@ -99,11 +101,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event: string, session: { user: User | null } | null) => {
+      async (event: string, session: { user: User | null } | null) => {
         const u = session?.user ?? null
         setUser(u)
         if (u) {
           await fetchProfile(u.id)
+
+          // After sign-in, if user has a profile and we're on landing, redirect to their profile
+          if (event === 'SIGNED_IN') {
+            const { data: prof } = await supabase.from('profiles').select('player_tag').eq('id', u.id).single()
+            if (prof?.player_tag) {
+              const isLanding = window.location.pathname === '/' || /^\/[a-z]{2}\/?$/.test(window.location.pathname)
+              if (isLanding) {
+                const locale = window.location.pathname.split('/')[1] || 'es'
+                window.location.href = `/${locale}/profile/${encodeURIComponent(prof.player_tag)}`
+                return
+              }
+            }
+          }
         } else {
           setProfile(null)
           setNeedsTag(false)
