@@ -1,6 +1,8 @@
-const PAYPAL_BASE = process.env.PAYPAL_MODE === 'live'
-  ? 'https://api-m.paypal.com'
-  : 'https://api-m.sandbox.paypal.com'
+function getPayPalBase(): string {
+  return process.env.PAYPAL_MODE === 'live'
+    ? 'https://api-m.paypal.com'
+    : 'https://api-m.sandbox.paypal.com'
+}
 
 /** Get an OAuth2 access token from PayPal */
 async function getAccessToken(): Promise<string> {
@@ -11,9 +13,10 @@ async function getAccessToken(): Promise<string> {
     throw new Error('PayPal credentials not configured')
   }
 
+  const base = getPayPalBase()
   const auth = Buffer.from(`${clientId}:${secret}`).toString('base64')
 
-  const res = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
+  const res = await fetch(`${base}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${auth}`,
@@ -35,7 +38,7 @@ async function getAccessToken(): Promise<string> {
 /** Create a product in PayPal (only needs to be done once) */
 export async function createProduct(): Promise<string> {
   const token = await getAccessToken()
-  const res = await fetch(`${PAYPAL_BASE}/v1/catalogs/products`, {
+  const res = await fetch(`${getPayPalBase()}/v1/catalogs/products`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -63,7 +66,7 @@ export async function createPlan(params: {
   intervalCount?: number
 }): Promise<string> {
   const token = await getAccessToken()
-  const res = await fetch(`${PAYPAL_BASE}/v1/billing/plans`, {
+  const res = await fetch(`${getPayPalBase()}/v1/billing/plans`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -108,7 +111,7 @@ export async function createSubscription(params: {
 }): Promise<{ subscriptionId: string; approvalUrl: string }> {
   const token = await getAccessToken()
 
-  const res = await fetch(`${PAYPAL_BASE}/v1/billing/subscriptions`, {
+  const res = await fetch(`${getPayPalBase()}/v1/billing/subscriptions`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -150,7 +153,7 @@ export async function getSubscriptionDetails(subscriptionId: string): Promise<{
 }> {
   const token = await getAccessToken()
 
-  const res = await fetch(`${PAYPAL_BASE}/v1/billing/subscriptions/${subscriptionId}`, {
+  const res = await fetch(`${getPayPalBase()}/v1/billing/subscriptions/${subscriptionId}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
 
@@ -173,7 +176,7 @@ export async function verifyPayPalWebhook(params: {
 }): Promise<boolean> {
   const token = await getAccessToken()
 
-  const res = await fetch(`${PAYPAL_BASE}/v1/notifications/verify-webhook-signature`, {
+  const res = await fetch(`${getPayPalBase()}/v1/notifications/verify-webhook-signature`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
