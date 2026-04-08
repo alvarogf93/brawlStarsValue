@@ -7,6 +7,14 @@
 - **Después de verificar**: Enviar sitemap (`https://www.brawlvision.com/sitemap.xml`) desde la sección Sitemaps
 - **Meta tag HTML**: Ya desplegado en el layout como respaldo
 
+## Cron meta-poll — Añadir al Oracle VPS
+- **Estado**: Pendiente (requiere SSH al VPS)
+- **Qué hacer**: Añadir al crontab de Oracle VPS:
+  ```
+  0 */2 * * * curl -s -H "Authorization: Bearer $CRON_SECRET" https://brawl-stars-value-79ko.vercel.app/api/cron/meta-poll > /dev/null 2>&1
+  ```
+- **Verificar**: Tras la primera ejecución, comprobar que meta_stats tiene datos en Supabase
+
 ## Imágenes SP/Gadgets faltantes (~20)
 - **Estado**: Pendiente
 - **Qué hacer**: Descargar manualmente del Fan Kit de Supercell las imágenes de Star Powers y Gadgets que faltan
