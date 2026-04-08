@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     title: 'BrawlVision | Combat Analytics & Gem Calculator',
     description: 'Analyze your battles, track win rates, and calculate your gem value.',
   },
+  verification: {
+    google: '5hdJc9SX6x_bgCe0-kEPzLR8P6WZ2YuaCYuPiRhsrmM',
+  },
   alternates: {
     languages: {
       es: 'https://brawlvision.com/es',
