@@ -292,11 +292,9 @@ export default function BrawlersPage() {
               key={brawler.id}
               className="group relative pt-6"
             >
-              {/* Brawler portrait — prestige version if applicable */}
+              {/* Brawler portrait — always normal image */}
               <BrawlImg
-                src={brawler.prestigeLevel > 0
-                  ? `https://cdn.brawlify.com/tiers/tiered/prestige-${brawler.prestigeLevel}/${brawler.id}.png`
-                  : getBrawlerPortraitUrl(brawler.id)}
+                src={getBrawlerPortraitUrl(brawler.id)}
                 fallbackSrc={getBrawlerPortraitFallback(brawler.id)}
                 alt={brawler.name}
                 fallbackText={brawler.name}
