@@ -575,6 +575,20 @@ Tasks 4, 5, 6, 8 can run in parallel after Task 3 is done.
 
 ---
 
+## Issues Found in Self-Review (Fixed)
+
+1. **PersonalizedHook component missing** — Add Task 3.5: create a small component that renders the right metric card based on segment. Uses a switch on `playerSegment` to render TiltDetector, MasteryChart, MatchupMatrix (first entry), BrawlerMapHeatmap (best map), or ClutchCard — all with real freemiumAnalytics data, NO blur.
+
+2. **`as any` cast in useFreemiumAnalytics** — `parseBattlelog()` returns `BattleInsert[]`. `computeAdvancedAnalytics()` expects `Battle[]`. Both use the same JSONB fields (`my_brawler`, `opponents`, `result`, `mode`, `map`). The only missing field is `id` (auto-generated DB int). Fix: add `id: 0` to each parsed entry, or cast with a typed adapter.
+
+3. **Referral code passing** — `linkTag()` in AuthProvider will read `localStorage.getItem('brawlvalue:ref')` directly after profile insert. No need to change the `linkTag(tag)` signature. The TagRequiredModal's input field is for DISPLAY (auto-filled from localStorage) — the actual application happens server-side via linkTag → apply_referral RPC.
+
+4. **useBattlelog raw entries** — Task 7 MUST run before Task 2/3. The hook currently discards raw entries after processing. Fix: store `items` array in state alongside processed stats.
+
+5. **Battle count for expired trial** — The `/api/battles` endpoint uses `createClient()` (user auth). An expired trial user IS authenticated (has Google login) but NOT premium. The endpoint should return battles the user OWNS (their player_tag). Check: does the endpoint filter by auth user's player_tag? If so, it should work regardless of premium status. Verify during Task 8.
+
+6. **useFreemiumAnalytics test** — Add to Task 2: test that the hook returns valid AdvancedAnalytics shape from sample battlelog entries, and returns null for empty input.
+
 ## Risk Mitigation
 
 | Risk | Mitigation |
@@ -584,3 +598,5 @@ Tasks 4, 5, 6, 8 can run in parallel after Task 3 is done.
 | Referral RPC fails silently | try/catch with best-effort pattern, doesn't block registration |
 | Draft uses counter cheatable (localStorage) | Acceptable for v1 — honest users won't clear localStorage |
 | Trial timestamp manipulation | Set by DB trigger, not client-side |
+| parseBattlelog → computeAdvanced type mismatch | Adapter adds missing `id: 0` field |
+| Battle count API for expired users | Endpoint filters by player_tag from auth, not premium status |
