@@ -8,7 +8,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
-import { Menu, LogOut, RefreshCw, User, Crown } from 'lucide-react'
+import { Menu, LogOut, RefreshCw, User, Crown, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 function formatTimeAgo(iso: string): string {
@@ -147,9 +147,21 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             </Link>
           )}
           {!loading && user && profile && isPremium(profile as Profile) && (
-            <div className="flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-[#FFC91B] bg-[#FFC91B]/10 rounded-xl border border-[#FFC91B]/30">
-              <Crown className="w-4 h-4" />
-              <span className="hidden sm:inline">PRO</span>
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-[#FFC91B] bg-[#FFC91B]/10 rounded-xl border border-[#FFC91B]/30">
+                <Crown className="w-4 h-4" />
+                <span className="hidden sm:inline">PRO</span>
+              </div>
+              <a
+                href="https://www.paypal.com/myaccount/autopay/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t('manage')}
+                title={t('manage')}
+                className="p-2 text-slate-400 hover:text-[#FFC91B] transition-colors rounded-xl hover:bg-white/5"
+              >
+                <Settings className="w-4 h-4" />
+              </a>
             </div>
           )}
 
@@ -158,7 +170,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               onClick={handleSync}
               disabled={syncing}
               aria-label={t('sync')}
-              className="p-2 text-slate-400 hover:text-[#4EC0FA] transition-colors rounded-xl hover:bg-white/5 disabled:opacity-50"
+              className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-[#4EC0FA] transition-colors rounded-xl hover:bg-white/5 disabled:opacity-50"
               title={t('sync')}
             >
               <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />

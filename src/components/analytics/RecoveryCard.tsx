@@ -24,7 +24,7 @@ export function RecoveryCard({ data }: Props) {
           <p className="font-['Lilita_One'] text-sm text-slate-400 text-center">{t('recoveryNoData')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="brawl-row rounded-xl p-4 text-center">
             <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA]">
               {data.avgGamesToRecover !== null ? data.avgGamesToRecover.toFixed(1) : '--'}

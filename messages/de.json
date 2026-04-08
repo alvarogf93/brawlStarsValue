@@ -69,7 +69,8 @@
     "login": "Anmelden",
     "upgrade": "Premium",
     "analytics": "Analytics",
-    "lastSync": "Letzte Synch."
+    "lastSync": "Letzte Synch.",
+    "manage": "Abo verwalten"
   },
   "battles": {
     "title": "LETZTE KÄMPFE",

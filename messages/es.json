@@ -69,7 +69,8 @@
     "login": "Login",
     "upgrade": "Premium",
     "analytics": "Analytics",
-    "lastSync": "Última sincr."
+    "lastSync": "Última sincr.",
+    "manage": "Gestionar suscripción"
   },
   "battles": {
     "title": "BATALLAS RECIENTES",

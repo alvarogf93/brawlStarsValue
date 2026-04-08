@@ -69,7 +69,8 @@
     "login": "Giris",
     "upgrade": "Premium",
     "analytics": "Analytics",
-    "lastSync": "Son senk."
+    "lastSync": "Son senk.",
+    "manage": "Aboneliği yönet"
   },
   "battles": {
     "title": "SON SAVAŞLAR",

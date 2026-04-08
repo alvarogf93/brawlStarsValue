@@ -69,7 +69,8 @@
     "login": "登录",
     "upgrade": "高级版",
     "analytics": "Analytics",
-    "lastSync": "上次同步"
+    "lastSync": "上次同步",
+    "manage": "管理订阅"
   },
   "battles": {
     "title": "最近战斗",

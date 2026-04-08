@@ -69,7 +69,8 @@
     "login": "Zaloguj",
     "upgrade": "Premium",
     "analytics": "Analytics",
-    "lastSync": "Ostatnia synch."
+    "lastSync": "Ostatnia synch.",
+    "manage": "Zarządzaj subskrypcją"
   },
   "battles": {
     "title": "OSTATNIE BITWY",

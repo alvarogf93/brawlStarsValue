@@ -72,7 +72,7 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
 
         {/* 3 pricing tiers */}
         <div className="px-6 md:px-8 pb-6 md:pb-8 space-y-3">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Monthly */}
             <button
               onClick={() => handleUpgrade('monthly')}

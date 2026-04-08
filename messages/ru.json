@@ -69,7 +69,8 @@
     "login": "Войти",
     "upgrade": "Премиум",
     "analytics": "Analytics",
-    "lastSync": "Послед. синхр."
+    "lastSync": "Послед. синхр.",
+    "manage": "Управление подпиской"
   },
   "battles": {
     "title": "НЕДАВНИЕ БИТВЫ",

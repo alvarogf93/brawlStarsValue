@@ -26,7 +26,6 @@ import { TiltDetector } from '@/components/analytics/TiltDetector'
 import { MasteryChart } from '@/components/analytics/MasteryChart'
 import { PlayNowDashboard } from '@/components/analytics/PlayNowDashboard'
 import { CounterPickAdvisor } from '@/components/analytics/CounterPickAdvisor'
-import { ManageSubscription } from '@/components/premium/ManageSubscription'
 import { ClutchCard } from '@/components/analytics/ClutchCard'
 import { WarmUpCard } from '@/components/analytics/WarmUpCard'
 import { PowerLevelChart } from '@/components/analytics/PowerLevelChart'
@@ -331,7 +330,6 @@ export default function AnalyticsPage() {
       {activeTab === 'tools' && (
         <div className="space-y-6">
           <CounterPickAdvisor />
-          <ManageSubscription />
         </div>
       )}
     </div>
