@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { getMapImageUrl } from '@/lib/utils'
 import type { DraftMode } from '@/lib/draft/constants'
 import { Radio } from 'lucide-react'
 
 interface MapEntry {
   map: string
   eventId: number | null
+  imageUrl: string | null
   isLive: boolean
 }
 
@@ -60,10 +60,10 @@ export function MapSelector({ mode, onSelect }: Props) {
               m.isLive ? 'border-green-500/40 hover:border-green-400/70' : 'border-white/10 hover:border-[#FFC91B]/50'
             }`}
           >
-            {/* Map image (only if we have an eventId) */}
-            {m.eventId ? (
+            {/* Map image */}
+            {m.imageUrl ? (
               <img
-                src={getMapImageUrl(m.eventId)}
+                src={m.imageUrl}
                 alt={m.map}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
