@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
 import { useBattlelog } from '@/hooks/useBattlelog'
-import { isPremium } from '@/lib/premium'
+import { isPremium, isOnTrial } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
@@ -330,6 +330,14 @@ export default function AnalyticsPage() {
       {activeTab === 'draft' && (
         <div className="space-y-6">
           <DraftSimulator />
+        </div>
+      )}
+
+      {/* Subscription section for trial users — always accessible */}
+      {isOnTrial(profile as Profile) && (
+        <div id="upgrade-section" className="mt-8 space-y-4">
+          <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+          <ReferralCard />
         </div>
       )}
     </div>
