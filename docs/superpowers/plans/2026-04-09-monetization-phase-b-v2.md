@@ -597,6 +597,40 @@ Tasks 4, 5, 6, 8 can run in parallel after Task 3 is done.
 | useBattlelog raw entries unavailable | Task 7 ensures they're exposed before Task 3 needs them |
 | Referral RPC fails silently | try/catch with best-effort pattern, doesn't block registration |
 | Draft uses counter cheatable (localStorage) | Acceptable for v1 — honest users won't clear localStorage |
-| Trial timestamp manipulation | Set by DB trigger, not client-side |
+| Trial timestamp manipulation | Set by DB trigger on INSERT. Must ADD protection: DB trigger on UPDATE that prevents authenticated users from modifying trial_ends_at, referral_code, referral_count directly. Only service_role should update these. |
 | parseBattlelog → computeAdvanced type mismatch | Adapter adds missing `id: 0` field |
 | Battle count API for expired users | Endpoint filters by player_tag from auth, not premium status |
+| Manual referral code ignored | TagRequiredModal must write referralCode state to localStorage BEFORE calling linkTag. Fix in handleSubmit(). |
+| Trial celebration modal missing | Add Task 3.6: show confetti modal on first visit after trial activation. Track with localStorage flag. |
+
+## Additional Security: Protect trial/referral columns
+
+Add a DB trigger that prevents authenticated users from directly modifying sensitive columns:
+
+```sql
+-- MUST RUN: Prevent client-side manipulation of trial/referral fields
+CREATE OR REPLACE FUNCTION protect_trial_fields()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  -- Only service_role can modify these fields
+  IF current_setting('request.jwt.claims', true)::jsonb ->> 'role' != 'service_role' THEN
+    NEW.trial_ends_at := OLD.trial_ends_at;
+    NEW.referral_code := OLD.referral_code;
+    NEW.referred_by := OLD.referred_by;
+    NEW.referral_count := OLD.referral_count;
+    NEW.tier := OLD.tier;
+    NEW.ls_subscription_status := OLD.ls_subscription_status;
+    NEW.ls_subscription_id := OLD.ls_subscription_id;
+    NEW.ls_customer_id := OLD.ls_customer_id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_protect_trial ON profiles;
+CREATE TRIGGER tr_protect_trial
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION protect_trial_fields();
+```
+
+This ensures that even if RLS allows UPDATE, the sensitive fields cannot be changed by the client.
