@@ -19,15 +19,6 @@ async function getAccessToken(): Promise<string> {
   const base = getPayPalBase()
   const auth = Buffer.from(`${clientId}:${secret}`).toString('base64')
 
-  console.log('[paypal] Auth attempt:', {
-    base,
-    mode: process.env.PAYPAL_MODE,
-    clientIdPrefix: clientId.substring(0, 8),
-    secretPrefix: secret.substring(0, 8),
-    clientIdLength: clientId.length,
-    secretLength: secret.length,
-  })
-
   const res = await fetch(`${base}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
@@ -38,9 +29,7 @@ async function getAccessToken(): Promise<string> {
   })
 
   if (!res.ok) {
-    const errBody = await res.text().catch(() => 'no body')
-    console.error('[paypal] Auth failed:', { status: res.status, body: errBody, base })
-    throw new Error(`PayPal auth failed: ${res.status} — ${errBody}`)
+    throw new Error(`PayPal auth failed: ${res.status}`)
   }
 
   const data = await res.json()
