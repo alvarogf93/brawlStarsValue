@@ -341,7 +341,7 @@
     "registerButton": "Crear cuenta gratis",
     "modalTitle": "¿Listo para dominar?",
     "modalSubtitle": "Elige tu plan y empieza a ganar más",
-    "modalFeature1": "Historial completo de todas tus batallas",
+    "modalFeature1": "Historial <b>completo</b> de todas tus batallas",
     "modalFeature2": "Matchups personalizados: sabe contra quién ganas y pierdes",
     "modalFeature3": "Recomendaciones \"Juega Ahora\" basadas en TUS datos",
     "modalFeature4": "Sinergias de equipo y counter-pick advisor",

@@ -127,7 +127,12 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
                 <div className="w-5 h-5 rounded-full bg-[#FFC91B]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Check className="w-3 h-3 text-[#FFC91B]" />
                 </div>
-                <span className="text-sm text-slate-300 leading-snug">{t(key)}</span>
+                <span className="text-sm text-slate-300 leading-snug">
+                  {key === 'modalFeature1'
+                    ? t.rich(key, { b: (chunks) => <strong className="text-white underline underline-offset-2 decoration-[#FFC91B]">{chunks}</strong> })
+                    : t(key)
+                  }
+                </span>
               </div>
             ))}
           </div>
