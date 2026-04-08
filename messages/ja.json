@@ -539,6 +539,9 @@
     "clutchNoBoost": "Star PlayerはWRを向上させません ({delta}%)",
     "warmUpImprove": "ウォームアップ後に+{delta}%向上します",
     "warmUpDropOff": "序盤は好調ですがウォームアップ後に{delta}%低下します",
-    "carryMaintain": "carry中でも{wr}%のWRを維持しています！"
+    "carryMaintain": "carry中でも{wr}%のWRを維持しています！",
+    "confidenceHigh": "信頼できるデータ (10+試合)",
+    "confidenceMedium": "限定データ (3-9試合)",
+    "confidenceLow": "不十分なデータ (1-2試合)"
   }
 }

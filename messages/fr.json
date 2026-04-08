@@ -539,6 +539,9 @@
     "clutchNoBoost": "Star Player n'améliore pas votre WR ({delta}%)",
     "warmUpImprove": "Vous progressez de +{delta}% après l'échauffement",
     "warmUpDropOff": "Vous démarrez fort mais chutez de {delta}% après l'échauffement",
-    "carryMaintain": "Vous maintenez {wr}% de WR même en carry !"
+    "carryMaintain": "Vous maintenez {wr}% de WR même en carry !",
+    "confidenceHigh": "Donnée fiable (10+ matchs)",
+    "confidenceMedium": "Donnée limitée (3-9 matchs)",
+    "confidenceLow": "Donnée insuffisante (1-2 matchs)"
   }
 }

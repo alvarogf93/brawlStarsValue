@@ -539,6 +539,9 @@
     "clutchNoBoost": "Star Player 没有提升你的 WR ({delta}%)",
     "warmUpImprove": "热身后你提升了 +{delta}%",
     "warmUpDropOff": "你开局强势但热身后下降了 {delta}%",
-    "carryMaintain": "即使 carry 也能保持 {wr}% 的 WR！"
+    "carryMaintain": "即使 carry 也能保持 {wr}% 的 WR！",
+    "confidenceHigh": "可靠数据 (10+场)",
+    "confidenceMedium": "有限数据 (3-9场)",
+    "confidenceLow": "数据不足 (1-2场)"
   }
 }
