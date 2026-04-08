@@ -72,65 +72,6 @@ export function computePlayNowRecommendations(
   return results
 }
 
-/**
- * Counter-pick advisor: given a list of opponent brawler names and
- * optionally a map, find the player's best brawler(s) against them.
- *
- * Strategy: for each of the player's brawlers, compute a combined score
- * against the specified opponents weighted by Wilson score.
- */
-export function computeCounterPick(
-  battles: Battle[],
-  opponentBrawlerNames: string[],
-  mapFilter?: string,
-): CounterPickResult[] {
-  const normalizedOpps = opponentBrawlerNames.map(n => n.toUpperCase())
-
-  // Filter battles that include at least one of the specified opponents
-  const relevantBattles = battles.filter(b => {
-    if (mapFilter && b.map !== mapFilter) return false
-    const oppBrawlers = (b.opponents ?? []) as Array<{ brawler: { name: string } }>
-    return oppBrawlers.some(o => normalizedOpps.includes(o.brawler.name.toUpperCase()))
-  })
-
-  if (relevantBattles.length === 0) return []
-
-  // Group by my brawler
-  const grouped = groupBy(relevantBattles, b => b.my_brawler?.id ?? 0)
-  const results: CounterPickResult[] = []
-
-  for (const [brawlerId, group] of grouped) {
-    if (group.length < MIN_GAMES) continue
-
-    const wins = group.filter(b => isWin(b.result)).length
-
-    // Per-opponent breakdown
-    const vsBreakdown = normalizedOpps.map(oppName => {
-      const vsMatches = group.filter(b => {
-        const opps = (b.opponents ?? []) as Array<{ brawler: { name: string } }>
-        return opps.some(o => o.brawler.name.toUpperCase() === oppName)
-      })
-      const vsWins = vsMatches.filter(b => isWin(b.result)).length
-      return {
-        opponentName: oppName,
-        wins: vsWins,
-        total: vsMatches.length,
-        winRate: winRate(vsWins, vsMatches.length),
-      }
-    })
-
-    results.push({
-      brawlerId,
-      brawlerName: group[0].my_brawler?.name ?? 'Unknown',
-      winRate: winRate(wins, group.length),
-      gamesPlayed: group.length,
-      wilsonScore: wilsonPct(wins, group.length),
-      vsBreakdown,
-    })
-  }
-
-  return results.sort((a, b) => b.wilsonScore - a.wilsonScore)
-}
 
 /**
  * Find underused brawlers: high power level but few battles.
