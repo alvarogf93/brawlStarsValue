@@ -1,14 +1,12 @@
 'use client'
 
+import { wrColor } from '@/lib/utils'
+
 import { useTranslations } from 'next-intl'
 import type { Recommendation } from '@/lib/draft/scoring'
 import type { BrawlerEntry } from '@/lib/brawler-registry'
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 50) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
+
 
 interface Props {
   recommendations: Recommendation[]

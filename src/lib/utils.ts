@@ -111,6 +111,20 @@ export function getClubBadgeUrl(badgeId: number): string {
   return `https://cdn.brawlify.com/club-badges/regular/${badgeId}.png`
 }
 
+/** Win rate color class — shared across all analytics and draft components */
+export function wrColor(wr: number): string {
+  if (wr >= 60) return 'text-green-400'
+  if (wr >= 50) return 'text-[#FFC91B]'
+  return 'text-red-400'
+}
+
+/** Win rate bar gradient — shared across components */
+export function barGradient(wr: number): string {
+  if (wr >= 60) return 'from-green-500/80 to-green-400/80'
+  if (wr >= 50) return 'from-[#FFC91B]/80 to-yellow-300/80'
+  return 'from-red-500/80 to-red-400/80'
+}
+
 export function getGameModeImageUrl(mode: string): string | null {
   const scId = MODE_SC_IDS[mode]
   // Game mode icons still from Brawlify (not downloaded yet)

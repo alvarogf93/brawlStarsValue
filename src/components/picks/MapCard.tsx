@@ -2,22 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl, getGameModeImageUrl } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl, getGameModeImageUrl , wrColor, barGradient } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
-function wrColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 50) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
 
-function barGradient(wr: number): string {
-  if (wr >= 60) return 'from-green-500/80 to-green-400/80'
-  if (wr >= 50) return 'from-[#FFC91B]/80 to-yellow-300/80'
-  return 'from-red-500/80 to-red-400/80'
-}
+
+
 
 function computeTimeLeft(endTimeStr: string, endedLabel: string): string {
   const diff = new Date(endTimeStr).getTime() - Date.now()
