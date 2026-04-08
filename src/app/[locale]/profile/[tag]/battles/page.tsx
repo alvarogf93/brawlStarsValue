@@ -199,7 +199,9 @@ export default function BattlesPage() {
       <TrophyChart battles={data.battles} playerTag={tag} />
 
       {/* Battle list — expandable */}
-      <BattleList battles={data.battles} playerTag={tag} resultText={RESULT_TEXT} />
+      <div className="brawl-card-dark p-4 md:p-5 border-[#090E17]">
+        <BattleList battles={data.battles} playerTag={tag} resultText={RESULT_TEXT} />
+      </div>
 
       {/* Blurred teaser for non-premium users */}
       {!hasPremium && (
@@ -309,7 +311,7 @@ function BattleList({ battles, playerTag, resultText }: {
             {/* Battle row — clickable */}
             <button
               onClick={() => setExpanded(isOpen ? null : i)}
-              className={`w-full brawl-row rounded-2xl ${isOpen ? 'rounded-b-none' : ''} px-4 py-3 flex items-center gap-3 text-left transition-all group`}
+              className={`w-full brawl-row backdrop-blur-[10px] rounded-2xl ${isOpen ? 'rounded-b-none' : ''} px-4 py-3 flex items-center gap-3 text-left transition-all group`}
               style={{ borderLeft: `4px solid ${colors.accent}` }}
             >
               {/* Mode icon */}
@@ -323,12 +325,12 @@ function BattleList({ battles, playerTag, resultText }: {
                 <div className="flex items-center gap-2">
                   <span className="font-['Lilita_One'] text-sm text-white uppercase">{mode}</span>
                   {battle.event.map && (
-                    <span className="text-[10px] text-slate-500 font-['Inter'] font-semibold truncate hidden sm:inline">
+                    <span className="text-[10px] text-[#FFC91B] font-['Inter'] font-semibold truncate hidden sm:inline">
                       {battle.event.map}
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-600 font-['Inter']">{formatBattleTime(battle.battleTime)}</p>
+                <p className="text-[10px] text-[#FFC91B]/70 font-['Inter']">{formatBattleTime(battle.battleTime)}</p>
               </div>
 
               {/* Result badge */}
@@ -369,7 +371,7 @@ function BattleList({ battles, playerTag, resultText }: {
                     {/* Map name + Duration */}
                     <div className="flex items-center justify-center gap-3 mb-3">
                       {battle.event.map && (
-                        <span className="text-[10px] uppercase font-bold text-slate-400 font-['Lilita_One']">
+                        <span className="text-[10px] uppercase font-bold text-[#FFC91B] font-['Lilita_One']">
                           {battle.event.map}
                         </span>
                       )}
