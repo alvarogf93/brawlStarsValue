@@ -10,7 +10,7 @@ export function ManageSubscription() {
 
   if (!profile || profile.tier === 'free') return null
 
-  const portalUrl = 'https://app.lemonsqueezy.com/my-orders'
+  const portalUrl = 'https://www.paypal.com/myaccount/autopay/'
 
   return (
     <div className="brawl-card-dark p-4 border-[#090E17] flex items-center justify-between">

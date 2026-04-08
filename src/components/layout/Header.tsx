@@ -141,7 +141,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             <button
               onClick={async () => {
                 try {
-                  const res = await fetch('/api/checkout', {
+                  const res = await fetch('/api/checkout/paypal', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ interval: 'monthly', locale }),
