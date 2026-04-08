@@ -134,6 +134,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [supabase, fetchProfile])
 
+  // Periodic profile refresh — keeps "last sync" time accurate
+  // and invalidates stale player data cache when new sync detected
+  useEffect(() => {
+    if (!user) return
+
+    const POLL_INTERVAL = 5 * 60 * 1000 // 5 minutes
+    let lastKnownSync = profile?.last_sync ?? null
+
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+
+        if (!data) return
+
+        const newSync = (data as Profile).last_sync
+        if (newSync && newSync !== lastKnownSync) {
+          lastKnownSync = newSync
+          setProfile(data as Profile)
+
+          // Invalidate player data cache so next navigation fetches fresh data
+          try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const key = localStorage.key(i)
+              if (key?.startsWith('brawlvalue:player:')) {
+                localStorage.removeItem(key)
+              }
+            }
+          } catch { /* ignore */ }
+        }
+      } catch { /* ignore — polling is best-effort */ }
+    }, POLL_INTERVAL)
+
+    return () => clearInterval(interval)
+  }, [user, supabase, profile?.last_sync])
+
   const signIn = useCallback(async (redirectTo?: string) => {
     const redirectPath = redirectTo ?? window.location.pathname
     await supabase.auth.signInWithOAuth({
