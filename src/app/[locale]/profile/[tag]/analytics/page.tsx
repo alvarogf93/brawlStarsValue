@@ -15,6 +15,9 @@ import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
+import { PremiumGate } from '@/components/premium/PremiumGate'
+import { TrialBanner } from '@/components/premium/TrialBanner'
+import { ReferralCard } from '@/components/premium/ReferralCard'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { OverviewStats } from '@/components/analytics/OverviewStats'
 import { BrawlerMapHeatmap } from '@/components/analytics/BrawlerMapHeatmap'
@@ -215,7 +218,10 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+        <div id="upgrade-section">
+          <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
+          <ReferralCard />
+        </div>
 
         {/* If not logged in, also offer sign-in so they can link account before buying */}
         {!isLoggedIn && (
@@ -263,6 +269,9 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
+      {/* Trial banner */}
+      <TrialBanner />
+
       {/* Tab Navigation */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
         {TAB_IDS.map(id => (
@@ -299,44 +308,52 @@ export default function AnalyticsPage() {
       )}
 
       {activeTab === 'performance' && (
-        <div className="space-y-6">
-          <BrawlerMapHeatmap data={analytics.brawlerMapMatrix} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <TimeOfDayChart data={analytics.byHour} />
-            <WeeklyPatternChart data={analytics.weeklyPattern} />
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <BrawlerMapHeatmap data={analytics?.brawlerMapMatrix ?? []} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TimeOfDayChart data={analytics?.byHour ?? []} />
+              <WeeklyPatternChart data={analytics?.weeklyPattern ?? []} />
+            </div>
+            <PowerLevelChart data={analytics?.powerLevelImpact ?? []} />
+            <GadgetImpactCard data={analytics?.gadgetImpact ?? { withGadget: { winRate: 0, total: 0 }, withoutGadget: { winRate: 0, total: 0 }, withStarPower: { winRate: 0, total: 0 }, withoutStarPower: { winRate: 0, total: 0 } }} />
+            <BrawlerComfortList data={analytics?.brawlerComfort ?? []} />
           </div>
-          <PowerLevelChart data={analytics.powerLevelImpact} />
-          <GadgetImpactCard data={analytics.gadgetImpact} />
-          <BrawlerComfortList data={analytics.brawlerComfort} />
-        </div>
+        </PremiumGate>
       )}
 
       {activeTab === 'matchups' && (
-        <div className="space-y-6">
-          <MatchupMatrix data={analytics.matchups} />
-          <OpponentStrengthCard data={analytics.opponentStrength} />
-        </div>
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <MatchupMatrix data={analytics?.matchups ?? []} />
+            <OpponentStrengthCard data={analytics?.opponentStrength ?? []} />
+          </div>
+        </PremiumGate>
       )}
 
       {activeTab === 'team' && (
-        <div className="space-y-6">
-          <TeamSynergyView
-            brawlerSynergy={analytics.brawlerSynergy}
-            teammateSynergy={analytics.teammateSynergy}
-          />
-          <CarryCard data={analytics.carry} />
-        </div>
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <TeamSynergyView
+              brawlerSynergy={analytics?.brawlerSynergy ?? []}
+              teammateSynergy={analytics?.teammateSynergy ?? []}
+            />
+            <CarryCard data={analytics?.carry ?? { carryWR: null, normalWR: null, carryGames: 0, normalGames: 0 }} />
+          </div>
+        </PremiumGate>
       )}
 
       {activeTab === 'trends' && (
-        <div className="space-y-6">
-          <TrendsChart dailyTrend={analytics.dailyTrend} />
-          <MasteryChart data={analytics.brawlerMastery} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SessionEfficiencyCard data={analytics.sessionEfficiency} />
-            <RecoveryCard data={analytics.recovery} />
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <TrendsChart dailyTrend={analytics?.dailyTrend ?? []} />
+            <MasteryChart data={analytics?.brawlerMastery ?? []} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <SessionEfficiencyCard data={analytics?.sessionEfficiency ?? []} />
+              <RecoveryCard data={analytics?.recovery ?? { recoveryEpisodes: 0, avgGamesToRecover: null, recoveryRate: null }} />
+            </div>
           </div>
-        </div>
+        </PremiumGate>
       )}
 
       {activeTab === 'draft' && (

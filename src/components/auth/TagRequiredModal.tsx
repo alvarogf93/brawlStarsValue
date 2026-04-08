@@ -17,6 +17,9 @@ export function TagRequiredModal() {
   const locale = useLocale()
   const router = useRouter()
   const [tag, setTag] = useState('#')
+  const [referralCode, setReferralCode] = useState(() => {
+    try { return localStorage.getItem('brawlvalue:ref') ?? '' } catch { return '' }
+  })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -80,6 +83,16 @@ export function TagRequiredModal() {
             {error}
           </p>
         )}
+
+        {/* Referral code (optional) */}
+        <input
+          type="text"
+          value={referralCode}
+          onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+          placeholder={t('referralCodePlaceholder')}
+          disabled={loading}
+          className="w-full mt-3 h-10 bg-white/5 border-2 border-white/10 rounded-lg px-3 text-sm text-white placeholder:text-slate-600 font-['Inter'] outline-none focus:border-[#FFC91B]/40 transition-colors disabled:opacity-50"
+        />
 
         <button
           onClick={handleSubmit}

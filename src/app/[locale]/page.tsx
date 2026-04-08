@@ -11,6 +11,7 @@ import { FinalCTA } from '@/components/landing/FinalCTA'
 import { SectionReveal } from '@/components/landing/SectionReveal'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { ScrollIndicator } from '@/components/landing/ScrollIndicator'
+import { RefCapture } from '@/components/landing/RefCapture'
 import Link from 'next/link'
 
 export default function LandingPage() {
@@ -19,6 +20,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <RefCapture />
       {/* Section 1: Hero */}
       <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden">
         <HeroBrawlers />

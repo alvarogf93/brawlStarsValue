@@ -19,6 +19,10 @@ export interface Profile {
   ls_subscription_id: string | null
   ls_subscription_status: SubscriptionStatus | null
   last_sync: string | null
+  trial_ends_at: string | null
+  referral_code: string | null
+  referred_by: string | null
+  referral_count: number
   created_at: string
   updated_at: string
 }

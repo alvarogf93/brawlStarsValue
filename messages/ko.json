@@ -310,7 +310,8 @@
     "linkTagButton": "태그 연결",
     "invalidTag": "잘못된 태그 형식입니다 (예: #2P0Q8C2C0)",
     "tagNotFound": "플레이어를 찾을 수 없습니다. 태그를 확인하세요.",
-    "signOutInstead": "대신 로그아웃"
+    "signOutInstead": "대신 로그아웃",
+    "referralCodePlaceholder": "Have an invite code? (optional)"
   },
   "premium": {
     "title": "BrawlVision Premium",
@@ -376,7 +377,29 @@
       "Your data. Your truth. No excuses.",
       "If you've maxed your account, this is what's missing.",
       "Data doesn't lie. Your friend does."
-    ]
+    ],
+    "trialWelcome": "3 days PRO free!",
+    "trialWelcomeBody": "Your battles are being saved starting now. Make the most of it.",
+    "trialBanner": "PRO Trial: {time} remaining",
+    "trialBannerUrgent": "PRO Trial: last hour!",
+    "trialBannerSubscribe": "Subscribe now",
+    "trialExpired": "Your trial has ended",
+    "trialExpiredBody": "You have {battles} saved battles. Subscribe to keep them.",
+    "draftUsesLeft": "{count} free drafts remaining",
+    "draftUsesExhausted": "You've used your 3 free drafts",
+    "referralTitle": "Invite a friend",
+    "referralBody": "Share your code and both get 3 days PRO",
+    "referralCopied": "Code copied!",
+    "referralCount": "{count}/5 invitations used",
+    "referralCodeInvalid": "Invalid invitation code",
+    "referralCodePlaceholder": "Have an invite code? (optional)",
+    "referralSuccess": "Your friend joined! +3 days PRO",
+    "blurUnlock": "Unlock with PRO",
+    "hookTilt": "You're tilting and didn't know it",
+    "hookMastery": "Your improvement curve with {name}",
+    "hookMatchup": "You lose {wr}% against {name}",
+    "hookMap": "You dominate {map} at {wr}%",
+    "hookClutch": "As Star Player you win {wr}%"
   },
   "analytics": {
     "title": "분석",

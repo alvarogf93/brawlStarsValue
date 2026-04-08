@@ -311,7 +311,8 @@
     "linkTagButton": "Link Tag",
     "invalidTag": "Invalid tag format (e.g. #2P0Q8C2C0)",
     "tagNotFound": "Player not found. Check your tag.",
-    "signOutInstead": "Sign out instead"
+    "signOutInstead": "Sign out instead",
+    "referralCodePlaceholder": "Have an invite code? (optional)"
   },
   "premium": {
     "title": "BrawlVision Premium",
@@ -377,7 +378,29 @@
       "Your data. Your truth. No excuses.",
       "If you've maxed your account, this is what's missing.",
       "Data doesn't lie. Your friend does."
-    ]
+    ],
+    "trialWelcome": "3 days PRO free!",
+    "trialWelcomeBody": "Your battles are being saved starting now. Make the most of it.",
+    "trialBanner": "PRO Trial: {time} remaining",
+    "trialBannerUrgent": "PRO Trial: last hour!",
+    "trialBannerSubscribe": "Subscribe now",
+    "trialExpired": "Your trial has ended",
+    "trialExpiredBody": "You have {battles} saved battles. Subscribe to keep them.",
+    "draftUsesLeft": "{count} free drafts remaining",
+    "draftUsesExhausted": "You've used your 3 free drafts",
+    "referralTitle": "Invite a friend",
+    "referralBody": "Share your code and both get 3 days PRO",
+    "referralCopied": "Code copied!",
+    "referralCount": "{count}/5 invitations used",
+    "referralCodeInvalid": "Invalid invitation code",
+    "referralCodePlaceholder": "Have an invite code? (optional)",
+    "referralSuccess": "Your friend joined! +3 days PRO",
+    "blurUnlock": "Unlock with PRO",
+    "hookTilt": "You're tilting and didn't know it",
+    "hookMastery": "Your improvement curve with {name}",
+    "hookMatchup": "You lose {wr}% against {name}",
+    "hookMap": "You dominate {map} at {wr}%",
+    "hookClutch": "As Star Player you win {wr}%"
   },
   "analytics": {
     "title": "Analytics",
