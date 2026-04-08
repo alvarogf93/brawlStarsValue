@@ -6,6 +6,7 @@ import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl } fro
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { ModeIcon } from '@/components/ui/ModeIcon'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 function wrColor(wr: number): string {
   if (wr >= 60) return 'text-green-400'
@@ -116,6 +117,7 @@ export function PlayNowDashboard({ recommendations }: Props) {
                         <p className="font-['Lilita_One'] text-sm text-white leading-none">{best.brawlerName}</p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
                           <span className={`font-bold ${wrColor(best.winRate)}`}>{best.winRate.toFixed(1)}%</span>
+                          <ConfidenceBadge total={best.gamesPlayed} className="ml-1" />
                           <span className="text-slate-500 ml-1">· {best.gamesPlayed}g</span>
                           {best.bestTeammateBrawler && (
                             <span className="text-slate-500"> · {t('withPlayer')} <span className="text-slate-300">{best.bestTeammateBrawler}</span></span>

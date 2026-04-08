@@ -6,6 +6,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import type { BrawlerComfort } from '@/lib/analytics/types'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 interface Props {
   data: BrawlerComfort[]
@@ -66,9 +67,12 @@ export function BrawlerComfortList({ data }: Props) {
                 </span>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(b.winRate)}`}>{b.winRate.toFixed(1)}%</p>
-              <p className="text-[10px] text-slate-500">{b.gamesPlayed}g</p>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ConfidenceBadge total={b.gamesPlayed} />
+              <div className="text-right">
+                <p className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(b.winRate)}`}>{b.winRate.toFixed(1)}%</p>
+                <p className="text-[10px] text-slate-500">{b.gamesPlayed}g</p>
+              </div>
             </div>
           </div>
         ))}

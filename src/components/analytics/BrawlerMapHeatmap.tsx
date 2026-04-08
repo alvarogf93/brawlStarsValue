@@ -7,6 +7,7 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { BrawlerMapEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 interface Props {
   data: BrawlerMapEntry[]
@@ -130,10 +131,10 @@ export function BrawlerMapHeatmap({ data }: Props) {
               </span>
             </div>
 
-            {/* Confidence dot */}
-            {entry.confidence === 'low' && (
-              <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-slate-600 z-10" title="Low confidence" />
-            )}
+            {/* Confidence indicator */}
+            <div className="absolute top-1.5 right-1.5 z-10">
+              <ConfidenceBadge total={entry.total} />
+            </div>
           </div>
         ))}
       </div>

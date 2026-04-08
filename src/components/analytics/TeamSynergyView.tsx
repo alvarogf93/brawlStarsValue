@@ -7,6 +7,7 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { BrawlerSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -180,7 +181,8 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
                     <p className="text-[10px] text-slate-500">{c.total} {t('games')}</p>
                   </div>
 
-                  {/* Win rate */}
+                  {/* Win rate + confidence */}
+                  <ConfidenceBadge total={c.total} className="mr-1" />
                   <span className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(c.winRate)}`}>
                     {c.winRate.toFixed(1)}%
                   </span>

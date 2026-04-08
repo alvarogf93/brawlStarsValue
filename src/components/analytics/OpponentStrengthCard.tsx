@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import type { OpponentStrengthBreakdown } from '@/lib/analytics/types'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 interface Props {
   data: OpponentStrengthBreakdown[]
@@ -46,9 +47,12 @@ export function OpponentStrengthCard({ data }: Props) {
               <span className="text-lg">{TIER_ICONS[d.tier]}</span>
               <span className="font-['Lilita_One'] text-sm text-white">{t(TIER_KEYS[d.tier])}</span>
             </div>
-            <p className={`font-['Lilita_One'] text-2xl tabular-nums ${wrColor(d.winRate)}`}>
-              {d.winRate.toFixed(1)}%
-            </p>
+            <div className="flex items-center justify-center gap-1.5">
+              <p className={`font-['Lilita_One'] text-2xl tabular-nums ${wrColor(d.winRate)}`}>
+                {d.winRate.toFixed(1)}%
+              </p>
+              <ConfidenceBadge total={d.total} />
+            </div>
             <p className="text-[10px] text-slate-500 mt-1">
               {d.wins}W / {d.total}G
             </p>
