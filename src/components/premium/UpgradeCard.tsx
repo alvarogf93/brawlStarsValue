@@ -94,16 +94,18 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
               <span className="block text-[10px] text-slate-500 font-normal mt-1">{t('planQuarterlyPeriod')}</span>
             </button>
 
-            {/* Yearly — best value */}
-            <button
-              onClick={() => handleUpgrade('yearly')}
-              disabled={loading}
-              className="cursor-pointer relative py-5 px-3 text-center font-['Lilita_One'] bg-[#FFC91B] text-[#121A2F] rounded-xl border-2 border-[#FFC91B] shadow-[0_4px_0_0_#B45309] hover:-translate-y-1 hover:shadow-[0_6px_0_0_#B45309,0_8px_16px_rgba(255,201,27,0.25)] active:translate-y-[2px] active:shadow-[0_1px_0_0_#B45309] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group ring-2 ring-[#FFC91B]/30 ring-offset-2 ring-offset-[#121A2F]"
-            >
-              <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[8px] font-bold bg-green-500 text-white px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_4px_rgba(34,197,94,0.4)] animate-pulse">{t('saveYearly')}</span>
-              <span className="block text-2xl leading-tight group-hover:scale-110 transition-transform">{t('planYearly')}</span>
-              <span className="block text-[10px] text-[#121A2F]/60 font-normal mt-1">{t('planYearlyPeriod')}</span>
-            </button>
+            {/* Yearly — best value — brawl-button style with lift+glow */}
+            <div className="relative group">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 text-[8px] font-bold font-['Lilita_One'] bg-green-500 text-white px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-[0_2px_4px_rgba(34,197,94,0.4)] animate-pulse">{t('saveYearly')}</span>
+              <button
+                onClick={() => handleUpgrade('yearly')}
+                disabled={loading}
+                className="brawl-button cursor-pointer w-full py-5 px-3 text-center font-['Lilita_One'] text-[#121A2F] !rounded-xl group-hover:-translate-y-1 group-hover:!shadow-[0_10px_0_0_var(--color-brawl-dark),inset_0px_-4px_0px_rgba(180,83,9,0.5),inset_0px_2px_0px_rgba(255,255,255,0.6),0_12px_24px_rgba(255,201,27,0.35)] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="block text-2xl leading-tight group-hover:scale-110 transition-transform">{t('planYearly')}</span>
+                <span className="block text-[10px] text-[#121A2F]/60 font-normal mt-1">{t('planYearlyPeriod')}</span>
+              </button>
+            </div>
           </div>
 
           {/* Trust signals */}
