@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyPayPalWebhook, paypalStatusToTier, getSubscriptionDetails } from '@/lib/paypal'
+import { notify } from '@/lib/telegram'
 
 export async function POST(request: Request) {
   const webhookId = process.env.PAYPAL_WEBHOOK_ID
@@ -87,5 +88,10 @@ export async function POST(request: Request) {
   }
 
   console.log('[paypal webhook] Success:', { profileId, eventType, tier, status: mappedStatus })
+
+  // Notify admin
+  const emoji = tier === 'premium' ? '💰' : '⚠️'
+  notify(`${emoji} <b>PayPal ${eventType.replace('BILLING.SUBSCRIPTION.', '')}</b>\nProfile: ${profileId}\nTier: ${tier} (${mappedStatus})`)
+
   return NextResponse.json({ ok: true })
 }

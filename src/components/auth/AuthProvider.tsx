@@ -83,6 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(newProfile as Profile)
     setNeedsTag(false)
     try { localStorage.setItem('brawlvalue:user', tag) } catch { /* ignore */ }
+
+    // Notify admin of new signup (fire-and-forget)
+    fetch('/api/notify/signup', { method: 'POST' }).catch(() => {})
+
     return { ok: true }
   }, [user, supabase])
 
