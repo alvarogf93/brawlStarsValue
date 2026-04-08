@@ -26,6 +26,7 @@ export function DraftSimulator() {
   const [draftData, setDraftData] = useState<DraftData | null>(null)
   const [loadingBrawlers, setLoadingBrawlers] = useState(true)
   const [loadingData, setLoadingData] = useState(false)
+  const [brawlerError, setBrawlerError] = useState(false)
 
   const brawlerMap = useMemo(() => {
     const map = new Map<number, BrawlerEntry>()
@@ -42,7 +43,7 @@ export function DraftSimulator() {
       return
     }
     fetch('https://api.brawlapi.com/v1/brawlers')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error('BrawlAPI error'); return r.json() })
       .then(data => {
         const list = (data.list ?? data) as Array<{
           id: number; name: string; rarity?: { name: string }; class?: { name: string }; imageUrl2?: string; imageUrl?: string
@@ -54,7 +55,7 @@ export function DraftSimulator() {
         setBrawlers(entries)
         setCachedRegistry(entries)
       })
-      .catch(() => {})
+      .catch(() => setBrawlerError(true))
       .finally(() => setLoadingBrawlers(false))
   }, [])
 
@@ -64,7 +65,8 @@ export function DraftSimulator() {
     if (!state.map || !state.mode) return
     setLoadingData(true)
     fetch(`/api/draft/data?map=${encodeURIComponent(state.map)}&mode=${state.mode}`)
-      .then(r => r.json()).then(data => setDraftData(data))
+      .then(r => { if (!r.ok) throw new Error('Draft data error'); return r.json() })
+      .then(data => setDraftData(data))
       .catch(() => setDraftData(null)).finally(() => setLoadingData(false))
   }, [state.map, state.mode, state.phase])
 
@@ -91,6 +93,18 @@ export function DraftSimulator() {
       <div className="brawl-card-dark p-8 border-[#090E17] text-center">
         <div className="w-8 h-8 border-2 border-[#FFC91B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="font-['Lilita_One'] text-sm text-slate-400">{t('loadingBrawlers')}</p>
+      </div>
+    )
+  }
+
+  if (brawlerError && brawlers.length === 0) {
+    return (
+      <div className="brawl-card-dark p-8 border-[#090E17] text-center">
+        <span className="text-3xl block mb-3">⚠️</span>
+        <p className="font-['Lilita_One'] text-base text-slate-300">{t('errorLoadingBrawlers')}</p>
+        <button onClick={() => window.location.reload()} className="mt-3 text-sm text-[#4EC0FA] hover:text-white font-semibold transition-colors">
+          {t('retry')}
+        </button>
       </div>
     )
   }

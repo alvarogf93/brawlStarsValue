@@ -64,9 +64,14 @@ export async function GET(request: Request) {
       for (const b of parsed) {
         if (!isDraftMode(b.mode) || !b.map) continue
         if (b.result !== 'victory' && b.result !== 'defeat') continue
-        const opponentIds = (b.opponents as Array<{ brawler: { id: number } }>).map(o => o.brawler.id)
+        const myBrawlerId = b.my_brawler?.id ?? null
+        if (typeof myBrawlerId !== 'number') continue
+        if (myBrawlerId === null) continue
+        const opponentIds = (b.opponents ?? [])
+          .map(o => o?.brawler?.id)
+          .filter((id): id is number => typeof id === 'number')
         processBattleForMeta(acc, {
-          myBrawlerId: (b.my_brawler as { id: number }).id,
+          myBrawlerId,
           opponentBrawlerIds: opponentIds,
           map: b.map,
           mode: b.mode,

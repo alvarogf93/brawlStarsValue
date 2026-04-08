@@ -74,8 +74,7 @@
     "lastSync": "上次同步",
     "manage": "管理订阅",
     "profile": "个人资料",
-    "picks": "选择",
-    "exit": "首页"
+    "picks": "选择"
   },
   "battles": {
     "title": "最近战斗",
@@ -354,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "又要花钱买皮肤？同样的价格，把你的游戏提升到下一个级别。",
+    "hookLine2": "玩得越多分析越好。通行证永远一样 — 这个系统与你一起成长。"
   },
   "analytics": {
     "title": "数据分析",
@@ -394,7 +395,6 @@
     "tabMatchups": "对战",
     "tabTeam": "团队",
     "tabTrends": "趋势",
-    "tabTools": "工具",
     "allBrawlers": "全部",
     "showAll": "显示全部",
     "showLess": "收起",
@@ -589,6 +589,8 @@
     "loadingMeta": "加载数据...",
     "noMapsForMode": "无活跃地图",
     "bansComingSoon": "禁用 — 即将推出",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
     "winProbability": "胜率"
   }
 }

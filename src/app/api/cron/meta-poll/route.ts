@@ -9,6 +9,8 @@ import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-ac
  * Cron: Poll top global players' battlelogs and aggregate into meta_stats/meta_matchups.
  * Runs every 2-4 hours. Protected by CRON_SECRET.
  */
+export const maxDuration = 300
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {

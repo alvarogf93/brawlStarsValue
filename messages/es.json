@@ -74,8 +74,7 @@
     "lastSync": "Última sincr.",
     "manage": "Gestionar suscripción",
     "profile": "Perfil",
-    "picks": "Picks",
-    "exit": "Inicio"
+    "picks": "Picks"
   },
   "battles": {
     "title": "BATALLAS RECIENTES",
@@ -355,7 +354,9 @@
     "emailBody": "Tu cuenta Premium está activa. Ya puedes acceder a analytics avanzados, historial ilimitado y todas las herramientas pro.",
     "emailCta": "Abrir BrawlVision",
     "emailFeatures": "Lo que tienes ahora:",
-    "emailFooter": "Si tienes alguna pregunta, responde a este email. ¡Nos vemos en la arena!"
+    "emailFooter": "Si tienes alguna pregunta, responde a este email. ¡Nos vemos en la arena!",
+    "hookLine1": "¿Ya pagas por otra skin más? Por el mismo precio, lleva tu juego al siguiente nivel.",
+    "hookLine2": "Analíticas que mejoran cuanto más juegas. El Brawl Pass siempre es lo mismo — esto crece contigo día a día."
   },
   "analytics": {
     "title": "Analytics",
@@ -395,7 +396,6 @@
     "tabMatchups": "Enfrentamientos",
     "tabTeam": "Equipo",
     "tabTrends": "Tendencias",
-    "tabTools": "Herramientas",
     "allBrawlers": "Todos",
     "showAll": "Ver todos",
     "showLess": "Ver menos",
@@ -590,6 +590,8 @@
     "loadingMeta": "Cargando datos del meta...",
     "noMapsForMode": "No hay mapas activos para este modo",
     "bansComingSoon": "Bans — Próximamente",
+    "errorLoadingBrawlers": "No se pudieron cargar los brawlers",
+    "retry": "Reintentar",
     "winProbability": "Probabilidad de victoria"
   }
 }

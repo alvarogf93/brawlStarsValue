@@ -74,8 +74,7 @@
     "lastSync": "最終同期",
     "manage": "サブスク管理",
     "profile": "プロフィール",
-    "picks": "ピック",
-    "exit": "ホーム"
+    "picks": "ピック"
   },
   "battles": {
     "title": "最近のバトル",
@@ -354,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "また新しいスキンにお金を使ってる？同じ価格でゲームを次のレベルへ。",
+    "hookLine2": "プレイするほど良くなるアナリティクス。ブロウルパスはいつも同じ — これは毎日成長する。"
   },
   "analytics": {
     "title": "アナリティクス",
@@ -394,7 +395,6 @@
     "tabMatchups": "対戦",
     "tabTeam": "チーム",
     "tabTrends": "トレンド",
-    "tabTools": "ツール",
     "allBrawlers": "全て",
     "showAll": "すべて表示",
     "showLess": "折りたたむ",
@@ -589,6 +589,8 @@
     "loadingMeta": "データ読込中...",
     "noMapsForMode": "アクティブマップなし",
     "bansComingSoon": "バン — 近日公開",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
     "winProbability": "勝率"
   }
 }

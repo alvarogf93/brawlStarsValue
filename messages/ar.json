@@ -74,8 +74,7 @@
     "lastSync": "آخر مزامنة",
     "manage": "إدارة الاشتراك",
     "profile": "الملف الشخصي",
-    "picks": "اختيارات",
-    "exit": "الرئيسية"
+    "picks": "اختيارات"
   },
   "battles": {
     "title": "المعارك الأخيرة",
@@ -354,7 +353,9 @@
     "emailBody": "Your Premium account is active. You now have access to advanced analytics, unlimited history, and all pro tools.",
     "emailCta": "Open BrawlVision",
     "emailFeatures": "What you get:",
-    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!"
+    "emailFooter": "If you have any questions, just reply to this email. See you in the arena!",
+    "hookLine1": "تدفع بالفعل مقابل سكن آخر؟ بنفس السعر، ارتقِ بلعبتك للمستوى التالي.",
+    "hookLine2": "تحليلات تتحسن كلما لعبت أكثر. الباص دائماً نفسه — هذا ينمو معك يومياً."
   },
   "analytics": {
     "title": "التحليلات",
@@ -394,7 +395,6 @@
     "tabMatchups": "المواجهات",
     "tabTeam": "الفريق",
     "tabTrends": "الاتجاهات",
-    "tabTools": "الأدوات",
     "allBrawlers": "الكل",
     "showAll": "عرض الكل",
     "showLess": "عرض أقل",
@@ -589,6 +589,8 @@
     "loadingMeta": "تحميل البيانات...",
     "noMapsForMode": "لا توجد خرائط",
     "bansComingSoon": "الحظر — قريباً",
+    "errorLoadingBrawlers": "Error loading brawlers",
+    "retry": "Retry",
     "winProbability": "احتمال الفوز"
   }
 }

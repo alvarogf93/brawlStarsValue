@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { isPremium } from '@/lib/premium'
-import { META_ROLLING_DAYS } from '@/lib/draft/constants'
+import { META_ROLLING_DAYS, isDraftMode } from '@/lib/draft/constants'
 import type { Profile } from '@/lib/supabase/types'
 import type { DraftData, MetaStat, MetaMatchup } from '@/lib/draft/types'
 
@@ -21,6 +21,14 @@ export async function GET(request: Request) {
 
   if (!map || !mode) {
     return NextResponse.json({ error: 'map and mode are required' }, { status: 400 })
+  }
+
+  if (!isDraftMode(mode)) {
+    return NextResponse.json({ error: 'Invalid mode' }, { status: 400 })
+  }
+
+  if (map.length > 100) {
+    return NextResponse.json({ error: 'Invalid map name' }, { status: 400 })
   }
 
   const serviceSupabase = await createServiceClient()
@@ -67,48 +75,40 @@ export async function GET(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
-      // Add user's owned brawlers
-      const { data: calcData } = await serviceSupabase
+      // Single profile fetch (fixes double-query)
+      const { data: profile } = await serviceSupabase
         .from('profiles')
-        .select('player_tag')
+        .select('*')
         .eq('id', user.id)
         .single()
 
-      if (calcData?.player_tag) {
-        // Fetch user's brawlers from their most recent calculate data (cached)
-        // For now, we'll rely on the client having this from usePlayerData
+      if (profile?.player_tag && isPremium(profile as Profile)) {
+        const { data: battles } = await serviceSupabase
+          .from('battles')
+          .select('my_brawler, result')
+          .eq('player_tag', profile.player_tag)
+          .eq('map', map)
+          .eq('mode', mode)
+          .in('result', ['victory', 'defeat'])
 
-        // Add personal battle stats if premium
-        const { data: profile } = await serviceSupabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
+        if (battles && battles.length > 0) {
+          const personalMap = new Map<number, { wins: number; losses: number; total: number }>()
+          for (const b of battles) {
+            // Safe extraction from JSONB column
+            const brawler = b.my_brawler as Record<string, unknown> | null
+            const brawlerId = typeof brawler?.id === 'number' ? brawler.id : null
+            if (brawlerId === null) continue
 
-        if (profile && isPremium(profile as Profile)) {
-          const { data: battles } = await serviceSupabase
-            .from('battles')
-            .select('my_brawler, result')
-            .eq('player_tag', calcData.player_tag)
-            .eq('map', map)
-            .eq('mode', mode)
-            .in('result', ['victory', 'defeat'])
-
-          if (battles && battles.length > 0) {
-            const personalMap = new Map<number, { wins: number; losses: number; total: number }>()
-            for (const b of battles) {
-              const brawlerId = (b.my_brawler as { id: number }).id
-              const existing = personalMap.get(brawlerId) ?? { wins: 0, losses: 0, total: 0 }
-              if (b.result === 'victory') existing.wins++
-              else existing.losses++
-              existing.total++
-              personalMap.set(brawlerId, existing)
-            }
-            result.personal = Array.from(personalMap.entries()).map(([brawlerId, s]) => ({
-              brawlerId,
-              ...s,
-            }))
+            const existing = personalMap.get(brawlerId) ?? { wins: 0, losses: 0, total: 0 }
+            if (b.result === 'victory') existing.wins++
+            else existing.losses++
+            existing.total++
+            personalMap.set(brawlerId, existing)
           }
+          result.personal = Array.from(personalMap.entries()).map(([bId, s]) => ({
+            brawlerId: bId,
+            ...s,
+          }))
         }
       }
     }
