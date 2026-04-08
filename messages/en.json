@@ -543,7 +543,8 @@
     "carryMaintain": "You maintain {wr}% WR even when carrying!",
     "confidenceHigh": "Reliable data (10+ matches)",
     "confidenceMedium": "Limited data (3-9 matches)",
-    "confidenceLow": "Insufficient data (1-2 matches)"
+    "confidenceLow": "Insufficient data (1-2 matches)",
+    "tabDraft": "Draft"
   },
   "picks": {
     "title": "Best Picks",
@@ -559,5 +560,31 @@
     "ctaDescription": "With Premium, access the 1-2-2-1 Competitive Draft and recommendations based on your history",
     "ctaButton": "Go PRO",
     "ctaSignup": "Start free"
+  },
+  "draft": {
+    "draftTitle": "Competitive Draft",
+    "selectMode": "Select game mode",
+    "selectMap": "Select map",
+    "whoStarts": "Who starts?",
+    "blueFirst": "Blue first",
+    "redFirst": "Red first",
+    "blueTeam": "Blue Team",
+    "redTeam": "Red Team",
+    "turn": "Turn",
+    "undo": "Undo",
+    "reset": "Reset",
+    "searchBrawler": "Search brawler...",
+    "allClasses": "All",
+    "noBrawlersFound": "No brawlers found",
+    "recommended": "Recommended for you",
+    "enemyTurn": "Enemy turn",
+    "selectEnemyPick": "Select what the opponent picked",
+    "noRecommendations": "Not enough data to recommend",
+    "draftComplete": "Draft complete!",
+    "newDraft": "New Draft",
+    "loadingBrawlers": "Loading brawlers...",
+    "loadingMeta": "Loading meta data...",
+    "noMapsForMode": "No active maps for this mode",
+    "bansComingSoon": "Bans — Coming Soon"
   }
 }

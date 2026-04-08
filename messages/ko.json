@@ -542,7 +542,8 @@
     "carryMaintain": "carry 중에도 {wr}% WR을 유지합니다!",
     "confidenceHigh": "신뢰할 수 있는 데이터 (10+ 경기)",
     "confidenceMedium": "제한된 데이터 (3-9 경기)",
-    "confidenceLow": "부족한 데이터 (1-2 경기)"
+    "confidenceLow": "부족한 데이터 (1-2 경기)",
+    "tabDraft": "드래프트"
   },
   "picks": {
     "title": "최고의 픽",
@@ -558,5 +559,31 @@
     "ctaDescription": "Premium으로 1-2-2-1 경쟁 드래프트 이용",
     "ctaButton": "PRO 되기",
     "ctaSignup": "무료 시작"
+  },
+  "draft": {
+    "draftTitle": "경쟁 드래프트",
+    "selectMode": "게임 모드 선택",
+    "selectMap": "맵 선택",
+    "whoStarts": "누가 먼저?",
+    "blueFirst": "블루 먼저",
+    "redFirst": "레드 먼저",
+    "blueTeam": "블루 팀",
+    "redTeam": "레드 팀",
+    "turn": "턴",
+    "undo": "실행 취소",
+    "reset": "리셋",
+    "searchBrawler": "브롤러 검색...",
+    "allClasses": "전체",
+    "noBrawlersFound": "결과 없음",
+    "recommended": "추천",
+    "enemyTurn": "적 턴",
+    "selectEnemyPick": "상대 선택을 입력",
+    "noRecommendations": "데이터 부족",
+    "draftComplete": "드래프트 완료!",
+    "newDraft": "새 드래프트",
+    "loadingBrawlers": "로딩...",
+    "loadingMeta": "데이터 로딩...",
+    "noMapsForMode": "활성 맵 없음",
+    "bansComingSoon": "밴 — 곧 출시"
   }
 }

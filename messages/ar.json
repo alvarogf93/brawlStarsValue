@@ -542,7 +542,8 @@
     "carryMaintain": "تحافظ على {wr}% WR حتى أثناء الـ carry!",
     "confidenceHigh": "بيانات موثوقة (10+ مباريات)",
     "confidenceMedium": "بيانات محدودة (3-9 مباريات)",
-    "confidenceLow": "بيانات غير كافية (1-2 مباراة)"
+    "confidenceLow": "بيانات غير كافية (1-2 مباراة)",
+    "tabDraft": "درافت"
   },
   "picks": {
     "title": "أفضل الاختيارات",
@@ -558,5 +559,31 @@
     "ctaDescription": "مع Premium: درافت تنافسي 1-2-2-1",
     "ctaButton": "كن PRO",
     "ctaSignup": "ابدأ مجاناً"
+  },
+  "draft": {
+    "draftTitle": "درافت تنافسي",
+    "selectMode": "اختر وضع اللعب",
+    "selectMap": "اختر الخريطة",
+    "whoStarts": "من يبدأ؟",
+    "blueFirst": "الأزرق أولاً",
+    "redFirst": "الأحمر أولاً",
+    "blueTeam": "الفريق الأزرق",
+    "redTeam": "الفريق الأحمر",
+    "turn": "الدور",
+    "undo": "تراجع",
+    "reset": "إعادة",
+    "searchBrawler": "بحث...",
+    "allClasses": "الكل",
+    "noBrawlersFound": "لم يتم العثور",
+    "recommended": "موصى به",
+    "enemyTurn": "دور الخصم",
+    "selectEnemyPick": "اختر ما اختاره الخصم",
+    "noRecommendations": "بيانات غير كافية",
+    "draftComplete": "اكتمل الدرافت!",
+    "newDraft": "درافت جديد",
+    "loadingBrawlers": "جار التحميل...",
+    "loadingMeta": "تحميل البيانات...",
+    "noMapsForMode": "لا توجد خرائط",
+    "bansComingSoon": "الحظر — قريباً"
   }
 }

@@ -542,7 +542,8 @@
     "carryMaintain": "Carry yaparken bile {wr}% WR koruyorsun!",
     "confidenceHigh": "Güvenilir veri (10+ maç)",
     "confidenceMedium": "Sınırlı veri (3-9 maç)",
-    "confidenceLow": "Yetersiz veri (1-2 maç)"
+    "confidenceLow": "Yetersiz veri (1-2 maç)",
+    "tabDraft": "Draft"
   },
   "picks": {
     "title": "En İyi Seçimler",
@@ -558,5 +559,31 @@
     "ctaDescription": "Premium ile: 1-2-2-1 Rekabetçi Draft",
     "ctaButton": "PRO ol",
     "ctaSignup": "Ücretsiz başla"
+  },
+  "draft": {
+    "draftTitle": "Rekabetçi Draft",
+    "selectMode": "Oyun modu seç",
+    "selectMap": "Harita seç",
+    "whoStarts": "Kim başlıyor?",
+    "blueFirst": "Mavi önce",
+    "redFirst": "Kırmızı önce",
+    "blueTeam": "Mavi Takım",
+    "redTeam": "Kırmızı Takım",
+    "turn": "Sıra",
+    "undo": "Geri al",
+    "reset": "Sıfırla",
+    "searchBrawler": "Brawler ara...",
+    "allClasses": "Tümü",
+    "noBrawlersFound": "Bulunamadı",
+    "recommended": "Önerilen",
+    "enemyTurn": "Düşman sırası",
+    "selectEnemyPick": "Rakibin seçimini gir",
+    "noRecommendations": "Yeterli veri yok",
+    "draftComplete": "Draft tamamlandı!",
+    "newDraft": "Yeni Draft",
+    "loadingBrawlers": "Yükleniyor...",
+    "loadingMeta": "Veri yükleniyor...",
+    "noMapsForMode": "Aktif harita yok",
+    "bansComingSoon": "Banlar — Yakında"
   }
 }

@@ -542,7 +542,8 @@
     "carryMaintain": "即使 carry 也能保持 {wr}% 的 WR！",
     "confidenceHigh": "可靠数据 (10+场)",
     "confidenceMedium": "有限数据 (3-9场)",
-    "confidenceLow": "数据不足 (1-2场)"
+    "confidenceLow": "数据不足 (1-2场)",
+    "tabDraft": "选人"
   },
   "picks": {
     "title": "最佳选择",
@@ -558,5 +559,31 @@
     "ctaDescription": "Premium可使用1-2-2-1竞技选人",
     "ctaButton": "成为PRO",
     "ctaSignup": "免费开始"
+  },
+  "draft": {
+    "draftTitle": "竞技选人",
+    "selectMode": "选择游戏模式",
+    "selectMap": "选择地图",
+    "whoStarts": "谁先选?",
+    "blueFirst": "蓝方先选",
+    "redFirst": "红方先选",
+    "blueTeam": "蓝队",
+    "redTeam": "红队",
+    "turn": "回合",
+    "undo": "撤销",
+    "reset": "重置",
+    "searchBrawler": "搜索英雄...",
+    "allClasses": "全部",
+    "noBrawlersFound": "未找到",
+    "recommended": "推荐",
+    "enemyTurn": "敌方回合",
+    "selectEnemyPick": "选择对手的选择",
+    "noRecommendations": "数据不足",
+    "draftComplete": "选人完成!",
+    "newDraft": "新一轮",
+    "loadingBrawlers": "加载中...",
+    "loadingMeta": "加载数据...",
+    "noMapsForMode": "无活跃地图",
+    "bansComingSoon": "禁用 — 即将推出"
   }
 }

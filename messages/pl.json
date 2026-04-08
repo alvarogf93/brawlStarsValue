@@ -542,7 +542,8 @@
     "carryMaintain": "Utrzymujesz {wr}% WR nawet robiąc carry!",
     "confidenceHigh": "Wiarygodne dane (10+ meczów)",
     "confidenceMedium": "Ograniczone dane (3-9 meczów)",
-    "confidenceLow": "Niewystarczające dane (1-2 mecze)"
+    "confidenceLow": "Niewystarczające dane (1-2 mecze)",
+    "tabDraft": "Draft"
   },
   "picks": {
     "title": "Najlepsze Picki",
@@ -558,5 +559,31 @@
     "ctaDescription": "Z Premium: Draft Konkurencyjny 1-2-2-1",
     "ctaButton": "Zostań PRO",
     "ctaSignup": "Zacznij za darmo"
+  },
+  "draft": {
+    "draftTitle": "Draft Rankingowy",
+    "selectMode": "Wybierz tryb",
+    "selectMap": "Wybierz mapę",
+    "whoStarts": "Kto zaczyna?",
+    "blueFirst": "Niebieski",
+    "redFirst": "Czerwony",
+    "blueTeam": "Drużyna Niebieska",
+    "redTeam": "Drużyna Czerwona",
+    "turn": "Tura",
+    "undo": "Cofnij",
+    "reset": "Resetuj",
+    "searchBrawler": "Szukaj brawlera...",
+    "allClasses": "Wszyscy",
+    "noBrawlersFound": "Nie znaleziono",
+    "recommended": "Polecane",
+    "enemyTurn": "Tura przeciwnika",
+    "selectEnemyPick": "Wybierz pick przeciwnika",
+    "noRecommendations": "Za mało danych",
+    "draftComplete": "Draft zakończony!",
+    "newDraft": "Nowy Draft",
+    "loadingBrawlers": "Ładowanie...",
+    "loadingMeta": "Ładowanie danych...",
+    "noMapsForMode": "Brak aktywnych map",
+    "bansComingSoon": "Bany — Wkrótce"
   }
 }

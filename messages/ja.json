@@ -542,7 +542,8 @@
     "carryMaintain": "carry中でも{wr}%のWRを維持しています！",
     "confidenceHigh": "信頼できるデータ (10+試合)",
     "confidenceMedium": "限定データ (3-9試合)",
-    "confidenceLow": "不十分なデータ (1-2試合)"
+    "confidenceLow": "不十分なデータ (1-2試合)",
+    "tabDraft": "ドラフト"
   },
   "picks": {
     "title": "ベストピック",
@@ -558,5 +559,31 @@
     "ctaDescription": "Premiumで1-2-2-1競技ドラフト利用可能",
     "ctaButton": "PROになる",
     "ctaSignup": "無料で始める"
+  },
+  "draft": {
+    "draftTitle": "競技ドラフト",
+    "selectMode": "モードを選択",
+    "selectMap": "マップを選択",
+    "whoStarts": "先攻は?",
+    "blueFirst": "ブルー先攻",
+    "redFirst": "レッド先攻",
+    "blueTeam": "ブルーチーム",
+    "redTeam": "レッドチーム",
+    "turn": "ターン",
+    "undo": "元に戻す",
+    "reset": "リセット",
+    "searchBrawler": "ブロウラー検索...",
+    "allClasses": "全て",
+    "noBrawlersFound": "見つかりません",
+    "recommended": "おすすめ",
+    "enemyTurn": "敵のターン",
+    "selectEnemyPick": "相手の選択を入力",
+    "noRecommendations": "データ不足",
+    "draftComplete": "ドラフト完了!",
+    "newDraft": "新規ドラフト",
+    "loadingBrawlers": "読込中...",
+    "loadingMeta": "データ読込中...",
+    "noMapsForMode": "アクティブマップなし",
+    "bansComingSoon": "バン — 近日公開"
   }
 }

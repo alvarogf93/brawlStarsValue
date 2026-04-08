@@ -25,7 +25,7 @@ import { TimeOfDayChart } from '@/components/analytics/TimeOfDayChart'
 import { TiltDetector } from '@/components/analytics/TiltDetector'
 import { MasteryChart } from '@/components/analytics/MasteryChart'
 import { PlayNowDashboard } from '@/components/analytics/PlayNowDashboard'
-import { CounterPickAdvisor } from '@/components/analytics/CounterPickAdvisor'
+import { DraftSimulator } from '@/components/draft/DraftSimulator'
 import { ClutchCard } from '@/components/analytics/ClutchCard'
 import { WarmUpCard } from '@/components/analytics/WarmUpCard'
 import { PowerLevelChart } from '@/components/analytics/PowerLevelChart'
@@ -37,14 +37,14 @@ import { SessionEfficiencyCard } from '@/components/analytics/SessionEfficiencyC
 import { RecoveryCard } from '@/components/analytics/RecoveryCard'
 import { GadgetImpactCard } from '@/components/analytics/GadgetImpactCard'
 
-const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'tools'] as const
+const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'draft'] as const
 type TabId = (typeof TAB_IDS)[number]
 const TAB_ICONS: Record<TabId, string> = {
-  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '🤝', trends: '📈', tools: '🛡️',
+  overview: '📊', performance: '🗺️', matchups: '⚔️', team: '🤝', trends: '📈', draft: '⚔️',
 }
 const TAB_KEYS: Record<TabId, string> = {
   overview: 'tabOverview', performance: 'tabPerformance', matchups: 'tabMatchups',
-  team: 'tabTeam', trends: 'tabTrends', tools: 'tabTools',
+  team: 'tabTeam', trends: 'tabTrends', draft: 'tabDraft',
 }
 
 export default function AnalyticsPage() {
@@ -327,9 +327,9 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {activeTab === 'tools' && (
+      {activeTab === 'draft' && (
         <div className="space-y-6">
-          <CounterPickAdvisor />
+          <DraftSimulator />
         </div>
       )}
     </div>

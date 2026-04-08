@@ -542,7 +542,8 @@
     "carryMaintain": "Вы держите {wr}% WR даже при carry!",
     "confidenceHigh": "Надёжные данные (10+ матчей)",
     "confidenceMedium": "Ограниченные данные (3-9 матчей)",
-    "confidenceLow": "Недостаточно данных (1-2 матча)"
+    "confidenceLow": "Недостаточно данных (1-2 матча)",
+    "tabDraft": "Драфт"
   },
   "picks": {
     "title": "Лучшие пики",
@@ -558,5 +559,31 @@
     "ctaDescription": "С Premium: 1-2-2-1 Драфт и личные рекомендации",
     "ctaButton": "Стать PRO",
     "ctaSignup": "Начать бесплатно"
+  },
+  "draft": {
+    "draftTitle": "Рейтинговый драфт",
+    "selectMode": "Выберите режим",
+    "selectMap": "Выберите карту",
+    "whoStarts": "Кто начинает?",
+    "blueFirst": "Синие первые",
+    "redFirst": "Красные первые",
+    "blueTeam": "Синяя команда",
+    "redTeam": "Красная команда",
+    "turn": "Ход",
+    "undo": "Отмена",
+    "reset": "Сброс",
+    "searchBrawler": "Поиск бойца...",
+    "allClasses": "Все",
+    "noBrawlersFound": "Не найдено",
+    "recommended": "Рекомендуемые",
+    "enemyTurn": "Ход противника",
+    "selectEnemyPick": "Выберите пик противника",
+    "noRecommendations": "Недостаточно данных",
+    "draftComplete": "Драфт завершён!",
+    "newDraft": "Новый драфт",
+    "loadingBrawlers": "Загрузка...",
+    "loadingMeta": "Загрузка данных...",
+    "noMapsForMode": "Нет активных карт",
+    "bansComingSoon": "Баны — Скоро"
   }
 }

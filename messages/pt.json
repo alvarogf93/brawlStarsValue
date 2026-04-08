@@ -542,7 +542,8 @@
     "carryMaintain": "Você mantém {wr}% de WR mesmo fazendo carry!",
     "confidenceHigh": "Dado confiável (10+ partidas)",
     "confidenceMedium": "Dado limitado (3-9 partidas)",
-    "confidenceLow": "Dado insuficiente (1-2 partidas)"
+    "confidenceLow": "Dado insuficiente (1-2 partidas)",
+    "tabDraft": "Draft"
   },
   "picks": {
     "title": "Melhores Picks",
@@ -558,5 +559,31 @@
     "ctaDescription": "Com Premium, acesse o Draft Competitivo 1-2-2-1",
     "ctaButton": "Seja PRO",
     "ctaSignup": "Comece grátis"
+  },
+  "draft": {
+    "draftTitle": "Draft Competitivo",
+    "selectMode": "Selecionar modo",
+    "selectMap": "Selecionar mapa",
+    "whoStarts": "Quem começa?",
+    "blueFirst": "Azul primeiro",
+    "redFirst": "Vermelho primeiro",
+    "blueTeam": "Time Azul",
+    "redTeam": "Time Vermelho",
+    "turn": "Turno",
+    "undo": "Desfazer",
+    "reset": "Reiniciar",
+    "searchBrawler": "Buscar brawler...",
+    "allClasses": "Todos",
+    "noBrawlersFound": "Nenhum brawler",
+    "recommended": "Recomendados",
+    "enemyTurn": "Turno inimigo",
+    "selectEnemyPick": "Selecione o pick do rival",
+    "noRecommendations": "Dados insuficientes",
+    "draftComplete": "Draft completo!",
+    "newDraft": "Novo Draft",
+    "loadingBrawlers": "Carregando...",
+    "loadingMeta": "Carregando dados...",
+    "noMapsForMode": "Sem mapas ativos",
+    "bansComingSoon": "Bans — Em breve"
   }
 }
