@@ -298,7 +298,13 @@
     "loading": "Laczenie...",
     "disclaimer": "Rejestrujac sie, akceptujesz nasza Polityke Prywatnosci.",
     "login": "Zaloguj",
-    "upgrade": "Premium"
+    "upgrade": "Premium",
+    "linkTagTitle": "Połącz swój Player Tag",
+    "linkTagDesc": "Wpisz swój tag gracza Brawl Stars, aby dokończyć konfigurację",
+    "linkTagButton": "Połącz Tag",
+    "invalidTag": "Nieprawidłowy format tagu (np. #2P0Q8C2C0)",
+    "tagNotFound": "Gracz nie znaleziony. Sprawdź swój tag.",
+    "signOutInstead": "Wyloguj się zamiast tego"
   },
   "premium": {
     "title": "BrawlVision Premium",

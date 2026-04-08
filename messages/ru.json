@@ -298,7 +298,13 @@
     "loading": "Подключение...",
     "disclaimer": "Регистрируясь, вы соглашаетесь с нашей Политикой конфиденциальности.",
     "login": "Войти",
-    "upgrade": "Премиум"
+    "upgrade": "Премиум",
+    "linkTagTitle": "Привяжите свой Player Tag",
+    "linkTagDesc": "Введите тег игрока Brawl Stars для завершения настройки",
+    "linkTagButton": "Привязать тег",
+    "invalidTag": "Неверный формат тега (напр. #2P0Q8C2C0)",
+    "tagNotFound": "Игрок не найден. Проверьте свой тег.",
+    "signOutInstead": "Выйти вместо этого"
   },
   "premium": {
     "title": "BrawlVision Premium",

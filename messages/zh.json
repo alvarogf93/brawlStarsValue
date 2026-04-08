@@ -298,7 +298,13 @@
     "loading": "连接中...",
     "disclaimer": "注册即表示您同意我们的隐私政策。",
     "login": "登录",
-    "upgrade": "高级版"
+    "upgrade": "高级版",
+    "linkTagTitle": "绑定你的Player Tag",
+    "linkTagDesc": "输入你的Brawl Stars玩家标签以完成设置",
+    "linkTagButton": "绑定标签",
+    "invalidTag": "标签格式无效（例如 #2P0Q8C2C0）",
+    "tagNotFound": "未找到玩家。请检查你的标签。",
+    "signOutInstead": "改为退出登录"
   },
   "premium": {
     "title": "BrawlVision Premium",

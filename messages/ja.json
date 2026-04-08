@@ -298,7 +298,13 @@
     "loading": "接続中...",
     "disclaimer": "登録することで、プライバシーポリシーに同意します。",
     "login": "ログイン",
-    "upgrade": "プレミアム"
+    "upgrade": "プレミアム",
+    "linkTagTitle": "Player Tagを連携する",
+    "linkTagDesc": "セットアップを完了するにはBrawl Starsのプレイヤータグを入力してください",
+    "linkTagButton": "タグを連携",
+    "invalidTag": "無効なタグ形式です（例: #2P0Q8C2C0）",
+    "tagNotFound": "プレイヤーが見つかりません。タグを確認してください。",
+    "signOutInstead": "代わりにログアウト"
   },
   "premium": {
     "title": "BrawlVision Premium",

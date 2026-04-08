@@ -298,7 +298,13 @@
     "loading": "جارِ الاتصال...",
     "disclaimer": "بالتسجيل، توافق على سياسة الخصوصية الخاصة بنا.",
     "login": "تسجيل الدخول",
-    "upgrade": "بريميوم"
+    "upgrade": "بريميوم",
+    "linkTagTitle": "اربط Player Tag الخاص بك",
+    "linkTagDesc": "أدخل تاغ لاعب Brawl Stars لإكمال الإعداد",
+    "linkTagButton": "ربط التاغ",
+    "invalidTag": "صيغة التاغ غير صالحة (مثال: #2P0Q8C2C0)",
+    "tagNotFound": "اللاعب غير موجود. تحقق من التاغ.",
+    "signOutInstead": "تسجيل الخروج بدلاً من ذلك"
   },
   "premium": {
     "title": "BrawlVision Premium",

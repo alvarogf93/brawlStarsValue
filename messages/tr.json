@@ -298,7 +298,13 @@
     "loading": "Baglaniyor...",
     "disclaimer": "Kaydolarak Gizlilik Politikamizi kabul edersiniz.",
     "login": "Giris",
-    "upgrade": "Premium"
+    "upgrade": "Premium",
+    "linkTagTitle": "Player Tag'ını Bağla",
+    "linkTagDesc": "Kurulumu tamamlamak için Brawl Stars oyuncu tag'ını gir",
+    "linkTagButton": "Tag'ı Bağla",
+    "invalidTag": "Geçersiz tag formatı (ör. #2P0Q8C2C0)",
+    "tagNotFound": "Oyuncu bulunamadı. Tag'ını kontrol et.",
+    "signOutInstead": "Bunun yerine çıkış yap"
   },
   "premium": {
     "title": "BrawlVision Premium",
