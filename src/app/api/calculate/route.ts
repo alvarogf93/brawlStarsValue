@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
-import { fetchPlayer, fetchBattlelog, SuprecellApiError } from '@/lib/api'
+import { fetchPlayer, fetchBattlelog, fetchClub, SuprecellApiError } from '@/lib/api'
 import { calculateValue } from '@/lib/calculate'
 
 export async function POST(req: Request) {
@@ -20,6 +20,15 @@ export async function POST(req: Request) {
       fetchPlayer(playerTag),
       fetchBattlelog(playerTag).catch(() => null),
     ])
+
+    // Fetch club badge if player has a club (best-effort, non-blocking)
+    let clubBadgeId: number | null = null
+    if (playerData.club?.tag) {
+      try {
+        const club = await fetchClub(playerData.club.tag)
+        clubBadgeId = club.badgeId
+      } catch { /* ignore — badge is cosmetic */ }
+    }
 
     // Extract real win rate from battlelog if available
     let winRate: number | undefined
@@ -43,7 +52,7 @@ export async function POST(req: Request) {
         soloVictories: playerData.soloVictories,
         duoVictories: playerData.duoVictories,
         '3vs3Victories': playerData['3vs3Victories'],
-        club: playerData.club,
+        club: { ...playerData.club, badgeId: clubBadgeId },
         icon: playerData.icon,
         brawlers: playerData.brawlers,
       },

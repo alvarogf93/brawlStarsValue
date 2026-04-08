@@ -107,6 +107,10 @@ const MODE_SC_IDS: Record<string, number> = {
   dodgebrawl: 48000063,
 }
 
+export function getClubBadgeUrl(badgeId: number): string {
+  return `https://cdn.brawlify.com/club-badges/regular/${badgeId}.png`
+}
+
 export function getGameModeImageUrl(mode: string): string | null {
   const scId = MODE_SC_IDS[mode]
   // Game mode icons still from Brawlify (not downloaded yet)

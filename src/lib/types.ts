@@ -102,7 +102,7 @@ export interface GemScore {
     soloVictories: number
     duoVictories: number
     '3vs3Victories': number
-    club: { tag: string; name: string } | Record<string, never>
+    club: { tag: string; name: string; badgeId?: number | null } | Record<string, never>
     icon: { id: number }
     brawlers: BrawlerStat[]
   }

@@ -10,6 +10,7 @@ import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useSkinClassifications } from '@/hooks/useSkinClassifications'
+import { getClubBadgeUrl } from '@/lib/utils'
 import Link from 'next/link'
 
 export default function OverviewPage() {
@@ -63,7 +64,9 @@ export default function OverviewPage() {
   }
 
   const grandTotal = data.totalGems + totalCosmeticGems
-  const clubName = data.player?.club && 'name' in data.player.club ? data.player.club.name : null
+  const club = data.player?.club && 'name' in data.player.club ? data.player.club : null
+  const clubName = club?.name ?? null
+  const clubBadgeId = club && 'badgeId' in club ? (club as { badgeId?: number | null }).badgeId : null
 
   // Brawl Stars colors come as 0xffRRGGBB.
   const rawColor = (data.player as any)?.nameColor || ''
@@ -74,44 +77,28 @@ export default function OverviewPage() {
       {/* ═══ HERO CARD ═══ */}
       <div className="brawl-card p-8 md:p-12 text-center relative overflow-hidden bg-gradient-to-b from-[#1C5CF1] to-[#121A2F]">
 
-        {/* Club shield — absolute, top-left, casual angle */}
+        {/* Club badge — absolute, top-left */}
         {clubName && (
           <Link
             href={`/${locale}/profile/${encodeURIComponent(tag)}/club`}
-            className="absolute top-4 left-4 z-20 group"
+            className="absolute top-3 left-3 md:top-4 md:left-4 z-20 group flex flex-col items-center gap-1"
           >
-            <div className="w-[110px] h-[75px] md:w-[150px] md:h-[100px] transform rotate-[-6deg] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-2deg] origin-top-left">
-              <svg viewBox="0 0 200 150" className="w-full h-full drop-shadow-[0_8px_0_rgba(13,19,33,0.8)] filter">
-                <defs>
-                  <linearGradient id="si" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2563EB" />
-                    <stop offset="100%" stopColor="#1E3A8A" />
-                  </linearGradient>
-                </defs>
-                {/* Outer thick gold border (sharp crest) */}
-                <path d="M 30 15 L 170 15 L 185 25 L 185 70 L 100 140 L 15 70 L 15 25 Z" fill="#FFC91B" stroke="#0D1321" strokeWidth="8" strokeLinejoin="miter" strokeMiterlimit="4" />
-                
-                {/* Inner blue crest */}
-                <path d="M 40 28 L 160 28 L 170 34 L 170 65 L 100 120 L 30 65 L 30 34 Z" fill="url(#si)" stroke="#0D1321" strokeWidth="4" strokeLinejoin="miter" strokeMiterlimit="4" />
-
-                {/* Crest center split detail */}
-                <path d="M 100 28 L 100 120" stroke="rgba(0,0,0,0.2)" strokeWidth="6" />
-                
-                {/* Star logo accent */}
-                <path d="M 100 45 L 105 55 L 115 55 L 108 62 L 110 72 L 100 65 L 90 72 L 92 62 L 85 55 L 95 55 Z" fill="#FFC91B" stroke="#0D1321" strokeWidth="2" strokeLinejoin="round" />
-
-                <text
-                  x="100" y="90" textAnchor="middle" dominantBaseline="middle"
-                  fill="white" fontFamily="'Lilita One', sans-serif"
-                  fontSize={clubName.length > 12 ? '14' : '18'}
-                  stroke="#0D1321" strokeWidth="3" paintOrder="stroke"
-                  className="filter drop-shadow-[0_2px_1px_rgba(0,0,0,0.8)]"
-                >
-                  {clubName}
-                </text>
-              </svg>
-              <div className="absolute inset-0 bg-[#FFC91B]/20 blur-[20px] rounded-full scale-50 group-hover:scale-110 transition-transform duration-500 -z-10" />
+            <div className="w-14 h-14 md:w-20 md:h-20 transform rotate-[-4deg] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-1deg] drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+              {clubBadgeId ? (
+                <img
+                  src={getClubBadgeUrl(clubBadgeId)}
+                  alt={clubName}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <div className="w-full h-full rounded-xl bg-gradient-to-b from-[#2563EB] to-[#1E3A8A] border-3 border-[#FFC91B] flex items-center justify-center shadow-[inset_0_2px_0_rgba(255,255,255,0.2)]">
+                  <span className="text-2xl">🛡️</span>
+                </div>
+              )}
             </div>
+            <span className="font-['Lilita_One'] text-[10px] md:text-xs text-white/90 text-stroke-brawl-brand drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] max-w-[80px] md:max-w-[120px] truncate text-center transform rotate-[-2deg]">
+              {clubName}
+            </span>
           </Link>
         )}
 
