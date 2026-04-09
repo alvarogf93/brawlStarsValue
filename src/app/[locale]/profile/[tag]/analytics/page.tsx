@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
@@ -11,6 +11,8 @@ import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { FlaskConical, ChevronDown } from 'lucide-react'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
+import { useProAnalysis } from '@/hooks/useProAnalysis'
+import { bayesianWinRate } from '@/lib/draft/scoring'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
@@ -96,6 +98,48 @@ export default function AnalyticsPage() {
   const tp = useTranslations('premium')
   const [showCelebration, setShowCelebration] = useState(false)
   const [tabMenuOpen, setTabMenuOpen] = useState(false)
+  const [liveMap, setLiveMap] = useState<{ map: string; mode: string } | null>(null)
+
+  // PRO data for inline badges (fetched for the first live map)
+  const { data: proData } = useProAnalysis(liveMap?.map ?? null, liveMap?.mode ?? null)
+
+  // Derive PRO badge data from proData
+  const proAvgWR = proData?.topBrawlers && proData.topBrawlers.length > 0
+    ? proData.topBrawlers.reduce((sum, b) => sum + b.winRate, 0) / proData.topBrawlers.length
+    : null
+
+  const proBrawlerMapData = useMemo(() => {
+    if (!proData?.topBrawlers || !liveMap) return null
+    const map = new Map<string, { winRate: number; total: number }>()
+    for (const b of proData.topBrawlers) {
+      map.set(`${b.brawlerId}|${liveMap.map}`, { winRate: b.winRate, total: b.totalBattles })
+    }
+    return map
+  }, [proData, liveMap])
+
+  const proMatchupData = useMemo(() => {
+    if (!proData?.counters) return null
+    const map = new Map<string, { winRate: number; total: number }>()
+    for (const c of proData.counters) {
+      for (const m of c.bestCounters) {
+        map.set(`${c.brawlerId}|${m.opponentId}`, { winRate: m.winRate, total: m.total })
+      }
+      for (const m of c.worstMatchups) {
+        map.set(`${c.brawlerId}|${m.opponentId}`, { winRate: m.winRate, total: m.total })
+      }
+    }
+    return map
+  }, [proData])
+
+  const proTrioData = useMemo(() => {
+    if (!proData?.proTrios) return null
+    const map = new Map<string, { winRate: number; total: number }>()
+    for (const trio of proData.proTrios) {
+      const key = trio.brawlers.map(b => b.id).sort((a, b) => a - b).join('|')
+      map.set(key, { winRate: trio.winRate, total: trio.total })
+    }
+    return map
+  }, [proData])
 
   // Fetch current events for "Play Now"
   useEffect(() => {
@@ -109,6 +153,18 @@ export default function AnalyticsPage() {
           events,
         )
         setPlayNow(recs)
+        // Capture first draft-mode map for PRO badge data
+        if (!liveMap) {
+          const DRAFT = ['gemGrab', 'heist', 'bounty', 'brawlBall', 'hotZone', 'knockout', 'wipeout', 'brawlHockey', 'basketBrawl']
+          for (const e of events) {
+            const ev = e.event ?? e
+            const mode = ev.mode === 'unknown' && ev.modeId === 45 ? 'brawlHockey' : ev.mode
+            if (ev.map && mode && DRAFT.includes(mode)) {
+              setLiveMap({ map: ev.map, mode })
+              break
+            }
+          }
+        }
       })
       .catch(() => { /* Play Now is optional — silent fail */ })
   }, [analytics])
@@ -240,7 +296,7 @@ export default function AnalyticsPage() {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          <OverviewStats overview={analytics.overview} />
+          <OverviewStats overview={analytics.overview} proAvgWR={proAvgWR} />
           {playNow.length > 0 && <PlayNowDashboard recommendations={playNow} />}
           <BrawlerTierList data={analytics.byBrawler} />
           <TiltDetector tilt={analytics.tilt} sessions={analytics.sessions} />
@@ -257,7 +313,7 @@ export default function AnalyticsPage() {
             <ModePerformanceChart data={analytics.byMode} />
             <MapPerformanceList data={analytics.byMap} />
           </div>
-          <BrawlerMapHeatmap data={analytics.brawlerMapMatrix} />
+          <BrawlerMapHeatmap data={analytics.brawlerMapMatrix} proData={proBrawlerMapData} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TimeOfDayChart data={analytics.byHour} />
             <WeeklyPatternChart data={analytics.weeklyPattern} />
@@ -270,7 +326,7 @@ export default function AnalyticsPage() {
 
       {activeTab === 'matchups' && (
         <div className="space-y-6">
-          <MatchupMatrix data={analytics.matchups} />
+          <MatchupMatrix data={analytics.matchups} proMatchups={proMatchupData} />
           <OpponentStrengthCard data={analytics.opponentStrength} />
         </div>
       )}
@@ -280,6 +336,7 @@ export default function AnalyticsPage() {
           <TeamSynergyView
             trioSynergy={analytics.trioSynergy}
             teammateSynergy={analytics.teammateSynergy}
+            proTrios={proTrioData}
           />
           <CarryCard data={analytics.carry} />
         </div>
@@ -287,7 +344,7 @@ export default function AnalyticsPage() {
 
       {activeTab === 'trends' && (
         <div className="space-y-6">
-          <TrendsChart dailyTrend={analytics.dailyTrend} />
+          <TrendsChart dailyTrend={analytics.dailyTrend} proAvgWR={proAvgWR} />
           <MasteryChart data={analytics.brawlerMastery} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <SessionEfficiencyCard data={analytics.sessionEfficiency} />
