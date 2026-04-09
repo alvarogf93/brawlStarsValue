@@ -1,7 +1,7 @@
 # Brawler Detail Page — Design Spec
 
 **Date:** 2026-04-09
-**Status:** Draft
+**Status:** Reviewed (design system audit pass)
 **Route:** `/[locale]/profile/[tag]/brawlers/[brawlerId]`
 
 ---
@@ -199,12 +199,15 @@ Full-width banner with brawler's rarity color gradient.
 
 ### 3.4 Free User Blur + CTA
 
-- Sections 3.3 are rendered but wrapped in a container with:
-  - `blur-sm` CSS filter
-  - `pointer-events-none`
-  - Overlay card centered: "Desbloquea tu análisis personal" + Crown icon + CTA button to `/subscribe`
-- First 2 stats of the comparison cards are visible (no blur) as teaser
-- Rest is fully blurred
+Use existing `BlurredTeaser` component from `src/components/premium/BlurredTeaser.tsx` — NOT a new `PremiumBlur` component. The project already has this solved:
+- Blur: `blur-sm pointer-events-none select-none opacity-60`
+- Overlay: `absolute inset-0 flex flex-col items-center justify-center bg-[#121A2F]/60 backdrop-blur-[2px]`
+- CTA: checks auth state, shows login or checkout button
+- Props: `children` (content to blur) + `redirectTo?` (post-checkout redirect)
+
+Wrap all of section 3.3 inside `<BlurredTeaser>` when `!isPremium(profile)`.
+- First 2 stats of the comparison cards are visible OUTSIDE the blur (teaser)
+- Rest is inside `<BlurredTeaser>`
 
 ---
 
@@ -217,21 +220,31 @@ src/components/brawler-detail/
 ├── PersonalAnalysis.tsx    — Premium wrapper: comparison, maps, matchups
 ├── MasteryTimeline.tsx     — Line chart of WR progression
 ├── ActivityCalendar.tsx    — GitHub-style usage calendar
-├── BrawlerRecommendations.tsx — Actionable tips from data gaps
-└── PremiumBlur.tsx         — Blur overlay + CTA (reusable, wraps children with blur + overlay CTA card)
+└── BrawlerRecommendations.tsx — Actionable tips from data gaps
+
+**Reused from existing codebase (NOT new):**
+- `BlurredTeaser` from `src/components/premium/BlurredTeaser.tsx` — premium blur overlay
+- `Skeleton`, `SkeletonCard`, `SkeletonRow` from `src/components/ui/Skeleton.tsx` — loading states
+- `BrawlImg` from `src/components/ui/BrawlImg.tsx` — image with fallback
+- `InfoTooltip` from `src/components/ui/InfoTooltip.tsx` — help tooltips
 ```
 
 **Page file:** `src/app/[locale]/profile/[tag]/brawlers/[brawlerId]/page.tsx`
 - Client component (`'use client'`)
-- Reads `brawlerId` from `params` (string from URL, parse to number)
-- Fetches data via `usePlayerData` (roster), `useBrawlerMeta` (meta), `useAdvancedAnalytics` (personal, premium only)
-- Finds the specific `BrawlerStat` from player roster by matching `brawler.id === brawlerId`
+- Params: `const params = useParams<{ tag: string; brawlerId: string }>()` then `const brawlerId = parseInt(params.brawlerId, 10)` and `const tag = decodeURIComponent(params.tag)` — follows existing pattern from stats/page.tsx
+- Hooks: `usePlayerData(tag)`, `useBrawlerMeta(brawlerId, window)`, conditionally `useAdvancedAnalytics(tag)` for premium
+- Finds the specific `BrawlerStat` from `data.player.brawlers.find(b => b.id === brawlerId)`
 - Resolves brawler name/class/rarity from `brawler-registry.ts` cache (fallback if not in player roster)
-- Shows skeleton loading states
+- Loading: return `<BrawlerDetailSkeleton />` — new skeleton component following `Skeleton`/`SkeletonCard`/`SkeletonRow` patterns from `src/components/ui/Skeleton.tsx`
+- Error: `<div className="glass p-8 rounded-2xl text-center border-red-500/30">` — matches stats/page.tsx pattern
+- Root wrapper: `<div className="animate-fade-in w-full pb-10 space-y-6">` — matches all profile pages
 
 **New hook:** `src/hooks/useBrawlerMeta.ts`
 - Fetches `/api/meta/brawler-detail?brawlerId=X&window=Y`
-- SWR-like caching pattern (localStorage, 10-min TTL)
+- Cache key: `brawlvalue:brawler-meta:${brawlerId}:${window}`
+- TTL: 10 minutes (consistent with longer-lived meta data vs 2-5 min player data)
+- Return shape: `{ data: BrawlerMetaResponse | null, isLoading: boolean, error: string | null }` — matches `usePlayerData` pattern
+- AbortController cleanup on unmount — matches existing hooks
 
 ---
 
@@ -309,7 +322,67 @@ New namespace `brawlerDetail`:
 
 ---
 
-## 8. Performance
+## 8. Design System Compliance
+
+All new components MUST use existing CSS classes and patterns. No new CSS classes or custom styles outside the established system.
+
+**Card containers:**
+- Hero banner: `.brawl-card` with rarity gradient overlay
+- Meta sections: `.brawl-card-dark p-5 md:p-6 border-[#090E17]`
+- Stat cards: `.brawl-card-dark` with inner content
+
+**Typography:**
+- Section titles: `font-['Lilita_One'] text-lg text-white flex items-center gap-2`
+- Emoji/icon BEFORE title text, with `gap-2`
+- Subtitles: `text-sm text-slate-400`
+- Data values: `font-['Lilita_One'] text-2xl` or `text-3xl`
+
+**Colors:**
+- Positive/win: `text-green-400` or `text-emerald-400`
+- Negative/loss: `text-red-400`
+- Neutral: `text-slate-400`
+- Gold/accent: `text-[#FFC91B]`
+- Backgrounds: `bg-[#0F172A]` (dark), `bg-white/5` (glass)
+
+**Spacing:**
+- Between sections: `space-y-6` (root container)
+- Grid gaps: `gap-3` (tight), `gap-4` (medium), `gap-6` (loose)
+- Card padding: `p-5 md:p-6`
+
+**Responsive breakpoints:**
+- Mobile-first, scale up: `md:` for tablet, `xl:` for desktop
+- Grid columns: `grid-cols-2 md:grid-cols-4` for stat cards
+
+**Animations:**
+- Page entry: `animate-fade-in` on root wrapper
+- No custom animations — use existing Tailwind + framer-motion patterns
+
+---
+
+## 9. Testing Strategy
+
+**Framework:** Vitest (NOT Jest). Import from `vitest`: `describe`, `it`, `expect`, `vi`, `beforeEach`.
+
+**Test files:**
+1. `src/__tests__/unit/lib/brawler-detail.test.ts` — Pure function tests for recommendation logic, data filtering, comparison calculations
+2. `src/__tests__/integration/api/brawler-detail.test.ts` — API endpoint test: validates response shape, error handling, Supabase query construction
+
+**Patterns to follow:**
+- Mock Supabase: `vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn() }))`
+- Use fixtures from `src/__tests__/fixtures/` — extend `battle.fixture.ts` if needed
+- Test edge cases: invalid brawlerId, 0 battles, <3 battles threshold
+- No snapshot tests (project doesn't use them)
+
+**What to test:**
+- Recommendation generation logic (pure function, high value)
+- Activity calendar date bucketing (pure function)
+- API endpoint input validation and response shape
+- Meta data aggregation + Bayesian WR calculation
+- NOT testing React components directly (project pattern: test logic, not UI)
+
+---
+
+## 10. Performance
 
 - **Meta API caching:** The `/api/meta/brawler-detail` endpoint queries aggregated tables, not raw battles. Should respond in <500ms. Cache in localStorage (10-min TTL).
 - **Personal data:** Already computed by `useAdvancedAnalytics` — just filter client-side by `brawlerId`. No additional API call needed for premium data.
@@ -318,7 +391,7 @@ New namespace `brawlerDetail`:
 
 ---
 
-## 9. Edge Cases
+## 11. Edge Cases
 
 | Case | Behavior |
 |------|----------|
@@ -330,7 +403,7 @@ New namespace `brawlerDetail`:
 
 ---
 
-## 10. Mobile Responsiveness
+## 12. Mobile Responsiveness
 
 - **Hero banner:** Stack vertically — portrait on top, stats below
 - **Meta cards:** 2x2 grid on mobile, 4-col on desktop
@@ -341,7 +414,7 @@ New namespace `brawlerDetail`:
 
 ---
 
-## 11. Out of Scope (YAGNI)
+## 13. Out of Scope (YAGNI)
 
 - **Global brawler page for SEO (`/[locale]/brawler/[name]`)** — public page WITHOUT profile layout, accessible without player tag. Shows only meta data. This is a v2 feature that would drive organic traffic. Different route, different layout, different data source. NOT this spec.
 - Skin showcase gallery
