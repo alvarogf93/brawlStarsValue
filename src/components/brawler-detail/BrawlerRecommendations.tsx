@@ -47,32 +47,24 @@ export function BrawlerRecommendations({ recommendations }: Props) {
               <span className="text-base mt-0.5 shrink-0">{EMOJI[rec.type]}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white font-medium">
-                  {rec.type === 'play' && rec.map && (
+                  {rec.type === 'play' && (
                     t('tipPlay', {
                       brawler: rec.brawlerName,
-                      map: rec.map,
+                      map: rec.context,
                       diff: `${rec.diff > 0 ? '+' : ''}${rec.diff}`,
                     })
                   )}
-                  {rec.type === 'avoid' && rec.map && (
-                    t('tipAvoidMap', {
+                  {rec.type === 'avoid' && (
+                    t('tipAvoid', {
                       brawler: rec.brawlerName,
-                      map: rec.map,
-                      diff: `${rec.diff}`,
+                      opponent: rec.context,
+                      diff: `${Math.abs(rec.diff)}`,
                     })
                   )}
-                  {rec.type === 'avoid' && rec.opponentName && !rec.map && (
-                    t('tipAvoidMatchup', {
-                      brawler: rec.brawlerName,
-                      opponent: rec.opponentName,
-                      diff: `${rec.diff}`,
-                    })
-                  )}
-                  {rec.type === 'team' && rec.opponentName && (
+                  {rec.type === 'team' && (
                     t('tipTeam', {
-                      brawler: rec.brawlerName,
-                      opponent: rec.opponentName,
-                      diff: `${rec.diff > 0 ? '+' : ''}${rec.diff}`,
+                      teammate: rec.context,
+                      wr: `${rec.metaWR}`,
                     })
                   )}
                 </p>

@@ -36,7 +36,7 @@ export function PersonalAnalysis({
   // ── Filter analytics data for this brawler ──────────────────
 
   const brawlerStats = useMemo(
-    () => analytics?.byBrawler.find(b => b.id === brawlerId) ?? null,
+    () => analytics?.byBrawler?.find(b => b.id === brawlerId) ?? null,
     [analytics, brawlerId],
   )
 
@@ -64,23 +64,38 @@ export function PersonalAnalysis({
 
   const calendarDays = useMemo(() => {
     if (!battleData?.battles) return []
-    return bucketBattlesToCalendar(battleData.battles, brawlerId, tag)
-  }, [battleData, brawlerId, tag])
+    const brawlerBattles = battleData.battles.filter(
+      (b) => b.battle?.teams?.[0]?.some(p => p.brawler?.id === brawlerId) ||
+             b.battle?.teams?.[1]?.some(p => p.brawler?.id === brawlerId)
+    )
+    return bucketBattlesToCalendar(
+      brawlerBattles.map(b => ({
+        battle_time: b.battleTime,
+        result: b.battle?.result ?? 'draw',
+      }))
+    )
+  }, [battleData, brawlerId])
 
   // ── Recommendations ─────────────────────────────────────────
 
   const recommendations = useMemo(() => {
-    const brawlerName = brawlerStats?.name ?? metaData?.brawlerName ?? ''
+    const brawlerName = brawlerStats?.name ?? ''
+    const personalMapStats = mapMatrix.map(m => ({
+      map: m.map, mode: m.mode, eventId: null, winRate: m.winRate, totalBattles: m.total,
+    }))
+    const personalMatchupStats = matchups.map(m => ({
+      opponentId: m.opponentBrawlerId, opponentName: m.opponentBrawlerName ?? '',
+      winRate: m.winRate, totalBattles: m.total,
+    }))
     return generateRecommendations(
-      brawlerId,
       brawlerName,
-      mapMatrix,
-      matchups,
-      metaData ?? null,
-      comfort,
-      mastery ?? undefined,
+      personalMapStats,
+      metaData?.bestMaps ?? [],
+      personalMatchupStats,
+      metaData?.strongAgainst ?? [],
+      locale,
     )
-  }, [brawlerId, brawlerStats, metaData, mapMatrix, matchups, comfort, mastery])
+  }, [brawlerStats, metaData, mapMatrix, matchups, locale])
 
   // ── Guard: no analytics data at all ─────────────────────────
 
@@ -88,7 +103,7 @@ export function PersonalAnalysis({
 
   const brawlerName = brawlerStats.name
   const yourWR = brawlerStats.winRate
-  const metaWR = metaData?.globalWinRate ?? null
+  const metaWR = metaData?.globalStats?.winRate ?? null
   const wrDiff = metaWR !== null ? yourWR - metaWR : null
 
   const redirectPath = `/${locale}/profile/${encodeURIComponent(tag)}/subscribe`
@@ -133,7 +148,7 @@ export function PersonalAnalysis({
               </thead>
               <tbody>
                 {topMaps.map((entry, i) => {
-                  const metaMap = metaData?.mapWinRates.find(
+                  const metaMap = metaData?.bestMaps.find(
                     m => m.map === entry.map && m.mode === entry.mode,
                   )
                   const diff = metaMap ? entry.winRate - metaMap.winRate : null
@@ -198,8 +213,8 @@ export function PersonalAnalysis({
               </thead>
               <tbody>
                 {topMatchups.map((mu, i) => {
-                  const metaMu = metaData?.matchupWinRates.find(
-                    m => m.opponentBrawlerId === mu.opponentBrawlerId,
+                  const metaMu = metaData?.strongAgainst.find(
+                    m => m.opponentId === mu.opponentBrawlerId,
                   )
                   const diff = metaMu ? mu.winRate - metaMu.winRate : null
 

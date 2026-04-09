@@ -3,7 +3,7 @@
     "allow": [
       "Bash(ls -la /c/Proyectos_Agentes/brawlValue/public/*.jpg /c/Proyectos_Agentes/brawlValue/public/*.png /c/Proyectos_Agentes/brawlValue/public/*.ico)",
       "Bash(ls -la /c/Proyectos_Agentes/brawlValue/public/favicon*)",
-      "Bash(git push:*)",
+      "Bash(git push origin main)",
       "Bash(npx supabase:*)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_b0113a1a4478b72653649459a8a4148cd368584a npx supabase link --project-ref zrlrznithwepoqanmuuc)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_b0113a1a4478b72653649459a8a4148cd368584a npx supabase secrets set BRAWLSTARS_API_KEY=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6Ijc5ODA0NzU1LTE0MmUtNDc3ZC1iMGE0LTRkOTZiZGFiODQ3MiIsImlhdCI6MTc3NTQwOTgyNywic3ViIjoiZGV2ZWxvcGVyL2YzOTE1ZGQ4LWFlYzItMTgzYi02MzJhLTE0NTM3NmFhM2FhYSIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiNzkuMTE3LjExOS4yNTMiXSwidHlwZSI6ImNsaWVudCJ9XX0.tUfGaw4XFnzw66DbPAoby8JLk5-rm6NwJwBFKcmRPMktBA5anDCBWNIvTxLTOjuYAeYoUUxnkpB35_Yeg_xdTg\" BRAWLSTARS_API_URL=\"http://141.253.197.60:3001/v1\")",

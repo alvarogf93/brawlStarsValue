@@ -228,7 +228,7 @@ export function MetaIntelligence({ data }: Props) {
                     />
                   )}
                   <span className="text-sm text-white truncate flex-1">
-                    {map.mapName}
+                    {map.map}
                   </span>
                   <span
                     className={`font-['Lilita_One'] text-sm tabular-nums ${metaWrColor(map.winRate)}`}
