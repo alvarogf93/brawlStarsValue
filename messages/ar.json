@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "احتمال الفوز"
+  },
+  "brawlerDetail": {
+    "mastery": "الجدول الزمني للإتقان",
+    "improved": "تحسن معدل الفوز بنسبة {diff}% خلال {days} يوم"
   }
 }

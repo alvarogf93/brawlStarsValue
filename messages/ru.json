@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Вероятность победы"
+  },
+  "brawlerDetail": {
+    "mastery": "Шкала мастерства",
+    "improved": "Винрейт улучшился на {diff}% за {days} дней"
   }
 }

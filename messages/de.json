@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Siegwahrscheinlichkeit"
+  },
+  "brawlerDetail": {
+    "mastery": "Meisterschaftsverlauf",
+    "improved": "Siegrate um {diff}% in {days} Tagen verbessert"
   }
 }

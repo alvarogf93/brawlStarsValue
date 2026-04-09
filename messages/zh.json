@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "胜率"
+  },
+  "brawlerDetail": {
+    "mastery": "精通时间线",
+    "improved": "{days}天内胜率提高了{diff}%"
   }
 }
