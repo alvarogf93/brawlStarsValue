@@ -75,7 +75,8 @@
     "manage": "Manage subscription",
     "profile": "Profile",
     "picks": "Picks",
-    "exit": "Home"
+    "exit": "Home",
+    "referral": "Invite friend"
   },
   "battles": {
     "title": "RECENT BATTLES",
