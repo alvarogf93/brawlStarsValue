@@ -1,8 +1,10 @@
 # Phase B Monetization v2 — Implementation Plan
 
+> **⛔ DEPRECATED (2026-04-09):** This plan has been superseded by **v3** at `docs/superpowers/plans/2026-04-09-monetization-phase-b-v3.md`. Key change: blur approach eliminated, analytics page split into `/analytics` (premium-only) + `/subscribe` (sales page). Do NOT implement this plan.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Complete the three monetization features (freemium blur, trial, referrals) that are partially implemented, fixing all UX gaps identified during testing.
+**Goal:** ~~Complete the three monetization features (freemium blur, trial, referrals) that are partially implemented, fixing all UX gaps identified during testing.~~
 
 **Architecture:** Build on existing components (PremiumGate, TrialBanner, ReferralCard, RefCapture) that are deployed but not fully integrated. The analytics page needs a structural redesign to support the freemium view.
 
@@ -64,10 +66,13 @@ No API changes needed. No security risk. The data is already public.
 |--------|------|---------------|
 | Create | `src/hooks/useFreemiumAnalytics.ts` | Compute analytics from 25 public battles (client-side) |
 | Create | `src/lib/analytics/detect-segment.ts` | Detect player segment for personalized hook metric |
+| Create | `src/components/premium/PersonalizedHook.tsx` | Render personalized visible metric by player segment |
 | Create | `src/__tests__/unit/lib/analytics-detect-segment.test.ts` | Tests for segment detection |
 | Create | `src/__tests__/unit/hooks/useFreemiumAnalytics.test.ts` | Tests for limited analytics |
+| Create | `supabase/migrations/007_protect_trial_fields.sql` | Security: prevent client-side manipulation of trial/referral/tier columns |
 | Modify | `src/app/[locale]/profile/[tag]/analytics/page.tsx` | Restructure: 3 views (subscription/freemium/premium) |
 | Modify | `src/components/auth/AuthProvider.tsx` | Call apply_referral RPC after linkTag with referral code |
+| Modify | `src/components/auth/TagRequiredModal.tsx` | Write edited referral code back to localStorage before linkTag |
 | Modify | `src/components/draft/DraftSimulator.tsx` | Add 3-use counter with localStorage tracking |
 | Modify | `src/components/premium/TrialBanner.tsx` | Show battle count in post-trial message |
 | Modify | `src/components/layout/Header.tsx` | Add referral code to avatar dropdown for premium users |
@@ -217,12 +222,18 @@ import { useMemo } from 'react'
 import { computeAdvancedAnalytics } from '@/lib/analytics/compute'
 import { parseBattlelog } from '@/lib/battle-parser'
 import type { AdvancedAnalytics } from '@/lib/analytics/types'
+import type { Battle } from '@/lib/supabase/types'
 import type { BattlelogEntry } from '@/lib/api'
 
 /**
  * Compute analytics from public battlelog entries (25 battles).
  * Same output as premium analytics but with less data.
  * Used for freemium blur — real data behind blur, limited sample.
+ *
+ * NOTE: parseBattlelog() returns BattleInsert[] (no id/created_at).
+ * computeAdvancedAnalytics() expects Battle[] (has id/created_at).
+ * Verified: computeAdvancedAnalytics never reads id or created_at,
+ * so adding dummy values is safe.
  */
 export function useFreemiumAnalytics(
   entries: BattlelogEntry[] | null,
@@ -231,9 +242,16 @@ export function useFreemiumAnalytics(
   return useMemo(() => {
     if (!entries || entries.length === 0) return null
     try {
-      const battles = parseBattlelog(entries, playerTag)
-      if (battles.length === 0) return null
-      return computeAdvancedAnalytics(battles as any)
+      const parsed = parseBattlelog(entries, playerTag)
+      if (parsed.length === 0) return null
+      // Adapter: BattleInsert → Battle (add dummy id + created_at)
+      // Safe because computeAdvancedAnalytics never reads these fields
+      const battles: Battle[] = parsed.map((b, i) => ({
+        ...b,
+        id: i,
+        created_at: new Date().toISOString(),
+      }))
+      return computeAdvancedAnalytics(battles)
     } catch {
       return null
     }
@@ -275,18 +293,24 @@ import { isOnTrial } from '@/lib/premium'
 After the existing `useBattlelog` hook, add:
 ```typescript
 // Freemium: compute limited analytics from public battlelog for blur content
+// useBattlelog already returns raw entries in freeStats.battles (BattlelogEntry[])
 const freemiumAnalytics = useFreemiumAnalytics(
-  freeData?.rawEntries ?? null, // Need to expose raw entries from useBattlelog
+  freeStats?.battles ?? null,
   tag
 )
+
+// detectSegment needs BattleInsert format (flat result/mode/my_brawler),
+// not BattlelogEntry (nested battle.result). useFreemiumAnalytics already
+// runs parseBattlelog internally, so we parse here too for detectSegment.
 const playerSegment = useMemo(() => {
-  if (!freeData?.rawEntries) return 'tilt'
+  if (!freeStats?.battles || freeStats.battles.length === 0) return 'tilt' as const
   const trophies = data?.player?.trophies ?? 0
-  return detectSegment(freeData.rawEntries as any, trophies)
-}, [freeData, data])
+  const parsed = parseBattlelog(freeStats.battles, tag)
+  return detectSegment(parsed, trophies)
+}, [freeStats, data, tag])
 ```
 
-Note: `useBattlelog` currently returns processed stats. We need it to also expose raw `BattlelogEntry[]` for `useFreemiumAnalytics`. Check and modify useBattlelog if needed.
+Note: `useBattlelog` already returns `data.battles: BattlelogEntry[]` — no modification needed. The existing destructure `{ data: freeStats }` gives access via `freeStats.battles`.
 
 - [ ] **Step 2: Implement three-view structure**
 
@@ -311,7 +335,7 @@ The key difference from the failed first attempt: View B uses `freemiumAnalytics
 
 - [ ] **Step 3: Implement View B (freemium) in the early return**
 
-After the subscription package view, before the premium view, add:
+After the existing subscription view early return (line ~213), BEFORE the loading/error checks, insert this new early return:
 
 ```typescript
 // View B: Freemium — logged in free user with computed analytics for blur
@@ -319,35 +343,115 @@ if (!authLoading && !hasPremium && isLoggedIn && freemiumAnalytics) {
   return (
     <div className="animate-fade-in w-full pb-10 space-y-6">
       <TrialBanner />
-      {/* Header */}
+
+      {/* Header — same style as subscription view */}
       <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#FFC91B] to-[#121A2F]">
-        {/* ... same header as subscription view ... */}
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-[#121A2F] border-4 border-[#FFC91B] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
+            <FlaskConical className="w-8 h-8 text-[#FFC91B]" />
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">{t('title')}</h1>
+            <p className="font-['Inter'] font-semibold text-[#FFC91B]">{t('premiumOnly')}</p>
+          </div>
+        </div>
       </div>
 
       {/* Personalized hook metric — VISIBLE, no blur */}
       <PersonalizedHook segment={playerSegment} analytics={freemiumAnalytics} />
 
-      {/* Tab navigation */}
+      {/* Tab navigation — identical to premium view */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-        {/* ... same tabs ... */}
+        {TAB_IDS.map(id => (
+          <button
+            key={id}
+            onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-['Lilita_One'] text-sm whitespace-nowrap transition-all border-2 ${
+              activeTab === id
+                ? 'bg-[#FFC91B]/20 text-[#FFC91B] border-[#FFC91B]/40 shadow-[0_0_12px_rgba(255,201,27,0.15)]'
+                : 'bg-[#0F172A] text-slate-400 border-[#1E293B] hover:bg-[#1E293B] hover:text-white'
+            }`}
+          >
+            {TAB_IMAGE_ICONS[id] ? (
+              <img src={TAB_IMAGE_ICONS[id]} alt="" className="w-5 h-5" width={20} height={20} />
+            ) : (
+              <span>{TAB_ICONS[id]}</span>
+            )}
+            <span>{ta(TAB_KEYS[id])}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Tab content — ALL with PremiumGate blur using freemiumAnalytics */}
+      {/* Tab content — overview visible, all others behind PremiumGate blur */}
+      {/* PlayNowDashboard OMITTED: needs event API + full analytics, not viable for 25 battles */}
       {activeTab === 'overview' && (
-        <OverviewStats overview={freemiumAnalytics.overview} />
+        <div className="space-y-6">
+          <OverviewStats overview={freemiumAnalytics.overview} />
+          <PremiumGate blur>
+            <TiltDetector tilt={freemiumAnalytics.tilt} sessions={freemiumAnalytics.sessions} />
+          </PremiumGate>
+        </div>
       )}
+
       {activeTab === 'performance' && (
         <PremiumGate blur>
           <div className="space-y-6">
             <BrawlerMapHeatmap data={freemiumAnalytics.brawlerMapMatrix} />
-            {/* ... rest ... */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <TimeOfDayChart data={freemiumAnalytics.byHour} />
+              <WeeklyPatternChart data={freemiumAnalytics.weeklyPattern} />
+            </div>
+            <PowerLevelChart data={freemiumAnalytics.powerLevelImpact} />
+            <GadgetImpactCard data={freemiumAnalytics.gadgetImpact} />
+            <BrawlerComfortList data={freemiumAnalytics.brawlerComfort} />
           </div>
         </PremiumGate>
       )}
-      {/* ... other tabs with PremiumGate ... */}
+
+      {activeTab === 'matchups' && (
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <MatchupMatrix data={freemiumAnalytics.matchups} />
+            <OpponentStrengthCard data={freemiumAnalytics.opponentStrength} />
+          </div>
+        </PremiumGate>
+      )}
+
+      {activeTab === 'team' && (
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <TeamSynergyView
+              brawlerSynergy={freemiumAnalytics.brawlerSynergy}
+              teammateSynergy={freemiumAnalytics.teammateSynergy}
+            />
+            <CarryCard data={freemiumAnalytics.carry} />
+          </div>
+        </PremiumGate>
+      )}
+
+      {activeTab === 'trends' && (
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <TrendsChart dailyTrend={freemiumAnalytics.dailyTrend} />
+            <MasteryChart data={freemiumAnalytics.brawlerMastery} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <SessionEfficiencyCard data={freemiumAnalytics.sessionEfficiency} />
+              <RecoveryCard data={freemiumAnalytics.recovery} />
+            </div>
+          </div>
+        </PremiumGate>
+      )}
+
+      {activeTab === 'draft' && (
+        <PremiumGate blur>
+          <div className="space-y-6">
+            <DraftSimulator />
+          </div>
+        </PremiumGate>
+      )}
 
       <div id="upgrade-section">
-        <UpgradeCard redirectTo={...} />
+        <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
         <ReferralCard />
       </div>
     </div>
@@ -362,7 +466,126 @@ Test each state:
 2. Logged in, free, no trial → View B (freemium blur) — NEW
 3. Premium or trial → View C (full analytics)
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Create PersonalizedHook component**
+
+Create `src/components/premium/PersonalizedHook.tsx`:
+
+```typescript
+'use client'
+
+import { useTranslations } from 'next-intl'
+import type { PlayerSegment } from '@/lib/analytics/detect-segment'
+import type { AdvancedAnalytics } from '@/lib/analytics/types'
+import { Crown } from 'lucide-react'
+
+const MIN_BATTLES = 3
+
+interface PersonalizedHookProps {
+  segment: PlayerSegment
+  analytics: AdvancedAnalytics
+}
+
+/** Try each segment in priority order until one has enough data */
+function resolveSegment(
+  segment: PlayerSegment,
+  analytics: AdvancedAnalytics,
+): { segment: PlayerSegment; valid: boolean } {
+  const order: PlayerSegment[] = [segment, 'tilt', 'main', 'competitive', 'explorer', 'streak']
+  const seen = new Set<PlayerSegment>()
+  for (const s of order) {
+    if (seen.has(s)) continue
+    seen.add(s)
+    if (hasEnoughData(s, analytics)) return { segment: s, valid: true }
+  }
+  return { segment: 'tilt', valid: false }
+}
+
+function hasEnoughData(seg: PlayerSegment, a: AdvancedAnalytics): boolean {
+  switch (seg) {
+    case 'tilt': return a.tilt.tiltEpisodes >= 1       // TiltAnalysis.tiltEpisodes
+    case 'main': return (a.byBrawler[0]?.total ?? 0) >= MIN_BATTLES  // BrawlerPerformance.total
+    case 'competitive': return a.matchups.length >= MIN_BATTLES       // MatchupEntry[]
+    case 'explorer': return a.byMap.length >= MIN_BATTLES             // MapPerformance[]
+    case 'streak': return a.clutch.starGames >= 1                     // ClutchAnalysis.starGames
+  }
+}
+
+export function PersonalizedHook({ segment, analytics }: PersonalizedHookProps) {
+  const t = useTranslations('premium')
+  const { segment: resolved, valid } = resolveSegment(segment, analytics)
+
+  if (!valid) {
+    return (
+      <div className="brawl-card-dark p-5 border-[#090E17] text-center">
+        <Crown className="w-8 h-8 text-[#FFC91B] mx-auto mb-2" />
+        <p className="font-['Lilita_One'] text-lg text-white">Descubre tus estadísticas avanzadas</p>
+        <p className="text-sm text-slate-400 mt-1">{t('trialBannerSubscribe')}</p>
+      </div>
+    )
+  }
+
+  const hookMessages: Record<PlayerSegment, string> = {
+    tilt: t('hookTilt'),
+    main: t('hookMastery', { name: analytics.byBrawler[0]?.brawlerName ?? '?' }),
+    competitive: (() => {
+      const worst = [...analytics.matchups].sort((a, b) => a.winRate - b.winRate)[0]
+      return t('hookMatchup', { wr: String(Math.round(100 - worst.winRate)), name: worst.opponentBrawlerName })
+    })(),
+    explorer: (() => {
+      const best = [...analytics.byMap].sort((a, b) => b.winRate - a.winRate)[0]
+      return t('hookMap', { map: best.map, wr: String(Math.round(best.winRate)) })
+    })(),
+    streak: t('hookClutch', { wr: String(Math.round(analytics.clutch.wrAsStar ?? 0)) }),
+  }
+
+  return (
+    <div className="brawl-card p-5 border-2 border-[#FFC91B]/30 bg-gradient-to-r from-[#FFC91B]/5 to-transparent">
+      <p className="font-['Lilita_One'] text-lg text-[#FFC91B]">{hookMessages[resolved]}</p>
+      <p className="text-sm text-slate-400 mt-1">{t('blurUnlock')}</p>
+    </div>
+  )
+}
+```
+
+- [ ] **Step 6: Add trial celebration modal in analytics page**
+
+In the analytics page, add celebration logic inside View C (premium view), at the top of the return:
+
+```typescript
+// Trial celebration — show confetti once on first premium visit after trial activation
+const [showCelebration, setShowCelebration] = useState(false)
+useEffect(() => {
+  if (!isOnTrial(profile as Profile)) return
+  const key = 'brawlvalue:trial-celebrated'
+  try {
+    if (localStorage.getItem(key)) return
+    localStorage.setItem(key, '1')
+    setShowCelebration(true)
+    import('canvas-confetti').then(({ default: confetti }) => {
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#FFC91B', '#4EC0FA', '#FF5733', '#28A745'] })
+    })
+  } catch { /* ignore */ }
+}, [profile])
+```
+
+And render the celebration modal (dismissible):
+
+```typescript
+{showCelebration && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCelebration(false)}>
+    <div className="brawl-card p-8 max-w-sm text-center space-y-4" onClick={e => e.stopPropagation()}>
+      <p className="text-5xl">🎉</p>
+      <h2 className="font-['Lilita_One'] text-2xl text-[#FFC91B]">{tp('trialWelcome')}</h2>
+      <p className="text-slate-300">{tp('trialWelcomeBody')}</p>
+      <button onClick={() => setShowCelebration(false)} className="brawl-button px-6 py-2">OK</button>
+    </div>
+  </div>
+)}
+```
+
+Note: `tp` is `useTranslations('premium')` — add this import alongside existing `t` (analytics) and `ta` (advancedAnalytics).
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git commit -m "feat: three-view analytics page — subscription/freemium/premium"
@@ -374,13 +597,49 @@ git commit -m "feat: three-view analytics page — subscription/freemium/premium
 
 **Files:**
 - Modify: `src/components/auth/AuthProvider.tsx`
+- Modify: `src/components/auth/TagRequiredModal.tsx`
 
-- [ ] **Step 1: After profile creation in linkTag, apply referral if code provided**
+- [ ] **Step 1: Fix TagRequiredModal — write edited referral code to localStorage**
 
-In `linkTag()`, after the profile insert succeeds, check localStorage for referral code and call the RPC:
+In `TagRequiredModal.tsx`, the user can EDIT the referral code input field, but `handleSubmit()` only calls `linkTag(tag)` without syncing the edited value back to localStorage. Fix: write the current `referralCode` state to localStorage BEFORE calling linkTag.
 
 ```typescript
-// After profile creation succeeds
+// In handleSubmit(), before calling linkTag():
+if (referralCode.trim()) {
+  try { localStorage.setItem('brawlvalue:ref', referralCode.trim().toUpperCase()) }
+  catch { /* ignore */ }
+} else {
+  try { localStorage.removeItem('brawlvalue:ref') } catch { /* ignore */ }
+}
+const result = await linkTag(trimmed)
+```
+
+This ensures that if the user manually types a referral code (not from URL), or edits the auto-filled one, the correct value is in localStorage when linkTag reads it.
+
+- [ ] **Step 2: After profile creation in linkTag, apply referral + handle code collision**
+
+In `linkTag()` in AuthProvider.tsx, wrap the profile insert in collision-handling logic and add referral application:
+
+```typescript
+// Profile insert with referral code collision retry (spec requirement)
+// The DB trigger auto-generates referral_code via md5(random()).
+// If unique constraint fails (extremely rare), retry once.
+let insertResult = await supabase.from('profiles').insert({
+  id: user.id,
+  player_tag: trimmed,
+}).select().single()
+
+if (insertResult.error?.code === '23505' && insertResult.error.message.includes('referral_code')) {
+  // Collision on auto-generated referral code — retry once
+  insertResult = await supabase.from('profiles').insert({
+    id: user.id,
+    player_tag: trimmed,
+  }).select().single()
+}
+
+if (insertResult.error) return { ok: false, error: insertResult.error.message }
+
+// Apply referral code (best-effort, non-blocking)
 const refCode = (() => { try { return localStorage.getItem('brawlvalue:ref') } catch { return null } })()
 if (refCode) {
   try {
@@ -393,8 +652,44 @@ if (refCode) {
 }
 ```
 
-- [ ] **Step 2: Verify build + test manually**
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Add referrer notification toast (spec requirement)**
+
+When someone uses a referral code, the referrer should see a toast next time they load the app. The `apply_referral` RPC updates the referrer's profile. We need a way to notify them.
+
+Approach: After `apply_referral` succeeds, store the new user's tag in a Supabase `referral_notifications` table (or a simple column on profiles). On app load, check for pending notifications.
+
+Simpler v1 approach — store in referrer's profile a `pending_referral_notification` text field (set by `apply_referral` RPC), and check it on AuthProvider load:
+
+In `AuthProvider.tsx`, inside the session fetch (where profile is loaded):
+
+```typescript
+// Check for pending referral notification
+useEffect(() => {
+  if (!profile?.id) return
+  const key = `brawlvalue:ref-notified-${profile.referral_count}`
+  try {
+    if (profile.referral_count > 0 && !localStorage.getItem(key)) {
+      localStorage.setItem(key, '1')
+      // Show toast — using a simple approach (can use a toast library later)
+      const toast = document.createElement('div')
+      toast.className = 'fixed top-4 right-4 z-50 bg-[#FFC91B] text-[#121A2F] px-4 py-3 rounded-xl font-bold shadow-lg animate-fade-in'
+      toast.textContent = tp('referralSuccess')
+      document.body.appendChild(toast)
+      setTimeout(() => toast.remove(), 5000)
+    }
+  } catch { /* ignore */ }
+}, [profile])
+```
+
+This approach uses `referral_count` + localStorage to detect new referrals without needing a new DB column. It fires when the count increases beyond what was previously acknowledged.
+
+- [ ] **Step 4: Verify build + test manually**
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/auth/AuthProvider.tsx src/components/auth/TagRequiredModal.tsx
+git commit -m "feat: referral logic in linkTag + collision handling + referrer notification"
+```
 
 ---
 
@@ -403,40 +698,56 @@ if (refCode) {
 **Files:**
 - Modify: `src/components/draft/DraftSimulator.tsx`
 
-- [ ] **Step 1: Add use counter logic**
+- [ ] **Step 1: Add premium check and counter logic**
+
+At the top of DraftSimulator, add imports and premium state:
 
 ```typescript
-const LS_DRAFT_USES = 'brawlvalue:draft-uses'
+import { useAuth } from '@/hooks/useAuth'
+import { isPremium } from '@/lib/premium'
+import { PremiumGate } from '@/components/premium/PremiumGate'
+import type { Profile } from '@/lib/supabase/types'
+import { useTranslations } from 'next-intl'
+```
 
+Inside the component function, add:
+
+```typescript
+const { profile } = useAuth()
+const hasPremium = isPremium(profile as Profile | null)
+const tp = useTranslations('premium')
+
+const LS_DRAFT_USES = 'brawlvalue:draft-uses'
 function getDraftUses(): number {
   try { return parseInt(localStorage.getItem(LS_DRAFT_USES) ?? '0', 10) }
   catch { return 0 }
 }
-
 function incrementDraftUses(): void {
   try { localStorage.setItem(LS_DRAFT_USES, String(getDraftUses() + 1)) }
   catch { /* ignore */ }
 }
 ```
 
-- [ ] **Step 2: Check uses on COMPLETE phase, show PremiumGate when exhausted**
+- [ ] **Step 2: Increment on COMPLETE, block after 3 uses**
 
-In the DraftSimulator, when `state.phase === 'COMPLETE'`:
+Add useEffect for counting:
 ```typescript
-// After draft completes, increment counter
+const [draftUses, setDraftUses] = useState(getDraftUses)
 useEffect(() => {
-  if (state.phase === 'COMPLETE' && !hasPremium) incrementDraftUses()
-}, [state.phase])
+  if (state.phase === 'COMPLETE' && !hasPremium) {
+    incrementDraftUses()
+    setDraftUses(getDraftUses())
+  }
+}, [state.phase, hasPremium])
 ```
 
-Before rendering the draft content:
+Add early return BEFORE the main render:
 ```typescript
-const draftUses = getDraftUses()
 if (!hasPremium && draftUses >= 3) {
   return (
     <PremiumGate blur>
       <div className="text-center py-12">
-        <p className="font-['Lilita_One'] text-lg text-white">{t('draftUsesExhausted')}</p>
+        <p className="font-['Lilita_One'] text-lg text-white">{tp('draftUsesExhausted')}</p>
       </div>
     </PremiumGate>
   )
@@ -445,6 +756,11 @@ if (!hasPremium && draftUses >= 3) {
 
 - [ ] **Step 3: Commit**
 
+```bash
+git add src/components/draft/DraftSimulator.tsx
+git commit -m "feat: draft 3 free uses counter with PremiumGate"
+```
+
 ---
 
 ### Task 6: Referral Code in Header Dropdown
@@ -452,50 +768,101 @@ if (!hasPremium && draftUses >= 3) {
 **Files:**
 - Modify: `src/components/layout/Header.tsx`
 
-- [ ] **Step 1: Add referral item to dropdown**
+- [ ] **Step 1: Add Gift import and referral state**
 
-Between "Manage subscription" and "Logout", add:
+Add to the lucide-react import at the top of Header.tsx:
+
+```typescript
+import { Gift } from 'lucide-react'  // add Gift to existing import
+```
+
+Add state for copy feedback inside the component:
+
+```typescript
+const [refCopied, setRefCopied] = useState(false)
+const tp = useTranslations('premium')
+```
+
+- [ ] **Step 2: Add referral item to dropdown**
+
+Between "Manage subscription" and "Logout" items in the avatar dropdown, add:
 
 ```typescript
 {profile?.referral_code && (
   <button
     onClick={() => {
       navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${profile.referral_code}`)
-      // Show toast or change button text briefly
+      setRefCopied(true)
+      setTimeout(() => setRefCopied(false), 2000)
     }}
     className="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors w-full"
   >
     <Gift className="w-4 h-4" />
-    {t('referralTitle')} ({profile.referral_code})
+    {refCopied ? tp('referralCopied') : `${tp('referralTitle')} (${profile.referral_code})`}
   </button>
 )}
 ```
 
-- [ ] **Step 2: Add Gift to lucide imports + referralTitle to nav translations**
 - [ ] **Step 3: Commit**
+
+```bash
+git add src/components/layout/Header.tsx
+git commit -m "feat: referral code copy button in header dropdown"
+```
 
 ---
 
-### Task 7: Expose Raw Battlelog Entries from useBattlelog
+### Task 7: Security Migration — Protect Trial/Referral Columns
 
 **Files:**
-- Modify: `src/hooks/useBattlelog.ts`
+- Create: `supabase/migrations/007_protect_trial_fields.sql`
 
-Task 3 depends on this. The `useBattlelog` hook currently processes entries into stats. We need it to also return the raw entries for `useFreemiumAnalytics`.
+> **AUDIT NOTE (2026-04-09):** Original Task 7 was "Expose Raw Battlelog Entries from useBattlelog". This was REMOVED because `useBattlelog` already returns raw `BattlelogEntry[]` via `data.battles` (see `src/hooks/useBattlelog.ts:26,164`). No modification needed. This task was replaced with the critical security migration that was documented in the plan's "Additional Security" section but had no implementation task.
 
-- [ ] **Step 1: Add rawEntries to return type**
+- [ ] **Step 1: Create migration file**
 
-```typescript
-interface BattleStats {
-  // ... existing fields ...
-  rawEntries: BattlelogEntry[] // ADD THIS
-}
+```sql
+-- 007_protect_trial_fields.sql
+-- Prevent client-side manipulation of trial/referral/payment fields.
+-- Only service_role can modify these columns.
+
+CREATE OR REPLACE FUNCTION protect_trial_fields()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF current_setting('request.jwt.claims', true)::jsonb ->> 'role' != 'service_role' THEN
+    NEW.trial_ends_at := OLD.trial_ends_at;
+    NEW.referral_code := OLD.referral_code;
+    NEW.referred_by := OLD.referred_by;
+    NEW.referral_count := OLD.referral_count;
+    NEW.tier := OLD.tier;
+    NEW.ls_subscription_status := OLD.ls_subscription_status;
+    NEW.ls_subscription_id := OLD.ls_subscription_id;
+    NEW.ls_customer_id := OLD.ls_customer_id;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_protect_trial ON profiles;
+CREATE TRIGGER tr_protect_trial
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW EXECUTE FUNCTION protect_trial_fields();
 ```
 
-In the fetch logic, store the raw entries alongside the processed stats.
+- [ ] **Step 2: Test locally with Supabase CLI**
 
-- [ ] **Step 2: Verify build**
+```bash
+supabase db reset
+```
+
+Verify the trigger allows service_role updates but blocks anon/authenticated user updates.
+
 - [ ] **Step 3: Commit**
+
+```bash
+git add supabase/migrations/007_protect_trial_fields.sql
+git commit -m "feat: security migration — protect trial/referral/payment columns"
+```
 
 ---
 
@@ -504,9 +871,10 @@ In the fetch logic, store the raw entries alongside the processed stats.
 **Files:**
 - Modify: `src/components/premium/TrialBanner.tsx`
 
-- [ ] **Step 1: Query battle count for expired trial users**
+- [ ] **Step 1: Add battle count state and fetch**
 
-When `isTrialExpired`, fetch the battle count:
+Inside the `TrialBanner` component, after the existing `onTrial`/`expired` checks (line ~40), add:
+
 ```typescript
 const [battleCount, setBattleCount] = useState(0)
 useEffect(() => {
@@ -518,12 +886,46 @@ useEffect(() => {
 }, [expired, profile])
 ```
 
-Show in the expired message:
-```
-"Tu trial terminó. Tienes {battleCount} batallas guardadas. Suscríbete para conservarlas."
+- [ ] **Step 2: Replace expired banner JSX with battle count message**
+
+Replace the existing expired return block (lines 44-58) with:
+
+```typescript
+if (expired) {
+  return (
+    <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-red-400 shrink-0" />
+          <p className="font-['Lilita_One'] text-sm text-red-300">{t('trialExpired')}</p>
+        </div>
+        <button
+          onClick={() => document.getElementById('upgrade-section')?.scrollIntoView({ behavior: 'smooth' })}
+          className="shrink-0 px-3 py-1.5 bg-[#FFC91B] text-[#121A2F] font-['Lilita_One'] text-xs rounded-lg hover:bg-[#FFD84D] transition-colors"
+        >
+          {t('trialBannerSubscribe')}
+        </button>
+      </div>
+      {battleCount > 0 && (
+        <p className="text-xs text-red-300/70 pl-6">
+          {t('trialExpiredBody', { battles: String(battleCount), days: '30' })}
+        </p>
+      )}
+    </div>
+  )
+}
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 3: Verify the `/api/battles` endpoint works for expired trial users**
+
+An expired trial user IS authenticated (Google login) but NOT premium. The endpoint should return battles the user OWNS (by player_tag). If the endpoint requires premium status, it needs a small fix to allow aggregate-only queries for authenticated users viewing their own battles.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/components/premium/TrialBanner.tsx
+git commit -m "feat: post-trial expired banner shows stored battle count"
+```
 
 ---
 
@@ -560,87 +962,103 @@ npx next build
 ## Execution Order
 
 ```
-Task 7 (expose raw entries) — dependency for Task 3
-Task 1 (detect segment) — TDD, independent
-Task 2 (freemium analytics hook) — depends on Task 7
-Task 3 (restructure analytics page) — depends on Tasks 1, 2, 7
-Task 4 (referral logic in linkTag) — independent
-Task 5 (draft 3 uses) — independent
-Task 6 (referral in header) — independent
-Task 8 (post-trial battle count) — independent
-Task 9 (verification) — after all others
+Task 1 (detect segment — TDD) ─┐
+                                ├─ Task 3 (restructure analytics page) ─┐
+Task 2 (freemium analytics)   ─┘                                       │
+                                                                        ├─ Task 9 (verification)
+Task 4 (referral logic + TagRequiredModal fix) ─────────────────────────┤
+Task 5 (draft 3 uses) ─────────────────────────────────────────────────┤
+Task 6 (referral in header) ───────────────────────────────────────────┤
+Task 7 (security migration) ───────────────────────────────────────────┤
+Task 8 (post-trial battle count) ──────────────────────────────────────┘
 ```
 
-Tasks 4, 5, 6, 8 can run in parallel after Task 3 is done.
+- Tasks 1 and 2 are independent and can run in parallel
+- Task 3 depends on Tasks 1 and 2 (needs detectSegment + useFreemiumAnalytics)
+- Tasks 4, 5, 6, 7, 8 are independent of each other and of Task 3
+- Task 9 runs last after all others
+
+> **AUDIT NOTE:** Original Task 7 ("Expose raw entries from useBattlelog") was eliminated. `useBattlelog` already returns `data.battles: BattlelogEntry[]`. Task 7 is now the security migration (protect_trial_fields trigger).
 
 ---
 
 ## Issues Found in Self-Review (Fixed)
 
-1. **PersonalizedHook component missing** — Add Task 3.5: create a small component that renders the right metric card based on segment. Uses a switch on `playerSegment` to render TiltDetector, MasteryChart, MatchupMatrix (first entry), BrawlerMapHeatmap (best map), or ClutchCard — all with real freemiumAnalytics data, NO blur.
+1. **PersonalizedHook component missing** — ✅ RESOLVED: Added as Task 3 Step 5. Creates `src/components/premium/PersonalizedHook.tsx` with segment-based switch, minimum threshold (≥3 battles), and fallback chain.
 
-2. **`as any` cast in useFreemiumAnalytics** — `parseBattlelog()` returns `BattleInsert[]`. `computeAdvancedAnalytics()` expects `Battle[]`. Both use the same JSONB fields (`my_brawler`, `opponents`, `result`, `mode`, `map`). The only missing field is `id` (auto-generated DB int). Fix: add `id: 0` to each parsed entry, or cast with a typed adapter.
+2. **`as any` cast in useFreemiumAnalytics** — ✅ RESOLVED: Task 2 now uses explicit typed adapter: `parsed.map((b, i) => ({ ...b, id: i, created_at: new Date().toISOString() }))`. Verified: `computeAdvancedAnalytics` never reads `id` or `created_at` fields (confirmed by full function body audit).
 
-3. **Referral code passing** — `linkTag()` in AuthProvider will read `localStorage.getItem('brawlvalue:ref')` directly after profile insert. No need to change the `linkTag(tag)` signature. The TagRequiredModal's input field is for DISPLAY (auto-filled from localStorage) — the actual application happens server-side via linkTag → apply_referral RPC.
+3. **Referral code passing** — ✅ RESOLVED: Task 4 Step 1 now fixes TagRequiredModal to write edited `referralCode` state back to localStorage BEFORE calling `linkTag()`. This ensures manually entered or edited codes are preserved.
 
-4. **useBattlelog raw entries** — Task 7 MUST run before Task 2/3. The hook currently discards raw entries after processing. Fix: store `items` array in state alongside processed stats.
+4. **useBattlelog raw entries** — ✅ RESOLVED: `useBattlelog` already returns `data.battles: BattlelogEntry[]` (`src/hooks/useBattlelog.ts:26,164`). Original Task 7 was eliminated. Access via `freeStats.battles`.
 
-5. **Battle count for expired trial** — The `/api/battles` endpoint uses `createClient()` (user auth). An expired trial user IS authenticated (has Google login) but NOT premium. The endpoint should return battles the user OWNS (their player_tag). Check: does the endpoint filter by auth user's player_tag? If so, it should work regardless of premium status. Verify during Task 8.
+5. **Battle count for expired trial** — PENDING verification during Task 8. The `/api/battles` endpoint uses `createClient()` (user auth). An expired trial user IS authenticated (has Google login) but NOT premium. Verify during implementation.
 
 6. **useFreemiumAnalytics test** — Add to Task 2: test that the hook returns valid AdvancedAnalytics shape from sample battlelog entries, and returns null for empty input.
 
+7. **Referrer notification toast** — ✅ RESOLVED: Added as Task 4 Step 3. Uses referral_count + localStorage to detect new referrals and show one-time toast. No new DB column needed.
+
+8. **Referral code collision handling** — ✅ RESOLVED: Added to Task 4 Step 2. Retries profile insert once if unique constraint fails on auto-generated referral_code.
+
 ## Risk Mitigation
 
-| Risk | Mitigation |
-|------|-----------|
-| Analytics page crash (null data) | freemiumAnalytics computed from public data, never null when logged in |
-| useBattlelog raw entries unavailable | Task 7 ensures they're exposed before Task 3 needs them |
-| Referral RPC fails silently | try/catch with best-effort pattern, doesn't block registration |
-| Draft uses counter cheatable (localStorage) | Acceptable for v1 — honest users won't clear localStorage |
-| Trial timestamp manipulation | Set by DB trigger on INSERT. Must ADD protection: DB trigger on UPDATE that prevents authenticated users from modifying trial_ends_at, referral_code, referral_count directly. Only service_role should update these. |
-| parseBattlelog → computeAdvanced type mismatch | Adapter adds missing `id: 0` field |
-| Battle count API for expired users | Endpoint filters by player_tag from auth, not premium status |
-| Manual referral code ignored | TagRequiredModal must write referralCode state to localStorage BEFORE calling linkTag. Fix in handleSubmit(). |
-| Trial celebration modal missing | Add Task 3.6: show confetti modal on first visit after trial activation. Track with localStorage flag. |
+| Risk | Mitigation | Status |
+|------|-----------|--------|
+| Analytics page crash (null data) | freemiumAnalytics computed from public data, never null when logged in | Design |
+| useBattlelog raw entries unavailable | Already available via `data.battles` — no modification needed | ✅ Resolved |
+| Referral RPC fails silently | try/catch with best-effort pattern, doesn't block registration | Design |
+| Draft uses counter cheatable (localStorage) | Acceptable for v1 — honest users won't clear localStorage | Accepted |
+| Trial timestamp manipulation | DB trigger on INSERT (migration 006) + UPDATE protection (migration 007 — Task 7) | ✅ Task 7 |
+| parseBattlelog → computeAdvanced type mismatch | Typed adapter adds `id: i` + `created_at` dummy fields. Safe: function never reads them. | ✅ Task 2 |
+| Battle count API for expired users | Endpoint filters by player_tag from auth, not premium status. Verify in Task 8. | Pending |
+| Manual referral code ignored | TagRequiredModal writes referralCode to localStorage before linkTag | ✅ Task 4 Step 1 |
+| Trial celebration modal missing | Added as Task 3 Step 6. Uses existing `canvas-confetti` library. | ✅ Task 3 |
+| PlayNowDashboard in freemium view | Omitted from View B in v1. Would need event API + full analytics. Low value for 25 battles. | Accepted |
 
 ## Additional Security: Protect trial/referral columns
 
-Add a DB trigger that prevents authenticated users from directly modifying sensitive columns:
+> ✅ Now implemented as **Task 7** (`supabase/migrations/007_protect_trial_fields.sql`). See Task 7 for full SQL.
 
-```sql
--- MUST RUN: Prevent client-side manipulation of trial/referral fields
-CREATE OR REPLACE FUNCTION protect_trial_fields()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN
-  -- Only service_role can modify these fields
-  IF current_setting('request.jwt.claims', true)::jsonb ->> 'role' != 'service_role' THEN
-    NEW.trial_ends_at := OLD.trial_ends_at;
-    NEW.referral_code := OLD.referral_code;
-    NEW.referred_by := OLD.referred_by;
-    NEW.referral_count := OLD.referral_count;
-    NEW.tier := OLD.tier;
-    NEW.ls_subscription_status := OLD.ls_subscription_status;
-    NEW.ls_subscription_id := OLD.ls_subscription_id;
-    NEW.ls_customer_id := OLD.ls_customer_id;
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS tr_protect_trial ON profiles;
-CREATE TRIGGER tr_protect_trial
-  BEFORE UPDATE ON profiles
-  FOR EACH ROW EXECUTE FUNCTION protect_trial_fields();
-```
-
-This ensures that even if RLS allows UPDATE, the sensitive fields cannot be changed by the client.
+This trigger ensures that even if RLS allows UPDATE, the sensitive fields (trial_ends_at, referral_code, referred_by, referral_count, tier, ls_subscription_status, ls_subscription_id, ls_customer_id) cannot be changed by authenticated users directly — only service_role can modify them.
 
 ## Review Pass 4: Data Quality + Integration
 
-11. **Freemium analytics data is VERY sparse (25 battles)** — Most matchups have 1 battle. Mastery has no curve. Synergy has no repeated pairs. The blur hides this, BUT the PersonalizedHook (visible metric) MUST have a minimum threshold: ≥3 battles for the specific data point. If not met, fall back to next segment or show generic message "Descubre tus estadísticas avanzadas".
+11. **Freemium analytics data is VERY sparse (25 battles)** — Most matchups have 1 battle. Mastery has no curve. Synergy has no repeated pairs. The blur hides this, BUT the PersonalizedHook (visible metric) MUST have a minimum threshold: ≥3 battles for the specific data point. If not met, fall back to next segment or show generic message "Descubre tus estadísticas avanzadas". ✅ Addressed in Task 3 Step 5.
 
-12. **PlayNowDashboard in freemium overview** — needs `playNow` computed from `freemiumAnalytics.brawlerMapMatrix + events`. Task 3 must compute this separately for View B, not rely on the premium `playNow` variable.
+12. **PlayNowDashboard in freemium overview** — ✅ RESOLVED: Omitted from View B in v1. It needs event API + full analytics data. Not worth the complexity for 25 battles — users behind the blur won't benefit from "Play Now" recommendations.
 
-13. **Variable naming** — Plan references `freeData?.rawEntries` but actual code destructures as `{ data: freeStats }`. After Task 7: `const { data: freeStats, isLoading: freeLoading, rawEntries } = useBattlelog(tag)`. Use `rawEntries` directly, not `freeData?.rawEntries`.
+13. **Variable naming** — ✅ RESOLVED: All references corrected to use `freeStats.battles` (from `const { data: freeStats } = useBattlelog(tag)`). No useBattlelog modification needed.
 
-14. **PersonalizedHook fallback chain** — If detected segment's data is empty, try next segment in priority order: tilt → main → competitive → explorer → streak → generic. Never show an empty hook card.
+14. **PersonalizedHook fallback chain** — If detected segment's data is empty, try next segment in priority order: tilt → main → competitive → explorer → streak → generic. Never show an empty hook card. ✅ Addressed in Task 3 Step 5.
+
+---
+
+## Audit Log (2026-04-09)
+
+Full plan audit against actual codebase state. All findings verified with file paths and line numbers.
+
+| # | Finding | Severity | Resolution |
+|---|---------|----------|-----------|
+| 1 | Task 7 (expose raw entries) was unnecessary — `useBattlelog` already returns `data.battles: BattlelogEntry[]` (`src/hooks/useBattlelog.ts:26,164`) | Medium | Task 7 replaced with security migration |
+| 2 | `computeAdvancedAnalytics` expects `Battle[]` but receives `BattleInsert[]` from `parseBattlelog` — verified function NEVER reads `id` or `created_at` | High | Explicit typed adapter in Task 2 (no more `as any`) |
+| 3 | PersonalizedHook component referenced but never defined | High | Added as Task 3 Step 5 with props, fallback chain, minimum threshold |
+| 4 | Trial celebration modal in spec (line 263) but no implementation task | Low | Added as Task 3 Step 6, reuses existing `canvas-confetti` library |
+| 5 | `protect_trial_fields` trigger documented but not in any migration | High | New Task 7 creates `007_protect_trial_fields.sql` |
+| 6 | `detectSegment` in analytics page received `BattlelogEntry[]` (nested `battle.result`) instead of `BattleInsert[]` (flat `result`) | High | Task 3 Step 1 now calls `parseBattlelog` before `detectSegment` |
+| 7 | PlayNowDashboard needs event API + full analytics, not feasible for 25-battle View B | Low | Omitted from View B in v1 |
+| 8 | TagRequiredModal captures referral code in state but doesn't sync back to localStorage before `linkTag()` | Medium | Task 4 Step 1 adds localStorage write in handleSubmit |
+| 9 | Spec `referralSuccess` had `{tag}` interpolation but translation doesn't use it | Low | Spec updated to match implemented translation |
+| 10 | Variable naming: plan referenced `freeData?.rawEntries` but code uses `freeStats.battles` | Medium | All references corrected throughout plan |
+
+### Quality Review Pass (writing-plans self-review)
+
+| # | Issue | Type | Resolution |
+|---|-------|------|-----------|
+| Q1 | Task 3 View B had 4 placeholder comments `{/* ... */}` instead of real code | Placeholder | Replaced with complete View B code — all 6 tabs, all components, all props |
+| Q2 | PersonalizedHook (Task 3 Step 5) was description-only, no implementation code | Placeholder | Full component code with fallback chain, minimum threshold, and hook messages |
+| Q3 | Celebration modal (Task 3 Step 6) was description-only | Placeholder | Full implementation with confetti, localStorage flag, dismissible modal |
+| Q4 | Referrer notification toast missing from plan (spec section 7.3) | Spec gap | Added as Task 4 Step 3 using referral_count + localStorage |
+| Q5 | Referral code collision handling missing (spec section 6.3) | Spec gap | Added to Task 4 Step 2 with retry-once on unique constraint failure |
+| Q6 | Task 5 didn't show how DraftSimulator gets `hasPremium` | Placeholder | Added full import list and useAuth/isPremium setup |
+| Q7 | Task 6 Step 2 had no code for Gift import or copy feedback | Placeholder | Added useState for copy feedback, Gift import, and full button JSX |
+| Q8 | Task 8 had no JSX for updated expired banner | Placeholder | Full replacement JSX with battle count conditional rendering |
