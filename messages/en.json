@@ -401,7 +401,23 @@
     "hookMastery": "Your improvement curve with {name}",
     "hookMatchup": "You lose {wr}% against {name}",
     "hookMap": "You dominate {map} at {wr}%",
-    "hookClutch": "As Star Player you win {wr}%"
+    "hookClutch": "As Star Player you win {wr}%",
+    "hookCompetitive": "With {trophies}+ trophies, discover your matchups",
+    "hookExplorer": "You play {count} modes — discover where you dominate"
+  },
+  "subscribe": {
+    "title": "Premium Analytics",
+    "subtitle": "Unlock the power of advanced analytics",
+    "freePreviewTitle": "Your last 25 battles",
+    "winRateLabel": "Win Rate",
+    "recordLabel": "Record",
+    "favoriteLabel": "Favorite",
+    "trophyChangeLabel": "Trophies",
+    "previewCaption1": "Detect your tilt and improve your game",
+    "previewCaption2": "Analyze your performance by brawler and map",
+    "previewCaption3": "Discover your matchups and counter-pick",
+    "trialCta": "Try 3 days free",
+    "trialCtaBody": "Link your tag and access all analytics"
   },
   "analytics": {
     "title": "Analytics",
