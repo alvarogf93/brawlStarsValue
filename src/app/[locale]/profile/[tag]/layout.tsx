@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   const cleanTag = decodeURIComponent(tag).replace('#', '')
   const encodedTag = encodeURIComponent(`#${cleanTag.toUpperCase()}`)
 
-  const languages: Record<string, string> = {}
+  const languages: Record<string, string> = { 'x-default': `${BASE_URL}/es/profile/${encodedTag}` }
   for (const loc of LOCALES) {
     languages[loc] = `${BASE_URL}/${loc}/profile/${encodedTag}`
   }
