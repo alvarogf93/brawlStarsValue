@@ -440,4 +440,430 @@ describe('computeAdvancedAnalytics', () => {
       expect(result.brawlerMastery[0].brawlerName).toBe('SHELLY')
     })
   })
+
+  // ── computeByMode ──────────────────────────────────────────────
+
+  describe('byMode', () => {
+    it('groups battles by game mode with correct win rates', () => {
+      const battles = [
+        makeBattle({ mode: 'gemGrab', result: 'victory', battle_time: '2026-04-05T10:00:00.000Z',
+          teammates: [
+            { tag: '#A1', name: 'A1', brawler: { id: 1, name: 'COLT', power: 9, trophies: 400 } },
+            { tag: '#A2', name: 'A2', brawler: { id: 2, name: 'BULL', power: 10, trophies: 450 } },
+          ],
+        }),
+        makeBattle({ mode: 'gemGrab', result: 'defeat', battle_time: '2026-04-05T10:05:00.000Z',
+          teammates: [
+            { tag: '#A1', name: 'A1', brawler: { id: 1, name: 'COLT', power: 9, trophies: 400 } },
+            { tag: '#A2', name: 'A2', brawler: { id: 2, name: 'BULL', power: 10, trophies: 450 } },
+          ],
+        }),
+        makeBattle({ mode: 'brawlBall', result: 'victory', battle_time: '2026-04-05T10:10:00.000Z',
+          teammates: [
+            { tag: '#A1', name: 'A1', brawler: { id: 1, name: 'COLT', power: 9, trophies: 400 } },
+            { tag: '#A2', name: 'A2', brawler: { id: 2, name: 'BULL', power: 10, trophies: 450 } },
+          ],
+        }),
+        makeBattle({ mode: 'brawlBall', result: 'victory', battle_time: '2026-04-05T10:15:00.000Z',
+          teammates: [
+            { tag: '#A1', name: 'A1', brawler: { id: 1, name: 'COLT', power: 9, trophies: 400 } },
+            { tag: '#A2', name: 'A2', brawler: { id: 2, name: 'BULL', power: 10, trophies: 450 } },
+          ],
+        }),
+        makeBattle({ mode: 'brawlBall', result: 'defeat', battle_time: '2026-04-05T10:20:00.000Z',
+          teammates: [
+            { tag: '#A1', name: 'A1', brawler: { id: 1, name: 'COLT', power: 9, trophies: 400 } },
+            { tag: '#A2', name: 'A2', brawler: { id: 2, name: 'BULL', power: 10, trophies: 450 } },
+          ],
+        }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.byMode.length).toBe(2)
+
+      const gemGrab = result.byMode.find(m => m.mode === 'gemGrab')
+      const brawlBall = result.byMode.find(m => m.mode === 'brawlBall')
+
+      expect(gemGrab).toBeDefined()
+      expect(gemGrab!.wins).toBe(1)
+      expect(gemGrab!.total).toBe(2)
+      expect(gemGrab!.winRate).toBe(50)
+
+      expect(brawlBall).toBeDefined()
+      expect(brawlBall!.wins).toBe(2)
+      expect(brawlBall!.total).toBe(3)
+      expect(brawlBall!.winRate).toBe(66.7)
+    })
+
+    it('sorts modes by total games descending', () => {
+      const battles = [
+        makeBattle({ mode: 'heist', result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'bounty', result: 'victory', battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'bounty', result: 'defeat', battle_time: '2026-04-05T10:10:00.000Z' }),
+        makeBattle({ mode: 'bounty', result: 'victory', battle_time: '2026-04-05T10:15:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+      expect(result.byMode[0].mode).toBe('bounty')
+      expect(result.byMode[1].mode).toBe('heist')
+    })
+
+    it('returns empty array for empty battles', () => {
+      const result = computeAdvancedAnalytics([])
+      expect(result.byMode).toEqual([])
+    })
+  })
+
+  // ── computeByMap ───────────────────────────────────────────────
+
+  describe('byMap', () => {
+    it('groups battles by map with correct win rates', () => {
+      const battles = [
+        makeBattle({ map: 'Super Beach', mode: 'brawlBall', result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ map: 'Super Beach', mode: 'brawlBall', result: 'victory', battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ map: 'Super Beach', mode: 'brawlBall', result: 'defeat', battle_time: '2026-04-05T10:10:00.000Z' }),
+        makeBattle({ map: 'Undermine', mode: 'gemGrab', result: 'defeat', battle_time: '2026-04-05T10:15:00.000Z' }),
+        makeBattle({ map: 'Undermine', mode: 'gemGrab', result: 'defeat', battle_time: '2026-04-05T10:20:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.byMap.length).toBe(2)
+
+      const beach = result.byMap.find(m => m.map === 'Super Beach')
+      const undermine = result.byMap.find(m => m.map === 'Undermine')
+
+      expect(beach).toBeDefined()
+      expect(beach!.wins).toBe(2)
+      expect(beach!.total).toBe(3)
+      expect(beach!.winRate).toBe(66.7)
+      expect(beach!.mode).toBe('brawlBall')
+
+      expect(undermine).toBeDefined()
+      expect(undermine!.wins).toBe(0)
+      expect(undermine!.total).toBe(2)
+      expect(undermine!.winRate).toBe(0)
+    })
+
+    it('handles null map gracefully by labeling it Unknown', () => {
+      const battles = [
+        makeBattle({ map: null as unknown as string, result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ map: null as unknown as string, result: 'defeat', battle_time: '2026-04-05T10:05:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+      const unknown = result.byMap.find(m => m.map === 'Unknown')
+
+      expect(unknown).toBeDefined()
+      expect(unknown!.total).toBe(2)
+      expect(unknown!.wins).toBe(1)
+      expect(unknown!.winRate).toBe(50)
+    })
+
+    it('returns empty array for empty battles', () => {
+      const result = computeAdvancedAnalytics([])
+      expect(result.byMap).toEqual([])
+    })
+  })
+
+  // ── computeClutch ──────────────────────────────────────────────
+
+  describe('clutch', () => {
+    it('calculates wrAsStar and wrNotStar correctly', () => {
+      const battles = [
+        makeBattle({ is_star_player: true, result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ is_star_player: true, result: 'victory', battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ is_star_player: true, result: 'defeat', battle_time: '2026-04-05T10:10:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'victory', battle_time: '2026-04-05T10:15:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'defeat', battle_time: '2026-04-05T10:20:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'defeat', battle_time: '2026-04-05T10:25:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'defeat', battle_time: '2026-04-05T10:30:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      // Star: 2 wins / 3 total = 66.7%
+      expect(result.clutch.wrAsStar).toBe(66.7)
+      // Non-star: 1 win / 4 total = 25%
+      expect(result.clutch.wrNotStar).toBe(25)
+      expect(result.clutch.starGames).toBe(3)
+      expect(result.clutch.nonStarGames).toBe(4)
+      // delta = 66.7 - 25 = 41.7
+      expect(result.clutch.delta).toBe(41.7)
+    })
+
+    it('returns null wrAsStar when no star player games exist', () => {
+      const battles = [
+        makeBattle({ is_star_player: false, result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'defeat', battle_time: '2026-04-05T10:05:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.clutch.wrAsStar).toBeNull()
+      expect(result.clutch.starGames).toBe(0)
+      expect(result.clutch.wrNotStar).toBe(50)
+      expect(result.clutch.delta).toBeNull()
+    })
+
+    it('counts starGames accurately', () => {
+      const battles = [
+        makeBattle({ is_star_player: true, result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'victory', battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ is_star_player: true, result: 'defeat', battle_time: '2026-04-05T10:10:00.000Z' }),
+        makeBattle({ is_star_player: true, result: 'victory', battle_time: '2026-04-05T10:15:00.000Z' }),
+        makeBattle({ is_star_player: false, result: 'defeat', battle_time: '2026-04-05T10:20:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+      expect(result.clutch.starGames).toBe(3)
+      expect(result.clutch.nonStarGames).toBe(2)
+    })
+  })
+
+  // ── computeWeeklyPattern ───────────────────────────────────────
+
+  describe('weeklyPattern', () => {
+    it('groups battles by day of week with correct win rates', () => {
+      // 2026-04-05 = Sunday (0), 2026-04-06 = Monday (1), 2026-04-07 = Tuesday (2)
+      const battles = [
+        makeBattle({ result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }), // Sunday
+        makeBattle({ result: 'victory', battle_time: '2026-04-05T10:05:00.000Z' }), // Sunday
+        makeBattle({ result: 'defeat', battle_time: '2026-04-05T10:10:00.000Z' }),  // Sunday
+        makeBattle({ result: 'victory', battle_time: '2026-04-06T10:00:00.000Z' }), // Monday
+        makeBattle({ result: 'defeat', battle_time: '2026-04-07T10:00:00.000Z' }),  // Tuesday
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.weeklyPattern.length).toBe(7)
+
+      const sunday = result.weeklyPattern[0]
+      expect(sunday.dayOfWeek).toBe(0)
+      expect(sunday.dayName).toBe('Sunday')
+      expect(sunday.total).toBe(3)
+      expect(sunday.wins).toBe(2)
+      expect(sunday.winRate).toBe(66.7)
+
+      const monday = result.weeklyPattern[1]
+      expect(monday.dayOfWeek).toBe(1)
+      expect(monday.dayName).toBe('Monday')
+      expect(monday.total).toBe(1)
+      expect(monday.wins).toBe(1)
+      expect(monday.winRate).toBe(100)
+
+      const tuesday = result.weeklyPattern[2]
+      expect(tuesday.dayOfWeek).toBe(2)
+      expect(tuesday.dayName).toBe('Tuesday')
+      expect(tuesday.total).toBe(1)
+      expect(tuesday.wins).toBe(0)
+      expect(tuesday.winRate).toBe(0)
+    })
+
+    it('returns all 7 days even with sparse data', () => {
+      const battles = [
+        makeBattle({ result: 'victory', battle_time: '2026-04-05T10:00:00.000Z' }), // Sunday only
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.weeklyPattern.length).toBe(7)
+
+      // Sunday has data
+      expect(result.weeklyPattern[0].total).toBe(1)
+      expect(result.weeklyPattern[0].wins).toBe(1)
+
+      // All other days have 0 games
+      for (let i = 1; i <= 6; i++) {
+        expect(result.weeklyPattern[i].dayOfWeek).toBe(i)
+        expect(result.weeklyPattern[i].total).toBe(0)
+        expect(result.weeklyPattern[i].wins).toBe(0)
+        expect(result.weeklyPattern[i].winRate).toBe(0)
+      }
+    })
+
+    it('returns all 7 days for empty battles', () => {
+      const result = computeAdvancedAnalytics([])
+      expect(result.weeklyPattern.length).toBe(7)
+      result.weeklyPattern.forEach((day, i) => {
+        expect(day.dayOfWeek).toBe(i)
+        expect(day.total).toBe(0)
+        expect(day.winRate).toBe(0)
+      })
+    })
+  })
+
+  // ── computeRecovery ────────────────────────────────────────────
+
+  describe('recovery', () => {
+    it('detects recovery after 3+ consecutive losses', () => {
+      // All within one session (no 30min gaps)
+      const battles = [
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:03:00.000Z' }),
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:06:00.000Z' }),
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:09:00.000Z' }), // 3rd loss → enters recovery
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:12:00.000Z' }), // recovery game
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:15:00.000Z' }), // recovery game
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.recovery.recoveryEpisodes).toBe(1)
+      // After entering recovery on the 3rd loss (trophy_change=-5 → debt=-5),
+      // game 5: +8 → debt=3 ≥ 0 → successful recovery, 1 game to recover
+      // But game 6 won't count because recovery ended
+      expect(result.recovery.successRate).toBe(100)
+      expect(result.recovery.avgGamesToRecover).toBeGreaterThanOrEqual(1)
+    })
+
+    it('returns null values when no losses exist', () => {
+      const battles = [
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.recovery.recoveryEpisodes).toBe(0)
+      expect(result.recovery.avgGamesToRecover).toBeNull()
+      expect(result.recovery.successRate).toBeNull()
+    })
+
+    it('handles 2 losses without triggering recovery (needs 3)', () => {
+      const battles = [
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:03:00.000Z' }),
+        makeBattle({ result: 'victory', trophy_change: 8, battle_time: '2026-04-05T10:06:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.recovery.recoveryEpisodes).toBe(0)
+      expect(result.recovery.avgGamesToRecover).toBeNull()
+    })
+
+    it('tracks unsuccessful recovery when trophies never recover', () => {
+      const battles = [
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:03:00.000Z' }),
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:06:00.000Z' }), // enters recovery
+        makeBattle({ result: 'defeat', trophy_change: -5, battle_time: '2026-04-05T10:09:00.000Z' }), // still in recovery, losing more
+        makeBattle({ result: 'victory', trophy_change: 2, battle_time: '2026-04-05T10:12:00.000Z' }),  // debt = -5 + (-5) + 2 = -8, not recovered
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      expect(result.recovery.recoveryEpisodes).toBe(1)
+      // Never recovered (debt never reaches 0)
+      expect(result.recovery.successRate).toBe(0)
+    })
+  })
+
+  // ── trioSynergy per-map ────────────────────────────────────────
+
+  describe('trioSynergy per-map', () => {
+    const tm2 = [
+      { tag: '#A1', name: 'Ally1', brawler: { id: 16000001, name: 'COLT', power: 9, trophies: 400 } },
+      { tag: '#A2', name: 'Ally2', brawler: { id: 16000002, name: 'BULL', power: 10, trophies: 450 } },
+    ]
+
+    it('generates per-map entries alongside global', () => {
+      const battles = [
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      const globalEntries = result.trioSynergy.filter(t => t.map === null)
+      const perMapEntries = result.trioSynergy.filter(t => t.map !== null)
+
+      expect(globalEntries.length).toBe(1)
+      expect(perMapEntries.length).toBe(1)
+      expect(perMapEntries[0].map).toBe('Undermine')
+      expect(perMapEntries[0].mode).toBe('gemGrab')
+
+      // Both should have same stats for single-map data
+      expect(globalEntries[0].total).toBe(3)
+      expect(perMapEntries[0].total).toBe(3)
+      expect(globalEntries[0].wins).toBe(2)
+      expect(perMapEntries[0].wins).toBe(2)
+    })
+
+    it('produces separate per-map entries for same trio on different maps', () => {
+      const battles = [
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', map: 'Super Beach', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', map: 'Super Beach', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:15:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      const perMapEntries = result.trioSynergy.filter(t => t.map !== null)
+      const undermineEntry = perMapEntries.find(t => t.map === 'Undermine')
+      const beachEntry = perMapEntries.find(t => t.map === 'Super Beach')
+
+      expect(perMapEntries.length).toBe(2)
+
+      expect(undermineEntry).toBeDefined()
+      expect(undermineEntry!.wins).toBe(2)
+      expect(undermineEntry!.total).toBe(2)
+      expect(undermineEntry!.winRate).toBe(100)
+
+      expect(beachEntry).toBeDefined()
+      expect(beachEntry!.wins).toBe(0)
+      expect(beachEntry!.total).toBe(2)
+      expect(beachEntry!.winRate).toBe(0)
+    })
+
+    it('global entry aggregates across maps', () => {
+      const battles = [
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', map: 'Super Beach', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      const globalEntry = result.trioSynergy.find(t => t.map === null)
+
+      expect(globalEntry).toBeDefined()
+      // Global should aggregate: 2 wins out of 3 total across both maps
+      expect(globalEntry!.total).toBe(3)
+      expect(globalEntry!.wins).toBe(2)
+      expect(globalEntry!.winRate).toBeCloseTo(66.7, 0)
+    })
+
+    it('distinguishes global vs per-map counts correctly', () => {
+      const battles = [
+        makeBattle({ mode: 'gemGrab', map: 'Undermine', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', map: 'Super Beach', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'bounty', map: 'Canal Grande', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+
+      const result = computeAdvancedAnalytics(battles)
+
+      const globalEntries = result.trioSynergy.filter(t => t.map === null)
+      const perMapEntries = result.trioSynergy.filter(t => t.map !== null)
+
+      // 1 global entry aggregating all 3 maps
+      expect(globalEntries.length).toBe(1)
+      expect(globalEntries[0].total).toBe(3)
+
+      // 3 per-map entries, each with 1 game
+      expect(perMapEntries.length).toBe(3)
+      perMapEntries.forEach(entry => {
+        expect(entry.total).toBe(1)
+      })
+
+      // Sum of per-map totals should equal global total
+      const perMapTotalSum = perMapEntries.reduce((sum, e) => sum + e.total, 0)
+      expect(perMapTotalSum).toBe(globalEntries[0].total)
+    })
+  })
 })
