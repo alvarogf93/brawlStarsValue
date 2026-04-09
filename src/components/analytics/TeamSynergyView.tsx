@@ -8,6 +8,7 @@ import type { TrioSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
+import { useMapImages } from '@/hooks/useMapImages'
 
 function medal(i: number): string {
   if (i === 0) return '🥇'
@@ -30,6 +31,7 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
   const [tab, setTab] = useState<Tab>('trios')
   const [expanded, setExpanded] = useState(false)
   const [mapFilter, setMapFilter] = useState<string>('all')
+  const mapImages = useMapImages()
 
   // Available maps from trio data (for filter dropdown)
   const availableMaps = useMemo(() => {
@@ -45,9 +47,9 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
   const sortedTrios = useMemo(() => {
     let list = [...trioSynergy]
     if (mapFilter === 'all') {
-      list = list.filter(t => t.map === null) // Show global aggregates
+      list = list.filter(t => t.map === null)
     } else {
-      list = list.filter(t => t.map === mapFilter) // Show per-map
+      list = list.filter(t => t.map === mapFilter)
     }
     return list.sort((a, b) => b.wilsonScore - a.wilsonScore)
   }, [trioSynergy, mapFilter])
@@ -62,6 +64,9 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
 
   const hasMoreTrios = sortedTrios.length > INITIAL_VISIBLE
   const hasMoreTeammates = sortedTeammates.length > INITIAL_VISIBLE
+
+  // Get map image URL for the current filter
+  const currentMapImage = mapFilter !== 'all' ? mapImages[mapFilter] ?? null : null
 
   if (trioSynergy.length === 0 && teammateSynergy.length === 0) {
     return (
@@ -125,7 +130,7 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
                 className="bg-[#0D1321] text-slate-300 text-xs rounded-lg px-3 py-1.5 border border-white/5 focus:outline-none focus:border-[#FFC91B]/40 font-['Lilita_One']"
               >
                 <option value="all">{t('allMaps') || 'All Maps'}</option>
-                {availableMaps.map(([map, mode]) => (
+                {availableMaps.map(([map]) => (
                   <option key={map} value={map}>{map}</option>
                 ))}
               </select>
@@ -138,36 +143,52 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {visibleTrios.map((trio, i) => (
                 <div
-                  key={`${trio.brawlers.map(b => b.id).join('-')}-${trio.mode ?? 'all'}`}
-                  className="brawl-row rounded-xl p-3 flex flex-col items-center gap-2 relative"
+                  key={`${trio.brawlers.map(b => b.id).join('-')}-${trio.map ?? 'global'}`}
+                  className="relative rounded-xl overflow-hidden border border-white/10"
                 >
-                  {/* Medal for top 3 */}
-                  {i < 3 && (
-                    <span className="absolute top-1.5 left-2 text-sm">{medal(i)}</span>
+                  {/* Map background — shown when filtering by specific map */}
+                  {currentMapImage && (
+                    <>
+                      <img
+                        src={currentMapImage}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/80 to-[#0A0E1A]/40" />
+                    </>
                   )}
 
-                  {/* 3 brawler portraits */}
-                  <div className="flex items-center -space-x-1.5">
-                    {trio.brawlers.map((b) => (
-                      <BrawlImg
-                        key={b.id}
-                        src={getBrawlerPortraitUrl(b.id)}
-                        fallbackSrc={getBrawlerPortraitFallback(b.id)}
-                        alt={b.name}
-                        className="w-9 h-9 rounded-lg ring-2 ring-[#090E17]"
-                      />
-                    ))}
-                  </div>
+                  {/* Content */}
+                  <div className={`relative p-3 flex flex-col items-center gap-2 ${!currentMapImage ? 'brawl-row' : ''}`}>
+                    {/* Medal for top 3 */}
+                    {i < 3 && (
+                      <span className="absolute top-1.5 left-2 text-sm">{medal(i)}</span>
+                    )}
 
-                  {/* Win rate */}
-                  <span className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(trio.winRate)}`}>
-                    {trio.winRate.toFixed(1)}%
-                  </span>
+                    {/* 3 brawler portraits */}
+                    <div className="flex items-center -space-x-1.5">
+                      {trio.brawlers.map((b) => (
+                        <BrawlImg
+                          key={b.id}
+                          src={getBrawlerPortraitUrl(b.id)}
+                          fallbackSrc={getBrawlerPortraitFallback(b.id)}
+                          alt={b.name}
+                          className="w-9 h-9 rounded-lg ring-2 ring-[#090E17]"
+                        />
+                      ))}
+                    </div>
 
-                  {/* Games + confidence */}
-                  <div className="flex items-center gap-1.5">
-                    <ConfidenceBadge total={trio.total} />
-                    <span className="text-[10px] text-slate-500">{trio.total} {t('games')}</span>
+                    {/* Win rate */}
+                    <span className={`font-['Lilita_One'] text-lg tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${wrColor(trio.winRate)}`}>
+                      {trio.winRate.toFixed(1)}%
+                    </span>
+
+                    {/* Games + confidence */}
+                    <div className="flex items-center gap-1.5">
+                      <ConfidenceBadge total={trio.total} />
+                      <span className="text-[10px] text-slate-400">{trio.total} {t('games')}</span>
+                    </div>
                   </div>
                 </div>
               ))}
