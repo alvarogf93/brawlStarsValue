@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
@@ -63,9 +64,11 @@ export default function BrawlersPage() {
   const params = useParams<{ tag: string }>()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const locale = useLocale()
   const t = useTranslations('brawlers')
   const tProfile = useTranslations('profile')
   const tag = decodeURIComponent(params.tag)
+  const brawlersBasePath = `/${locale}/profile/${encodeURIComponent(tag)}/brawlers`
   const { data, isLoading, error } = usePlayerData(tag)
 
   // Read filter state from URL search params
@@ -277,8 +280,12 @@ export default function BrawlersPage() {
           const gemValue = calcBrawlerGemValue(brawler)
           const color = RARITY_COLORS[rarity]
           return (
-            <div
+            <Link
               key={brawler.id}
+              href={`${brawlersBasePath}/${brawler.id}`}
+              className="transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+            <div
               className="group relative pt-6"
             >
               {/* Brawler portrait — always normal image */}
@@ -411,6 +418,7 @@ export default function BrawlersPage() {
                 </div>
               </div>
             </div>
+            </Link>
           )
         })}
       </div>
