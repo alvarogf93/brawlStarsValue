@@ -1,188 +1,142 @@
-# BrawlVision Codebase Audit — Sprint Plan
+# BrawlVision Codebase Audit — Sprint Plan (Verified)
 
 **Date:** 2026-04-09
 **Safety tag:** `v1.0-pre-audit`
-**Audited by:** 7 parallel MAP agents + manual synthesis
+**Audited by:** 7 MAP agents + manual verification against code
+**Verification:** Each finding verified against actual source. 3 false positives removed, 5 severities corrected.
 
 ---
 
-## Sprint 1: CRITICAL Fixes (Data Loss / Crash Prevention)
+## Sprint 1: CRITICAL Fixes (2 tasks)
 
-### Task 1.1: Fix useMapImages infinite loop + AbortController
+### Task 1.1: Fix PayPal webhook idempotency bypass
 - **Status:** [ ]
-- **Severity:** CRITICAL
-- **Size:** S (1 file)
-- **Files:** `src/hooks/useMapImages.ts`
-- **What:** Remove `images` from useEffect dependency array (causes infinite re-render loop). Add AbortController with cleanup. Add error state instead of silent `.catch(() => {})`.
-- **Acceptance:** No infinite renders, fetch aborted on unmount, error state exposed.
+- **Severity:** CRITICAL (verified: real data integrity risk)
+- **Size:** S
+- **File:** `src/app/api/webhooks/paypal/route.ts:44-52`
+- **What:** If `insertErr` exists but is NOT code `23505`, the webhook continues processing. Any DB error (timeout, RLS) allows duplicate profile upgrades.
+- **Fix:** Add `else if (insertErr) return NextResponse.json({ error: 'Database error' }, { status: 500 })` after the 23505 check.
+- **Acceptance:** Non-duplicate DB errors return 500, webhook does NOT proceed to update profile.
 
-### Task 1.2: Add AbortController to useClubEnriched + useClubTrophyChanges
+### Task 1.2: Fix missing i18n keys in 11 locales
 - **Status:** [ ]
-- **Severity:** CRITICAL
-- **Size:** S (2 files)
-- **Files:** `src/hooks/useClubEnriched.ts`, `src/hooks/useClubTrophyChanges.ts`
-- **What:** Add AbortController to `fetchMemberData()` and `fetchTrophyChange()` async functions. Abort on unmount/re-render.
-- **Acceptance:** No memory leaks on rapid navigation, fetch cleanup on unmount.
-
-### Task 1.3: Fix PayPal webhook idempotency bypass
-- **Status:** [ ]
-- **Severity:** CRITICAL
-- **Size:** S (1 file)
-- **Files:** `src/app/api/webhooks/paypal/route.ts`
-- **What:** Line 45-51: if `insertErr` is NOT code 23505, return 500 instead of continuing. Currently only checks for duplicate constraint — any other DB error lets webhook proceed.
-- **Acceptance:** Non-duplicate DB errors return 500, don't update profile.
-
-### Task 1.4: Fix PayPal unsafe JSON.parse
-- **Status:** [ ]
-- **Severity:** CRITICAL
-- **Size:** S (1 file)
-- **Files:** `src/lib/paypal.ts`
-- **What:** Line 195: wrap `JSON.parse(params.body)` in try-catch. Return meaningful error if body is malformed.
-- **Acceptance:** Malformed webhook body returns error, not crash.
-
-### Task 1.5: Add missing i18n keys to 11 locales
-- **Status:** [ ]
-- **Severity:** CRITICAL
-- **Size:** S (11 files)
+- **Severity:** CRITICAL (verified: keys used in Header.tsx:251 and stats/page.tsx:232)
+- **Size:** S
 - **Files:** `messages/{fr,pt,de,it,ru,tr,pl,ar,ko,ja,zh}.json`
-- **What:** Add `nav.referral`, `nav.referralCopied`, `stats.exportCsv` keys (use English values as placeholder).
-- **Acceptance:** All 13 locales have identical key counts. `node -e` validation script passes.
+- **What:** Add `nav.referral`, `nav.referralCopied`, `stats.exportCsv` using English values.
+- **Acceptance:** All 13 locales have identical key counts.
 
 ---
 
-## Sprint 2: HIGH Severity (Security + Error Handling)
+## Sprint 2: HIGH Fixes (4 tasks)
 
-### Task 2.1: API input validation hardening
+### Task 2.1: Fix useMapImages fragile guard + missing AbortController
+- **Status:** [ ]
+- **Severity:** HIGH (verified: guard prevents loop but architecture is fragile)
+- **File:** `src/hooks/useMapImages.ts`
+- **What:** Remove `images` from useEffect deps (replace with `[]`). Add AbortController. Replace `.catch(() => {})` with error state.
+- **Acceptance:** Effect runs once, fetch aborted on unmount, no silent failures.
+
+### Task 2.2: PayPal unsafe JSON.parse
+- **Status:** [ ]
+- **Severity:** HIGH (verified: line 195 has no try-catch)
+- **File:** `src/lib/paypal.ts:195`
+- **What:** Wrap `JSON.parse(params.body)` in try-catch. Return `false` from `verifyWebhookSignature` on parse error.
+- **Acceptance:** Malformed body returns false, not crash.
+
+### Task 2.3: ErrorBoundary hardcoded English strings
+- **Status:** [ ]
+- **Severity:** HIGH (verified: lines 30-39 have "Oops!", "Error 💀", "Reload")
+- **Files:** `src/components/ui/ErrorBoundary.tsx`, `src/app/[locale]/profile/[tag]/DashboardLayoutClient.tsx`
+- **What:** ErrorBoundary is a class component (can't use hooks). Pass translated fallback from DashboardLayoutClient which has access to useTranslations. The layout already wraps children in `<ErrorBoundary>` — add `fallback` prop with localized content.
+- **Acceptance:** Error boundary shows localized text.
+
+### Task 2.4: API input validation (verified subset)
 - **Status:** [ ]
 - **Severity:** HIGH
-- **Size:** M (5 files)
-- **Files:** `src/app/api/analytics/route.ts`, `src/app/api/meta/pro-analysis/route.ts`, `src/app/api/checkout/paypal/route.ts`, `src/app/api/checkout/paypal/confirm/route.ts`, `src/app/api/battlelog/route.ts`
-- **What:**
-  - analytics: validate timezone against `Intl.supportedValuesOf('timeZone')`
-  - pro-analysis: whitelist modes against DRAFT_MODES
-  - paypal routes: whitelist locale against routing.locales
-  - paypal confirm: use env var for redirect URL, not `origin`
-  - battlelog: add year bounds check (2020-2030) on `before` cursor
-- **Acceptance:** Invalid inputs return 400, no path traversal possible.
-
-### Task 2.2: Supabase query safety
-- **Status:** [ ]
-- **Severity:** HIGH
-- **Size:** S (2 files)
-- **Files:** `src/app/api/meta/route.ts`, `src/app/api/analytics/route.ts`
-- **What:** Add `.limit()` to unbounded meta_stats queries. Reduce analytics battle limit from 5000 to 2000.
-- **Acceptance:** No query returns > 2000 rows.
-
-### Task 2.3: Auth error handling
-- **Status:** [ ]
-- **Severity:** HIGH
-- **Size:** S (2 files)
-- **Files:** `src/lib/auth.ts`, `src/app/api/auth/callback/route.ts`
-- **What:** auth.ts: change `.single()` to `.maybeSingle()` to avoid unhandled throw. callback: validate code length/format before exchange.
-- **Acceptance:** Missing profile returns null (not throw). Invalid auth codes rejected.
-
-### Task 2.4: ErrorBoundary i18n
-- **Status:** [ ]
-- **Severity:** HIGH
-- **Size:** S (1 file + 13 locales)
-- **Files:** `src/components/ui/ErrorBoundary.tsx`, `messages/*.json`
-- **What:** Replace hardcoded "Oops!", "Error", "Reload" with `useTranslations('errorPage')`. Add keys to all locales.
-- **Acceptance:** Error boundary text localized in all 13 languages.
-
-### Task 2.5: Cron timing-safe auth comparison
-- **Status:** [ ]
-- **Severity:** HIGH  
-- **Size:** S (2 files)
-- **Files:** `src/app/api/cron/sync/route.ts`, `src/app/api/cron/meta-poll/route.ts`
-- **What:** Replace string `!==` with `crypto.timingSafeEqual()` for CRON_SECRET comparison.
-- **Acceptance:** Auth check is constant-time.
+- **Files:** `src/app/api/checkout/paypal/route.ts`, `src/app/api/checkout/paypal/confirm/route.ts`
+- **What:** Whitelist locale against `routing.locales` array before using in URL construction. This is the only verified HIGH-severity input validation gap.
+- **Acceptance:** Invalid locale falls back to 'es'.
 
 ---
 
-## Sprint 3: MEDIUM (Consistency + Quality)
+## Sprint 3: MEDIUM Fixes (5 tasks)
 
-### Task 3.1: Standardize hook return shapes
+### Task 3.1: Add AbortController to batch hooks
+- **Status:** [ ]
+- **Severity:** MEDIUM (verified: real but low-impact in practice)
+- **Files:** `src/hooks/useClubEnriched.ts:54`, `src/hooks/useClubTrophyChanges.ts:65`
+- **What:** Add AbortController parameter to fetch functions, abort on unmount.
+- **Acceptance:** Navigating away mid-fetch doesn't cause state update warnings.
+
+### Task 3.2: Standardize hook return shapes
 - **Status:** [ ]
 - **Severity:** MEDIUM
-- **Size:** M (4 files)
-- **Files:** `src/hooks/useAdvancedAnalytics.ts`, `src/hooks/useProAnalysis.ts`, `src/hooks/useClubEnriched.ts`, `src/hooks/useClubTrophyChanges.ts`
-- **What:** Rename `loading` to `isLoading` in useAdvancedAnalytics and useProAnalysis for consistency. Document batch hook return shape difference.
-- **Acceptance:** All simple hooks return `{ data, isLoading, error }`.
+- **Files:** `src/hooks/useAdvancedAnalytics.ts`, `src/hooks/useProAnalysis.ts`
+- **What:** Rename `loading` → `isLoading` for consistency with all other hooks.
+- **Acceptance:** All hooks return `{ data, isLoading, error }`.
 
-### Task 3.2: Accessibility fixes
+### Task 3.3: Accessibility fixes
 - **Status:** [ ]
-- **Severity:** MEDIUM
-- **Size:** M (4 files)
-- **Files:** `src/components/premium/FeatureShowcase.tsx`, `src/components/layout/Header.tsx`, `src/components/brawler-detail/MasteryTimeline.tsx`, `src/components/ui/CookieConsent.tsx`
-- **What:** Add aria-labels to carousel buttons, avatar alt text, chart aria-describedby, cookie buttons.
-- **Acceptance:** No a11y warnings on manual check.
+- **Severity:** MEDIUM (verified: real a11y gaps)
+- **Files:** `src/components/premium/FeatureShowcase.tsx`, `src/components/layout/Header.tsx:195`
+- **What:** Add aria-labels to carousel prev/next/dot buttons. Fix avatar `alt=""` to include user name.
+- **Acceptance:** No unnamed interactive elements.
 
-### Task 3.3: Hardcoded strings cleanup
+### Task 3.4: Hardcoded "Download" string
 - **Status:** [ ]
-- **Severity:** MEDIUM
-- **Size:** S (3 files + locales)
-- **Files:** `src/app/[locale]/profile/[tag]/battles/page.tsx`, `src/app/[locale]/profile/[tag]/share/page.tsx`, `src/components/ui/AdPlaceholder.tsx`
-- **What:** Replace hardcoded "Download" and "Anuncio - Ad Space" with t() calls. Add keys to locales.
-- **Acceptance:** No English strings in non-English locale renders.
-
-### Task 3.4: API error response standardization
-- **Status:** [ ]
-- **Severity:** MEDIUM
-- **Size:** M (8+ files)
-- **Files:** All API routes under `src/app/api/`
-- **What:** Standardize all error responses to `{ error: string }` with matching HTTP status. Remove inconsistent `{ ok: false }`, `{ error, code }` patterns.
-- **Acceptance:** Every API route follows same error format.
+- **Severity:** MEDIUM (verified: battles/page.tsx and share/page.tsx)
+- **Files:** `src/app/[locale]/profile/[tag]/battles/page.tsx`, `share/page.tsx`, `messages/*.json`
+- **What:** Replace `'Download'` with `t('download')`. Add key to all locales.
+- **Acceptance:** Button text localized.
 
 ### Task 3.5: PayPal token caching
 - **Status:** [ ]
-- **Severity:** MEDIUM
-- **Size:** S (1 file)
-- **Files:** `src/lib/paypal.ts`
-- **What:** Cache `getAccessToken()` result with TTL. Currently makes 5 API calls per webhook instead of 1.
-- **Acceptance:** Token reused within TTL, only 1 auth call per webhook.
+- **Severity:** MEDIUM (verified: `getAccessToken()` called per function, no caching)
+- **File:** `src/lib/paypal.ts`
+- **What:** Cache access token with TTL from `expires_in` response field.
+- **Acceptance:** Only 1 auth API call per webhook instead of multiple.
 
 ---
 
-## Sprint 4: LOW (Polish + Maintenance)
+## Sprint 4: LOW Fixes (3 tasks)
 
-### Task 4.1: Remove dead code + unused imports
+### Task 4.1: Remove unused imports + dead code
 - **Status:** [ ]
-- **Severity:** LOW
-- **Size:** S (3 files)
-- **Files:** `src/lib/analytics/recommendations.ts` (unused `groupBy` import), `src/app/[locale]/profile/[tag]/analytics/page.tsx` (empty TAB_ICONS entries), page.tsx + share.tsx (`as any` casts)
-- **Acceptance:** tsc passes, no unused imports.
+- **Files:** `src/lib/analytics/recommendations.ts` (unused `groupBy`)
+- **Acceptance:** tsc passes, ESLint clean.
 
-### Task 4.2: Extract magic numbers to constants
+### Task 4.2: Extract magic numbers
 - **Status:** [ ]
-- **Severity:** LOW
-- **Size:** S (2 files)
-- **Files:** `src/lib/analytics/compute.ts`, `src/lib/analytics/types.ts`
-- **What:** Export `SESSION_GAP_MS`, `TOP_COMFORT_BRAWLERS`, `STANDARD_3V3_MODES` as named constants.
-- **Acceptance:** No magic numbers in compute functions.
+- **Files:** `src/lib/analytics/compute.ts`
+- **What:** Export `SESSION_GAP_MS`, `TOP_COMFORT_BRAWLERS` as named constants.
 
-### Task 4.3: Update patch-level dependencies
+### Task 4.3: Patch-level dependency updates
 - **Status:** [ ]
-- **Severity:** LOW
-- **Size:** S (1 file)
-- **Files:** `package.json`
-- **What:** Update: next 16.2.3, react 19.2.5, vitest 4.1.4, @supabase/ssr 0.10.2, eslint-config-next 16.2.3
-- **Acceptance:** `npm audit` clean, `npm run build` passes.
+- **File:** `package.json`
+- **What:** next 16.2.3, react 19.2.5, vitest 4.1.4
 
 ---
 
-## Execution Order
+## Removed from plan (false positives / overrated)
+
+| Original Task | Why Removed |
+|---|---|
+| auth.ts `.single()` crash | **FALSE POSITIVE** — Supabase v2 `.single()` returns `{ data: null, error }`, does not throw. Code handles null correctly. |
+| Timezone ReDoS | **OVERRATED** — Regex has no backtracking, not vulnerable. Invalid TZ is silently ignored (correct behavior). |
+| Cron timing-safe comparison | **OVERRATED** — Timing attacks on internal Vercel CRON headers require edge-level access. Theoretical risk, not practical. |
+| Query .limit() | **OVERRATED** — Supabase has default 1000 row limit. Explicit limit is nice but not a security issue. |
+| PayPal redirect with origin | **OVERRATED** — In Next.js on Vercel, `origin` from `new URL(request.url)` is server-side, not client-controlled. |
+
+---
+
+## Execution
 
 ```
-Sprint 1 (CRITICAL) → verify build → Sprint 2 (HIGH) → verify build → Sprint 3 (MEDIUM) → verify build → Sprint 4 (LOW) → final verification
+Sprint 1 (2 tasks) → tsc + tests → push
+Sprint 2 (4 tasks) → tsc + tests → push
+Sprint 3 (5 tasks) → tsc + tests → push
+Sprint 4 (3 tasks) → tsc + tests → push
 ```
 
-**Verification gate after each sprint:**
-```bash
-npx tsc --noEmit && npx vitest run && npm run build
-```
-
-**Total: 18 tasks across 4 sprints**
-- Sprint 1: 5 tasks (CRITICAL)
-- Sprint 2: 5 tasks (HIGH)
-- Sprint 3: 5 tasks (MEDIUM)
-- Sprint 4: 3 tasks (LOW)
+**Total: 14 verified tasks (down from 18 — 4 removed as false/overrated)**
