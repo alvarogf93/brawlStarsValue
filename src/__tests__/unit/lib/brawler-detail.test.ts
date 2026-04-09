@@ -112,6 +112,49 @@ describe('generateRecommendations', () => {
     // Map_B diff = 40, Map_A diff = 15 => Map_B should come first
     expect(Math.abs(result[0].diff)).toBeGreaterThanOrEqual(Math.abs(result[1].diff))
   })
+
+  it('returns empty array when all inputs are empty', () => {
+    const result = generateRecommendations('SHELLY', [], [], [], [], 'en')
+    expect(result).toEqual([])
+  })
+
+  it('returns empty when personal maps exist but meta maps are empty', () => {
+    const personalMaps = [
+      { map: 'Super Beach', mode: 'brawlBall', eventId: 1, winRate: 80, totalBattles: 10 },
+    ]
+    const result = generateRecommendations('SHELLY', personalMaps, [], [], [], 'en')
+    expect(result).toEqual([])
+  })
+
+  it('returns empty when personal matchups exist but meta matchups are empty', () => {
+    const personalMatchups = [
+      { opponentId: 16000001, opponentName: 'COLT', winRate: 20, totalBattles: 10 },
+    ]
+    const result = generateRecommendations('SHELLY', [], [], personalMatchups, [], 'en')
+    expect(result).toEqual([])
+  })
+
+  it('skips personal maps with no matching meta map', () => {
+    const personalMaps = [
+      { map: 'Unmapped Arena', mode: 'brawlBall', eventId: 99, winRate: 90, totalBattles: 10 },
+    ]
+    const metaMaps = [
+      { map: 'Other Map', mode: 'brawlBall', eventId: 1, winRate: 50, totalBattles: 1000 },
+    ]
+    const result = generateRecommendations('SHELLY', personalMaps, metaMaps, [], [], 'en')
+    expect(result).toEqual([])
+  })
+
+  it('skips personal matchups with no matching meta matchup', () => {
+    const personalMatchups = [
+      { opponentId: 99999, opponentName: 'UNKNOWN', winRate: 20, totalBattles: 10 },
+    ]
+    const metaMatchups = [
+      { opponentId: 16000001, opponentName: 'COLT', winRate: 50, totalBattles: 1000 },
+    ]
+    const result = generateRecommendations('SHELLY', [], [], personalMatchups, metaMatchups, 'en')
+    expect(result).toEqual([])
+  })
 })
 
 describe('bucketBattlesToCalendar', () => {
@@ -161,5 +204,42 @@ describe('bucketBattlesToCalendar', () => {
     expect(result).toHaveLength(1)
     expect(result[0].games).toBe(2)
     expect(result[0].wins).toBe(1)
+  })
+
+  it('correctly aggregates many same-day battles at different times', () => {
+    const battles = [
+      { battle_time: '20260401T080000.000Z', result: 'victory' as const },
+      { battle_time: '20260401T090000.000Z', result: 'victory' as const },
+      { battle_time: '20260401T100000.000Z', result: 'defeat' as const },
+      { battle_time: '20260401T110000.000Z', result: 'draw' as const },
+      { battle_time: '20260401T120000.000Z', result: 'victory' as const },
+    ]
+    const result = bucketBattlesToCalendar(battles)
+    expect(result).toHaveLength(1)
+    expect(result[0].date).toBe('2026-04-01')
+    expect(result[0].games).toBe(5)
+    expect(result[0].wins).toBe(3)
+  })
+
+  it('handles single battle correctly', () => {
+    const battles = [
+      { battle_time: '20260401T120000.000Z', result: 'defeat' as const },
+    ]
+    const result = bucketBattlesToCalendar(battles)
+    expect(result).toHaveLength(1)
+    expect(result[0].games).toBe(1)
+    expect(result[0].wins).toBe(0)
+  })
+
+  it('handles all defeats in a day', () => {
+    const battles = [
+      { battle_time: '20260401T120000.000Z', result: 'defeat' as const },
+      { battle_time: '20260401T130000.000Z', result: 'defeat' as const },
+      { battle_time: '20260401T140000.000Z', result: 'defeat' as const },
+    ]
+    const result = bucketBattlesToCalendar(battles)
+    expect(result).toHaveLength(1)
+    expect(result[0].games).toBe(3)
+    expect(result[0].wins).toBe(0)
   })
 })

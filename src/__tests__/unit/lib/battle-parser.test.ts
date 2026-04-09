@@ -40,6 +40,14 @@ describe('parseBattleTime', () => {
   it('handles missing milliseconds', () => {
     expect(parseBattleTime('20260405T171604Z')).toBe('2026-04-05T17:16:04.000Z')
   })
+
+  it('handles midnight timestamp', () => {
+    expect(parseBattleTime('20260101T000000.000Z')).toBe('2026-01-01T00:00:00.000Z')
+  })
+
+  it('handles end-of-day timestamp', () => {
+    expect(parseBattleTime('20261231T235959.000Z')).toBe('2026-12-31T23:59:59.000Z')
+  })
 })
 
 describe('parseBattle', () => {
@@ -122,6 +130,37 @@ describe('parseBattle', () => {
   it('returns null if player not found in battle', () => {
     const result = parseBattle(makeBattleEntry(), '#NOTINBATTLE')
     expect(result).toBeNull()
+  })
+
+  it('handles missing starPlayer field', () => {
+    const entry = makeBattleEntry()
+    delete (entry.battle as Record<string, unknown>).starPlayer
+    const result = parseBattle(entry, PLAYER_TAG)
+    expect(result!.is_star_player).toBe(false)
+  })
+
+  it('handles missing duration field', () => {
+    const entry = makeBattleEntry()
+    delete (entry.battle as Record<string, unknown>).duration
+    const result = parseBattle(entry, PLAYER_TAG)
+    expect(result!.duration).toBeNull()
+  })
+
+  it('handles null map in event', () => {
+    const entry = makeBattleEntry()
+    ;(entry.event as Record<string, unknown>).map = ''
+    const result = parseBattle(entry, PLAYER_TAG)
+    // Empty string is falsy, so map should be null
+    expect(result!.map).toBeNull()
+  })
+
+  it('populates gadgets and starPowers in my_brawler', () => {
+    const entry = makeBattleEntry()
+    entry.battle.teams![0][0].brawler.gadgets = [{ id: 1, name: 'GadgetA' }]
+    entry.battle.teams![0][0].brawler.starPowers = [{ id: 2, name: 'StarPowerA' }]
+    const result = parseBattle(entry, PLAYER_TAG)
+    expect(result!.my_brawler.gadgets).toEqual([{ id: 1, name: 'GadgetA' }])
+    expect(result!.my_brawler.starPowers).toEqual([{ id: 2, name: 'StarPowerA' }])
   })
 })
 
