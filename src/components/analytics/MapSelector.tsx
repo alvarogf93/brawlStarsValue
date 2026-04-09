@@ -33,9 +33,14 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
     const controller = new AbortController()
     fetch('/api/events', { signal: controller.signal })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((events: Array<{ startTime?: string; endTime?: string; event?: { id?: number; map?: string; mode?: string }; map?: string; mode?: string; id?: number }>) => {
+      .then((events: Array<{ startTime?: string; endTime?: string; event?: { id?: number; map?: string; mode?: string; modeId?: number }; map?: string; mode?: string; id?: number }>) => {
         const liveMaps = events
           .map(e => {
+            // Resolve mode: modeId 45 = brawlHockey (API reports as "unknown")
+            let mode = e.event?.mode ?? e.mode ?? ''
+            const modeId = (e.event as { modeId?: number } | undefined)?.modeId
+            if (mode === 'unknown' && modeId === 45) mode = 'brawlHockey'
+
             // Competitive events last 12h+ (24h typical). Fun/no-trophy events last 2h.
             let isCompetitive = true
             if (e.startTime && e.endTime) {
@@ -48,7 +53,7 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
             return {
               eventId: e.event?.id ?? e.id,
               map: e.event?.map ?? e.map,
-              mode: e.event?.mode ?? e.mode,
+              mode,
               isCompetitive,
             }
           })
@@ -56,6 +61,7 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
             typeof e.eventId === 'number' &&
             typeof e.map === 'string' &&
             typeof e.mode === 'string' &&
+            isDraftMode(e.mode) &&
             e.isCompetitive
           )
 
