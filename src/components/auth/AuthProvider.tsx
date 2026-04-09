@@ -137,7 +137,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (event === 'SIGNED_IN') {
             const { data: prof } = await supabase.from('profiles').select('player_tag').eq('id', u.id).single()
             if (prof?.player_tag) {
-              const isLanding = window.location.pathname === '/' || /^\/[a-z]{2}\/?$/.test(window.location.pathname)
+              const path = window.location.pathname
+              const isLanding = path === '/' || /^\/[a-z]{2}\/?$/.test(path) || /^\/api\/auth\/callback/.test(path)
               if (isLanding) {
                 const locale = window.location.pathname.split('/')[1] || 'es'
                 window.location.href = `/${locale}/profile/${encodeURIComponent(prof.player_tag)}`
