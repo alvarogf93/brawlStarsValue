@@ -10,7 +10,7 @@ import { isPremium, isOnTrial } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
-import { FlaskConical, LogIn } from 'lucide-react'
+import { FlaskConical, LogIn, ChevronDown } from 'lucide-react'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 
 // Components
@@ -95,6 +95,7 @@ export default function AnalyticsPage() {
   }
   const [playNow, setPlayNow] = useState<PlayNowRecommendation[]>([])
   const [authOpen, setAuthOpen] = useState(false)
+  const [tabMenuOpen, setTabMenuOpen] = useState(false)
 
   // Check if this player tag has a premium account (for non-logged-in users)
   useEffect(() => {
@@ -243,8 +244,45 @@ export default function AnalyticsPage() {
       {/* Trial banner (shown for trial users) */}
       <TrialBanner />
 
-      {/* Tab Navigation */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+      {/* Tab Navigation — dropdown on mobile, row on desktop */}
+      {/* Mobile: dropdown selector */}
+      <div className="md:hidden relative">
+        <button
+          onClick={() => setTabMenuOpen(!tabMenuOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-['Lilita_One'] text-sm bg-[#FFC91B]/20 text-[#FFC91B] border-2 border-[#FFC91B]/40 shadow-[0_0_12px_rgba(255,201,27,0.15)]"
+        >
+          <span className="flex items-center gap-2">
+            {TAB_IMAGE_ICONS[activeTab] ? (
+              <img src={TAB_IMAGE_ICONS[activeTab]} alt="" className="w-5 h-5" width={20} height={20} />
+            ) : (
+              <span>{TAB_ICONS[activeTab]}</span>
+            )}
+            {ta(TAB_KEYS[activeTab])}
+          </span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${tabMenuOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {tabMenuOpen && (
+          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-[#0F172A] border-2 border-[#1E293B] rounded-xl overflow-hidden shadow-xl">
+            {TAB_IDS.filter(id => id !== activeTab).map(id => (
+              <button
+                key={id}
+                onClick={() => { setActiveTab(id); setTabMenuOpen(false) }}
+                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-['Lilita_One'] text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors border-b border-[#1E293B] last:border-b-0"
+              >
+                {TAB_IMAGE_ICONS[id] ? (
+                  <img src={TAB_IMAGE_ICONS[id]} alt="" className="w-5 h-5" width={20} height={20} />
+                ) : (
+                  <span>{TAB_ICONS[id]}</span>
+                )}
+                {ta(TAB_KEYS[id])}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: horizontal tabs */}
+      <div className="hidden md:flex gap-1.5 pb-1">
         {TAB_IDS.map(id => (
           <button
             key={id}
