@@ -33,18 +33,31 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
     const controller = new AbortController()
     fetch('/api/events', { signal: controller.signal })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((events: Array<{ event?: { id?: number; map?: string; mode?: string }; map?: string; mode?: string; id?: number }>) => {
+      .then((events: Array<{ startTime?: string; endTime?: string; event?: { id?: number; map?: string; mode?: string }; map?: string; mode?: string; id?: number }>) => {
         const liveMaps = events
-          .map(e => ({
-            eventId: e.event?.id ?? e.id,
-            map: e.event?.map ?? e.map,
-            mode: e.event?.mode ?? e.mode,
-          }))
-          .filter((e): e is LiveMap =>
+          .map(e => {
+            // Competitive events last 12h+ (24h typical). Fun/no-trophy events last 2h.
+            let isCompetitive = true
+            if (e.startTime && e.endTime) {
+              const parse = (s: string) => new Date(
+                s.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6'),
+              )
+              const durationH = (parse(e.endTime).getTime() - parse(e.startTime).getTime()) / 3600000
+              isCompetitive = durationH >= 12
+            }
+            return {
+              eventId: e.event?.id ?? e.id,
+              map: e.event?.map ?? e.map,
+              mode: e.event?.mode ?? e.mode,
+              isCompetitive,
+            }
+          })
+          .filter((e): e is LiveMap & { isCompetitive: boolean } =>
             typeof e.eventId === 'number' &&
             typeof e.map === 'string' &&
             typeof e.mode === 'string' &&
-            isDraftMode(e.mode)
+            isDraftMode(e.mode) &&
+            e.isCompetitive
           )
 
         setMaps(liveMaps)
