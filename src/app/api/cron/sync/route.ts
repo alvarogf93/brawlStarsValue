@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       })
 
       // Aggregate into meta_stats/meta_matchups (source='users')
-      const acc: MetaAccumulators = { stats: new Map(), matchups: new Map() }
+      const acc: MetaAccumulators = { stats: new Map(), matchups: new Map(), trios: new Map() }
       const today = new Date().toISOString().slice(0, 10)
       for (const b of parsed) {
         if (!isDraftMode(b.mode) || !b.map) continue
