@@ -696,5 +696,10 @@
     "errorLoadingBrawlers": "Could not load brawlers",
     "retry": "Retry",
     "winProbability": "Win probability"
+  },
+  "brawlerDetail": {
+    "backToBrawlers": "Back to Brawlers",
+    "notUnlocked": "Not unlocked",
+    "calendar": "Activity"
   }
 }
