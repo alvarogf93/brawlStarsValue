@@ -116,7 +116,7 @@ export default function AnalyticsPage() {
       .then(events => {
         const recs = computePlayNowRecommendations(
           analytics.brawlerMapMatrix,
-          analytics.brawlerSynergy,
+          analytics.trioSynergy,
           events,
         )
         setPlayNow(recs)

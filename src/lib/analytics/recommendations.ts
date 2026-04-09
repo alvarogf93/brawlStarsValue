@@ -1,7 +1,7 @@
 import type { Battle } from '@/lib/supabase/types'
 import type {
   PlayNowRecommendation, BrawlerRecommendation,
-  CounterPickResult, BrawlerMapEntry, MatchupEntry, BrawlerSynergy,
+  CounterPickResult, BrawlerMapEntry, MatchupEntry, TrioSynergy,
 } from './types'
 import { MIN_GAMES } from './types'
 import { wilsonPct, winRate, compositeKey, groupBy, isWin } from './stats'
@@ -15,10 +15,11 @@ interface EventSlot {
 /**
  * Generate "Play Now" recommendations by crossing the current event
  * rotation with the player's historical performance per map/brawler.
+ * Uses trio synergy to recommend the best full team (3 brawlers).
  */
 export function computePlayNowRecommendations(
   brawlerMapMatrix: BrawlerMapEntry[],
-  brawlerSynergy: BrawlerSynergy[],
+  trioSynergy: TrioSynergy[],
   events: EventSlot[],
 ): PlayNowRecommendation[] {
   const results: PlayNowRecommendation[] = []
@@ -42,12 +43,12 @@ export function computePlayNowRecommendations(
     const topBrawlers = sorted.slice(0, 5)
 
     const recommendations: BrawlerRecommendation[] = topBrawlers.map(c => {
-      // Find best teammate brawler for this combination
-      const synergies = brawlerSynergy
-        .filter(s => s.myBrawlerId === c.brawlerId && s.total >= MIN_GAMES)
+      // Find best trio that CONTAINS this brawler
+      const trioCandidates = trioSynergy
+        .filter(trio => trio.brawlers.some(b => b.id === c.brawlerId) && trio.total >= MIN_GAMES)
         .sort((a, b) => b.wilsonScore - a.wilsonScore)
 
-      const bestTm = synergies[0] ?? null
+      const bestTrio = trioCandidates[0] ?? null
 
       return {
         brawlerId: c.brawlerId,
@@ -55,8 +56,11 @@ export function computePlayNowRecommendations(
         winRate: c.winRate,
         gamesPlayed: c.total,
         wilsonScore: c.wilsonScore,
-        bestTeammateBrawler: bestTm?.teammateBrawlerName ?? null,
-        bestTeammateWR: bestTm ? bestTm.winRate : null,
+        bestTrio: bestTrio ? {
+          brawlers: bestTrio.brawlers,
+          winRate: bestTrio.winRate,
+          total: bestTrio.total,
+        } : null,
       }
     })
 

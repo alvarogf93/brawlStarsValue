@@ -109,17 +109,35 @@ export function PlayNowDashboard({ recommendations }: Props) {
                         />
                         <span className="absolute -top-1 -right-1 text-[9px] bg-[#FFC91B] text-[#121A2F] rounded-full w-4 h-4 flex items-center justify-center font-black">⭐</span>
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="font-['Lilita_One'] text-sm text-white leading-none">{best.brawlerName}</p>
                         <p className="text-[10px] text-slate-400 mt-0.5">
                           <span className={`font-bold ${wrColor(best.winRate)}`}>{best.winRate.toFixed(1)}%</span>
                           <ConfidenceBadge total={best.gamesPlayed} className="ml-1" />
                           <span className="text-slate-500 ml-1">· {best.gamesPlayed}g</span>
-                          {best.bestTeammateBrawler && (
-                            <span className="text-slate-500"> · {t('withPlayer')} <span className="text-slate-300">{best.bestTeammateBrawler}</span></span>
-                          )}
                         </p>
                       </div>
+                      {/* Best trio teammates */}
+                      {best.bestTrio && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] text-slate-500 mr-0.5">+</span>
+                          {best.bestTrio.brawlers
+                            .filter(b => b.id !== best.brawlerId)
+                            .map(b => (
+                              <BrawlImg
+                                key={b.id}
+                                src={getBrawlerPortraitUrl(b.id)}
+                                fallbackSrc={getBrawlerPortraitFallback(b.id)}
+                                alt={b.name}
+                                className="w-7 h-7 rounded-md ring-1 ring-[#FFC91B]/30"
+                              />
+                            ))
+                          }
+                          <span className={`text-[9px] font-bold ml-0.5 ${wrColor(best.bestTrio.winRate)}`}>
+                            {best.bestTrio.winRate.toFixed(0)}%
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

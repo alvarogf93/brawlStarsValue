@@ -209,8 +209,7 @@ export interface BrawlerRecommendation {
   winRate: number
   gamesPlayed: number
   wilsonScore: number
-  bestTeammateBrawler: string | null
-  bestTeammateWR: number | null
+  bestTrio: { brawlers: Array<{ id: number; name: string }>; winRate: number; total: number } | null
 }
 
 export interface CounterPickResult {

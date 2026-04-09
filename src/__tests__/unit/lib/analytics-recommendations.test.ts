@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { findUnderusedBrawlers, computePlayNowRecommendations } from '@/lib/analytics/recommendations'
-import type { BrawlerMapEntry } from '@/lib/analytics/types'
+import type { BrawlerMapEntry, TrioSynergy } from '@/lib/analytics/types'
 
 describe('findUnderusedBrawlers', () => {
   it('returns empty for player with no high-power brawlers', () => {
@@ -46,9 +46,7 @@ describe('findUnderusedBrawlers', () => {
   it('respects custom minPower and maxBattles', () => {
     const brawlers = [{ id: 16000000, name: 'SHELLY', power: 7, trophies: 300 }]
     const battleCounts = new Map<number, number>([[16000000, 8]])
-    // Default: minPower=9, maxBattles=5 → excluded
     expect(findUnderusedBrawlers(brawlers, battleCounts)).toEqual([])
-    // Custom: minPower=6, maxBattles=10 → included
     expect(findUnderusedBrawlers(brawlers, battleCounts, 6, 10)).toHaveLength(1)
   })
 })
@@ -65,15 +63,32 @@ describe('computePlayNowRecommendations', () => {
     expect(result).toEqual([])
   })
 
-  it('returns recommendations when map data exists', () => {
+  it('returns recommendations with null bestTrio when no synergy data', () => {
     const mapMatrix: BrawlerMapEntry[] = [
       { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
     ]
     const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
     const result = computePlayNowRecommendations(mapMatrix, [], events)
     expect(result).toHaveLength(1)
-    expect(result[0].recommendations).toHaveLength(1)
     expect(result[0].recommendations[0].brawlerName).toBe('SHELLY')
+    expect(result[0].recommendations[0].bestTrio).toBeNull()
+  })
+
+  it('returns bestTrio when trio synergy data includes the brawler', () => {
+    const mapMatrix: BrawlerMapEntry[] = [
+      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
+    ]
+    const trioSynergy: TrioSynergy[] = [
+      {
+        brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
+        wins: 6, total: 8, winRate: 75, wilsonScore: 40, confidence: 'medium' as const,
+      },
+    ]
+    const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
+    const result = computePlayNowRecommendations(mapMatrix, trioSynergy, events)
+    expect(result[0].recommendations[0].bestTrio).not.toBeNull()
+    expect(result[0].recommendations[0].bestTrio!.brawlers).toHaveLength(3)
+    expect(result[0].recommendations[0].bestTrio!.winRate).toBe(75)
   })
 
   it('falls back to mode data when no map match', () => {
