@@ -88,20 +88,20 @@ export default function SubscribePage() {
           <h3 className="font-['Lilita_One'] text-lg text-white mb-4">{ta('freePreviewTitle') || 'Quick Stats (Last 25 Battles)'}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">Win Rate</p>
               <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.winRate >= 60 ? 'text-green-400' : freeStats.winRate >= 45 ? 'text-[#FFC91B]' : 'text-red-400'}`}>{freeStats.winRate.toFixed(1)}%</p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">Win Rate</p>
             </div>
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">Record</p>
               <p className="font-['Lilita_One'] text-2xl tabular-nums text-white">{freeStats.recentWins}W {freeStats.recentLosses}L</p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">Record</p>
             </div>
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{ta('freePreviewFavorite') || 'Favorite'}</p>
               <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA] truncate">{freeStats.mostPlayedBrawler}</p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('freePreviewFavorite') || 'Favorite'}</p>
             </div>
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{ta('trophyChange')}</p>
               <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.trophyChange > 0 ? 'text-green-400' : freeStats.trophyChange < 0 ? 'text-red-400' : 'text-slate-500'}`}>{freeStats.trophyChange > 0 ? '+' : ''}{freeStats.trophyChange}</p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('trophyChange')}</p>
             </div>
           </div>
         </div>
