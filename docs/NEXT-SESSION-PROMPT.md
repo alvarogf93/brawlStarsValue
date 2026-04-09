@@ -6,100 +6,79 @@ Copia y pega esto como primer mensaje:
 
 ## Contexto
 
-Soy el desarrollador de BrawlVision (brawlvision.com), una plataforma de analítica avanzada de Brawl Stars. En la sesión anterior completamos:
+Soy el desarrollador de BrawlVision (brawlvision.com), una plataforma de analítica avanzada de Brawl Stars.
 
-### Hoy se hizo (2026-04-09, sesión 2 — maratón):
+### Estado actual del proyecto (2026-04-09):
 
-#### Phase B Monetization — MERGEADA A MAIN
-- Rama `feat/phase-b-monetization` mergeada con conflicto resuelto en `analytics/page.tsx`
+**Producción estable** — 302 tests, 29 archivos de test, código auditado.
 
-#### Phase C Pro Meta Analytics — IMPLEMENTADA COMPLETA (3 planes, 20+ commits)
+#### Funcionalidades implementadas:
 
-**Plan 1 — Data Infrastructure:**
-- Migration 008: `meta_trios` table + index + RLS + `bulk_upsert_meta_trios` RPC (ejecutada en producción)
-- `MetaAccumulators` con campo `trios`, constantes PRO (20/7/14/30)
-- Cron: extrae tríos, bulk upsert, eliminado cleanup (retención infinita)
-- `basketBrawl` añadido a DRAFT_MODES
-- Hockey Brawl: `modeId: 45` mapeado de `"unknown"` a `"brawlHockey"` en MapSelector
+**1. Analítica Premium (7 tabs):**
+- Overview: stats, tier list personal (S/A/B/C/D), Play Now, tilt detector, clutch, warm-up
+- Performance: rendimiento por modo, por mapa (cards visuales), heatmap brawler×mapa, hora del día, patrón semanal, power level, gadget impact, brawler comfort
+- Matchups: matriz de enfrentamientos, fuerza de oponentes
+- Team: sinergia de tríos (filtro por mapa, fondo de mapa), compañeros, carry
+- Trends: tendencia WR + trofeos (líneas interactivas), maestría, eficiencia de sesión, recuperación
+- Draft: simulador 1-2-2-1 con scoring meta
+- **Meta PRO (NUEVO)**: top brawlers PRO, trending, counter-picks, trend chart 30d (SVG), tríos PRO, gap analysis (tu vs PRO), matchup gaps
 
-**Plan 2 — Pro Analysis API:**
-- `pro-analysis.ts`: tipos + 5 helpers puros con 22 tests TDD
-- `/api/meta/pro-analysis`: endpoint completo con Bayesian WR, trends, counters, gap analysis
-- `brawler-names.ts`: resolver Brawlify con cache
-- `useProAnalysis.ts`: hook con cache client-side
-- Bug fix: `opponents` field corregido de `{ id }` a `{ brawler: { id } }`
+**2. Inline PRO Badges:**
+- OverviewStats: PRO avg WR
+- BrawlerMapHeatmap: PRO WR por brawler/mapa
+- MatchupMatrix: PRO matchup WR
+- TeamSynergyView: PRO trio WR
+- TrendsChart: PRO avg WR en header
 
-**Plan 3 — Meta PRO UI:**
-- 10 componentes: ProBadge, MapSelector (visual con imágenes de mapa), TopBrawlersGrid, TrendingSection, CounterQuickView, ProTrendChart (SVG), ProTrioGrid, GapAnalysisCards, MatchupGapTable, MetaProTab
-- MapSelector: filtro `isDraftMode() + duración >= 12h` (excluye Beach Ball sin trofeos)
-- Meta PRO wired como 7th tab en analytics
-- Inline PRO badges en 5 tabs existentes CON datos reales via `useProAnalysis`
-- Traducciones `metaPro` (30 keys) nativas en 13 locales
+**3. Monetización (Phase B):**
+- Subscribe page con hooks personalizados por segmento de jugador
+- Feature showcase en carrusel (5 screenshots reales)
+- 3 tiers: monthly, quarterly, yearly (PayPal checkout)
+- Trial automático: 3 días al registrarse
+- Referrals: +3 días por referral (ambos), máximo 5, collision-safe
+- Security: migration 007 protege campos trial/referral de modificación por API
 
-**Datos ocultos surfaced (3 nuevos componentes):**
-- `ModePerformanceChart`: WR por modo de juego con barras horizontales
-- `MapPerformanceList`: WR por mapa con cartas visuales
-- `BrawlerTierList`: tier list personal S/A/B/C/D con confianza
+**4. Infraestructura de datos PRO:**
+- Cron: poll top 100 global, extrae stats + matchups + tríos, deduplicación por cursor
+- Tables: meta_stats (881+ rows), meta_matchups (7779+ rows), meta_trios (157+ rows)
+- Retención infinita, filtro por ventana temporal en UI (7/14/30/90 días)
+- Bayesian WR en todas las tasas mostradas
+- modeId 45 → brawlHockey (API devuelve "unknown")
+- basketBrawl añadido a DRAFT_MODES
+- Filtro de mapas: isDraftMode + duración >= 12h (excluye Beach Ball sin trofeos)
 
-**Consistencia visual (font audit):**
-- Lilita_One labels arriba del dato en: OverviewStats, TiltDetector, ClutchCard, WarmUpCard, CarryCard, RecoveryCard, GadgetImpactCard
-- Header logo: `w-[120px] md:w-[11%]`
+**5. Calidad visual:**
+- Lilita_One en ALL labels, posicionados ARRIBA del dato
+- Header logo: w-[120px] md:w-[11%]
+- MapSelector con cards visuales (imagen de mapa + overlay + icono de modo)
+- 13 locales con traducciones nativas (en/es/de/fr/it/pt/ja/ko/zh/ar/ru/tr/pl)
 
-**Bugfixes:**
-- `router.replace` movido a useEffect (React 18+)
-- MapSelector: lectura `event.map`/`event.mode` de estructura anidada
-- opponents field structure en pro-analysis
+**6. Auditoría de calidad (completada):**
+- fetch .ok checks en todas las llamadas
+- Sin hardcoded strings user-facing
+- Console.log sanitizado (no PII en logs)
+- Sin dead code ni imports no usados
+- Documentado en docs/18-data-entity-audit.md
 
-**Datos:**
-- Cron ejecutado: 100 players, 472 battles → stats + matchups + 157 trios
-- Migration 008 ejecutada en Supabase producción
-- CRON_SECRET añadido a .env.local
+### Datos ocultos aún sin UI (oportunidades futuras):
+- `brawlerModeMatrix`: heatmap brawler × modo (computed, sin componente)
+- `hypercharges`: datos en DB, sin compute ni UI
 
-**Documentación:**
-- `docs/18-data-entity-audit.md`: auditoría completa de entidades
-- `docs/NEXT-SESSION-PROMPT.md`: actualizado
+### Archivos clave:
+- `docs/18-data-entity-audit.md` — auditoría completa de entidades
+- `docs/superpowers/specs/2026-04-09-phase-c-pro-meta-analytics-design.md` — spec Phase C
+- `docs/17-meta-data-infrastructure.md` — referencia técnica del pipeline PRO
+- `supabase/migrations/006_trial_referrals.sql` — sistema trial + referral
+- `supabase/migrations/008_meta_trios.sql` — tabla de tríos PRO
 
-### Lo que hay que hacer AHORA:
-
-**Prioridad 1: Pendientes de Phase B (launch)**
-1. Tomar screenshots reales del dashboard premium para `public/assets/premium-previews/`
-2. Testing manual de los 6 estados de usuario (ver SQL scripts en el spec v3)
-
-**Prioridad 2: Deploy y cron en producción**
-- Verificar que `CRON_SECRET` está configurado en Vercel env vars
-- Verificar cron schedule en Vercel (o pg_cron) incluye el nuevo código de tríos
-- Push a producción y verificar Meta PRO tab funciona con datos reales
-
-**Prioridad 3: Auditar más componentes para font consistency**
-El patrón correcto es `font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1` para labels, ARRIBA del dato. Componentes candidatos: SessionEfficiencyCard (ya OK), BrawlerComfortList, TimeOfDayChart, MasteryChart (ya OK).
-
-**Prioridad 4: Datos ocultos restantes**
-Del audit (`docs/18-data-entity-audit.md`):
-- `brawlerModeMatrix`: heatmap de brawler × modo (data computed, sin UI)
-- `hypercharges`: data en DB pero sin compute ni UI
-
-**Prioridad 5: Mejoras Meta PRO**
-- Historical maps en MapSelector (premium): cargar mapas pasados de meta_stats
-- Cuando no hay datos para un mapa: mostrar mensaje más informativo
-- Wipeout5V5 cuando entre en rotación estándar
-
-### Archivos clave de referencia:
-- **Spec Phase C**: `docs/superpowers/specs/2026-04-09-phase-c-pro-meta-analytics-design.md`
-- **Data audit**: `docs/18-data-entity-audit.md`
-- **Meta data reference**: `docs/17-meta-data-infrastructure.md`
-- **Design system**: font Lilita_One, gold #FFC91B, sky #4EC0FA, dark #121A2F
-- **AGENTS.md**: Leer `node_modules/next/dist/docs/` antes de escribir código Next.js
-- **API Hockey Brawl**: modeId 45, mode "unknown" → mapear a "brawlHockey"
-
-### Reglas:
+### Reglas del proyecto:
 - TDD siempre: tests primero, implementación después
-- Calidad de producción: fetch .ok checks, no dead code, no hardcoded strings (i18n)
-- 13 locales: ar, de, en, es, fr, it, ja, ko, pl, pt, ru, tr, zh
-- Datos PRO: cocinar y agregar, nunca guardar battlelogs crudos. Retención infinita.
-- Datos premium users: guardar todo, son suyos.
-- Core vision: capturar TODOS los datos con valor, analítica exhaustiva, "de un vistazo" saber qué jugar
-- Labels con Lilita_One arriba del dato, nunca fuente por defecto debajo
-- MapSelector: filtro isDraftMode + duración >= 12h + modeId 45 → brawlHockey
+- fetch .ok checks obligatorios
+- i18n obligatorio (13 locales), no hardcoded strings
+- font-['Lilita_One'] labels arriba del dato, tracking-wider, text-slate-400
+- Datos PRO: cocinar y agregar, nunca raw battlelogs. Retención infinita.
+- Datos premium: guardar todo, son del usuario
+- MapSelector: isDraftMode + duración >= 12h + modeId 45 → brawlHockey
 - Deduplicación PRO: cursor por player_tag en meta_poll_cursors
 
 ---
