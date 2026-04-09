@@ -610,7 +610,10 @@
     "confidenceMedium": "限定データ (3-9試合)",
     "confidenceLow": "不十分なデータ (1-2試合)",
     "tabDraft": "ドラフト",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Performance by Mode",
+    "mapPerformance": "Performance by Map",
+    "brawlerTierList": "Your Brawler Tier List"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

@@ -29,6 +29,9 @@ import { DraftSimulator } from '@/components/draft/DraftSimulator'
 import { MetaProTab } from '@/components/analytics/MetaProTab'
 import { ClutchCard } from '@/components/analytics/ClutchCard'
 import { WarmUpCard } from '@/components/analytics/WarmUpCard'
+import { ModePerformanceChart } from '@/components/analytics/ModePerformanceChart'
+import { MapPerformanceList } from '@/components/analytics/MapPerformanceList'
+import { BrawlerTierList } from '@/components/analytics/BrawlerTierList'
 import { PowerLevelChart } from '@/components/analytics/PowerLevelChart'
 import { BrawlerComfortList } from '@/components/analytics/BrawlerComfortList'
 import { WeeklyPatternChart } from '@/components/analytics/WeeklyPatternChart'
@@ -239,6 +242,7 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
           <OverviewStats overview={analytics.overview} />
           {playNow.length > 0 && <PlayNowDashboard recommendations={playNow} />}
+          <BrawlerTierList data={analytics.byBrawler} />
           <TiltDetector tilt={analytics.tilt} sessions={analytics.sessions} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ClutchCard data={analytics.clutch} />
@@ -249,6 +253,10 @@ export default function AnalyticsPage() {
 
       {activeTab === 'performance' && (
         <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ModePerformanceChart data={analytics.byMode} />
+            <MapPerformanceList data={analytics.byMap} />
+          </div>
           <BrawlerMapHeatmap data={analytics.brawlerMapMatrix} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TimeOfDayChart data={analytics.byHour} />

@@ -610,7 +610,10 @@
     "confidenceMedium": "بيانات محدودة (3-9 مباريات)",
     "confidenceLow": "بيانات غير كافية (1-2 مباراة)",
     "tabDraft": "درافت",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Performance by Mode",
+    "mapPerformance": "Performance by Map",
+    "brawlerTierList": "Your Brawler Tier List"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

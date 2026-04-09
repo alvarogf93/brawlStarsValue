@@ -610,7 +610,10 @@
     "confidenceMedium": "제한된 데이터 (3-9 경기)",
     "confidenceLow": "부족한 데이터 (1-2 경기)",
     "tabDraft": "드래프트",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Performance by Mode",
+    "mapPerformance": "Performance by Map",
+    "brawlerTierList": "Your Brawler Tier List"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

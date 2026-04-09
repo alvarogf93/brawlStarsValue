@@ -613,7 +613,10 @@
     "confidenceMedium": "Limited data (3-9 matches)",
     "confidenceLow": "Insufficient data (1-2 matches)",
     "tabDraft": "Draft",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Performance by Mode",
+    "mapPerformance": "Performance by Map",
+    "brawlerTierList": "Your Brawler Tier List"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

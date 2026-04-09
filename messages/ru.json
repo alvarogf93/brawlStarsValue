@@ -610,7 +610,10 @@
     "confidenceMedium": "Ограниченные данные (3-9 матчей)",
     "confidenceLow": "Недостаточно данных (1-2 матча)",
     "tabDraft": "Драфт",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Performance by Mode",
+    "mapPerformance": "Performance by Map",
+    "brawlerTierList": "Your Brawler Tier List"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

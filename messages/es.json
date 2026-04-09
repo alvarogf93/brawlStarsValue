@@ -613,7 +613,10 @@
     "confidenceMedium": "Dato limitado (3-9 partidas)",
     "confidenceLow": "Dato insuficiente (1-2 partidas)",
     "tabDraft": "Draft",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Rendimiento por Modo",
+    "mapPerformance": "Rendimiento por Mapa",
+    "brawlerTierList": "Tu Tier List de Brawlers"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

@@ -610,7 +610,10 @@
     "confidenceMedium": "有限数据 (3-9场)",
     "confidenceLow": "数据不足 (1-2场)",
     "tabDraft": "选人",
-    "tabMetaPro": "Meta PRO"
+    "tabMetaPro": "Meta PRO",
+    "modePerformance": "Performance by Mode",
+    "mapPerformance": "Performance by Map",
+    "brawlerTierList": "Your Brawler Tier List"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
