@@ -389,10 +389,10 @@ export async function GET(request: NextRequest) {
         for (const b of userBattlesDetailed) {
           const brawlerId = typeof b.my_brawler === 'object' ? (b.my_brawler as { id: number }).id : null
           if (!brawlerId) continue
-          const opponents = b.opponents as Array<{ id: number }> | null
+          const opponents = b.opponents as Array<{ brawler: { id: number } }> | null
           if (!opponents) continue
           for (const opp of opponents) {
-            const key = `${brawlerId}|${opp.id}`
+            const key = `${brawlerId}|${opp.brawler.id}`
             const existing = userMatchups.get(key) ?? { wins: 0, losses: 0, total: 0 }
             existing.total++
             if (b.result === 'victory') existing.wins++
