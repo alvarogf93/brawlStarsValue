@@ -14,6 +14,16 @@ const AUTO_SYNC_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
 export function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [sidebarOpen])
   const params = useParams<{ tag: string; locale: string }>()
   const router = useRouter()
   const { user, profile, loading: authLoading } = useAuth()
