@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   }
 
-  console.log('[paypal webhook] Success:', { profileId, eventType, tier, status: mappedStatus })
+  console.info('[paypal webhook] Success: event=%s tier=%s status=%s', eventType, tier, mappedStatus)
 
   // Notify admin
   const emoji = tier === 'premium' ? '💰' : '⚠️'

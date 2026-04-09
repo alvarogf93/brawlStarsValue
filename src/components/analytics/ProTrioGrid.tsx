@@ -56,7 +56,7 @@ export function ProTrioGrid({ trios, mapName }: Props) {
               <span className={`font-['Lilita_One'] text-lg tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${wrColor(trio.winRate)}`}>
                 {trio.winRate.toFixed(1)}%
               </span>
-              <span className="text-[10px] text-slate-400">{trio.total} games</span>
+              <span className="font-['Lilita_One'] text-[10px] text-slate-400 tabular-nums">{trio.total}</span>
             </div>
           </div>
         ))}

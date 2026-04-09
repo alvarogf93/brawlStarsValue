@@ -113,7 +113,7 @@ export function BrawlerTierList({ data }: Props) {
           onClick={() => setShowAll(prev => !prev)}
           className="mt-3 w-full py-2 font-['Lilita_One'] text-xs text-slate-400 hover:text-[#FFC91B] transition-colors rounded-lg bg-white/[0.02] hover:bg-white/[0.04]"
         >
-          {showAll ? 'Show less' : `+${sorted.length - 10} more`}
+          {showAll ? '−' : `+${sorted.length - 10}`}
         </button>
       )}
     </div>

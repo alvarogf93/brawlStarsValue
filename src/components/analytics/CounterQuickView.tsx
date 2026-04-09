@@ -72,7 +72,7 @@ export function CounterQuickView({ counters, isPremium }: Props) {
           onClick={() => setExpanded(prev => !prev)}
           className="mt-3 w-full py-2 text-xs font-bold text-slate-400 hover:text-[#FFC91B] transition-colors rounded-lg bg-white/[0.02] hover:bg-white/[0.04]"
         >
-          {expanded ? t('trendStable') : `+${counters.length - INITIAL_LIMIT} more`}
+          {expanded ? '−' : `+${counters.length - INITIAL_LIMIT}`}
         </button>
       )}
     </div>

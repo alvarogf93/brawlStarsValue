@@ -94,6 +94,7 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ interval, locale }),
       })
+      if (!res.ok) throw new Error(`Checkout failed: ${res.status}`)
       const data = await res.json()
       if (data.url) window.location.href = data.url
     } catch { /* ignore */ }
