@@ -56,7 +56,7 @@ export function Sidebar({ tag, locale, isOpen, onClose }: SidebarProps) {
         <nav className="flex flex-col gap-2 p-4 flex-1" aria-label="Profile sections">
           {NAV_ITEMS.map((item) => {
             const href = `${basePath}${item.path}`
-            const isActive = pathname === href || (item.path === '' && pathname === basePath)
+            const isActive = pathname === href || pathname.startsWith(href + '/') || (item.path === '' && pathname === basePath)
 
             return (
               <div key={item.key}>
