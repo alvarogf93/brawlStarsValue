@@ -10,7 +10,7 @@ export const contentType = 'image/png'
 export default function Icon({ params }: { params: { size?: string } }) {
   const s = Number(params?.size) || 48
   const w = sizes.find(sz => sz.width === s) ?? sizes[0]
-  const fontSize = Math.round(w.width * 0.6)
+  const fontSize = Math.round(w.width * 0.45)
   const radius = Math.round(w.width * 0.2)
 
   return new ImageResponse(
@@ -22,11 +22,11 @@ export default function Icon({ params }: { params: { size?: string } }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1C5CF1 0%, #121A2F 100%)',
+          background: 'linear-gradient(135deg, #8B0000 0%, #121A2F 100%)',
           borderRadius: radius,
         }}
       >
-        <span style={{ fontSize }}>💎</span>
+        <span style={{ fontSize, fontWeight: 900, color: '#FFFFFF', textShadow: '0 2px 0 #121A2F', letterSpacing: -1 }}>BV</span>
       </div>
     ),
     { width: w.width, height: w.height },

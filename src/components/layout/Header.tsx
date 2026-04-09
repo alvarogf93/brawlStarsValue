@@ -119,7 +119,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               <Menu className="w-6 h-6 stroke-[3px]" />
             </button>
           )}
-          <span className="font-black text-2xl font-['Lilita_One'] tracking-wider text-[var(--color-brawl-gold)] text-stroke-brawl-brand transform rotate-[-2deg]">BrawlVision</span>
+          <img src="/assets/brand/logo-full.png" alt="BrawlVision" className="h-8 w-auto" />
           {playerTag && (
             <span className="hidden sm:inline text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white drop-shadow-[0_2px_0_rgba(18,26,47,1)] ml-2">
               {playerTag}

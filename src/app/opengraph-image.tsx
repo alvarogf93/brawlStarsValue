@@ -16,32 +16,43 @@ export default function OGImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1C5CF1 0%, #121A2F 100%)',
+          background: 'linear-gradient(135deg, #8B0000 0%, #121A2F 100%)',
           fontFamily: 'sans-serif',
         }}
       >
-        {/* Gem emoji */}
-        <div style={{ fontSize: 120, marginBottom: 20 }}>💎</div>
-
-        {/* Title */}
-        <div
-          style={{
-            fontSize: 72,
-            fontWeight: 900,
-            color: '#FFC91B',
-            textShadow: '0 4px 0 #121A2F',
-            letterSpacing: 4,
-          }}
-        >
-          BrawlVision
+        {/* Brand text — matches the red BRAWL + white VISION style */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div
+            style={{
+              fontSize: 96,
+              fontWeight: 900,
+              color: '#C41E1E',
+              textShadow: '0 4px 0 #121A2F',
+              letterSpacing: 8,
+            }}
+          >
+            BRAWL
+          </div>
+          <div
+            style={{
+              fontSize: 72,
+              fontWeight: 900,
+              color: '#FFFFFF',
+              textShadow: '0 4px 0 #121A2F',
+              letterSpacing: 6,
+              marginTop: -10,
+            }}
+          >
+            VISION
+          </div>
         </div>
 
         {/* Subtitle */}
         <div
           style={{
             fontSize: 28,
-            color: 'white',
-            marginTop: 16,
+            color: '#FFC91B',
+            marginTop: 24,
             opacity: 0.9,
           }}
         >
@@ -53,7 +64,7 @@ export default function OGImage() {
           style={{
             fontSize: 20,
             color: '#4EC0FA',
-            marginTop: 32,
+            marginTop: 20,
             letterSpacing: 2,
           }}
         >

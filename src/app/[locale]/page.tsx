@@ -32,14 +32,8 @@ export default function LandingPage() {
           </div>
 
           <div className="mb-4 flex justify-center">
-            <div className="w-20 h-20 rounded-full bg-[var(--color-brawl-sky)] border-4 border-[var(--color-brawl-dark)] flex items-center justify-center p-[2px] shadow-[0_6px_0_rgba(18,26,47,1)] overflow-hidden">
-              <span className="text-4xl translate-y-1">💎</span>
-            </div>
+            <img src="/assets/brand/logo-full.png" alt="BrawlVision" className="h-24 w-auto drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
           </div>
-
-          <h2 className="text-2xl font-['Lilita_One'] text-stroke-brawl text-[var(--color-brawl-gold)] mb-1 tracking-wider">
-            BRAWLVISION
-          </h2>
 
           <h1 className="text-5xl leading-[1.1] font-bold font-['Lilita_One'] mb-2 text-stroke-brawl text-white">
             {t('title')}
