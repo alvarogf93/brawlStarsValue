@@ -117,25 +117,25 @@ export function TiltDetector({ tilt, sessions }: Props) {
       <div className="grid grid-cols-2 gap-2.5 mb-5">
         {/* Normal WR */}
         <div className="brawl-row rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('normalWR')}
+          </p>
           <p className={`font-['Lilita_One'] text-2xl tabular-nums ${
             tilt.wrNormal !== null ? wrColor(tilt.wrNormal) : 'text-slate-500'
           }`}>
             {tilt.wrNormal !== null ? `${tilt.wrNormal.toFixed(1)}%` : '--'}
           </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('normalWR')}
-          </p>
         </div>
 
         {/* Tilt WR */}
         <div className="brawl-row rounded-xl p-4 text-center relative">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('tiltWR')}
+          </p>
           <p className={`font-['Lilita_One'] text-2xl tabular-nums ${
             tilt.wrAfterTilt !== null ? wrColor(tilt.wrAfterTilt) : 'text-slate-500'
           }`}>
             {tilt.wrAfterTilt !== null ? `${tilt.wrAfterTilt.toFixed(1)}%` : '--'}
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('tiltWR')}
           </p>
           {/* Delta badge */}
           {significantDelta && (
@@ -147,21 +147,21 @@ export function TiltDetector({ tilt, sessions }: Props) {
 
         {/* Tilt Episodes */}
         <div className="brawl-row rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('tiltEpisodes')}
+          </p>
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#FFC91B]">
             {tilt.tiltEpisodes}
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('tiltEpisodes')}
           </p>
         </div>
 
         {/* Avg Games While Tilted */}
         <div className="brawl-row rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('avgGamesInTilt')}
+          </p>
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA]">
             {tilt.avgGamesInTilt > 0 ? tilt.avgGamesInTilt.toFixed(1) : '--'}
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('avgGamesInTilt')}
           </p>
         </div>
       </div>
