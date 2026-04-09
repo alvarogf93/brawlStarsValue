@@ -28,9 +28,10 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
     const controller = new AbortController()
     fetch('/api/events', { signal: controller.signal })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((events: Array<{ map: string; mode: string }>) => {
+      .then((events: Array<{ map?: string; mode?: string; event?: { map: string; mode: string } }>) => {
         const liveMaps = events
-          .filter(e => e.map && e.mode)
+          .map(e => ({ map: e.event?.map ?? e.map, mode: e.event?.mode ?? e.mode }))
+          .filter((e): e is { map: string; mode: string } => !!e.map && !!e.mode)
           .map(e => ({ map: e.map, mode: e.mode, isLive: true }))
         setMaps(liveMaps)
         setLoading(false)
