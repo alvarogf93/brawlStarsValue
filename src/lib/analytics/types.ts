@@ -108,18 +108,6 @@ export interface TeammateSynergy {
   bestModeWR: number | null
 }
 
-export interface BrawlerSynergy {
-  myBrawlerId: number
-  myBrawlerName: string
-  teammateBrawlerId: number
-  teammateBrawlerName: string
-  wins: number
-  total: number
-  winRate: number
-  wilsonScore: number
-  confidence: Confidence
-}
-
 export interface TrioSynergy {
   brawlers: Array<{ id: number; name: string }>
   wins: number

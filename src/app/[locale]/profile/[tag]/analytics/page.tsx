@@ -15,7 +15,6 @@ import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
-import { PremiumGate } from '@/components/premium/PremiumGate'
 import { TrialBanner } from '@/components/premium/TrialBanner'
 import { ReferralCard } from '@/components/premium/ReferralCard'
 import { AuthModal } from '@/components/auth/AuthModal'

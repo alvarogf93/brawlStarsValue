@@ -222,6 +222,86 @@ describe('computeAdvancedAnalytics', () => {
     })
   })
 
+  describe('trioSynergy', () => {
+    const tm2 = [
+      { tag: '#A1', name: 'Ally1', brawler: { id: 16000001, name: 'COLT', power: 9, trophies: 400 } },
+      { tag: '#A2', name: 'Ally2', brawler: { id: 16000002, name: 'BULL', power: 10, trophies: 450 } },
+    ]
+
+    it('groups 3-brawler teams with correct winRate', () => {
+      const battles = [
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+      const result = computeAdvancedAnalytics(battles)
+      expect(result.trioSynergy.length).toBeGreaterThanOrEqual(1)
+      const trio = result.trioSynergy[0]
+      expect(trio.brawlers).toHaveLength(3)
+      expect(trio.total).toBe(3)
+      expect(trio.wins).toBe(2)
+      expect(trio.winRate).toBeCloseTo(66.7, 0)
+    })
+
+    it('normalizes trio order (ABC = CBA)', () => {
+      const tmReversed = [
+        { tag: '#A2', name: 'Ally2', brawler: { id: 16000002, name: 'BULL', power: 10, trophies: 450 } },
+        { tag: '#A1', name: 'Ally1', brawler: { id: 16000001, name: 'COLT', power: 9, trophies: 400 } },
+      ]
+      const battles = [
+        makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tmReversed, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+      const result = computeAdvancedAnalytics(battles)
+      // Should be ONE trio, not two (same brawlers, different order)
+      const matching = result.trioSynergy.filter(t => t.total === 3)
+      expect(matching).toHaveLength(1)
+    })
+
+    it('excludes non-standard modes (showdown)', () => {
+      const battles = [
+        makeBattle({ mode: 'soloShowdown', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'soloShowdown', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'soloShowdown', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+      const result = computeAdvancedAnalytics(battles)
+      expect(result.trioSynergy).toHaveLength(0)
+    })
+
+    it('excludes battles with only 1 teammate (duo modes)', () => {
+      const singleTm = [{ tag: '#A1', name: 'Ally1', brawler: { id: 16000001, name: 'COLT', power: 9, trophies: 400 } }]
+      const battles = [
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: singleTm, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: singleTm, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: singleTm, battle_time: '2026-04-05T10:10:00.000Z' }),
+      ]
+      const result = computeAdvancedAnalytics(battles)
+      expect(result.trioSynergy).toHaveLength(0)
+    })
+
+    it('sorts by wilson score descending', () => {
+      const tm2b = [
+        { tag: '#B1', name: 'Bob', brawler: { id: 16000003, name: 'BROCK', power: 9, trophies: 400 } },
+        { tag: '#B2', name: 'Eve', brawler: { id: 16000004, name: 'JESSIE', power: 10, trophies: 450 } },
+      ]
+      const battles = [
+        // Trio A: 2/3 wins
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:00:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:05:00.000Z' }),
+        makeBattle({ mode: 'gemGrab', result: 'defeat', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
+        // Trio B: 3/3 wins (better)
+        makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2b, battle_time: '2026-04-05T11:00:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2b, battle_time: '2026-04-05T11:05:00.000Z' }),
+        makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2b, battle_time: '2026-04-05T11:10:00.000Z' }),
+      ]
+      const result = computeAdvancedAnalytics(battles)
+      expect(result.trioSynergy.length).toBe(2)
+      // 100% WR trio should be first
+      expect(result.trioSynergy[0].winRate).toBe(100)
+    })
+  })
+
   describe('byHour', () => {
     it('groups battles by UTC hour', () => {
       const battles = [
