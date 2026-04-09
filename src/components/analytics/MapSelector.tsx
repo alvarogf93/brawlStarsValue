@@ -56,7 +56,6 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
             typeof e.eventId === 'number' &&
             typeof e.map === 'string' &&
             typeof e.mode === 'string' &&
-            isDraftMode(e.mode) &&
             e.isCompetitive
           )
 
