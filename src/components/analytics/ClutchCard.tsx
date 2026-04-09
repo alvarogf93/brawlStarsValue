@@ -51,17 +51,17 @@ export function ClutchCard({ data }: Props) {
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('clutchStarWR')}</p>
               <p className={`font-['Lilita_One'] text-2xl tabular-nums ${wrColor(data.wrAsStar!)}`}>
                 {data.wrAsStar!.toFixed(1)}%
               </p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('clutchStarWR')}</p>
               <p className="text-[10px] text-slate-600 mt-0.5">{data.starGames} {t('games')}</p>
             </div>
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('clutchNormalWR')}</p>
               <p className={`font-['Lilita_One'] text-2xl tabular-nums ${wrColor(data.wrNotStar!)}`}>
                 {data.wrNotStar!.toFixed(1)}%
               </p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('clutchNormalWR')}</p>
               <p className="text-[10px] text-slate-600 mt-0.5">{data.nonStarGames} {t('games')}</p>
             </div>
           </div>

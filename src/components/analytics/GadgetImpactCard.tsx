@@ -29,17 +29,17 @@ function ComparisonRow({ label, withData, withoutData, withLabel, withoutLabel }
       <p className="font-['Lilita_One'] text-sm text-slate-300">{label}</p>
       <div className="grid grid-cols-2 gap-2">
         <div className="brawl-row rounded-xl p-3 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{withLabel}</p>
           <p className={`font-['Lilita_One'] text-xl tabular-nums ${withData.total > 0 ? wrColor(withData.winRate) : 'text-slate-500'}`}>
             {withData.total > 0 ? `${withData.winRate.toFixed(1)}%` : '--'}
           </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{withLabel}</p>
           <p className="text-[10px] text-slate-600">{withData.total}g</p>
         </div>
         <div className="brawl-row rounded-xl p-3 text-center relative">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{withoutLabel}</p>
           <p className={`font-['Lilita_One'] text-xl tabular-nums ${withoutData.total > 0 ? wrColor(withoutData.winRate) : 'text-slate-500'}`}>
             {withoutData.total > 0 ? `${withoutData.winRate.toFixed(1)}%` : '--'}
           </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{withoutLabel}</p>
           <p className="text-[10px] text-slate-600">{withoutData.total}g</p>
           {delta !== null && Math.abs(delta) >= 2 && (
             <span className={`absolute top-1.5 right-1.5 font-['Lilita_One'] text-[10px] px-1.5 py-0.5 rounded-md tabular-nums ${delta > 0 ? 'text-red-400 bg-red-500/10' : 'text-green-400 bg-green-500/10'}`}>

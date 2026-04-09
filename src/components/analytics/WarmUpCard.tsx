@@ -50,17 +50,17 @@ export function WarmUpCard({ data }: Props) {
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('warmUpWR')}</p>
               <p className={`font-['Lilita_One'] text-2xl tabular-nums ${wrColor(data.warmUpWR!)}`}>
                 {data.warmUpWR!.toFixed(1)}%
               </p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('warmUpWR')}</p>
               <p className="text-[10px] text-slate-600 mt-0.5">{data.warmUpGames} {t('games')}</p>
             </div>
             <div className="brawl-row rounded-xl p-4 text-center">
+              <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('peakWR')}</p>
               <p className={`font-['Lilita_One'] text-2xl tabular-nums ${wrColor(data.peakWR!)}`}>
                 {data.peakWR!.toFixed(1)}%
               </p>
-              <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('peakWR')}</p>
               <p className="text-[10px] text-slate-600 mt-0.5">{data.peakGames} {t('games')}</p>
             </div>
           </div>

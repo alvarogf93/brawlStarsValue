@@ -26,24 +26,24 @@ export function RecoveryCard({ data }: Props) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <div className="brawl-row rounded-xl p-4 text-center">
+            <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('avgRecoveryGames')}</p>
             <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA]">
               {data.avgGamesToRecover !== null ? data.avgGamesToRecover.toFixed(1) : '--'}
             </p>
-            <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('avgRecoveryGames')}</p>
           </div>
           <div className="brawl-row rounded-xl p-4 text-center">
+            <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('recoveryEpisodesLabel')}</p>
             <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#FFC91B]">
               {data.recoveryEpisodes}
             </p>
-            <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('recoveryEpisodesLabel')}</p>
           </div>
           <div className="brawl-row rounded-xl p-4 text-center">
+            <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">{t('recoverySuccess')}</p>
             <p className={`font-['Lilita_One'] text-2xl tabular-nums ${
               data.successRate !== null && data.successRate >= 60 ? 'text-green-400' : data.successRate !== null && data.successRate >= 40 ? 'text-[#FFC91B]' : 'text-red-400'
             }`}>
               {data.successRate !== null ? `${data.successRate.toFixed(0)}%` : '--'}
             </p>
-            <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{t('recoverySuccess')}</p>
           </div>
         </div>
       )}
