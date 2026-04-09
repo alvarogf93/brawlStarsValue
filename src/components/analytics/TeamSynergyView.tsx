@@ -21,8 +21,6 @@ const INITIAL_VISIBLE = 12
 interface Props {
   trioSynergy: TrioSynergy[]
   teammateSynergy: TeammateSynergy[]
-  /** @deprecated Use trioSynergy instead */
-  brawlerSynergy?: unknown[]
 }
 
 type Tab = 'trios' | 'teammates'
