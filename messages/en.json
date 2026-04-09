@@ -76,7 +76,8 @@
     "profile": "Profile",
     "picks": "Picks",
     "exit": "Home",
-    "referral": "Invite friend"
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "RECENT BATTLES",

@@ -34,6 +34,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   const [syncing, setSyncing] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [refCopied, setRefCopied] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown on click outside
@@ -241,15 +242,13 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${(profile as Profile).referral_code}`)
-                        const btn = document.activeElement as HTMLButtonElement
-                        const original = btn?.textContent
-                        if (btn) { btn.textContent = '✓ Copiado!' }
-                        setTimeout(() => { if (btn && original) btn.textContent = original }, 2000)
+                        setRefCopied(true)
+                        setTimeout(() => setRefCopied(false), 2000)
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors"
                     >
                       <Gift className="w-4 h-4" />
-                      {t('referral')} ({(profile as Profile).referral_code})
+                      {refCopied ? `✓ ${t('referralCopied')}` : `${t('referral')} (${(profile as Profile).referral_code})`}
                     </button>
                   )}
 

@@ -76,7 +76,8 @@
     "profile": "Perfil",
     "picks": "Picks",
     "exit": "Inicio",
-    "referral": "Invitar amigo"
+    "referral": "Invitar amigo",
+    "referralCopied": "Copiado"
   },
   "battles": {
     "title": "BATALLAS RECIENTES",

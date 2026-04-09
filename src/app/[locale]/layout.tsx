@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { CookieConsent } from '@/components/ui/CookieConsent'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { TagRequiredModal } from '@/components/auth/TagRequiredModal'
+import { ReferralToast } from '@/components/premium/ReferralToast'
 import { AdSenseScript } from '@/components/ads/AdSenseScript'
 import '../globals.css'
 
@@ -99,6 +100,7 @@ export default async function LocaleLayout({
           <AuthProvider>
             {children}
             <TagRequiredModal />
+            <ReferralToast />
             <CookieConsent />
           </AuthProvider>
         </NextIntlClientProvider>

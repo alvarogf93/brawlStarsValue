@@ -195,23 +195,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval)
   }, [user, supabase, profile?.last_sync])
 
-  // Referrer notification — toast when someone used our referral code
-  useEffect(() => {
-    if (!profile?.id) return
-    const p = profile as Profile
-    if (!p.referral_count || p.referral_count <= 0) return
-    const key = `brawlvalue:ref-notified-${p.referral_count}`
-    try {
-      if (localStorage.getItem(key)) return
-      localStorage.setItem(key, '1')
-      const toast = document.createElement('div')
-      toast.className = 'fixed top-4 right-4 z-50 bg-[#FFC91B] text-[#121A2F] px-4 py-3 rounded-xl font-bold shadow-lg animate-fade-in'
-      toast.textContent = '¡Tu amigo se unió! +3 días PRO 🎉'
-      document.body.appendChild(toast)
-      setTimeout(() => toast.remove(), 5000)
-    } catch { /* ignore */ }
-  }, [profile])
-
   const signIn = useCallback(async (redirectTo?: string) => {
     const redirectPath = redirectTo ?? window.location.pathname
     await supabase.auth.signInWithOAuth({

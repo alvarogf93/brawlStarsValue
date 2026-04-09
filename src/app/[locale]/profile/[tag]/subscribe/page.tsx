@@ -46,9 +46,12 @@ export default function SubscribePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerTag: tag }),
     })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`)
+        return r.json()
+      })
       .then(d => setTrophies(d.player?.trophies ?? 0))
-      .catch(() => {})
+      .catch(() => { /* trophies default to 0 — competitive segment won't trigger */ })
   }, [tag])
 
   // Detect player segment for PersonalizedHook
