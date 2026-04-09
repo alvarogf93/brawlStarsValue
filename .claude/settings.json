@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push:*)",
+      "Bash(git push origin main)",
       "Bash(npm run build)",
       "Bash(npm run dev)",
       "Bash(npm run build:*)",
@@ -18,6 +18,35 @@
       "Bash(rm -rf /)",
       "Bash(rm -rf ~)",
       "Bash(npm publish:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "bash .claude/hooks/pre-push-check.sh",
+            "timeout": 120,
+            "statusMessage": "Running TypeScript check before push..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/lint-on-edit.sh",
+            "timeout": 30,
+            "statusMessage": "Linting edited file..."
+          }
+        ]
+      }
     ]
   }
 }

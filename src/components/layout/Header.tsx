@@ -120,7 +120,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               <Menu className="w-6 h-6 stroke-[2.5px]" />
             </button>
           )}
-          <img src="/assets/brand/logo-full.png" alt="BrawlVision" className="h-auto w-[120px] md:w-[11%]" />
+          <img src="/assets/brand/logo-full.png" alt="BrawlVision" className="h-auto w-[72px] md:w-[11%]" />
           {playerTag && (
             <span className="hidden sm:inline text-sm font-['Lilita_One'] px-3 py-1 rounded-full bg-[var(--color-brawl-sky)] border-2 border-[var(--color-brawl-dark)] text-white drop-shadow-[0_2px_0_rgba(18,26,47,1)] ml-2">
               {playerTag}
