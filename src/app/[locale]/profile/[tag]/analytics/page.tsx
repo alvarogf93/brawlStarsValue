@@ -26,6 +26,7 @@ import { TiltDetector } from '@/components/analytics/TiltDetector'
 import { MasteryChart } from '@/components/analytics/MasteryChart'
 import { PlayNowDashboard } from '@/components/analytics/PlayNowDashboard'
 import { DraftSimulator } from '@/components/draft/DraftSimulator'
+import { MetaProTab } from '@/components/analytics/MetaProTab'
 import { ClutchCard } from '@/components/analytics/ClutchCard'
 import { WarmUpCard } from '@/components/analytics/WarmUpCard'
 import { PowerLevelChart } from '@/components/analytics/PowerLevelChart'
@@ -37,14 +38,14 @@ import { SessionEfficiencyCard } from '@/components/analytics/SessionEfficiencyC
 import { RecoveryCard } from '@/components/analytics/RecoveryCard'
 import { GadgetImpactCard } from '@/components/analytics/GadgetImpactCard'
 
-const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'draft'] as const
+const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'draft', 'metaPro'] as const
 type TabId = (typeof TAB_IDS)[number]
 const TAB_ICONS: Record<TabId, string> = {
-  overview: '📊', performance: '', matchups: '⚔️', team: '', trends: '📈', draft: '',
+  overview: '📊', performance: '', matchups: '⚔️', team: '', trends: '📈', draft: '', metaPro: '',
 }
 const TAB_KEYS: Record<TabId, string> = {
   overview: 'tabOverview', performance: 'tabPerformance', matchups: 'tabMatchups',
-  team: 'tabTeam', trends: 'tabTrends', draft: 'tabDraft',
+  team: 'tabTeam', trends: 'tabTrends', draft: 'tabDraft', metaPro: 'tabMetaPro',
 }
 const TAB_IMAGE_ICONS: Partial<Record<TabId, string>> = {
   overview: '/assets/modes/record-3.png',
@@ -53,6 +54,7 @@ const TAB_IMAGE_ICONS: Partial<Record<TabId, string>> = {
   team: '/assets/modes/48000058.png',
   trends: '/assets/modes/record-8.png',
   draft: '/assets/modes/48000028.png',
+  metaPro: '/assets/modes/record-3.png',
 }
 
 export default function AnalyticsPage() {
@@ -284,6 +286,12 @@ export default function AnalyticsPage() {
       {activeTab === 'draft' && (
         <div className="space-y-6">
           <DraftSimulator />
+        </div>
+      )}
+
+      {activeTab === 'metaPro' && (
+        <div className="space-y-6">
+          <MetaProTab />
         </div>
       )}
 
