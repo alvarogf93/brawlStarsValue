@@ -65,6 +65,18 @@ export const PIN_TIER_LABELS: Record<string, Record<string, string>> = {
   en: { pinSpecial: 'Special', pinEpic: 'Epic', pinCollector: 'Collector' },
 }
 
+/** Canonical rarity → color map for UI badges, borders, etc. */
+export const RARITY_COLORS: Record<BrawlerRarityName, string> = {
+  'Trophy Road': '#95A5A6',
+  'Rare': '#27AE60',
+  'Super Rare': '#3498DB',
+  'Epic': '#8E44AD',
+  'Mythic': '#E74C3C',
+  'Legendary': '#F39C12',
+  'Chromatic': '#E91E63',
+  'Ultra Legendary': '#FFD700',
+}
+
 /** Average match duration in minutes for time-played estimation */
 export const AVG_MATCH_MINUTES = 2
 
