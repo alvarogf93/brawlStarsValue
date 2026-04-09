@@ -270,7 +270,8 @@
     "sortName": "Nombre A-Z",
     "sortRank": "Rango",
     "labelValue": "Valor",
-    "labelBest": "Mejor: "
+    "labelBest": "Mejor: ",
+    "filterSelected": "seleccionadas"
   },
   "brawlerDetail": {
     "backToBrawlers": "← Brawlers",

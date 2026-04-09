@@ -270,7 +270,8 @@
     "sortName": "名前 A-Z",
     "sortRank": "ランク",
     "labelValue": "価値",
-    "labelBest": "最高: "
+    "labelBest": "最高: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "統計を読み込み中...",

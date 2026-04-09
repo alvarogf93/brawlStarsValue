@@ -270,7 +270,8 @@
     "sortName": "이름 A-Z",
     "sortRank": "순위",
     "labelValue": "가치",
-    "labelBest": "최고: "
+    "labelBest": "최고: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "통계 로딩 중...",

@@ -270,7 +270,8 @@
     "sortName": "الاسم أ-ي",
     "sortRank": "الرتبة",
     "labelValue": "القيمة",
-    "labelBest": "الأفضل: "
+    "labelBest": "الأفضل: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "جارٍ تحميل الإحصائيات...",

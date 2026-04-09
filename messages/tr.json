@@ -270,7 +270,8 @@
     "sortName": "İsim A-Z",
     "sortRank": "Sıralama",
     "labelValue": "Değer",
-    "labelBest": "En iyi: "
+    "labelBest": "En iyi: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "İstatistikler yükleniyor...",

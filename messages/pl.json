@@ -270,7 +270,8 @@
     "sortName": "Nazwa A-Z",
     "sortRank": "Ranga",
     "labelValue": "Wartość",
-    "labelBest": "Najlepszy: "
+    "labelBest": "Najlepszy: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "Ładowanie statystyk...",

@@ -85,6 +85,7 @@ export default function BrawlersPage() {
     return new Set<BrawlerRarityName>(names)
   }, [searchParams])
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [rarityDropdownOpen, setRarityDropdownOpen] = useState(false)
 
   // Helper to update URL search params without full navigation
   const updateParams = useCallback((updates: Record<string, string | null>) => {
@@ -224,16 +225,68 @@ export default function BrawlersPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {/* Mobile: rarity dropdown */}
+        <div className="md:hidden relative">
+          <button
+            onClick={() => setRarityDropdownOpen(!rarityDropdownOpen)}
+            className="w-full flex items-center justify-between px-5 py-3 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl text-white font-['Lilita_One'] text-lg shadow-[0_4px_0_0_#0D1321] hover:bg-[#1a2540] transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              {activeRarities.size === 0
+                ? t('filterAll')
+                : `${activeRarities.size} ${t('filterSelected')}`}
+              {activeRarities.size > 0 && (
+                <span className="flex gap-1">
+                  {[...activeRarities].map(r => (
+                    <span key={r} className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: RARITY_COLORS[r] }} />
+                  ))}
+                </span>
+              )}
+            </span>
+            <ChevronDown className={`w-5 h-5 transition-transform duration-200 ${rarityDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {rarityDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-[#121A2F] border-4 border-[#0D1321] rounded-2xl overflow-hidden shadow-[0_8px_0_0_#0D1321] z-40">
+              <button
+                onClick={() => { clearRarityFilter(); setRarityDropdownOpen(false) }}
+                className={`w-full text-left px-5 py-3 font-['Lilita_One'] text-base transition-colors ${
+                  activeRarities.size === 0 ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-[#1a2540] hover:text-white'
+                }`}
+              >
+                {t('filterAll')}
+              </button>
+              {ALL_RARITIES.map((rarity) => {
+                const isActive = activeRarities.has(rarity)
+                const color = RARITY_COLORS[rarity]
+                return (
+                  <button
+                    key={rarity}
+                    onClick={() => toggleRarity(rarity)}
+                    className={`w-full text-left px-5 py-3 font-['Lilita_One'] text-base transition-colors flex items-center gap-3 ${
+                      isActive ? 'text-white bg-white/5' : 'text-slate-300 hover:bg-[#1a2540] hover:text-white'
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full shrink-0 border-2" style={{ backgroundColor: isActive ? color : 'transparent', borderColor: color }} />
+                    {rarity}
+                    {isActive && <span className="ml-auto text-xs text-slate-400">✓</span>}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: compact rarity buttons with color dots */}
+        <div className="hidden md:flex gap-2 flex-wrap">
           <button
             onClick={clearRarityFilter}
-            className={`shrink-0 px-5 py-2.5 rounded-sm font-['Lilita_One'] text-sm uppercase tracking-wide border-4 shadow-[0_4px_0_0_#0D1321] transition-all duration-150 -skew-x-12 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-['Lilita_One'] text-sm transition-all border-2 ${
               activeRarities.size === 0
-                ? 'bg-white text-[#121A2F] border-[#121A2F] active:translate-y-[4px] active:shadow-none'
-                : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white hover:-translate-y-1 active:translate-y-[4px] active:shadow-none'
+                ? 'bg-white text-[#121A2F] border-[#121A2F]'
+                : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white'
             }`}
           >
-            <div className="skew-x-12">{t('filterAll')}</div>
+            {t('filterAll')}
           </button>
           {ALL_RARITIES.map((rarity) => {
             const isActive = activeRarities.has(rarity)
@@ -242,14 +295,15 @@ export default function BrawlersPage() {
               <button
                 key={rarity}
                 onClick={() => toggleRarity(rarity)}
-                className={`shrink-0 px-5 py-2.5 rounded-sm font-['Lilita_One'] text-sm uppercase tracking-wide border-4 shadow-[0_4px_0_0_#0D1321] transition-all duration-150 -skew-x-12 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-['Lilita_One'] text-sm transition-all border-2 ${
                   isActive
-                    ? 'text-white active:translate-y-[4px] active:shadow-none'
-                    : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white hover:-translate-y-1 active:translate-y-[4px] active:shadow-none'
+                    ? 'text-white border-white/20'
+                    : 'bg-[#1a2540] text-slate-400 border-[#0D1321] hover:text-white'
                 }`}
-                style={isActive ? { backgroundColor: color, borderColor: '#121A2F' } : undefined}
+                style={isActive ? { backgroundColor: `${color}30`, borderColor: color } : undefined}
               >
-                <div className="skew-x-12 flex items-center gap-1">{rarity}</div>
+                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                {rarity}
               </button>
             )
           })}

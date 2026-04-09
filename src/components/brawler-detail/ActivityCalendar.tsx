@@ -97,7 +97,7 @@ export function ActivityCalendar({ calendarDays }: Props) {
               )
             }
 
-            const tooltip = `${formatDate(cell.date)}: ${cell.games} games, ${cell.wins} wins`
+            const tooltip = `${formatDate(cell.date)}: ${cell.games} ${t('games')}, ${cell.wins} wins`
 
             return (
               <div

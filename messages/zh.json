@@ -270,7 +270,8 @@
     "sortName": "名称 A-Z",
     "sortRank": "排名",
     "labelValue": "价值",
-    "labelBest": "最佳: "
+    "labelBest": "最佳: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "加载统计中...",

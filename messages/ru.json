@@ -270,7 +270,8 @@
     "sortName": "Имя А-Я",
     "sortRank": "Ранг",
     "labelValue": "Ценность",
-    "labelBest": "Лучший: "
+    "labelBest": "Лучший: ",
+    "filterSelected": "selected"
   },
   "stats": {
     "loading": "Загрузка статистики...",
