@@ -29,11 +29,28 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [tab, setTab] = useState<Tab>('trios')
   const [expanded, setExpanded] = useState(false)
+  const [mapFilter, setMapFilter] = useState<string>('all')
 
-  const sortedTrios = useMemo(
-    () => [...trioSynergy].sort((a, b) => b.wilsonScore - a.wilsonScore),
-    [trioSynergy],
-  )
+  // Available maps from trio data (for filter dropdown)
+  const availableMaps = useMemo(() => {
+    const maps = new Map<string, string>() // map → mode
+    for (const t of trioSynergy) {
+      if (t.map && t.mode) maps.set(t.map, t.mode)
+    }
+    return Array.from(maps.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+  }, [trioSynergy])
+
+  // Filtered + sorted trios
+  const sortedTrios = useMemo(() => {
+    let list = [...trioSynergy]
+    if (mapFilter === 'all') {
+      list = list.filter(t => t.map === null) // Show global aggregates
+    } else {
+      list = list.filter(t => t.map === mapFilter) // Show per-map
+    }
+    return list.sort((a, b) => b.wilsonScore - a.wilsonScore)
+  }, [trioSynergy, mapFilter])
 
   const sortedTeammates = useMemo(
     () => [...teammateSynergy].sort((a, b) => b.wilsonScore - a.wilsonScore),
@@ -96,13 +113,32 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
       {/* ── Trio Synergy Tab ─────────────────────────────────────── */}
       {tab === 'trios' && (
         <div>
+          {/* Map filter */}
+          {availableMaps.length > 0 && (
+            <div className="mb-3 flex items-center gap-2">
+              {mapFilter !== 'all' && (
+                <ModeIcon mode={availableMaps.find(([m]) => m === mapFilter)?.[1] ?? 'gemGrab'} size={16} />
+              )}
+              <select
+                value={mapFilter}
+                onChange={e => { setMapFilter(e.target.value); setExpanded(false) }}
+                className="bg-[#0D1321] text-slate-300 text-xs rounded-lg px-3 py-1.5 border border-white/5 focus:outline-none focus:border-[#FFC91B]/40 font-['Lilita_One']"
+              >
+                <option value="all">{t('allMaps') || 'All Maps'}</option>
+                {availableMaps.map(([map, mode]) => (
+                  <option key={map} value={map}>{map}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {sortedTrios.length === 0 ? (
             <p className="text-sm text-slate-500">{t('noComboData')}</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
               {visibleTrios.map((trio, i) => (
                 <div
-                  key={trio.brawlers.map(b => b.id).join('-')}
+                  key={`${trio.brawlers.map(b => b.id).join('-')}-${trio.mode ?? 'all'}`}
                   className="brawl-row rounded-xl p-3 flex flex-col items-center gap-2 relative"
                 >
                   {/* Medal for top 3 */}

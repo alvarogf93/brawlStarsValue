@@ -288,37 +288,68 @@ const STANDARD_3V3_MODES = new Set([
 ])
 
 function computeTrioSynergy(battles: Battle[]): TrioSynergy[] {
-  const acc = new Map<string, { wins: number; total: number; brawlers: Array<{ id: number; name: string }> }>()
+  // Accumulate global + per-map stats
+  const perMap = new Map<string, { wins: number; total: number; brawlers: Array<{ id: number; name: string }>; mode: string; map: string }>()
+  const global = new Map<string, { wins: number; total: number; brawlers: Array<{ id: number; name: string }> }>()
 
   for (const b of battles) {
-    // Only standard 3v3 modes
     if (!STANDARD_3V3_MODES.has(b.mode)) continue
 
     const myId = b.my_brawler?.id ?? 0
     const myName = b.my_brawler?.name ?? 'Unknown'
     const teammates = (b.teammates ?? []) as Array<{ brawler: { id: number; name: string } }>
 
-    if (teammates.length !== 2) continue // Exactly 3v3
+    if (teammates.length !== 2) continue
 
-    // Sort by ID: ABC = ACB = BAC = BCA = CAB = CBA → same trio
+    // Sort by ID: all permutations → same canonical key
     const trio = [
       { id: myId, name: myName },
       { id: teammates[0].brawler.id, name: teammates[0].brawler.name },
       { id: teammates[1].brawler.id, name: teammates[1].brawler.name },
     ].sort((a, b) => a.id - b.id)
 
-    const key = trio.map(b => b.id).join(':')
-    const entry = acc.get(key) ?? { wins: 0, total: 0, brawlers: trio }
-    entry.total++
-    if (isWin(b.result)) entry.wins++
-    acc.set(key, entry)
+    const trioKey = trio.map(b => b.id).join(':')
+    const won = isWin(b.result)
+    const mapName = b.map ?? 'Unknown'
+
+    // Global aggregate
+    const g = global.get(trioKey) ?? { wins: 0, total: 0, brawlers: trio }
+    g.total++
+    if (won) g.wins++
+    global.set(trioKey, g)
+
+    // Per-map breakdown
+    const mapKey = `${trioKey}|${mapName}`
+    const m = perMap.get(mapKey) ?? { wins: 0, total: 0, brawlers: trio, mode: b.mode, map: mapName }
+    m.total++
+    if (won) m.wins++
+    perMap.set(mapKey, m)
   }
 
   const results: TrioSynergy[] = []
-  for (const [, val] of acc) {
+
+  // Global entries (mode=null, map=null)
+  for (const [, val] of global) {
     if (val.total < MIN_GAMES_SOFT) continue
     results.push({
       brawlers: val.brawlers,
+      mode: null,
+      map: null,
+      wins: val.wins,
+      total: val.total,
+      winRate: winRate(val.wins, val.total),
+      wilsonScore: wilsonPct(val.wins, val.total),
+      confidence: getConfidence(val.total),
+    })
+  }
+
+  // Per-map entries (mode + map)
+  for (const [, val] of perMap) {
+    if (val.total < MIN_GAMES_SOFT) continue
+    results.push({
+      brawlers: val.brawlers,
+      mode: val.mode,
+      map: val.map,
       wins: val.wins,
       total: val.total,
       winRate: winRate(val.wins, val.total),

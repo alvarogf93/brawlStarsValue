@@ -43,9 +43,9 @@ export function computePlayNowRecommendations(
     const topBrawlers = sorted.slice(0, 5)
 
     const recommendations: BrawlerRecommendation[] = topBrawlers.map(c => {
-      // Find best trio that CONTAINS this brawler
+      // Find best trio that CONTAINS this brawler (use global aggregates)
       const trioCandidates = trioSynergy
-        .filter(trio => trio.brawlers.some(b => b.id === c.brawlerId) && trio.total >= MIN_GAMES)
+        .filter(trio => trio.map === null && trio.brawlers.some(b => b.id === c.brawlerId) && trio.total >= MIN_GAMES)
         .sort((a, b) => b.wilsonScore - a.wilsonScore)
 
       const bestTrio = trioCandidates[0] ?? null

@@ -110,6 +110,8 @@ export interface TeammateSynergy {
 
 export interface TrioSynergy {
   brawlers: Array<{ id: number; name: string }>
+  mode: string | null  // null = global, string = specific mode
+  map: string | null   // null = global, string = specific map
   wins: number
   total: number
   winRate: number

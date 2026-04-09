@@ -254,9 +254,9 @@ describe('computeAdvancedAnalytics', () => {
         makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2, battle_time: '2026-04-05T10:10:00.000Z' }),
       ]
       const result = computeAdvancedAnalytics(battles)
-      // Should be ONE trio, not two (same brawlers, different order)
-      const matching = result.trioSynergy.filter(t => t.total === 3)
-      expect(matching).toHaveLength(1)
+      // Should be ONE global trio, not two (same brawlers, different order)
+      const globalMatching = result.trioSynergy.filter(t => t.total === 3 && t.map === null)
+      expect(globalMatching).toHaveLength(1)
     })
 
     it('excludes non-standard modes (showdown)', () => {
@@ -296,9 +296,11 @@ describe('computeAdvancedAnalytics', () => {
         makeBattle({ mode: 'brawlBall', result: 'victory', teammates: tm2b, battle_time: '2026-04-05T11:10:00.000Z' }),
       ]
       const result = computeAdvancedAnalytics(battles)
-      expect(result.trioSynergy.length).toBe(2)
-      // 100% WR trio should be first
-      expect(result.trioSynergy[0].winRate).toBe(100)
+      // 2 global + 2 per-map = 4 entries
+      const globalTrios = result.trioSynergy.filter(t => t.map === null)
+      expect(globalTrios.length).toBe(2)
+      // 100% WR trio should be first among globals
+      expect(globalTrios[0].winRate).toBe(100)
     })
   })
 
