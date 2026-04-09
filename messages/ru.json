@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Вероятность победы"
+  },
+  "brawlerDetail": {
+    "winRate": "Процент побед",
+    "pickRate": "Процент выбора",
+    "totalBattles": "Всего боёв",
+    "trending": "Тренд",
+    "rising": "Растёт",
+    "falling": "Падает",
+    "stable": "Стабильно",
+    "bestMaps": "Лучшие карты",
+    "strongAgainst": "Силён против",
+    "weakAgainst": "Слаб против",
+    "bestTeammates": "Лучшие напарники",
+    "insufficientData": "Недостаточно данных"
   }
 }

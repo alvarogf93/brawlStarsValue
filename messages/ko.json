@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "승률"
+  },
+  "brawlerDetail": {
+    "winRate": "승률",
+    "pickRate": "픽률",
+    "totalBattles": "총 배틀 수",
+    "trending": "트렌드",
+    "rising": "상승 중",
+    "falling": "하락 중",
+    "stable": "안정",
+    "bestMaps": "베스트 맵",
+    "strongAgainst": "유리한 상대",
+    "weakAgainst": "불리한 상대",
+    "bestTeammates": "베스트 팀원",
+    "insufficientData": "데이터 부족"
   }
 }

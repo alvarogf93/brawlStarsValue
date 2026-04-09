@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "胜率"
+  },
+  "brawlerDetail": {
+    "winRate": "胜率",
+    "pickRate": "选取率",
+    "totalBattles": "总战斗次数",
+    "trending": "趋势",
+    "rising": "上升中",
+    "falling": "下降中",
+    "stable": "稳定",
+    "bestMaps": "最佳地图",
+    "strongAgainst": "克制",
+    "weakAgainst": "被克制",
+    "bestTeammates": "最佳队友",
+    "insufficientData": "数据不足"
   }
 }

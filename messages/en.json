@@ -696,5 +696,19 @@
     "errorLoadingBrawlers": "Could not load brawlers",
     "retry": "Retry",
     "winProbability": "Win probability"
+  },
+  "brawlerDetail": {
+    "winRate": "Win Rate",
+    "pickRate": "Pick Rate",
+    "totalBattles": "Total Battles",
+    "trending": "Trending",
+    "rising": "Rising",
+    "falling": "Falling",
+    "stable": "Stable",
+    "bestMaps": "Best Maps",
+    "strongAgainst": "Strong Against",
+    "weakAgainst": "Weak Against",
+    "bestTeammates": "Best Teammates",
+    "insufficientData": "Not enough data available"
   }
 }

@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Siegwahrscheinlichkeit"
+  },
+  "brawlerDetail": {
+    "winRate": "Siegrate",
+    "pickRate": "Pickrate",
+    "totalBattles": "Gesamte Gefechte",
+    "trending": "Trend",
+    "rising": "Steigend",
+    "falling": "Fallend",
+    "stable": "Stabil",
+    "bestMaps": "Beste Karten",
+    "strongAgainst": "Stark gegen",
+    "weakAgainst": "Schwach gegen",
+    "bestTeammates": "Beste Teammitglieder",
+    "insufficientData": "Nicht genug Daten"
   }
 }

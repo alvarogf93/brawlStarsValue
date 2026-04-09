@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "احتمال الفوز"
+  },
+  "brawlerDetail": {
+    "winRate": "معدل الفوز",
+    "pickRate": "معدل الاختيار",
+    "totalBattles": "إجمالي المعارك",
+    "trending": "الاتجاه",
+    "rising": "صاعد",
+    "falling": "هابط",
+    "stable": "مستقر",
+    "bestMaps": "أفضل الخرائط",
+    "strongAgainst": "قوي ضد",
+    "weakAgainst": "ضعيف ضد",
+    "bestTeammates": "أفضل الزملاء",
+    "insufficientData": "بيانات غير كافية"
   }
 }

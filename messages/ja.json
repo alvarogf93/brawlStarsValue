@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "勝率"
+  },
+  "brawlerDetail": {
+    "winRate": "勝率",
+    "pickRate": "ピック率",
+    "totalBattles": "総バトル数",
+    "trending": "トレンド",
+    "rising": "上昇中",
+    "falling": "下降中",
+    "stable": "安定",
+    "bestMaps": "ベストマップ",
+    "strongAgainst": "有利な相手",
+    "weakAgainst": "不利な相手",
+    "bestTeammates": "ベストチームメイト",
+    "insufficientData": "データ不足"
   }
 }

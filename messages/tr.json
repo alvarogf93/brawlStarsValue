@@ -693,5 +693,19 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Kazanma olasılığı"
+  },
+  "brawlerDetail": {
+    "winRate": "Kazanma oranı",
+    "pickRate": "Secim oranı",
+    "totalBattles": "Toplam savaslar",
+    "trending": "Trend",
+    "rising": "Yukseliyor",
+    "falling": "Dusuyor",
+    "stable": "Sabit",
+    "bestMaps": "En iyi haritalar",
+    "strongAgainst": "Guclu karsı",
+    "weakAgainst": "Zayıf karsı",
+    "bestTeammates": "En iyi takım arkadasları",
+    "insufficientData": "Yetersiz veri"
   }
 }
