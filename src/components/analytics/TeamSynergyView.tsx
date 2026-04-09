@@ -175,9 +175,9 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
 
                     {/* 3 brawler portraits */}
                     <div className="flex items-center -space-x-1.5">
-                      {trio.brawlers.map((b) => (
+                      {trio.brawlers.map((b, idx) => (
                         <BrawlImg
-                          key={b.id}
+                          key={`${b.id}-${idx}`}
                           src={getBrawlerPortraitUrl(b.id)}
                           fallbackSrc={getBrawlerPortraitFallback(b.id)}
                           alt={b.name}

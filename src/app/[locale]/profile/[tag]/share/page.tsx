@@ -19,22 +19,6 @@ export default function SharePage() {
   const [downloading, setDownloading] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
-  if (isLoading) {
-    return <StatsSkeleton />
-  }
-
-  if (error || !data) {
-    return (
-      <div className="glass p-8 rounded-2xl text-center border-red-500/30">
-        <p className="text-red-400">{error || t('error')}</p>
-      </div>
-    )
-  }
-
-  const prestigeCount = data.stats?.totalPrestigeLevel ?? 0
-  const shareText = `${t('text', { gems: data.totalGems.toLocaleString(), prestige: prestigeCount.toString() })}`
-  const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/${locale}/profile/${encodeURIComponent(tag)}` : ''
-
   const handleDownload = useCallback(async () => {
     if (!cardRef.current || downloading) return
     setDownloading(true)
@@ -55,6 +39,22 @@ export default function SharePage() {
       setDownloading(false)
     }
   }, [tag, downloading])
+
+  if (isLoading) {
+    return <StatsSkeleton />
+  }
+
+  if (error || !data) {
+    return (
+      <div className="glass p-8 rounded-2xl text-center border-red-500/30">
+        <p className="text-red-400">{error || t('error')}</p>
+      </div>
+    )
+  }
+
+  const prestigeCount = data.stats?.totalPrestigeLevel ?? 0
+  const shareText = `${t('text', { gems: data.totalGems.toLocaleString(), prestige: prestigeCount.toString() })}`
+  const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/${locale}/profile/${encodeURIComponent(tag)}` : ''
 
   async function handleShare() {
     const shareData = {
