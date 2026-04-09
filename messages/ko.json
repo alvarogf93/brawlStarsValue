@@ -651,7 +651,8 @@
     "window30d": "30일",
     "window90d": "90일",
     "noDataForMap": "이 맵의 프로 데이터 부족",
-    "upgradeForGap": "PRO로 업그레이드하여 분석 보기"
+    "upgradeForGap": "PRO로 업그레이드하여 분석 보기",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "최고의 픽",

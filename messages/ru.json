@@ -651,7 +651,8 @@
     "window30d": "30 дней",
     "window90d": "90 дней",
     "noDataForMap": "Недостаточно про-данных для этой карты",
-    "upgradeForGap": "Перейдите на PRO для анализа разрывов"
+    "upgradeForGap": "Перейдите на PRO для анализа разрывов",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "Лучшие пики",

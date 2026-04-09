@@ -95,6 +95,11 @@ export function MetaProTab() {
               )}
               {hasPremium && !data.personalGap && (
                 <div className="brawl-card-dark p-5 border-[#090E17] text-center">
+                  <p className="text-sm text-slate-500">{t('noGapData')}</p>
+                </div>
+              )}
+              {!hasPremium && (
+                <div className="brawl-card-dark p-5 border-[#090E17] text-center">
                   <p className="text-sm text-slate-500">{t('upgradeForGap')}</p>
                 </div>
               )}

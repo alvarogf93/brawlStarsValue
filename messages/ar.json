@@ -651,7 +651,8 @@
     "window30d": "30 يوم",
     "window90d": "90 يوم",
     "noDataForMap": "بيانات احترافية غير كافية لهذه الخريطة",
-    "upgradeForGap": "ترقية إلى PRO لرؤية تحليل الفجوة"
+    "upgradeForGap": "ترقية إلى PRO لرؤية تحليل الفجوة",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "أفضل الاختيارات",

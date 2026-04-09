@@ -651,7 +651,8 @@
     "window30d": "30天",
     "window90d": "90天",
     "noDataForMap": "该地图职业数据不足",
-    "upgradeForGap": "升级PRO查看差距分析"
+    "upgradeForGap": "升级PRO查看差距分析",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "最佳选择",

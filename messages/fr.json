@@ -651,7 +651,8 @@
     "window30d": "30 jours",
     "window90d": "90 jours",
     "noDataForMap": "Pas assez de données pro pour cette carte",
-    "upgradeForGap": "Passez PRO pour voir votre analyse d'écart"
+    "upgradeForGap": "Passez PRO pour voir votre analyse d'écart",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "Meilleurs Picks",

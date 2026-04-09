@@ -651,7 +651,8 @@
     "window30d": "30日間",
     "window90d": "90日間",
     "noDataForMap": "このマップのプロデータ不足",
-    "upgradeForGap": "PROにアップグレードして分析を見る"
+    "upgradeForGap": "PROにアップグレードして分析を見る",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "ベストピック",

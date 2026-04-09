@@ -651,7 +651,8 @@
     "window30d": "30 gün",
     "window90d": "90 gün",
     "noDataForMap": "Bu harita için yeterli pro veri yok",
-    "upgradeForGap": "Fark analizini görmek için PRO'ya geç"
+    "upgradeForGap": "Fark analizini görmek için PRO'ya geç",
+    "noGapData": "Play matches on this map to see your gap analysis"
   },
   "picks": {
     "title": "En İyi Seçimler",
