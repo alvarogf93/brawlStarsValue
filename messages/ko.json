@@ -75,7 +75,9 @@
     "manage": "구독 관리",
     "profile": "프로필",
     "picks": "픽",
-    "exit": "홈"
+    "exit": "홈",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "최근 전투",
@@ -285,7 +287,8 @@
     "quantity": "수량",
     "gems": "젬",
     "totalGems": "총 실제 젬",
-    "timeTooltip": "현재 승률({winRate}%)을 기반으로 한 예상 시간입니다.\n\n승률이 높은 플레이어는 이 통계에 도달하는 데 더 적은 실제 시간이 필요했습니다."
+    "timeTooltip": "현재 승률({winRate}%)을 기반으로 한 예상 시간입니다.\n\n승률이 높은 플레이어는 이 통계에 도달하는 데 더 적은 실제 시간이 필요했습니다.",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "페이지를 찾을 수 없음",

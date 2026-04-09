@@ -75,7 +75,9 @@
     "manage": "サブスク管理",
     "profile": "プロフィール",
     "picks": "ピック",
-    "exit": "ホーム"
+    "exit": "ホーム",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "最近のバトル",
@@ -285,7 +287,8 @@
     "quantity": "数量",
     "gems": "ジェム",
     "totalGems": "実際のジェム合計",
-    "timeTooltip": "現在の勝率（{winRate}%）に基づく推定時間です。\n\n勝率が高いプレイヤーほど、この統計に達するまでの実時間が少なくて済みました。"
+    "timeTooltip": "現在の勝率（{winRate}%）に基づく推定時間です。\n\n勝率が高いプレイヤーほど、この統計に達するまでの実時間が少なくて済みました。",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "ページが見つかりません",

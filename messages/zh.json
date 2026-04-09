@@ -75,7 +75,9 @@
     "manage": "管理订阅",
     "profile": "个人资料",
     "picks": "选择",
-    "exit": "首页"
+    "exit": "首页",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "最近战斗",
@@ -285,7 +287,8 @@
     "quantity": "数量",
     "gems": "宝石",
     "totalGems": "实际宝石总量",
-    "timeTooltip": "基于当前胜率（{winRate}%）的估计时间。\n\n胜率越高的玩家达到这些数据所需的实际时间越少。"
+    "timeTooltip": "基于当前胜率（{winRate}%）的估计时间。\n\n胜率越高的玩家达到这些数据所需的实际时间越少。",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "页面未找到",

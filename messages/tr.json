@@ -75,7 +75,9 @@
     "manage": "Aboneliği yönet",
     "profile": "Profil",
     "picks": "Picks",
-    "exit": "Ana Sayfa"
+    "exit": "Ana Sayfa",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "SON SAVAŞLAR",
@@ -285,7 +287,8 @@
     "quantity": "Miktar",
     "gems": "Elmalar",
     "totalGems": "TOPLAM GERÇEK ELMASLAR",
-    "timeTooltip": "Mevcut kazanma oranına ({winRate}%) göre tahmini süre.\n\nDaha yüksek kazanma oranına sahip oyuncular daha az gerçek saat harcadı."
+    "timeTooltip": "Mevcut kazanma oranına ({winRate}%) göre tahmini süre.\n\nDaha yüksek kazanma oranına sahip oyuncular daha az gerçek saat harcadı.",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "Sayfa bulunamadı",

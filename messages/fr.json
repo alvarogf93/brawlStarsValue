@@ -75,7 +75,9 @@
     "manage": "Gérer l'abonnement",
     "profile": "Profil",
     "picks": "Picks",
-    "exit": "Accueil"
+    "exit": "Accueil",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "COMBATS RÉCENTS",
@@ -285,7 +287,8 @@
     "quantity": "Quantité",
     "gems": "Gemmes",
     "totalGems": "TOTAL GEMMES RÉELLES",
-    "timeTooltip": "Temps estimé basé sur le taux de victoire actuel ({winRate}%).\n\nLes joueurs avec un taux de victoire plus élevé ont eu besoin de moins d'heures réelles."
+    "timeTooltip": "Temps estimé basé sur le taux de victoire actuel ({winRate}%).\n\nLes joueurs avec un taux de victoire plus élevé ont eu besoin de moins d'heures réelles.",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "Page introuvable",

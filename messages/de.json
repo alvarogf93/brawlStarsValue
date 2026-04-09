@@ -75,7 +75,9 @@
     "manage": "Abo verwalten",
     "profile": "Profil",
     "picks": "Picks",
-    "exit": "Start"
+    "exit": "Start",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "LETZTE KÄMPFE",
@@ -285,7 +287,8 @@
     "quantity": "Anzahl",
     "gems": "Edelsteine",
     "totalGems": "GESAMT ECHTE EDELSTEINE",
-    "timeTooltip": "Geschätzte Zeit basierend auf der aktuellen Gewinnrate ({winRate}%).\n\nSpieler mit einer höheren Gewinnrate benötigten weniger echte Stunden."
+    "timeTooltip": "Geschätzte Zeit basierend auf der aktuellen Gewinnrate ({winRate}%).\n\nSpieler mit einer höheren Gewinnrate benötigten weniger echte Stunden.",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "Seite nicht gefunden",

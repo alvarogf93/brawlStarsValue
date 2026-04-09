@@ -46,8 +46,12 @@ export async function POST(request: Request) {
       .from('webhook_events')
       .insert({ event_id: `paypal_${eventId}`, event_type: 'paypal' })
 
-    if (insertErr?.code === '23505') {
-      return NextResponse.json({ ok: true, skipped: true })
+    if (insertErr) {
+      if (insertErr.code === '23505') {
+        return NextResponse.json({ ok: true, skipped: true })
+      }
+      console.error('[paypal-webhook] Idempotency insert failed:', insertErr.message)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
   }
 

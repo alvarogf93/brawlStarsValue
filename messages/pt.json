@@ -75,7 +75,9 @@
     "manage": "Gerenciar assinatura",
     "profile": "Perfil",
     "picks": "Picks",
-    "exit": "Início"
+    "exit": "Início",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "BATALHAS RECENTES",
@@ -285,7 +287,8 @@
     "quantity": "Quantidade",
     "gems": "Gemas",
     "totalGems": "TOTAL DE GEMAS REAIS",
-    "timeTooltip": "Tempo estimado com base na taxa de vitória atual ({winRate}%).\n\nJogadores com maior taxa de vitória precisaram de menos horas reais para alcançar essas estatísticas."
+    "timeTooltip": "Tempo estimado com base na taxa de vitória atual ({winRate}%).\n\nJogadores com maior taxa de vitória precisaram de menos horas reais para alcançar essas estatísticas.",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "Página não encontrada",

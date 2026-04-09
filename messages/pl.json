@@ -75,7 +75,9 @@
     "manage": "Zarządzaj subskrypcją",
     "profile": "Profil",
     "picks": "Picki",
-    "exit": "Strona główna"
+    "exit": "Strona główna",
+    "referral": "Invite friend",
+    "referralCopied": "Copied"
   },
   "battles": {
     "title": "OSTATNIE BITWY",
@@ -285,7 +287,8 @@
     "quantity": "Ilość",
     "gems": "Klejnoty",
     "totalGems": "ŁĄCZNIE PRAWDZIWYCH KLEJNOTÓW",
-    "timeTooltip": "Szacowany czas na podstawie bieżącego współczynnika wygranych ({winRate}%).\n\nGracze z wyższym współczynnikiem wygranych potrzebowali mniej rzeczywistych godzin."
+    "timeTooltip": "Szacowany czas na podstawie bieżącego współczynnika wygranych ({winRate}%).\n\nGracze z wyższym współczynnikiem wygranych potrzebowali mniej rzeczywistych godzin.",
+    "exportCsv": "Export CSV"
   },
   "notFound": {
     "title": "Strona nie znaleziona",
