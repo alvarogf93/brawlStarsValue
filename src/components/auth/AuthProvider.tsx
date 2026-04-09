@@ -69,20 +69,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: 'Connection error' }
     }
 
-    // Create profile
-    const { data: newProfile, error } = await supabase
+    // Profile insert with referral code collision retry
+    // DB trigger auto-generates referral_code via md5(random())
+    // If unique constraint fails (extremely rare), retry once
+    let insertResult = await supabase
       .from('profiles')
       .insert({ id: user.id, player_tag: tag })
       .select()
       .single()
 
-    if (error || !newProfile) {
-      return { ok: false, error: error?.message || 'Could not create profile' }
+    if (insertResult.error?.code === '23505' && insertResult.error.message.includes('referral_code')) {
+      insertResult = await supabase
+        .from('profiles')
+        .insert({ id: user.id, player_tag: tag })
+        .select()
+        .single()
     }
 
-    setProfile(newProfile as Profile)
+    if (insertResult.error || !insertResult.data) {
+      return { ok: false, error: insertResult.error?.message || 'Could not create profile' }
+    }
+
+    setProfile(insertResult.data as Profile)
     setNeedsTag(false)
     try { localStorage.setItem('brawlvalue:user', tag) } catch { /* ignore */ }
+
+    // Apply referral code (best-effort, non-blocking)
+    const refCode = (() => { try { return localStorage.getItem('brawlvalue:ref') } catch { return null } })()
+    if (refCode) {
+      try {
+        await supabase.rpc('apply_referral', {
+          p_new_user_id: user.id,
+          p_referral_code: refCode,
+        })
+        localStorage.removeItem('brawlvalue:ref')
+      } catch { /* referral is best-effort */ }
+    }
 
     // Notify admin of new signup (fire-and-forget)
     fetch('/api/notify/signup', { method: 'POST' }).catch(() => {})
@@ -172,6 +194,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => clearInterval(interval)
   }, [user, supabase, profile?.last_sync])
+
+  // Referrer notification — toast when someone used our referral code
+  useEffect(() => {
+    if (!profile?.id) return
+    const p = profile as Profile
+    if (!p.referral_count || p.referral_count <= 0) return
+    const key = `brawlvalue:ref-notified-${p.referral_count}`
+    try {
+      if (localStorage.getItem(key)) return
+      localStorage.setItem(key, '1')
+      const toast = document.createElement('div')
+      toast.className = 'fixed top-4 right-4 z-50 bg-[#FFC91B] text-[#121A2F] px-4 py-3 rounded-xl font-bold shadow-lg animate-fade-in'
+      toast.textContent = '¡Tu amigo se unió! +3 días PRO 🎉'
+      document.body.appendChild(toast)
+      setTimeout(() => toast.remove(), 5000)
+    } catch { /* ignore */ }
+  }, [profile])
 
   const signIn = useCallback(async (redirectTo?: string) => {
     const redirectPath = redirectTo ?? window.location.pathname

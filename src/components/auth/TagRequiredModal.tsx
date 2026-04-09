@@ -41,6 +41,14 @@ export function TagRequiredModal() {
     setLoading(true)
     setError('')
 
+    // Sync edited referral code to localStorage before linkTag reads it
+    if (referralCode.trim()) {
+      try { localStorage.setItem('brawlvalue:ref', referralCode.trim().toUpperCase()) }
+      catch { /* ignore */ }
+    } else {
+      try { localStorage.removeItem('brawlvalue:ref') } catch { /* ignore */ }
+    }
+
     const result = await linkTag(trimmed)
     setLoading(false)
 
