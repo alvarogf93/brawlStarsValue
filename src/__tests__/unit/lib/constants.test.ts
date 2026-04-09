@@ -7,6 +7,12 @@ import {
   SKIN_TIER_PRICES,
   PIN_TIER_PRICES,
 } from '@/lib/constants'
+import {
+  PRO_MIN_BATTLES_DISPLAY,
+  PRO_TREND_DAYS_SHORT,
+  PRO_TREND_DAYS_MEDIUM,
+  PRO_TREND_DAYS_LONG,
+} from '@/lib/draft/constants'
 
 describe('PLAYER_TAG_REGEX', () => {
   it.each([
@@ -103,5 +109,33 @@ describe('PIN_TIER_PRICES', () => {
     for (const [tier, price] of Object.entries(PIN_TIER_PRICES)) {
       expect(price, `Pin tier ${tier}`).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('PRO display constants', () => {
+  it('PRO_MIN_BATTLES_DISPLAY is a positive integer', () => {
+    expect(PRO_MIN_BATTLES_DISPLAY).toBeGreaterThan(0)
+    expect(Number.isInteger(PRO_MIN_BATTLES_DISPLAY)).toBe(true)
+  })
+
+  it('PRO_MIN_BATTLES_DISPLAY is 20 (design spec value)', () => {
+    expect(PRO_MIN_BATTLES_DISPLAY).toBe(20)
+  })
+
+  it('trend windows are ordered SHORT < MEDIUM < LONG', () => {
+    expect(PRO_TREND_DAYS_SHORT).toBeLessThan(PRO_TREND_DAYS_MEDIUM)
+    expect(PRO_TREND_DAYS_MEDIUM).toBeLessThan(PRO_TREND_DAYS_LONG)
+  })
+
+  it('PRO_TREND_DAYS_SHORT is 7', () => {
+    expect(PRO_TREND_DAYS_SHORT).toBe(7)
+  })
+
+  it('PRO_TREND_DAYS_MEDIUM is 14', () => {
+    expect(PRO_TREND_DAYS_MEDIUM).toBe(14)
+  })
+
+  it('PRO_TREND_DAYS_LONG is 30', () => {
+    expect(PRO_TREND_DAYS_LONG).toBe(30)
   })
 })

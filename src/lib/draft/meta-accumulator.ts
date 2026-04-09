@@ -6,6 +6,8 @@ export interface MetaAccumulators {
   stats: Map<string, StatAccumulator>
   /** Key: "brawlerId|opponentId|mode" → wins/losses/total */
   matchups: Map<string, StatAccumulator>
+  /** Key: "b1|b2|b3|map|mode" → wins/losses/total + metadata */
+  trios: Map<string, StatAccumulator & { ids: number[]; map: string; mode: string }>
 }
 
 export interface BattleMetaInput {

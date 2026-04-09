@@ -31,3 +31,15 @@ export const META_POLL_BATCH_SIZE = 100
 
 /** Delay between API calls in ms (throttle) */
 export const META_POLL_DELAY_MS = 100
+
+/** Minimum pro battles to show PRO data for a brawler/map combo (avoids noise) */
+export const PRO_MIN_BATTLES_DISPLAY = 20
+
+/** Short-term trend window (days) */
+export const PRO_TREND_DAYS_SHORT = 7
+
+/** Medium-term trend window (days) */
+export const PRO_TREND_DAYS_MEDIUM = 14
+
+/** Long-term trend window (days) */
+export const PRO_TREND_DAYS_LONG = 30

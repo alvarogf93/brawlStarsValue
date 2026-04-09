@@ -2,8 +2,57 @@ import { describe, it, expect } from 'vitest'
 import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
 
 function makeAccumulators(): MetaAccumulators {
-  return { stats: new Map(), matchups: new Map() }
+  return { stats: new Map(), matchups: new Map(), trios: new Map() }
 }
+
+function makeAccumulatorsWithTrios(): MetaAccumulators {
+  return { stats: new Map(), matchups: new Map(), trios: new Map() }
+}
+
+describe('MetaAccumulators trios field', () => {
+  it('initializes with an empty trios Map', () => {
+    const acc = makeAccumulatorsWithTrios()
+    expect(acc.trios).toBeInstanceOf(Map)
+    expect(acc.trios.size).toBe(0)
+  })
+
+  it('trios Map accepts TrioAccumulator entries', () => {
+    const acc = makeAccumulatorsWithTrios()
+    const trioKey = '1|2|3|Hard Rock Mine|gemGrab'
+    acc.trios.set(trioKey, {
+      wins: 5,
+      losses: 3,
+      total: 8,
+      ids: [1, 2, 3],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+    })
+
+    const entry = acc.trios.get(trioKey)!
+    expect(entry.wins).toBe(5)
+    expect(entry.losses).toBe(3)
+    expect(entry.total).toBe(8)
+    expect(entry.ids).toEqual([1, 2, 3])
+    expect(entry.map).toBe('Hard Rock Mine')
+    expect(entry.mode).toBe('gemGrab')
+  })
+
+  it('processBattleForMeta still works after trios added to interface', () => {
+    const acc = makeAccumulatorsWithTrios()
+    processBattleForMeta(acc, {
+      myBrawlerId: 1,
+      opponentBrawlerIds: [10, 11, 12],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+
+    expect(acc.stats.size).toBe(1)
+    expect(acc.matchups.size).toBe(3)
+    // trios are NOT populated by processBattleForMeta — cron does that separately
+    expect(acc.trios.size).toBe(0)
+  })
+})
 
 describe('processBattleForMeta', () => {
   it('accumulates a victory correctly', () => {
