@@ -65,8 +65,8 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar tag={tag} locale={locale} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Scrollable main content */}
-        <main className="flex-1 overflow-y-auto min-h-0">
+        {/* Scrollable main content — lock scroll when mobile sidebar is open */}
+        <main className={`flex-1 min-h-0 ${sidebarOpen ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-16 min-h-full">
             <ErrorBoundary>
               {children}
