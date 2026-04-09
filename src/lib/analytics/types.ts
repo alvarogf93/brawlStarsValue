@@ -324,7 +324,6 @@ export interface AdvancedAnalytics {
   brawlerMapMatrix: BrawlerMapEntry[]
   brawlerModeMatrix: BrawlerModeEntry[]
   matchups: MatchupEntry[]
-  brawlerSynergy: BrawlerSynergy[]
   trioSynergy: TrioSynergy[]
   teammateSynergy: TeammateSynergy[]
   byHour: HourPerformance[]

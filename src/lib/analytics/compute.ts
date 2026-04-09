@@ -1,7 +1,7 @@
 import type { Battle } from '@/lib/supabase/types'
 import type {
   AdvancedAnalytics, BrawlerPerformance, ModePerformance, MapPerformance,
-  BrawlerMapEntry, BrawlerModeEntry, MatchupEntry, BrawlerSynergy, TrioSynergy,
+  BrawlerMapEntry, BrawlerModeEntry, MatchupEntry, TrioSynergy,
   TeammateSynergy, HourPerformance, DailyTrend, BrawlerMastery, MasteryPoint,
   StreakInfo, TiltAnalysis, SessionInfo,
   ClutchAnalysis, OpponentStrengthBreakdown, BrawlerComfort, PowerLevelImpact,
@@ -38,7 +38,6 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
     brawlerMapMatrix: computeBrawlerMapMatrix(battles),
     brawlerModeMatrix: computeBrawlerModeMatrix(battles),
     matchups: computeMatchups(battles),
-    brawlerSynergy: computeBrawlerSynergy(battles),
     trioSynergy: computeTrioSynergy(battles),
     teammateSynergy: computeTeammateSynergy(battles),
     byHour: computeByHour(battles, timezone),
@@ -277,45 +276,6 @@ function computeMatchups(battles: Battle[]): MatchupEntry[] {
   }
 
   return results.sort((a, b) => b.total - a.total)
-}
-
-// ── Brawler Synergy (my brawler × teammate brawler) ─────────────
-
-function computeBrawlerSynergy(battles: Battle[]): BrawlerSynergy[] {
-  const acc = new Map<string, { wins: number; total: number; myName: string; tmName: string }>()
-
-  for (const b of battles) {
-    const myId = b.my_brawler?.id ?? 0
-    const myName = b.my_brawler?.name ?? 'Unknown'
-    const teammates = (b.teammates ?? []) as Array<{ brawler: { id: number; name: string } }>
-
-    for (const tm of teammates) {
-      const key = compositeKey(myId, tm.brawler.id)
-      const entry = acc.get(key) ?? { wins: 0, total: 0, myName, tmName: tm.brawler.name }
-      entry.total++
-      if (isWin(b.result)) entry.wins++
-      acc.set(key, entry)
-    }
-  }
-
-  const results: BrawlerSynergy[] = []
-  for (const [key, val] of acc) {
-    if (val.total < MIN_GAMES_SOFT) continue
-    const [myIdStr, tmIdStr] = parseCompositeKey(key)
-    results.push({
-      myBrawlerId: Number(myIdStr),
-      myBrawlerName: val.myName,
-      teammateBrawlerId: Number(tmIdStr),
-      teammateBrawlerName: val.tmName,
-      wins: val.wins,
-      total: val.total,
-      winRate: winRate(val.wins, val.total),
-      wilsonScore: wilsonPct(val.wins, val.total),
-      confidence: getConfidence(val.total),
-    })
-  }
-
-  return results.sort((a, b) => b.wilsonScore - a.wilsonScore)
 }
 
 // ── Trio Synergy (full 3-brawler teams) ──────────────────────────
