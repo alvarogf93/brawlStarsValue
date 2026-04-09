@@ -320,16 +320,27 @@ function computeBrawlerSynergy(battles: Battle[]): BrawlerSynergy[] {
 
 // ── Trio Synergy (full 3-brawler teams) ──────────────────────────
 
+// Standard competitive 3v3 modes — exclude PvE, special events, showdown
+const STANDARD_3V3_MODES = new Set([
+  'gemGrab', 'brawlBall', 'bounty', 'heist', 'hotZone',
+  'knockout', 'wipeout', 'siege', 'basketBrawl', 'volleyBrawl',
+  'paintBrawl', 'trophyThieves', 'holdTheTrophy', 'botDrop',
+])
+
 function computeTrioSynergy(battles: Battle[]): TrioSynergy[] {
   const acc = new Map<string, { wins: number; total: number; brawlers: Array<{ id: number; name: string }> }>()
 
   for (const b of battles) {
+    // Only standard 3v3 modes
+    if (!STANDARD_3V3_MODES.has(b.mode)) continue
+
     const myId = b.my_brawler?.id ?? 0
     const myName = b.my_brawler?.name ?? 'Unknown'
     const teammates = (b.teammates ?? []) as Array<{ brawler: { id: number; name: string } }>
 
-    if (teammates.length < 2) continue // Skip non-3v3 modes
+    if (teammates.length !== 2) continue // Exactly 3v3
 
+    // Sort by ID: ABC = ACB = BAC = BCA = CAB = CBA → same trio
     const trio = [
       { id: myId, name: myName },
       { id: teammates[0].brawler.id, name: teammates[0].brawler.name },
