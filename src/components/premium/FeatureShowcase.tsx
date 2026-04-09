@@ -34,12 +34,14 @@ export function FeatureShowcase() {
         {/* Nav arrows */}
         <button
           onClick={prev}
+          aria-label="Previous slide"
           className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         <button
           onClick={next}
+          aria-label="Next slide"
           className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white hover:bg-black/80 transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
@@ -51,6 +53,8 @@ export function FeatureShowcase() {
             <button
               key={i}
               onClick={() => setCurrent(i)}
+              aria-label={`Slide ${i + 1}`}
+              aria-current={i === current ? 'true' : undefined}
               className={`w-2 h-2 rounded-full transition-all ${
                 i === current
                   ? 'bg-[#FFC91B] w-5'

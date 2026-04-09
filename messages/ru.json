@@ -139,7 +139,8 @@
     "loading": "Загрузка...",
     "error": "Не удалось загрузить данные.",
     "flexTitle": "ПОКАЖИ СВОЙ СЧЁТ",
-    "flexSubtitle": "Скачай свою карточку игрока для TikTok или Instagram Reels!"
+    "flexSubtitle": "Скачай свою карточку игрока для TikTok или Instagram Reels!",
+    "download": "Download"
   },
   "club": {
     "title": "КЛУБ",

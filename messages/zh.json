@@ -139,7 +139,8 @@
     "loading": "加载中...",
     "error": "无法加载数据。",
     "flexTitle": "展示你的实力",
-    "flexSubtitle": "为 TikTok 或 Instagram Reels 下载您的玩家卡！"
+    "flexSubtitle": "为 TikTok 或 Instagram Reels 下载您的玩家卡！",
+    "download": "Download"
   },
   "club": {
     "title": "俱乐部",

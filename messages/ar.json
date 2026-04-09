@@ -139,7 +139,8 @@
     "loading": "جارٍ التحميل...",
     "error": "تعذر تحميل البيانات.",
     "flexTitle": "اعرض مستواك",
-    "flexSubtitle": "حمّل بطاقة اللاعب الخاصة بك لـ TikTok أو Instagram Reels!"
+    "flexSubtitle": "حمّل بطاقة اللاعب الخاصة بك لـ TikTok أو Instagram Reels!",
+    "download": "Download"
   },
   "club": {
     "title": "النادي",

@@ -139,7 +139,8 @@
     "loading": "Ładowanie...",
     "error": "Nie można załadować danych.",
     "flexTitle": "POKAŻ SWÓJ WYNIK",
-    "flexSubtitle": "Pobierz swoją Kartę Gracza na TikTok lub Instagram Reels!"
+    "flexSubtitle": "Pobierz swoją Kartę Gracza na TikTok lub Instagram Reels!",
+    "download": "Download"
   },
   "club": {
     "title": "KLUB",

@@ -139,7 +139,8 @@
     "loading": "Loading...",
     "error": "Could not load data.",
     "flexTitle": "FLEX YOUR SCORE",
-    "flexSubtitle": "Download your Player Card for TikTok or Instagram Reels!"
+    "flexSubtitle": "Download your Player Card for TikTok or Instagram Reels!",
+    "download": "Download"
   },
   "club": {
     "title": "CLUB",

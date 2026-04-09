@@ -26,7 +26,7 @@ export function MetaProTab() {
   const [selectedMode, setSelectedMode] = useState<string | null>(null)
   const [window, setWindow] = useState(14)
 
-  const { data, loading, error } = useProAnalysis(selectedMap, selectedMode, window)
+  const { data, isLoading: loading, error } = useProAnalysis(selectedMap, selectedMode, window)
 
   const handleMapSelect = (map: string, mode: string, _eventId: number) => {
     setSelectedMap(map)

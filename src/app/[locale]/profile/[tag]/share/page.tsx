@@ -181,7 +181,7 @@ export default function SharePage() {
           className="brawl-button px-8 py-4 text-xl flex items-center gap-2 group bg-gradient-to-r from-[#F82F41] to-[#DC2626] disabled:opacity-50"
         >
           <Download className="w-6 h-6 group-hover:-translate-y-1 transition-transform" />
-          {downloading ? '...' : 'Download'}
+          {downloading ? '...' : t('download')}
         </button>
         <button
           onClick={handleShare}

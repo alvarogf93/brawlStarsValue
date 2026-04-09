@@ -139,7 +139,8 @@
     "loading": "Cargando...",
     "error": "No se pudieron cargar los datos.",
     "flexTitle": "PRESUME TU NIVEL",
-    "flexSubtitle": "¡Descarga tu tarjeta de jugador para TikTok o Instagram Reels!"
+    "flexSubtitle": "¡Descarga tu tarjeta de jugador para TikTok o Instagram Reels!",
+    "download": "Descargar"
   },
   "club": {
     "title": "CLUB",

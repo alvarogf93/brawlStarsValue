@@ -5,7 +5,7 @@ import type { ProAnalysisResponse } from '@/lib/draft/pro-analysis'
 
 interface UseProAnalysisResult {
   data: ProAnalysisResponse | null
-  loading: boolean
+  isLoading: boolean
   error: string | null
   refresh: () => void
 }
@@ -100,5 +100,5 @@ export function useProAnalysis(
     fetchData()
   }, [cacheKey, fetchData])
 
-  return { data, loading, error, refresh }
+  return { data, isLoading: loading, error, refresh }
 }

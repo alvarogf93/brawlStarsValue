@@ -5,7 +5,7 @@ import type { AdvancedAnalytics } from '@/lib/analytics/types'
 
 interface UseAdvancedAnalyticsResult {
   data: AdvancedAnalytics | null
-  loading: boolean
+  isLoading: boolean
   error: string | null
   refresh: () => void
 }
@@ -44,5 +44,5 @@ export function useAdvancedAnalytics(enabled = true): UseAdvancedAnalyticsResult
     return () => controllerRef.current?.abort()
   }, [enabled, fetchAnalytics])
 
-  return { data, loading, error, refresh: fetchAnalytics }
+  return { data, isLoading: loading, error, refresh: fetchAnalytics }
 }

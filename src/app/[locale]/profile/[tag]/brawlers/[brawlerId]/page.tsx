@@ -57,7 +57,7 @@ export default function BrawlerDetailPage() {
 
   const { data: playerData, isLoading: playerLoading, error: playerError } = usePlayerData(tag)
   const { data: metaData, isLoading: metaLoading, error: metaError } = useBrawlerMeta(brawlerId)
-  const { data: analyticsData, loading: analyticsLoading } = useAdvancedAnalytics(hasPremium)
+  const { data: analyticsData, isLoading: analyticsLoading } = useAdvancedAnalytics(hasPremium)
 
   // Redirect if brawlerId is invalid
   useEffect(() => {

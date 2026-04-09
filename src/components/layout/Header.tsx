@@ -193,7 +193,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
                   {user.user_metadata?.avatar_url ? (
                     <img
                       src={user.user_metadata.avatar_url}
-                      alt=""
+                      alt={user.user_metadata?.full_name || 'Avatar'}
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
                     />

@@ -139,7 +139,8 @@
     "loading": "読み込み中...",
     "error": "データを読み込めませんでした。",
     "flexTitle": "実力を見せろ",
-    "flexSubtitle": "TikTokまたはInstagram Reels用のプレイヤーカードをダウンロード！"
+    "flexSubtitle": "TikTokまたはInstagram Reels用のプレイヤーカードをダウンロード！",
+    "download": "Download"
   },
   "club": {
     "title": "クラブ",

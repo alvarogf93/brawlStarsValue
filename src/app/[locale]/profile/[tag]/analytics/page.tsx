@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
       router.replace(`/${params.locale}/profile/${encodeURIComponent(profile.player_tag)}/analytics`)
     }
   }, [authLoading, hasPremium, profile, tag, params.locale, router])
-  const { data: analytics, loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
+  const { data: analytics, isLoading: loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
   const [activeTab, setActiveTabState] = useState<TabId>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '') as TabId

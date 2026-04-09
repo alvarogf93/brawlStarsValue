@@ -4,7 +4,7 @@ import type {
   CounterPickResult, BrawlerMapEntry, MatchupEntry, TrioSynergy,
 } from './types'
 import { MIN_GAMES } from './types'
-import { wilsonPct, winRate, compositeKey, groupBy, isWin } from './stats'
+import { wilsonPct, winRate, compositeKey, isWin } from './stats'
 
 interface EventSlot {
   startTime: string
