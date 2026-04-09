@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     // 3. Process each player's battlelog
-    const acc: MetaAccumulators = { stats: new Map(), matchups: new Map() }
+    const acc: MetaAccumulators = { stats: new Map(), matchups: new Map(), trios: new Map() }
     const cursorUpdates: { player_tag: string; last_battle_time: string }[] = []
     const today = new Date().toISOString().slice(0, 10) // UTC date string YYYY-MM-DD
 
@@ -106,6 +106,28 @@ export async function GET(request: Request) {
             result: battle.result,
           })
 
+          // Extract trio composition (polled player's team — 3 brawlers sorted canonically)
+          const myTeamIdx = battle.teams.findIndex((team: Array<{ tag: string; brawler: { id: number } }>) =>
+            team.some(p => p.tag === tag),
+          )
+          if (myTeamIdx !== -1 && map) {
+            const teamBrawlerIds = battle.teams[myTeamIdx]
+              .map((p: { brawler: { id: number } }) => p.brawler.id)
+              .sort((a: number, b: number) => a - b)
+
+            if (teamBrawlerIds.length === 3) {
+              const trioKey = `${teamBrawlerIds[0]}|${teamBrawlerIds[1]}|${teamBrawlerIds[2]}|${map}|${mode}`
+              const existing = acc.trios.get(trioKey) ?? {
+                wins: 0, losses: 0, total: 0,
+                ids: teamBrawlerIds, map, mode,
+              }
+              existing.total++
+              if (battle.result === 'victory') existing.wins++
+              else existing.losses++
+              acc.trios.set(trioKey, existing)
+            }
+          }
+
           battlesProcessed++
         }
 
@@ -161,16 +183,30 @@ export async function GET(request: Request) {
       await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows })
     }
 
+    // 5b. Bulk upsert meta_trios (single RPC call)
+    if (acc.trios.size > 0) {
+      const trioRows = Array.from(acc.trios.entries()).map(([, val]) => ({
+        brawler1_id: val.ids[0],
+        brawler2_id: val.ids[1],
+        brawler3_id: val.ids[2],
+        map: val.map,
+        mode: val.mode,
+        source: 'global',
+        date: today,
+        wins: val.wins,
+        losses: val.losses,
+        total: val.total,
+      }))
+
+      await supabase.rpc('bulk_upsert_meta_trios', { rows: trioRows })
+    }
+
     // 6. Update cursors
     if (cursorUpdates.length > 0) {
       await supabase.from('meta_poll_cursors').upsert(cursorUpdates, {
         onConflict: 'player_tag',
       })
     }
-
-    // 7. Cleanup old data (>30 days)
-    await supabase.from('meta_stats').delete().lt('date', new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10))
-    await supabase.from('meta_matchups').delete().lt('date', new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10))
 
     return NextResponse.json({
       processed,
@@ -179,6 +215,7 @@ export async function GET(request: Request) {
       battlesProcessed,
       statKeys: acc.stats.size,
       matchupKeys: acc.matchups.size,
+      trioKeys: acc.trios.size,
     })
   } catch (err) {
     console.error('[meta-poll] Fatal error:', err)
