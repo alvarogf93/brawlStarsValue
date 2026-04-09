@@ -81,7 +81,7 @@ describe('computePlayNowRecommendations', () => {
     const trioSynergy: TrioSynergy[] = [
       {
         brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
-        mode: null, map: null,
+        mode: null, map: null, topMap: null,
         wins: 6, total: 8, winRate: 75, wilsonScore: 40, confidence: 'medium' as const,
       },
     ]

@@ -20,6 +20,10 @@ const MOCK_PROFILE: Profile = {
   ls_subscription_id: null,
   ls_subscription_status: null,
   last_sync: null,
+  trial_ends_at: null,
+  referral_code: null,
+  referred_by: null,
+  referral_count: 0,
   created_at: '2026-04-06T00:00:00Z',
   updated_at: '2026-04-06T00:00:00Z',
 }

@@ -17,6 +17,7 @@ const MODE_LABELS: Record<DraftMode, string> = {
   knockout: 'Knockout',
   wipeout: 'Wipeout',
   brawlHockey: 'Brawl Hockey',
+  basketBrawl: 'Basket Brawl',
 }
 
 export function ModeSelector({ onSelect }: Props) {
