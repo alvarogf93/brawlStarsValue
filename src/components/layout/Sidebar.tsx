@@ -1,7 +1,6 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { LayoutDashboard, Users, Swords, BarChart3, Shield, GitCompareArrows, Palette, Share2, FlaskConical } from 'lucide-react'

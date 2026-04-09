@@ -43,7 +43,7 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerTag: tag }),
     }).then(res => {
-      if (res.status === 404 || res.status === 400) {
+      if (!res.ok) {
         router.replace(`/${locale}/profile/${encodeURIComponent(profile.player_tag)}`)
       }
     }).catch(() => {

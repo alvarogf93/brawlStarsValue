@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
     if (authLoading || hasPremium) return
     const controller = new AbortController()
     fetch(`/api/profile/check-premium?tag=${encodeURIComponent(tag)}`, { signal: controller.signal })
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() })
       .then(data => setTagHasPremium(data.hasPremium === true))
       .catch(err => { if (err.name !== 'AbortError') setTagHasPremium(false) })
     return () => controller.abort()
@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (!analytics) return
     fetch('/api/events')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() })
       .then(events => {
         const recs = computePlayNowRecommendations(
           analytics.brawlerMapMatrix,
@@ -120,7 +120,7 @@ export default function AnalyticsPage() {
         )
         setPlayNow(recs)
       })
-      .catch(err => console.warn('Failed to fetch events for Play Now:', err))
+      .catch(() => { /* Play Now is optional — silent fail */ })
   }, [analytics])
 
   // Case: Not premium — show subscription packages (stable flow)

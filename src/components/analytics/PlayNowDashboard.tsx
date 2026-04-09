@@ -59,7 +59,6 @@ export function PlayNowDashboard({ recommendations }: Props) {
         {recommendations.map(slot => {
           const endedLabel = t('ended')
           const timeLeft = computeTimeLeft(slot.slotEndTime, endedLabel)
-          const modeIcon = null // replaced by ModeIcon component
           const top3 = slot.recommendations.slice(0, 3)
           const best = top3[0]
 
