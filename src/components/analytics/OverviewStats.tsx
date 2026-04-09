@@ -3,9 +3,11 @@
 import { useTranslations } from 'next-intl'
 import type { AdvancedAnalytics } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { ProBadge } from '@/components/analytics/ProBadge'
 
 interface Props {
   overview: AdvancedAnalytics['overview']
+  proAvgWR?: number | null
 }
 
 function formatDuration(seconds: number | null): string {
@@ -15,7 +17,7 @@ function formatDuration(seconds: number | null): string {
   return `${m}m ${s}s`
 }
 
-export function OverviewStats({ overview }: Props) {
+export function OverviewStats({ overview, proAvgWR }: Props) {
   const t = useTranslations('advancedAnalytics')
   const {
     totalBattles,
@@ -88,6 +90,11 @@ export function OverviewStats({ overview }: Props) {
           >
             {overallWinRate.toFixed(1)}%
           </p>
+          {proAvgWR != null && (
+            <div className="mt-1">
+              <ProBadge proValue={proAvgWR} userValue={overallWinRate} total={0} compact />
+            </div>
+          )}
           <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
             {t('winRateLabel')}
           </p>

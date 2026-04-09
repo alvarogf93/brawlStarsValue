@@ -9,6 +9,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import { useMapImages } from '@/hooks/useMapImages'
+import { ProBadge } from '@/components/analytics/ProBadge'
 
 function medal(i: number): string {
   if (i === 0) return '🥇'
@@ -22,11 +23,12 @@ const INITIAL_VISIBLE = 12
 interface Props {
   trioSynergy: TrioSynergy[]
   teammateSynergy: TeammateSynergy[]
+  proTrios?: Map<string, { winRate: number; total: number }> | null
 }
 
 type Tab = 'trios' | 'teammates'
 
-export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
+export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [tab, setTab] = useState<Tab>('trios')
   const [expanded, setExpanded] = useState(false)
@@ -190,6 +192,13 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
                     <span className={`font-['Lilita_One'] text-lg tabular-nums drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${wrColor(trio.winRate)}`}>
                       {trio.winRate.toFixed(1)}%
                     </span>
+                    {(() => {
+                      const trioKey = trio.brawlers.map(b => b.id).sort((a, b) => a - b).join('|')
+                      const proTrio = proTrios?.get(trioKey)
+                      return proTrio ? (
+                        <ProBadge proValue={proTrio.winRate} userValue={trio.winRate} total={proTrio.total} compact />
+                      ) : null
+                    })()}
 
                     {/* Games + confidence */}
                     <div className="flex items-center gap-1.5">

@@ -9,9 +9,11 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import { useMapImages } from '@/hooks/useMapImages'
+import { ProBadge } from '@/components/analytics/ProBadge'
 
 interface Props {
   data: BrawlerMapEntry[]
+  proData?: Map<string, { winRate: number; total: number }> | null
 }
 
 
@@ -23,7 +25,7 @@ function wrBorderColor(wr: number): string {
 }
 
 
-export function BrawlerMapHeatmap({ data }: Props) {
+export function BrawlerMapHeatmap({ data, proData }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
   const mapImages = useMapImages()
@@ -102,9 +104,19 @@ export function BrawlerMapHeatmap({ data }: Props) {
                 alt={entry.brawlerName}
                 className="w-8 h-8 rounded-lg flex-shrink-0"
               />
-              <span className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(entry.winRate)}`} style={{ textShadow: '0 1px 0 rgba(0,0,0,0.4)' }}>
-                {entry.winRate}%
-              </span>
+              <div className="flex flex-col items-end">
+                <span className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(entry.winRate)}`} style={{ textShadow: '0 1px 0 rgba(0,0,0,0.4)' }}>
+                  {entry.winRate}%
+                </span>
+                {proData?.get(`${entry.brawlerId}|${entry.map}`) && (
+                  <ProBadge
+                    proValue={proData.get(`${entry.brawlerId}|${entry.map}`)!.winRate}
+                    userValue={entry.winRate}
+                    total={proData.get(`${entry.brawlerId}|${entry.map}`)!.total}
+                    compact
+                  />
+                )}
+              </div>
             </div>
 
             {/* Middle: Names */}

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import { ProBadge } from '@/components/analytics/ProBadge'
 
 interface DailyPoint {
   date: string
@@ -15,6 +16,7 @@ interface DailyPoint {
 
 interface Props {
   dailyTrend: DailyPoint[]
+  proAvgWR?: number | null
 }
 
 /** SVG chart padding */
@@ -268,7 +270,7 @@ function LineChart({
 
 /* ─────────────────────── main component ─────────────────────── */
 
-export function TrendsChart({ dailyTrend }: Props) {
+export function TrendsChart({ dailyTrend, proAvgWR }: Props) {
   const t = useTranslations('advancedAnalytics')
 
   if (dailyTrend.length === 0) {
@@ -307,8 +309,13 @@ export function TrendsChart({ dailyTrend }: Props) {
       <div className="space-y-6">
         {/* ── Chart 1: Win Rate Trend ── */}
         <div>
-          <p className="text-xs font-bold uppercase text-slate-500 mb-2 tracking-wider">
+          <p className="text-xs font-bold uppercase text-slate-500 mb-2 tracking-wider flex items-center">
             {t('winRateTrend')}
+            {proAvgWR != null && (
+              <span className="ml-2">
+                <ProBadge proValue={proAvgWR} total={0} compact />
+              </span>
+            )}
           </p>
           <LineChart
             data={dailyTrend}

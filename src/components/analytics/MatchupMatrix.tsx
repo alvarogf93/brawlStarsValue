@@ -7,9 +7,11 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { MatchupEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
+import { ProBadge } from '@/components/analytics/ProBadge'
 
 interface Props {
   data: MatchupEntry[]
+  proMatchups?: Map<string, { winRate: number; total: number }> | null
 }
 
 const INITIAL_LIMIT = 20
@@ -19,7 +21,7 @@ const INITIAL_LIMIT = 20
 
 
 
-export function MatchupMatrix({ data }: Props) {
+export function MatchupMatrix({ data, proMatchups }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
   const [bestFirst, setBestFirst] = useState(false)
@@ -158,6 +160,14 @@ export function MatchupMatrix({ data }: Props) {
               <span className={`font-['Lilita_One'] text-sm flex-shrink-0 w-12 text-right ${wrColor(m.winRate)}`}>
                 {m.winRate.toFixed(1)}%
               </span>
+              {proMatchups?.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`) && (
+                <ProBadge
+                  proValue={proMatchups.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`)!.winRate}
+                  userValue={m.winRate}
+                  total={proMatchups.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`)!.total}
+                  compact
+                />
+              )}
 
               {/* W/L count */}
               <span className="text-[10px] text-slate-500 flex-shrink-0 w-14 text-right">
