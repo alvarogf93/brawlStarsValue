@@ -192,7 +192,7 @@ export async function verifyPayPalWebhook(params: {
       transmission_sig: params.headers['paypal-transmission-sig'],
       transmission_time: params.headers['paypal-transmission-time'],
       webhook_id: params.webhookId,
-      webhook_event: JSON.parse(params.body),
+      webhook_event: (() => { try { return JSON.parse(params.body) } catch { return null } })(),
     }),
   })
 

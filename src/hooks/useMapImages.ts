@@ -18,18 +18,27 @@ export function useMapImages(): Record<string, string> {
   })
 
   useEffect(() => {
-    if (Object.keys(images).length > 0) return // Already cached
+    // If we already have images from cache init, skip fetch
+    if (Object.keys(images).length > 0) return
 
-    fetch('/api/maps')
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+    const controller = new AbortController()
+
+    fetch('/api/maps', { signal: controller.signal })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() })
       .then(data => {
         setImages(data)
         try {
           localStorage.setItem(LS_KEY, JSON.stringify({ data, ts: Date.now() }))
-        } catch { /* ignore */ }
+        } catch { /* storage full */ }
       })
-      .catch(() => {})
-  }, [images])
+      .catch(err => {
+        if (err.name === 'AbortError') return
+        console.warn('[useMapImages] Failed to fetch maps:', err.message)
+      })
+
+    return () => controller.abort()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty deps — run once on mount, images is read from init state
 
   return images
 }

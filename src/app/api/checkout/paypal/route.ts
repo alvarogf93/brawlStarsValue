@@ -45,7 +45,8 @@ export async function POST(request: Request) {
     }
 
     const { origin } = new URL(request.url)
-    const locale = body.locale || 'es'
+    const ALLOWED_LOCALES = ['es','en','fr','pt','de','it','ru','tr','pl','ar','ko','ja','zh']
+    const locale = ALLOWED_LOCALES.includes(body.locale) ? body.locale : 'es'
     const returnUrl = `${origin}/api/checkout/paypal/confirm?profile_id=${user.id}&locale=${locale}&tag=${encodeURIComponent(profile.player_tag)}`
     const cancelUrl = `${origin}/${locale}/profile/${encodeURIComponent(profile.player_tag)}/analytics`
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Footer } from '@/components/common/Footer'
@@ -11,6 +12,22 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import type { Profile } from '@/lib/supabase/types'
 
 const AUTO_SYNC_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
+
+function ErrorFallback({ onReload }: { onReload: () => void }) {
+  const tErr = useTranslations('errorPage')
+  return (
+    <div className="flex flex-col items-center justify-center py-20 gap-4">
+      <div className="brawl-card p-8 text-center max-w-md">
+        <p className="text-4xl mb-3">💥</p>
+        <h2 className="font-['Lilita_One'] text-xl text-white mb-2">{tErr('title')}</h2>
+        <p className="text-sm text-slate-400 mb-4">{tErr('description')}</p>
+        <button onClick={onReload} className="brawl-button px-6 py-2.5 text-sm">
+          🔄 {tErr('retry')}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -78,7 +95,7 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
         {/* Scrollable main content — lock scroll when mobile sidebar is open */}
         <main className={`flex-1 min-h-0 ${sidebarOpen ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-16 min-h-full">
-            <ErrorBoundary>
+            <ErrorBoundary fallback={<ErrorFallback onReload={() => window.location.reload()} />}>
               {children}
             </ErrorBoundary>
           </div>
