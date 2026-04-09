@@ -328,13 +328,30 @@ function computeTrioSynergy(battles: Battle[]): TrioSynergy[] {
 
   const results: TrioSynergy[] = []
 
-  // Global entries (mode=null, map=null)
-  for (const [, val] of global) {
+  // Find topMap for each trio (map with most games)
+  const topMapByTrio = new Map<string, string>()
+  for (const [key, val] of perMap) {
+    const trioKey = key.split('|')[0]
+    const current = topMapByTrio.get(trioKey)
+    if (!current) {
+      topMapByTrio.set(trioKey, val.map)
+    } else {
+      // Compare totals — pick the map with more games
+      const currentEntry = perMap.get(`${trioKey}|${current}`)
+      if (currentEntry && val.total > currentEntry.total) {
+        topMapByTrio.set(trioKey, val.map)
+      }
+    }
+  }
+
+  // Global entries (mode=null, map=null, topMap=most played map)
+  for (const [trioKey, val] of global) {
     if (val.total < MIN_GAMES_SOFT) continue
     results.push({
       brawlers: val.brawlers,
       mode: null,
       map: null,
+      topMap: topMapByTrio.get(trioKey) ?? null,
       wins: val.wins,
       total: val.total,
       winRate: winRate(val.wins, val.total),
@@ -343,13 +360,14 @@ function computeTrioSynergy(battles: Battle[]): TrioSynergy[] {
     })
   }
 
-  // Per-map entries (mode + map)
+  // Per-map entries (mode + map, topMap = same as map)
   for (const [, val] of perMap) {
     if (val.total < MIN_GAMES_SOFT) continue
     results.push({
       brawlers: val.brawlers,
       mode: val.mode,
       map: val.map,
+      topMap: val.map,
       wins: val.wins,
       total: val.total,
       winRate: winRate(val.wins, val.total),

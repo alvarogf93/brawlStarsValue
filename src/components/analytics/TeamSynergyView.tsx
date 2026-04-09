@@ -65,8 +65,12 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
   const hasMoreTrios = sortedTrios.length > INITIAL_VISIBLE
   const hasMoreTeammates = sortedTeammates.length > INITIAL_VISIBLE
 
-  // Get map image URL for the current filter
-  const currentMapImage = mapFilter !== 'all' ? mapImages[mapFilter] ?? null : null
+  // Resolve map image for a trio (uses topMap for global, map for per-map)
+  const getTrioMapImage = (trio: TrioSynergy): string | null => {
+    const mapName = trio.map ?? trio.topMap
+    if (!mapName) return null
+    return mapImages[mapName] ?? null
+  }
 
   if (trioSynergy.length === 0 && teammateSynergy.length === 0) {
     return (
@@ -146,21 +150,24 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
                   key={`${trio.brawlers.map(b => b.id).join('-')}-${trio.map ?? 'global'}`}
                   className="relative rounded-xl overflow-hidden border border-white/10"
                 >
-                  {/* Map background — shown when filtering by specific map */}
-                  {currentMapImage && (
-                    <>
-                      <img
-                        src={currentMapImage}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/80 to-[#0A0E1A]/40" />
-                    </>
-                  )}
+                  {/* Map background — always shown if trio has a map */}
+                  {(() => {
+                    const mapImg = getTrioMapImage(trio)
+                    return mapImg ? (
+                      <>
+                        <img
+                          src={mapImg}
+                          alt={trio.map ?? trio.topMap ?? ''}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/75 to-[#0A0E1A]/30" />
+                      </>
+                    ) : null
+                  })()}
 
                   {/* Content */}
-                  <div className={`relative p-3 flex flex-col items-center gap-2 ${!currentMapImage ? 'brawl-row' : ''}`}>
+                  <div className={`relative p-3 flex flex-col items-center gap-2 ${!getTrioMapImage(trio) ? 'brawl-row' : ''}`}>
                     {/* Medal for top 3 */}
                     {i < 3 && (
                       <span className="absolute top-1.5 left-2 text-sm">{medal(i)}</span>

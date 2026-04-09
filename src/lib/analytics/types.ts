@@ -112,6 +112,7 @@ export interface TrioSynergy {
   brawlers: Array<{ id: number; name: string }>
   mode: string | null  // null = global, string = specific mode
   map: string | null   // null = global, string = specific map
+  topMap: string | null // map with most games for this trio (useful for global view)
   wins: number
   total: number
   winRate: number
