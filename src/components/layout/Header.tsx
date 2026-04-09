@@ -8,7 +8,7 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
-import { Menu, LogOut, RefreshCw, User, Crown, Home } from 'lucide-react'
+import { Menu, LogOut, RefreshCw, User, Crown, Home, Gift } from 'lucide-react'
 import Link from 'next/link'
 
 function formatTimeAgo(iso: string): string {
@@ -34,6 +34,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   const [syncing, setSyncing] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [refCopied, setRefCopied] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown on click outside
@@ -144,7 +145,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           )}
           {!loading && user && profile && !isPremium(profile as Profile) && (
             <Link
-              href={`/${locale}/profile/${encodeURIComponent(profile.player_tag)}/analytics`}
+              href={`/${locale}/profile/${encodeURIComponent(profile.player_tag)}/subscribe`}
               className="cursor-pointer flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-slate-400 bg-white/5 hover:bg-white/10 hover:text-[#FFC91B] rounded-xl transition-colors border border-white/10 hover:border-[#FFC91B]/30"
             >
               <Crown className="w-4 h-4" />
@@ -234,6 +235,21 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
                       <Crown className="w-4 h-4" />
                       {t('manage')}
                     </div>
+                  )}
+
+                  {/* Referral code copy */}
+                  {(profile as Profile)?.referral_code && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${(profile as Profile).referral_code}`)
+                        setRefCopied(true)
+                        setTimeout(() => setRefCopied(false), 2000)
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors"
+                    >
+                      <Gift className="w-4 h-4" />
+                      {refCopied ? `✓ ${t('referralCopied')}` : `${t('referral')} (${(profile as Profile).referral_code})`}
+                    </button>
                   )}
 
                   {/* Logout */}

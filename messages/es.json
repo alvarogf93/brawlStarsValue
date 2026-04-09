@@ -75,7 +75,9 @@
     "manage": "Gestionar suscripción",
     "profile": "Perfil",
     "picks": "Picks",
-    "exit": "Inicio"
+    "exit": "Inicio",
+    "referral": "Invitar amigo",
+    "referralCopied": "Copiado"
   },
   "battles": {
     "title": "BATALLAS RECIENTES",
@@ -400,7 +402,23 @@
     "hookMastery": "Tu curva de mejora con {name}",
     "hookMatchup": "Pierdes el {wr}% contra {name}",
     "hookMap": "En {map} dominas al {wr}%",
-    "hookClutch": "Como Star Player ganas un {wr}%"
+    "hookClutch": "Como Star Player ganas un {wr}%",
+    "hookCompetitive": "Con {trophies}+ trofeos, descubre tus matchups",
+    "hookExplorer": "Juegas {count} modos — descubre dónde dominas"
+  },
+  "subscribe": {
+    "title": "Premium Analytics",
+    "subtitle": "Desbloquea el poder del análisis avanzado",
+    "freePreviewTitle": "Tus últimas 25 batallas",
+    "winRateLabel": "Win Rate",
+    "recordLabel": "Record",
+    "favoriteLabel": "Favorito",
+    "trophyChangeLabel": "Trofeos",
+    "previewCaption1": "Detecta tu tilt y mejora tu juego",
+    "previewCaption2": "Analiza tu rendimiento por brawler y mapa",
+    "previewCaption3": "Descubre tus matchups y contrarresta",
+    "trialCta": "Prueba 3 días gratis",
+    "trialCtaBody": "Vincula tu tag y accede a todas las analytics"
   },
   "analytics": {
     "title": "Analytics",

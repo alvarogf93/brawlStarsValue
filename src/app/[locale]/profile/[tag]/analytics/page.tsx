@@ -5,19 +5,17 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
-import { useBattlelog } from '@/hooks/useBattlelog'
 import { isPremium, isOnTrial } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
-import { FlaskConical, LogIn, ChevronDown } from 'lucide-react'
+import { FlaskConical, ChevronDown } from 'lucide-react'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
 import { TrialBanner } from '@/components/premium/TrialBanner'
 import { ReferralCard } from '@/components/premium/ReferralCard'
-import { AuthModal } from '@/components/auth/AuthModal'
 import { OverviewStats } from '@/components/analytics/OverviewStats'
 import { BrawlerMapHeatmap } from '@/components/analytics/BrawlerMapHeatmap'
 import { MatchupMatrix } from '@/components/analytics/MatchupMatrix'
@@ -64,7 +62,6 @@ export default function AnalyticsPage() {
   const router = useRouter()
   const { user, profile, loading: authLoading } = useAuth()
   const hasPremium = isPremium(profile as Profile | null)
-  const isLoggedIn = !!user
   // Only fetch analytics after auth resolves AND user is premium
   const tag = decodeURIComponent(params.tag)
 
@@ -79,8 +76,6 @@ export default function AnalyticsPage() {
     }
   }, [authLoading, hasPremium, profile, tag, params.locale, router])
   const { data: analytics, loading, error } = useAdvancedAnalytics(!authLoading && hasPremium)
-  const { data: freeStats, isLoading: freeLoading } = useBattlelog(tag)
-  const [tagHasPremium, setTagHasPremium] = useState<boolean | null>(null)
   const [activeTab, setActiveTabState] = useState<TabId>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '') as TabId
@@ -93,19 +88,9 @@ export default function AnalyticsPage() {
     window.location.hash = tab
   }
   const [playNow, setPlayNow] = useState<PlayNowRecommendation[]>([])
-  const [authOpen, setAuthOpen] = useState(false)
+  const tp = useTranslations('premium')
+  const [showCelebration, setShowCelebration] = useState(false)
   const [tabMenuOpen, setTabMenuOpen] = useState(false)
-
-  // Check if this player tag has a premium account (for non-logged-in users)
-  useEffect(() => {
-    if (authLoading || hasPremium) return
-    const controller = new AbortController()
-    fetch(`/api/profile/check-premium?tag=${encodeURIComponent(tag)}`, { signal: controller.signal })
-      .then(r => { if (!r.ok) throw new Error(`${r.status}`); return r.json() })
-      .then(data => setTagHasPremium(data.hasPremium === true))
-      .catch(err => { if (err.name !== 'AbortError') setTagHasPremium(false) })
-    return () => controller.abort()
-  }, [tag, authLoading, hasPremium])
 
   // Fetch current events for "Play Now"
   useEffect(() => {
@@ -123,94 +108,24 @@ export default function AnalyticsPage() {
       .catch(() => { /* Play Now is optional — silent fail */ })
   }, [analytics])
 
-  // Case: Not premium — show subscription packages (stable flow)
+  // Trial celebration — show confetti once on first premium visit after trial activation
+  useEffect(() => {
+    if (!isOnTrial(profile as Profile)) return
+    const key = 'brawlvalue:trial-celebrated'
+    try {
+      if (localStorage.getItem(key)) return
+      localStorage.setItem(key, '1')
+      setShowCelebration(true)
+      import('canvas-confetti').then(({ default: confetti }) => {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#FFC91B', '#4EC0FA', '#FF5733', '#28A745'] })
+      })
+    } catch { /* ignore */ }
+  }, [profile])
+
+  // Redirect non-premium users to subscribe page
   if (!authLoading && !hasPremium) {
-    if (tagHasPremium === null) return <AnalyticsSkeleton />
-
-    // Tag has premium but user not logged in → sign in prompt
-    if (tagHasPremium && !isLoggedIn) {
-      return (
-        <div className="animate-fade-in w-full pb-10 space-y-6">
-          <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[var(--color-brawl-sky)] to-[#121A2F]">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-[#121A2F] border-4 border-[var(--color-brawl-sky)] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
-                <LogIn className="w-8 h-8 text-[var(--color-brawl-sky)]" />
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">{t('title')}</h1>
-                <p className="font-['Inter'] font-semibold text-[var(--color-brawl-sky)]">{t('premiumOnly')}</p>
-              </div>
-            </div>
-          </div>
-          <div className="brawl-card p-6 text-center">
-            <p className="font-['Lilita_One'] text-lg text-[var(--color-brawl-dark)] mb-4">{ta('loginRequired')}</p>
-            <button onClick={() => setAuthOpen(true)} className="brawl-button px-6 py-3 text-base">
-              <span className="flex items-center gap-2"><LogIn className="w-5 h-5" /> {ta('loginButton')}</span>
-            </button>
-          </div>
-          <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
-        </div>
-      )
-    }
-
-    // Default: free user → show trial banner + free preview + subscription packages
-    return (
-      <div className="animate-fade-in w-full pb-10 space-y-6">
-        <TrialBanner />
-        <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#FFC91B] to-[#121A2F]">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[#121A2F] border-4 border-[#FFC91B] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
-              <FlaskConical className="w-8 h-8 text-[#FFC91B]" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">{t('title')}</h1>
-              <p className="font-['Inter'] font-semibold text-[#FFC91B]">{t('premiumOnly')}</p>
-            </div>
-          </div>
-        </div>
-
-        {!freeLoading && freeStats && (
-          <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-            <h3 className="font-['Lilita_One'] text-lg text-white mb-4">{ta('freePreviewTitle') || 'Quick Stats (Last 25 Battles)'}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              <div className="brawl-row rounded-xl p-4 text-center">
-                <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.winRate >= 60 ? 'text-green-400' : freeStats.winRate >= 45 ? 'text-[#FFC91B]' : 'text-red-400'}`}>{freeStats.winRate.toFixed(1)}%</p>
-                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('winRateLabel')}</p>
-              </div>
-              <div className="brawl-row rounded-xl p-4 text-center">
-                <p className="font-['Lilita_One'] text-2xl tabular-nums text-white">{freeStats.recentWins}W {freeStats.recentLosses}L</p>
-                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('record')}</p>
-              </div>
-              <div className="brawl-row rounded-xl p-4 text-center">
-                <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA] truncate">{freeStats.mostPlayedBrawler}</p>
-                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('freePreviewFavorite') || 'Favorite'}</p>
-              </div>
-              <div className="brawl-row rounded-xl p-4 text-center">
-                <p className={`font-['Lilita_One'] text-2xl tabular-nums ${freeStats.trophyChange > 0 ? 'text-green-400' : freeStats.trophyChange < 0 ? 'text-red-400' : 'text-slate-500'}`}>{freeStats.trophyChange > 0 ? '+' : ''}{freeStats.trophyChange}</p>
-                <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">{ta('trophyChange')}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div id="upgrade-section">
-          <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
-          <ReferralCard />
-        </div>
-
-        {!isLoggedIn && (
-          <>
-            <div className="brawl-card-dark p-5 text-center border-[#090E17]">
-              <p className="text-sm text-slate-400 mb-3">{ta('loginRequired')}</p>
-              <button onClick={() => setAuthOpen(true)} className="brawl-button px-5 py-2.5 text-sm">
-                <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> {ta('loginButton')}</span>
-              </button>
-            </div>
-            <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
-          </>
-        )}
-      </div>
-    )
+    router.replace(`/${params.locale}/profile/${params.tag}/subscribe`)
+    return <AnalyticsSkeleton />
   }
 
   if (authLoading || loading) {
@@ -223,6 +138,16 @@ export default function AnalyticsPage() {
 
   return (
     <div className="animate-fade-in w-full pb-10 space-y-6">
+      {showCelebration && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowCelebration(false)}>
+          <div className="brawl-card p-8 max-w-sm text-center space-y-4" onClick={e => e.stopPropagation()}>
+            <p className="text-5xl">🎉</p>
+            <h2 className="font-['Lilita_One'] text-2xl text-[#FFC91B]">{tp('trialWelcome')}</h2>
+            <p className="text-slate-300">{tp('trialWelcomeBody')}</p>
+            <button onClick={() => setShowCelebration(false)} className="brawl-button px-6 py-2">OK</button>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#FFC91B] to-[#121A2F]">
         <div className="flex items-center gap-4">

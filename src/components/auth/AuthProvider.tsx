@@ -69,20 +69,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: 'Connection error' }
     }
 
-    // Create profile
-    const { data: newProfile, error } = await supabase
+    // Profile insert with referral code collision retry
+    // DB trigger auto-generates referral_code via md5(random())
+    // If unique constraint fails (extremely rare), retry once
+    let insertResult = await supabase
       .from('profiles')
       .insert({ id: user.id, player_tag: tag })
       .select()
       .single()
 
-    if (error || !newProfile) {
-      return { ok: false, error: error?.message || 'Could not create profile' }
+    if (insertResult.error?.code === '23505' && insertResult.error.message.includes('referral_code')) {
+      insertResult = await supabase
+        .from('profiles')
+        .insert({ id: user.id, player_tag: tag })
+        .select()
+        .single()
     }
 
-    setProfile(newProfile as Profile)
+    if (insertResult.error || !insertResult.data) {
+      return { ok: false, error: insertResult.error?.message || 'Could not create profile' }
+    }
+
+    setProfile(insertResult.data as Profile)
     setNeedsTag(false)
     try { localStorage.setItem('brawlvalue:user', tag) } catch { /* ignore */ }
+
+    // Apply referral code (best-effort, non-blocking)
+    const refCode = (() => { try { return localStorage.getItem('brawlvalue:ref') } catch { return null } })()
+    if (refCode) {
+      try {
+        await supabase.rpc('apply_referral', {
+          p_new_user_id: user.id,
+          p_referral_code: refCode,
+        })
+        localStorage.removeItem('brawlvalue:ref')
+      } catch { /* referral is best-effort */ }
+    }
 
     // Notify admin of new signup (fire-and-forget)
     fetch('/api/notify/signup', { method: 'POST' }).catch(() => {})

@@ -342,7 +342,7 @@ Shown at top of analytics page when trial expired and user is not subscribed:
 - `referralCount`: "{count}/5 invitaciones usadas"
 - `referralCodeInvalid`: "Código de invitación no válido"
 - `referralCodePlaceholder`: "¿Tienes código de invitación? (opcional)"
-- `referralSuccess`: "¡Tu amigo {tag} se unió! +3 días PRO"
+- `referralSuccess`: "¡Tu amigo se unió! +3 días PRO"
 - `blurUnlock`: "Desbloquea con PRO"
 - `hookTilt`: "Estás en tilt y no lo sabías"
 - `hookMastery`: "Tu curva de mejora con {name}"
