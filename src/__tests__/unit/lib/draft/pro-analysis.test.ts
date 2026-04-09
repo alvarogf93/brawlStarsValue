@@ -113,3 +113,36 @@ describe('computePickRate', () => {
     expect(computePickRate(100, 100)).toBeCloseTo(100, 1)
   })
 })
+
+describe('trend calculation end-to-end', () => {
+  it('computes 7d rising trend correctly', () => {
+    const current7dWR = 57.0
+    const prev7dWR = 50.0
+    const delta = computeTrendDelta(current7dWR, prev7dWR)
+    expect(delta).toBe(7)
+    expect(delta).toBeGreaterThan(2)
+  })
+
+  it('computes 7d falling trend correctly', () => {
+    const current7dWR = 45.0
+    const prev7dWR = 52.0
+    const delta = computeTrendDelta(current7dWR, prev7dWR)
+    expect(delta).toBe(-7)
+    expect(delta).toBeLessThan(-2)
+  })
+
+  it('computes stable trend (no change > 2%)', () => {
+    const current7dWR = 51.0
+    const prev7dWR = 50.0
+    const delta = computeTrendDelta(current7dWR, prev7dWR)
+    expect(delta).toBe(1)
+    expect(Math.abs(delta!)).toBeLessThanOrEqual(2)
+  })
+
+  it('handles 30d trend with larger data sets', () => {
+    const current30dWR = 62.5
+    const prev30dWR = 55.0
+    const delta = computeTrendDelta(current30dWR, prev30dWR)
+    expect(delta).toBe(7.5)
+  })
+})
