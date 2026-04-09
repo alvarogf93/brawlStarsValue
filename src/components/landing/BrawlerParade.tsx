@@ -3,19 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
-import { BRAWLER_RARITY_MAP } from '@/lib/constants'
-import type { BrawlerRarityName } from '@/lib/types'
-
-const RARITY_COLORS: Record<BrawlerRarityName, string> = {
-  'Trophy Road': '#9CA3AF',
-  'Rare': '#4ADE80',
-  'Super Rare': '#3B82F6',
-  'Epic': '#A855F7',
-  'Mythic': '#EF4444',
-  'Legendary': '#FFC91B',
-  'Chromatic': '#E879F9',
-  'Ultra Legendary': '#FF6B35',
-}
+import { BRAWLER_RARITY_MAP, RARITY_COLORS } from '@/lib/constants'
 
 const ALL_IDS = Object.keys(BRAWLER_RARITY_MAP).map(Number)
 const ROW1_IDS = ALL_IDS.filter((_, i) => i % 2 === 0)

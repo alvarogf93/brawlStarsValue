@@ -9,20 +9,9 @@ import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
-import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS } from '@/lib/constants'
+import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS, RARITY_COLORS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
 import { BrawlersSkeleton } from '@/components/ui/Skeleton'
-
-const RARITY_COLORS: Record<BrawlerRarityName, string> = {
-  'Trophy Road': '#95A5A6',
-  'Rare': '#27AE60',
-  'Super Rare': '#3498DB',
-  'Epic': '#8E44AD',
-  'Mythic': '#E74C3C',
-  'Legendary': '#F39C12',
-  'Chromatic': '#E91E63',
-  'Ultra Legendary': '#FFD700',
-}
 
 const ALL_RARITIES: BrawlerRarityName[] = [
   'Trophy Road', 'Rare', 'Super Rare', 'Epic',
