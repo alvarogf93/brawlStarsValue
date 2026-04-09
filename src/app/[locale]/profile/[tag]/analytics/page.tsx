@@ -125,8 +125,13 @@ export default function AnalyticsPage() {
   }, [profile])
 
   // Redirect non-premium users to subscribe page
+  useEffect(() => {
+    if (!authLoading && !hasPremium) {
+      router.replace(`/${params.locale}/profile/${params.tag}/subscribe`)
+    }
+  }, [authLoading, hasPremium, params.locale, params.tag, router])
+
   if (!authLoading && !hasPremium) {
-    router.replace(`/${params.locale}/profile/${params.tag}/subscribe`)
     return <AnalyticsSkeleton />
   }
 
