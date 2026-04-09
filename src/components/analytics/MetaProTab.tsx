@@ -28,7 +28,7 @@ export function MetaProTab() {
 
   const { data, loading, error } = useProAnalysis(selectedMap, selectedMode, window)
 
-  const handleMapSelect = (map: string, mode: string) => {
+  const handleMapSelect = (map: string, mode: string, _eventId: number) => {
     setSelectedMap(map)
     setSelectedMode(mode)
   }
@@ -43,7 +43,7 @@ export function MetaProTab() {
 
       {selectedMap && (
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-bold">{t('windowLabel')}:</span>
+          <span className="font-['Lilita_One'] text-xs text-slate-500">{t('windowLabel')}:</span>
           {[7, 14, 30, 90].map(w => (
             <button
               key={w}

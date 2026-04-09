@@ -2,48 +2,64 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { useMapImages } from '@/hooks/useMapImages'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
-import { ModeIcon } from '@/components/ui/ModeIcon'
 import { Lock } from 'lucide-react'
+import { getMapImageUrl, getGameModeImageUrl } from '@/lib/utils'
+import { isDraftMode } from '@/lib/draft/constants'
 
 interface MapSelectorProps {
   selectedMap: string | null
   selectedMode: string | null
-  onSelect: (map: string, mode: string) => void
+  onSelect: (map: string, mode: string, eventId: number) => void
+}
+
+interface LiveMap {
+  map: string
+  mode: string
+  eventId: number
 }
 
 export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelectorProps) {
   const t = useTranslations('metaPro')
   const { profile } = useAuth()
   const hasPremium = isPremium(profile as Profile | null)
-  const mapImages = useMapImages()
 
-  const [maps, setMaps] = useState<Array<{ map: string; mode: string; isLive: boolean }>>([])
+  const [maps, setMaps] = useState<LiveMap[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const controller = new AbortController()
     fetch('/api/events', { signal: controller.signal })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
-      .then((events: Array<{ map?: string; mode?: string; event?: { map: string; mode: string } }>) => {
+      .then((events: Array<{ event?: { id?: number; map?: string; mode?: string }; map?: string; mode?: string; id?: number }>) => {
         const liveMaps = events
-          .map(e => ({ map: e.event?.map ?? e.map, mode: e.event?.mode ?? e.mode }))
-          .filter((e): e is { map: string; mode: string } => !!e.map && !!e.mode)
-          .map(e => ({ map: e.map, mode: e.mode, isLive: true }))
+          .map(e => ({
+            eventId: e.event?.id ?? e.id,
+            map: e.event?.map ?? e.map,
+            mode: e.event?.mode ?? e.mode,
+          }))
+          .filter((e): e is LiveMap =>
+            typeof e.eventId === 'number' &&
+            typeof e.map === 'string' &&
+            typeof e.mode === 'string' &&
+            isDraftMode(e.mode)
+          )
+
         setMaps(liveMaps)
         setLoading(false)
+
         if (!selectedMap && liveMaps.length > 0) {
-          onSelect(liveMaps[0].map, liveMaps[0].mode)
+          const first = liveMaps[0]
+          onSelect(first.map, first.mode, first.eventId)
         }
       })
       .catch(err => {
         if (err.name !== 'AbortError') setLoading(false)
       })
     return () => controller.abort()
-  }, [mapImages]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (
@@ -59,37 +75,89 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
         {t('mapSelectorTitle')}
       </h3>
 
+      {/* Live maps grid */}
       <div className="mb-4">
-        <p className="text-[10px] font-bold text-green-400 uppercase tracking-wider mb-2">
+        <p className="font-['Lilita_One'] text-[10px] text-green-400 uppercase tracking-wider mb-2">
           {t('liveMaps')}
         </p>
-        <div className="flex flex-wrap gap-2">
-          {maps.filter(m => m.isLive).map(m => (
-            <button
-              key={`${m.map}-${m.mode}`}
-              onClick={() => onSelect(m.map, m.mode)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-['Lilita_One'] transition-all border-2 ${
-                selectedMap === m.map && selectedMode === m.mode
-                  ? 'bg-[#FFC91B]/20 text-[#FFC91B] border-[#FFC91B]/40 shadow-[0_0_12px_rgba(255,201,27,0.15)]'
-                  : 'bg-[#0F172A] text-slate-300 border-[#1E293B] hover:bg-[#1E293B] hover:text-white'
-              }`}
-            >
-              <ModeIcon mode={m.mode} size={16} />
-              <span className="truncate max-w-[120px]">{m.map}</span>
-            </button>
-          ))}
-        </div>
+
+        {maps.length === 0 ? (
+          <p className="text-xs text-slate-600 italic font-['Lilita_One']">—</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {maps.map(m => {
+              const isSelected = selectedMap === m.map && selectedMode === m.mode
+              const mapImageUrl = getMapImageUrl(m.eventId)
+              const modeIconUrl = getGameModeImageUrl(m.mode)
+
+              return (
+                <button
+                  key={`${m.map}-${m.mode}-${m.eventId}`}
+                  onClick={() => onSelect(m.map, m.mode, m.eventId)}
+                  className={`relative h-24 overflow-hidden rounded-xl border-2 transition-all duration-200 text-left ${
+                    isSelected
+                      ? 'border-[#FFC91B] shadow-[0_0_16px_rgba(255,201,27,0.35)]'
+                      : 'border-white/10 hover:border-white/25'
+                  }`}
+                >
+                  {/* Map image background */}
+                  <img
+                    src={mapImageUrl}
+                    alt={m.map}
+                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    loading="lazy"
+                    width={200}
+                    height={96}
+                  />
+
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/60 to-transparent" />
+
+                  {/* Selected gold tint overlay */}
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-[#FFC91B]/8" />
+                  )}
+
+                  {/* Mode icon — top-left */}
+                  {modeIconUrl && (
+                    <div className="absolute top-2 left-2">
+                      <span className="bg-black/50 backdrop-blur-sm rounded-lg p-1 border border-white/10 inline-flex">
+                        <img
+                          src={modeIconUrl}
+                          alt={m.mode}
+                          className="w-4 h-4"
+                          width={16}
+                          height={16}
+                        />
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Map name — bottom */}
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className={`font-['Lilita_One'] text-xs leading-tight truncate ${
+                      isSelected ? 'text-[#FFC91B]' : 'text-white'
+                    }`}>
+                      {m.map}
+                    </p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
+      {/* Historical maps section */}
       <div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+        <p className="font-['Lilita_One'] text-[10px] text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
           {t('historicalMaps')}
           {!hasPremium && <Lock className="w-3 h-3" />}
         </p>
         {!hasPremium ? (
-          <p className="text-xs text-slate-600 italic">{t('historicalLocked')}</p>
+          <p className="font-['Lilita_One'] text-xs text-slate-600 italic">{t('historicalLocked')}</p>
         ) : (
-          <p className="text-xs text-slate-500 italic">{t('historicalMaps')}</p>
+          <p className="font-['Lilita_One'] text-xs text-slate-500 italic">{t('historicalMaps')}</p>
         )}
       </div>
     </div>
