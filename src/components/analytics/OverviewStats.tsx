@@ -79,6 +79,9 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         {/* Win Rate */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('winRateLabel')}
+          </p>
           <p
             className={`font-['Lilita_One'] text-3xl tabular-nums ${
               overallWinRate >= 60
@@ -95,25 +98,25 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
               <ProBadge proValue={proAvgWR} userValue={overallWinRate} total={0} compact />
             </div>
           )}
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('winRateLabel')}
-          </p>
         </div>
 
         {/* W/L Record */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('record')}
+          </p>
           <p className="font-['Lilita_One'] text-2xl tabular-nums">
             <span className="text-green-400">{totalWins}</span>
             <span className="text-slate-600 mx-1">/</span>
             <span className="text-red-400">{totalLosses}</span>
           </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('record')}
-          </p>
         </div>
 
         {/* Trophy Change */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('trophyChange')}
+          </p>
           <p
             className={`font-['Lilita_One'] text-2xl tabular-nums ${
               trophyChange > 0
@@ -126,35 +129,35 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
             {trophyChange > 0 ? '+' : ''}
             {trophyChange}
           </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('trophyChange')}
-          </p>
         </div>
 
         {/* Star Player */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
-          <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#FFC91B]">
-            {starPlayerRate.toFixed(1)}%
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1 flex items-center justify-center gap-1">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-center gap-1">
             ⭐ {t('starPlayer')} ({starPlayerCount})
             <InfoTooltip className="ml-1.5" text={t('tipStarPlayer')} />
+          </p>
+          <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#FFC91B]">
+            {starPlayerRate.toFixed(1)}%
           </p>
         </div>
 
         {/* Avg Duration */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('avgDuration')}
+          </p>
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-[#4EC0FA]">
             {formatDuration(avgDuration)}
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('avgDuration')}
           </p>
         </div>
 
         {/* Current Streak (compact, shown when < 3 or none) */}
         {!showStreakBanner && (
           <div className="brawl-card-dark rounded-xl p-4 text-center">
+            <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+              {t('currentStreak')}
+            </p>
             <p
               className={`font-['Lilita_One'] text-2xl tabular-nums ${
                 streak.currentType === 'win'
@@ -168,29 +171,26 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
               {streak.currentType === 'win' && ' 🔥'}
               {streak.currentType === 'loss' && ' 💀'}
             </p>
-            <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-              {t('currentStreak')}
-            </p>
           </div>
         )}
 
         {/* Longest Win Streak */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('bestWinStreak')}
+          </p>
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-green-400">
             {streak.longestWin} 🔥
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('bestWinStreak')}
           </p>
         </div>
 
         {/* Longest Loss Streak */}
         <div className="brawl-card-dark rounded-xl p-4 text-center">
+          <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
+            {t('worstLossStreak')}
+          </p>
           <p className="font-['Lilita_One'] text-2xl tabular-nums text-red-400">
             {streak.longestLoss} 💀
-          </p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-            {t('worstLossStreak')}
           </p>
         </div>
       </div>
