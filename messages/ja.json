@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "勝率"
+  },
+  "brawlerDetail": {
+    "backToBrawlers": "ブロウラー一覧に戻る",
+    "notUnlocked": "このブロウラーはまだアンロックされていません"
   }
 }

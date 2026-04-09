@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "胜率"
+  },
+  "brawlerDetail": {
+    "backToBrawlers": "返回英雄列表",
+    "notUnlocked": "你还没有解锁这个英雄"
   }
 }

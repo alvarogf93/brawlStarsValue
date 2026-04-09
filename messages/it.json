@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Probabilità di vittoria"
+  },
+  "brawlerDetail": {
+    "backToBrawlers": "Torna ai Brawler",
+    "notUnlocked": "Non hai ancora sbloccato questo brawler"
   }
 }

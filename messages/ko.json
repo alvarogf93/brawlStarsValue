@@ -693,5 +693,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "승률"
+  },
+  "brawlerDetail": {
+    "backToBrawlers": "브롤러 목록으로 돌아가기",
+    "notUnlocked": "아직 이 브롤러를 잠금 해제하지 않았습니다"
   }
 }
