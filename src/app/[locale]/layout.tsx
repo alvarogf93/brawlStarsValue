@@ -19,9 +19,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'BrawlVision Team' }],
   openGraph: {
     type: 'website',
+    siteName: 'BrawlVision',
     url: 'https://brawlvision.com',
     title: 'BrawlVision - Brawl Stars Combat Analytics',
     description: 'Analyze your battles, track win rates, and calculate your gem value.',
+    locale: 'es',
   },
   twitter: {
     card: 'summary_large_image',
@@ -32,7 +34,9 @@ export const metadata: Metadata = {
     google: '5hdJc9SX6x_bgCe0-kEPzLR8P6WZ2YuaCYuPiRhsrmM',
   },
   alternates: {
+    canonical: 'https://brawlvision.com/es',
     languages: {
+      'x-default': 'https://brawlvision.com/es',
       es: 'https://brawlvision.com/es',
       en: 'https://brawlvision.com/en',
       fr: 'https://brawlvision.com/fr',

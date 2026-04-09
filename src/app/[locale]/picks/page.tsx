@@ -8,12 +8,28 @@ import type { Metadata } from 'next'
 
 export const revalidate = 1800 // ISR: 30 minutes
 
+const BASE_URL = 'https://brawlvision.com'
+const LOCALES = ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh']
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'picks' })
+  const languages: Record<string, string> = { 'x-default': `${BASE_URL}/es/picks` }
+  for (const loc of LOCALES) {
+    languages[loc] = `${BASE_URL}/${loc}/picks`
+  }
   return {
     title: t('title') + ' | BrawlVision',
     description: t('subtitle'),
+    alternates: {
+      canonical: `${BASE_URL}/${locale}/picks`,
+      languages,
+    },
+    openGraph: {
+      title: t('title') + ' | BrawlVision',
+      description: t('subtitle'),
+      url: `${BASE_URL}/${locale}/picks`,
+    },
   }
 }
 

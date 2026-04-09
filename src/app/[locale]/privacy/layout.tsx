@@ -5,7 +5,7 @@ const LOCALES = ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
-  const languages: Record<string, string> = {}
+  const languages: Record<string, string> = { 'x-default': `${BASE_URL}/es/privacy` }
   for (const loc of LOCALES) {
     languages[loc] = `${BASE_URL}/${loc}/privacy`
   }
@@ -20,6 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     openGraph: {
       title: 'Privacy Policy | BrawlVision',
       description: 'How BrawlVision handles your data, cookies, and GDPR rights.',
+      url: `${BASE_URL}/${locale}/privacy`,
     },
   }
 }

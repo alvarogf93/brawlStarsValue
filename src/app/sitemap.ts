@@ -18,7 +18,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const page of pages) {
     for (const locale of LOCALES) {
       const url = `${BASE_URL}/${locale}${page.path}`
-      const alternates: Record<string, string> = {}
+      const alternates: Record<string, string> = {
+        'x-default': `${BASE_URL}/es${page.path}`,
+      }
       for (const alt of LOCALES) {
         alternates[alt] = `${BASE_URL}/${alt}${page.path}`
       }
@@ -52,7 +54,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const { player_tag } of profiles) {
         const encodedTag = encodeURIComponent(player_tag)
         for (const locale of LOCALES) {
-          const alternates: Record<string, string> = {}
+          const alternates: Record<string, string> = {
+            'x-default': `${BASE_URL}/es/profile/${encodedTag}`,
+          }
           for (const alt of LOCALES) {
             alternates[alt] = `${BASE_URL}/${alt}/profile/${encodedTag}`
           }
