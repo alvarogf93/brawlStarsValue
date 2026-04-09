@@ -190,3 +190,15 @@ export const BRAWLER_RARITY_MAP: RarityMap = {
   16000102: 'Ultra Legendary',
   16000103: 'Mythic',
 }
+
+/** Hex color per rarity — shared across all brawler UI */
+export const RARITY_COLORS: Record<BrawlerRarityName, string> = {
+  'Trophy Road': '#95A5A6',
+  'Rare': '#27AE60',
+  'Super Rare': '#3498DB',
+  'Epic': '#8E44AD',
+  'Mythic': '#E74C3C',
+  'Legendary': '#F39C12',
+  'Chromatic': '#E91E63',
+  'Ultra Legendary': '#FFD700',
+}

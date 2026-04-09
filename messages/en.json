@@ -733,5 +733,9 @@
     "errorLoadingBrawlers": "Could not load brawlers",
     "retry": "Retry",
     "winProbability": "Win probability"
+  },
+  "brawlerDetail": {
+    "mastery": "Mastery Timeline",
+    "improved": "Win rate improved by {diff}% over {days} days"
   }
 }

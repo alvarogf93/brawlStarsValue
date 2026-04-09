@@ -733,5 +733,9 @@
     "errorLoadingBrawlers": "No se pudieron cargar los brawlers",
     "retry": "Reintentar",
     "winProbability": "Probabilidad de victoria"
+  },
+  "brawlerDetail": {
+    "mastery": "Linea de Maestria",
+    "improved": "Win rate mejorado en {diff}% en {days} dias"
   }
 }

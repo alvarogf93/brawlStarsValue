@@ -730,5 +730,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "승률"
+  },
+  "brawlerDetail": {
+    "mastery": "숙련도 타임라인",
+    "improved": "{days}일 동안 승률이 {diff}% 향상되었습니다"
   }
 }

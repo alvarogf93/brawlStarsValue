@@ -730,5 +730,9 @@
     "errorLoadingBrawlers": "Error loading brawlers",
     "retry": "Retry",
     "winProbability": "Kazanma olasılığı"
+  },
+  "brawlerDetail": {
+    "mastery": "Ustalık Zaman Cizelgesi",
+    "improved": "{days} gunde kazanma orani {diff}% artti"
   }
 }
