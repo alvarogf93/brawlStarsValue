@@ -8,6 +8,7 @@ export const DRAFT_MODES = [
   'knockout',
   'wipeout',
   'brawlHockey',
+  'basketBrawl',
 ] as const
 
 export type DraftMode = typeof DRAFT_MODES[number]
