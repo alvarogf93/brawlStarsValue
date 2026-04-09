@@ -83,14 +83,14 @@ export async function GET(request: Request) {
           const [brawlerId, map, mode] = key.split('|')
           return { brawler_id: Number(brawlerId), map, mode, source: 'users', date: today, wins: val.wins, losses: val.losses, total: val.total }
         })
-        try { await supabase.rpc('bulk_upsert_meta_stats', { rows: statRows }) } catch { /* meta aggregation is best-effort */ }
+        try { await supabase.rpc('bulk_upsert_meta_stats', { rows: statRows }) } catch (e) { console.warn('[sync] meta_stats RPC failed (non-critical):', String(e)) }
       }
       if (acc.matchups.size > 0) {
         const matchupRows = Array.from(acc.matchups.entries()).map(([key, val]) => {
           const [brawlerId, opponentId, mode] = key.split('|')
           return { brawler_id: Number(brawlerId), opponent_id: Number(opponentId), mode, source: 'users', date: today, wins: val.wins, losses: val.losses, total: val.total }
         })
-        try { await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows }) } catch { /* meta aggregation is best-effort */ }
+        try { await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows }) } catch (e) { console.warn('[sync] meta_matchups RPC failed (non-critical):', String(e)) }
       }
 
       await supabase.from('profiles').update({ last_sync: new Date().toISOString() }).eq('player_tag', player_tag)
