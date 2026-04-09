@@ -2,16 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback , wrColor } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
-import type { BrawlerSynergy, TeammateSynergy } from '@/lib/analytics/types'
+import type { TrioSynergy, TeammateSynergy } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
-
-// ── Helpers ────────────────────────────────────────────────────
-
-
 
 function medal(i: number): string {
   if (i === 0) return '🥇'
@@ -20,60 +16,39 @@ function medal(i: number): string {
   return ''
 }
 
-
-const INITIAL_VISIBLE = 15
-
-// ── Props ──────────────────────────────────────────────────────
+const INITIAL_VISIBLE = 12
 
 interface Props {
-  brawlerSynergy: BrawlerSynergy[]
+  trioSynergy: TrioSynergy[]
   teammateSynergy: TeammateSynergy[]
+  /** @deprecated Use trioSynergy instead */
+  brawlerSynergy?: unknown[]
 }
 
-// ── Tabs ───────────────────────────────────────────────────────
+type Tab = 'trios' | 'teammates'
 
-type Tab = 'combos' | 'teammates'
-
-// ── Component ──────────────────────────────────────────────────
-
-export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
+export function TeamSynergyView({ trioSynergy, teammateSynergy }: Props) {
   const t = useTranslations('advancedAnalytics')
-  const [tab, setTab] = useState<Tab>('combos')
+  const [tab, setTab] = useState<Tab>('trios')
   const [expanded, setExpanded] = useState(false)
-  const [filterBrawler, setFilterBrawler] = useState<string>('all')
 
-  // Unique "my brawler" names for filter dropdown
-  const myBrawlers = useMemo(() => {
-    const seen = new Map<string, number>()
-    for (const s of brawlerSynergy) {
-      if (!seen.has(s.myBrawlerName)) seen.set(s.myBrawlerName, s.myBrawlerId)
-    }
-    return Array.from(seen.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-  }, [brawlerSynergy])
+  const sortedTrios = useMemo(
+    () => [...trioSynergy].sort((a, b) => b.wilsonScore - a.wilsonScore),
+    [trioSynergy],
+  )
 
-  // Filtered + sorted brawler combos
-  const filteredCombos = useMemo(() => {
-    let list = [...brawlerSynergy]
-    if (filterBrawler !== 'all') {
-      list = list.filter(s => s.myBrawlerName === filterBrawler)
-    }
-    return list.sort((a, b) => b.wilsonScore - a.wilsonScore)
-  }, [brawlerSynergy, filterBrawler])
-
-  // Sorted teammate synergy
   const sortedTeammates = useMemo(
     () => [...teammateSynergy].sort((a, b) => b.wilsonScore - a.wilsonScore),
     [teammateSynergy],
   )
 
-  const visibleCombos = expanded ? filteredCombos : filteredCombos.slice(0, INITIAL_VISIBLE)
+  const visibleTrios = expanded ? sortedTrios : sortedTrios.slice(0, INITIAL_VISIBLE)
   const visibleTeammates = expanded ? sortedTeammates : sortedTeammates.slice(0, INITIAL_VISIBLE)
 
-  const hasMoreCombos = filteredCombos.length > INITIAL_VISIBLE
+  const hasMoreTrios = sortedTrios.length > INITIAL_VISIBLE
   const hasMoreTeammates = sortedTeammates.length > INITIAL_VISIBLE
 
-  if (brawlerSynergy.length === 0 && teammateSynergy.length === 0) {
+  if (trioSynergy.length === 0 && teammateSynergy.length === 0) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
@@ -99,14 +74,14 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
       {/* Tab bar */}
       <div className="flex gap-1 mb-4">
         <button
-          onClick={() => { setTab('combos'); setExpanded(false) }}
+          onClick={() => { setTab('trios'); setExpanded(false) }}
           className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-            tab === 'combos'
+            tab === 'trios'
               ? 'bg-[#FFC91B]/20 text-[#FFC91B]'
               : 'text-slate-500 hover:text-white'
           }`}
         >
-          {t('brawlerCombos')} 🤝
+          {t('trioLabel') || 'Tríos'} 🤝
         </button>
         <button
           onClick={() => { setTab('teammates'); setExpanded(false) }}
@@ -120,82 +95,59 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
         </button>
       </div>
 
-      {/* ── Brawler Combos Tab ─────────────────────────────────── */}
-      {tab === 'combos' && (
+      {/* ── Trio Synergy Tab ─────────────────────────────────────── */}
+      {tab === 'trios' && (
         <div>
-          {/* Filter dropdown */}
-          {myBrawlers.length > 1 && (
-            <div className="mb-3">
-              <select
-                value={filterBrawler}
-                onChange={e => { setFilterBrawler(e.target.value); setExpanded(false) }}
-                className="bg-[#0D1321] text-slate-300 text-xs rounded-lg px-3 py-1.5 border border-white/5 focus:outline-none focus:border-[#FFC91B]/40"
-              >
-                <option value="all">{t('allBrawlers')}</option>
-                {myBrawlers.map(([name]) => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {filteredCombos.length === 0 ? (
+          {sortedTrios.length === 0 ? (
             <p className="text-sm text-slate-500">{t('noComboData')}</p>
           ) : (
-            <div className="space-y-1.5">
-              {visibleCombos.map((c, i) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {visibleTrios.map((trio, i) => (
                 <div
-                  key={`${c.myBrawlerId}-${c.teammateBrawlerId}`}
-                  className="flex items-center gap-3 brawl-row rounded-xl px-4 py-2.5"
+                  key={trio.brawlers.map(b => b.id).join('-')}
+                  className="brawl-row rounded-xl p-3 flex flex-col items-center gap-2 relative"
                 >
-                  {/* Rank */}
-                  <span className="font-['Lilita_One'] text-xs text-slate-600 w-5 text-right tabular-nums">
-                    {i + 1}
-                  </span>
+                  {/* Medal for top 3 */}
+                  {i < 3 && (
+                    <span className="absolute top-1.5 left-2 text-sm">{medal(i)}</span>
+                  )}
 
-                  {/* Brawler portraits */}
-                  <div className="flex items-center -space-x-2">
-                    <BrawlImg
-                      src={getBrawlerPortraitUrl(c.myBrawlerId)}
-                      fallbackSrc={getBrawlerPortraitFallback(c.myBrawlerId)}
-                      alt={c.myBrawlerName}
-                      className="w-8 h-8 rounded-lg ring-2 ring-[#090E17] relative z-10"
-                    />
-                    <BrawlImg
-                      src={getBrawlerPortraitUrl(c.teammateBrawlerId)}
-                      fallbackSrc={getBrawlerPortraitFallback(c.teammateBrawlerId)}
-                      alt={c.teammateBrawlerName}
-                      className="w-8 h-8 rounded-lg ring-2 ring-[#090E17]"
-                    />
+                  {/* 3 brawler portraits */}
+                  <div className="flex items-center -space-x-1.5">
+                    {trio.brawlers.map((b) => (
+                      <BrawlImg
+                        key={b.id}
+                        src={getBrawlerPortraitUrl(b.id)}
+                        fallbackSrc={getBrawlerPortraitFallback(b.id)}
+                        alt={b.name}
+                        className="w-9 h-9 rounded-lg ring-2 ring-[#090E17]"
+                      />
+                    ))}
                   </div>
 
-                  {/* Names */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-['Lilita_One'] text-xs text-white truncate">
-                      {c.myBrawlerName} + {c.teammateBrawlerName}
-                    </p>
-                    <p className="text-[10px] text-slate-500">{c.total} {t('games')}</p>
-                  </div>
-
-                  {/* Win rate + confidence */}
-                  <ConfidenceBadge total={c.total} className="mr-1" />
-                  <span className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(c.winRate)}`}>
-                    {c.winRate.toFixed(1)}%
+                  {/* Win rate */}
+                  <span className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(trio.winRate)}`}>
+                    {trio.winRate.toFixed(1)}%
                   </span>
+
+                  {/* Games + confidence */}
+                  <div className="flex items-center gap-1.5">
+                    <ConfidenceBadge total={trio.total} />
+                    <span className="text-[10px] text-slate-500">{trio.total} {t('games')}</span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Expand / collapse */}
-          {hasMoreCombos && (
+          {hasMoreTrios && (
             <button
               onClick={() => setExpanded(prev => !prev)}
               className="mt-3 w-full py-2 text-xs font-bold text-slate-400 hover:text-[#FFC91B] transition-colors rounded-lg bg-white/[0.02] hover:bg-white/[0.04]"
             >
               {expanded
                 ? t('showLess')
-                : t('showAllCombos', { count: filteredCombos.length })}
+                : t('showAllCombos', { count: sortedTrios.length })}
             </button>
           )}
         </div>
@@ -207,44 +159,31 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
           {sortedTeammates.length === 0 ? (
             <p className="text-sm text-slate-500">{t('noTeammateData')}</p>
           ) : (
-            <div className="space-y-1.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
               {visibleTeammates.map((tm, i) => (
                 <div
                   key={tm.tag}
-                  className="flex items-center gap-3 brawl-row rounded-xl px-4 py-3"
+                  className="flex items-center gap-3 brawl-row rounded-xl px-4 py-2.5"
                 >
-                  {/* Rank / Medal */}
-                  <span className="w-6 text-center flex-shrink-0">
+                  <span className="w-5 text-center flex-shrink-0">
                     {i < 3 ? (
-                      <span className="text-base">{medal(i)}</span>
+                      <span className="text-sm">{medal(i)}</span>
                     ) : (
-                      <span className="font-['Lilita_One'] text-xs text-slate-600 tabular-nums">
-                        {i + 1}
-                      </span>
+                      <span className="font-['Lilita_One'] text-[10px] text-slate-600 tabular-nums">{i + 1}</span>
                     )}
                   </span>
-
-                  {/* Name & details */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-['Lilita_One'] text-sm text-white truncate">
-                      {tm.name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-slate-500">
-                        {tm.total} {t('games')}
-                      </span>
+                    <p className="font-['Lilita_One'] text-xs text-white truncate">{tm.name}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-500">{tm.total} {t('games')}</span>
                       {tm.bestMode && tm.bestModeWR !== null && (
                         <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
-                          <ModeIcon mode={tm.bestMode} size={14} />
-                          <span className={wrColor(tm.bestModeWR)}>
-                            {tm.bestModeWR.toFixed(1)}%
-                          </span>
+                          <ModeIcon mode={tm.bestMode} size={12} />
+                          <span className={wrColor(tm.bestModeWR)}>{tm.bestModeWR.toFixed(0)}%</span>
                         </span>
                       )}
                     </div>
                   </div>
-
-                  {/* Win rate */}
                   <span className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(tm.winRate)}`}>
                     {tm.winRate.toFixed(1)}%
                   </span>
@@ -253,7 +192,6 @@ export function TeamSynergyView({ brawlerSynergy, teammateSynergy }: Props) {
             </div>
           )}
 
-          {/* Expand / collapse */}
           {hasMoreTeammates && (
             <button
               onClick={() => setExpanded(prev => !prev)}

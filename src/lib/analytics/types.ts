@@ -120,6 +120,15 @@ export interface BrawlerSynergy {
   confidence: Confidence
 }
 
+export interface TrioSynergy {
+  brawlers: Array<{ id: number; name: string }>
+  wins: number
+  total: number
+  winRate: number
+  wilsonScore: number
+  confidence: Confidence
+}
+
 // ── Time & trends ───────────────────────────────────────────────
 
 export interface HourPerformance {
@@ -317,6 +326,7 @@ export interface AdvancedAnalytics {
   brawlerModeMatrix: BrawlerModeEntry[]
   matchups: MatchupEntry[]
   brawlerSynergy: BrawlerSynergy[]
+  trioSynergy: TrioSynergy[]
   teammateSynergy: TeammateSynergy[]
   byHour: HourPerformance[]
   dailyTrend: DailyTrend[]

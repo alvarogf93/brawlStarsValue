@@ -339,7 +339,7 @@ export default function AnalyticsPage() {
       {activeTab === 'team' && (
         <div className="space-y-6">
           <TeamSynergyView
-            brawlerSynergy={analytics.brawlerSynergy}
+            trioSynergy={analytics.trioSynergy}
             teammateSynergy={analytics.teammateSynergy}
           />
           <CarryCard data={analytics.carry} />

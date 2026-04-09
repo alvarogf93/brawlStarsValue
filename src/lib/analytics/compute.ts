@@ -1,7 +1,7 @@
 import type { Battle } from '@/lib/supabase/types'
 import type {
   AdvancedAnalytics, BrawlerPerformance, ModePerformance, MapPerformance,
-  BrawlerMapEntry, BrawlerModeEntry, MatchupEntry, BrawlerSynergy,
+  BrawlerMapEntry, BrawlerModeEntry, MatchupEntry, BrawlerSynergy, TrioSynergy,
   TeammateSynergy, HourPerformance, DailyTrend, BrawlerMastery, MasteryPoint,
   StreakInfo, TiltAnalysis, SessionInfo,
   ClutchAnalysis, OpponentStrengthBreakdown, BrawlerComfort, PowerLevelImpact,
@@ -39,6 +39,7 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
     brawlerModeMatrix: computeBrawlerModeMatrix(battles),
     matchups: computeMatchups(battles),
     brawlerSynergy: computeBrawlerSynergy(battles),
+    trioSynergy: computeTrioSynergy(battles),
     teammateSynergy: computeTeammateSynergy(battles),
     byHour: computeByHour(battles, timezone),
     dailyTrend: computeDailyTrend(battles),
@@ -306,6 +307,47 @@ function computeBrawlerSynergy(battles: Battle[]): BrawlerSynergy[] {
       myBrawlerName: val.myName,
       teammateBrawlerId: Number(tmIdStr),
       teammateBrawlerName: val.tmName,
+      wins: val.wins,
+      total: val.total,
+      winRate: winRate(val.wins, val.total),
+      wilsonScore: wilsonPct(val.wins, val.total),
+      confidence: getConfidence(val.total),
+    })
+  }
+
+  return results.sort((a, b) => b.wilsonScore - a.wilsonScore)
+}
+
+// ── Trio Synergy (full 3-brawler teams) ──────────────────────────
+
+function computeTrioSynergy(battles: Battle[]): TrioSynergy[] {
+  const acc = new Map<string, { wins: number; total: number; brawlers: Array<{ id: number; name: string }> }>()
+
+  for (const b of battles) {
+    const myId = b.my_brawler?.id ?? 0
+    const myName = b.my_brawler?.name ?? 'Unknown'
+    const teammates = (b.teammates ?? []) as Array<{ brawler: { id: number; name: string } }>
+
+    if (teammates.length < 2) continue // Skip non-3v3 modes
+
+    const trio = [
+      { id: myId, name: myName },
+      { id: teammates[0].brawler.id, name: teammates[0].brawler.name },
+      { id: teammates[1].brawler.id, name: teammates[1].brawler.name },
+    ].sort((a, b) => a.id - b.id)
+
+    const key = trio.map(b => b.id).join(':')
+    const entry = acc.get(key) ?? { wins: 0, total: 0, brawlers: trio }
+    entry.total++
+    if (isWin(b.result)) entry.wins++
+    acc.set(key, entry)
+  }
+
+  const results: TrioSynergy[] = []
+  for (const [, val] of acc) {
+    if (val.total < MIN_GAMES_SOFT) continue
+    results.push({
+      brawlers: val.brawlers,
       wins: val.wins,
       total: val.total,
       winRate: winRate(val.wins, val.total),
