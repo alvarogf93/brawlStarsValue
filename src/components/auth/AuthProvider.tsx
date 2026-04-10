@@ -72,16 +72,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Profile insert with referral code collision retry
     // DB trigger auto-generates referral_code via md5(random())
     // If unique constraint fails (extremely rare), retry once
+    // Auto-activate 3-day PRO trial for new users
+    const trialEnds = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
+
     let insertResult = await supabase
       .from('profiles')
-      .insert({ id: user.id, player_tag: tag })
+      .insert({ id: user.id, player_tag: tag, trial_ends_at: trialEnds })
       .select()
       .single()
 
     if (insertResult.error?.code === '23505' && insertResult.error.message.includes('referral_code')) {
       insertResult = await supabase
         .from('profiles')
-        .insert({ id: user.id, player_tag: tag })
+        .insert({ id: user.id, player_tag: tag, trial_ends_at: trialEnds })
         .select()
         .single()
     }
