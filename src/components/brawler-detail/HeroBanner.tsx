@@ -15,6 +15,8 @@ interface Props {
   playerBrawler: BrawlerStat | null
 }
 
+import { DottedChip } from '@/components/ui/DottedChip'
+
 // 6 universal base gears that every brawler can equip
 const BASE_GEAR_IDS = [62000000, 62000001, 62000002, 62000003, 62000004, 62000017]
 
@@ -222,15 +224,11 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
           {/* Chips */}
           {b && (
             <div className="px-4 pb-4 flex flex-wrap gap-1.5">
-              <span className="px-2.5 py-1 rounded-lg bg-purple-600 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">PWR {b.power}</span>
-              <span className="px-2.5 py-1 rounded-lg bg-amber-500 border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">RANK {b.rank}</span>
-              <span className="px-2.5 py-1 rounded-lg bg-[#1e293b] border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🏆 {b.trophies.toLocaleString()}</span>
-              {b.prestigeLevel > 0 && (
-                <span className="px-2.5 py-1 rounded-lg bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">⭐ Prestige {b.prestigeLevel}</span>
-              )}
-              {b.maxWinStreak > 0 && (
-                <span className="px-2.5 py-1 rounded-lg bg-blue-500 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🔥 {b.maxWinStreak} Streak</span>
-              )}
+              <DottedChip bg="#9333ea" dark>PWR {b.power}</DottedChip>
+              <DottedChip bg="#f59e0b">RANK {b.rank}</DottedChip>
+              <DottedChip bg="#1e293b" dark>🏆 {b.trophies.toLocaleString()}</DottedChip>
+              {b.prestigeLevel > 0 && <DottedChip bg="#FFC91B">⭐ Prestige {b.prestigeLevel}</DottedChip>}
+              {b.maxWinStreak > 0 && <DottedChip bg="#3b82f6" dark>🔥 {b.maxWinStreak} Streak</DottedChip>}
             </div>
           )}
 
@@ -372,15 +370,11 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
 
                   {/* Chips */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    <span className="px-2.5 py-1 rounded-lg bg-purple-600 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">PWR {b.power}</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-amber-500 border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">RANK {b.rank}</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-[#1e293b] border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🏆 {b.trophies.toLocaleString()}</span>
-                    {b.prestigeLevel > 0 && (
-                      <span className="px-2.5 py-1 rounded-lg bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">⭐ Prestige {b.prestigeLevel}</span>
-                    )}
-                    {b.maxWinStreak > 0 && (
-                      <span className="px-2.5 py-1 rounded-lg bg-blue-500 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🔥 {b.maxWinStreak} Streak</span>
-                    )}
+                    <DottedChip bg="#9333ea" dark>PWR {b.power}</DottedChip>
+                    <DottedChip bg="#f59e0b">RANK {b.rank}</DottedChip>
+                    <DottedChip bg="#1e293b" dark>🏆 {b.trophies.toLocaleString()}</DottedChip>
+                    {b.prestigeLevel > 0 && <DottedChip bg="#FFC91B">⭐ Prestige {b.prestigeLevel}</DottedChip>}
+                    {b.maxWinStreak > 0 && <DottedChip bg="#3b82f6" dark>🔥 {b.maxWinStreak} Streak</DottedChip>}
                   </div>
                 </>
               ) : (
