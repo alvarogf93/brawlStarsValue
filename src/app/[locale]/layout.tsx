@@ -8,49 +8,52 @@ import { ReferralToast } from '@/components/premium/ReferralToast'
 import { AdSenseScript } from '@/components/ads/AdSenseScript'
 import '../globals.css'
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://brawlvision.com'),
-  title: {
-    absolute: 'BrawlVision | Brawl Stars Combat Analytics & Gem Calculator',
-    template: '%s | BrawlVision'
-  },
-  description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, track win rates, and compete on the Global Leaderboard.',
-  keywords: ['Brawl Stars', 'BrawlVision', 'Battle Analytics', 'Gem Calculator', 'Brawl Stars Stats', 'Leaderboard', 'Supercell', 'Profile Tracker'],
-  authors: [{ name: 'BrawlVision Team' }],
-  openGraph: {
-    type: 'website',
-    siteName: 'BrawlVision',
-    url: 'https://brawlvision.com',
-    title: 'BrawlVision - Brawl Stars Combat Analytics',
-    description: 'Analyze your battles, track win rates, and calculate your gem value.',
-    locale: 'es',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'BrawlVision | Combat Analytics & Gem Calculator',
-    description: 'Analyze your battles, track win rates, and calculate your gem value.',
-  },
-  verification: {
-    google: '5uwFXu6M3E0O0IOawv8nl-Ae-OKw72tBOblsWHrXQ2Y',
-  },
-  alternates: {
-    canonical: 'https://brawlvision.com/es',
-    languages: {
-      'x-default': 'https://brawlvision.com/es',
-      es: 'https://brawlvision.com/es',
-      en: 'https://brawlvision.com/en',
-      fr: 'https://brawlvision.com/fr',
-      pt: 'https://brawlvision.com/pt',
-      de: 'https://brawlvision.com/de',
-      it: 'https://brawlvision.com/it',
-      ru: 'https://brawlvision.com/ru',
-      tr: 'https://brawlvision.com/tr',
-      pl: 'https://brawlvision.com/pl',
-      ar: 'https://brawlvision.com/ar',
-      ko: 'https://brawlvision.com/ko',
-      ja: 'https://brawlvision.com/ja',
-      zh: 'https://brawlvision.com/zh',
+const LOCALES = ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh'] as const
+
+function buildLanguageAlternates(locale: string) {
+  const languages: Record<string, string> = {
+    'x-default': 'https://brawlvision.com/es',
+  }
+  for (const l of LOCALES) {
+    languages[l] = `https://brawlvision.com/${l}`
+  }
+  return {
+    canonical: `https://brawlvision.com/${locale}`,
+    languages,
+  }
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+
+  return {
+    metadataBase: new URL('https://brawlvision.com'),
+    title: {
+      absolute: 'BrawlVision | Brawl Stars Combat Analytics & Gem Calculator',
+      template: '%s | BrawlVision',
     },
+    description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, track win rates, and compete on the Global Leaderboard.',
+    keywords: ['Brawl Stars', 'BrawlVision', 'Battle Analytics', 'Gem Calculator', 'Brawl Stars Stats', 'Leaderboard', 'Supercell', 'Profile Tracker'],
+    authors: [{ name: 'BrawlVision Team' }],
+    openGraph: {
+      type: 'website',
+      siteName: 'BrawlVision',
+      url: `https://brawlvision.com/${locale}`,
+      title: 'BrawlVision - Brawl Stars Combat Analytics',
+      description: 'Analyze your battles, track win rates, and calculate your gem value.',
+      locale,
+      images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'BrawlVision' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'BrawlVision | Combat Analytics & Gem Calculator',
+      description: 'Analyze your battles, track win rates, and calculate your gem value.',
+      images: ['/opengraph-image'],
+    },
+    verification: {
+      google: '5uwFXu6M3E0O0IOawv8nl-Ae-OKw72tBOblsWHrXQ2Y',
+    },
+    alternates: buildLanguageAlternates(locale),
   }
 }
 
