@@ -770,6 +770,7 @@
     "colYourWR": "你的WR",
     "colMetaWR": "元数据WR",
     "colDiff": "差异",
-    "colOpponent": "对手"
+    "colOpponent": "对手",
+    "noPersonalData": "与此角色进行更多对战以查看你的个人统计数据"
   }
 }

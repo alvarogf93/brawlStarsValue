@@ -339,7 +339,8 @@
     "colYourWR": "Ton WR",
     "colMetaWR": "WR Méta",
     "colDiff": "Diff",
-    "colOpponent": "Adversaire"
+    "colOpponent": "Adversaire",
+    "noPersonalData": "Joue plus de matchs avec ce brawler pour voir tes stats personnelles"
   },
   "stats": {
     "loading": "Chargement des statistiques...",

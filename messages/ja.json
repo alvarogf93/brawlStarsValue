@@ -770,6 +770,7 @@
     "colYourWR": "あなたのWR",
     "colMetaWR": "メタWR",
     "colDiff": "差",
-    "colOpponent": "相手"
+    "colOpponent": "相手",
+    "noPersonalData": "このブロウラーでもっと試合をして個人統計を確認しよう"
   }
 }

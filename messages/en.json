@@ -460,7 +460,7 @@
     "trialPreviewTitle": "Advanced Analytics",
     "trialPreviewDesc": "Sign up and link your #tag to get 3 days of PRO analytics for free",
     "trialPreviewCta": "Try 3 days free",
-    "trialPreviewLogin": "Already have an account \u2192 Sign in"
+    "trialPreviewLogin": "Already have an account → Sign in"
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -770,6 +770,7 @@
     "colYourWR": "Your WR",
     "colMetaWR": "Meta WR",
     "colDiff": "Diff",
-    "colOpponent": "Opponent"
+    "colOpponent": "Opponent",
+    "noPersonalData": "Play more matches with this brawler to see your personal stats"
   }
 }

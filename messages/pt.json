@@ -339,7 +339,8 @@
     "colYourWR": "Seu WR",
     "colMetaWR": "WR Meta",
     "colDiff": "Dif",
-    "colOpponent": "Oponente"
+    "colOpponent": "Oponente",
+    "noPersonalData": "Jogue mais partidas com este brawler para ver suas estatísticas pessoais"
   },
   "stats": {
     "loading": "Carregando estatísticas...",

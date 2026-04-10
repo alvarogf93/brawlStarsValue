@@ -770,6 +770,7 @@
     "colYourWR": "내 WR",
     "colMetaWR": "메타 WR",
     "colDiff": "차이",
-    "colOpponent": "상대"
+    "colOpponent": "상대",
+    "noPersonalData": "이 브롤러로 더 많은 경기를 하면 개인 통계를 볼 수 있습니다"
   }
 }

@@ -97,9 +97,44 @@ export function PersonalAnalysis({
     )
   }, [brawlerStats, metaData, mapMatrix, matchups, locale])
 
-  // ── Guard: no analytics data at all ─────────────────────────
+  // ── Guard: no analytics data ────────────────────────────────
 
-  if (!analytics || !brawlerStats) return null
+  if (!hasPremium) {
+    // Free user: show blurred teaser with CTA
+    const redirectPath = `/${locale}/profile/${encodeURIComponent(tag)}/subscribe`
+    return (
+      <div className="space-y-6">
+        <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
+          <span className="text-xl">📊</span> {t('personalTitle', { brawler: '' })}
+        </h3>
+        <BlurredTeaser redirectTo={redirectPath}>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="brawl-card-dark p-5 md:p-6 border-[#090E17] text-center">
+              <p className="font-['Lilita_One'] text-xs uppercase text-slate-500 mb-1">{t('yourWR')}</p>
+              <p className="font-['Lilita_One'] text-3xl text-white">54.2%</p>
+            </div>
+            <div className="brawl-card-dark p-5 md:p-6 border-[#090E17] text-center">
+              <p className="font-['Lilita_One'] text-xs uppercase text-slate-500 mb-1">{t('metaWR')}</p>
+              <p className="font-['Lilita_One'] text-3xl text-white">51.8%</p>
+            </div>
+          </div>
+          <div className="brawl-card-dark p-6 border-[#090E17] h-32" />
+          <div className="brawl-card-dark p-6 border-[#090E17] h-24" />
+        </BlurredTeaser>
+      </div>
+    )
+  }
+
+  if (!analytics || !brawlerStats) {
+    // Premium user but no data for this brawler yet
+    return (
+      <div className="brawl-card-dark p-6 border-[#090E17] text-center">
+        <p className="text-sm text-slate-400 font-['Lilita_One']">
+          {t('noPersonalData')}
+        </p>
+      </div>
+    )
+  }
 
   const brawlerName = brawlerStats.name
   const yourWR = brawlerStats.winRate

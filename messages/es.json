@@ -339,7 +339,8 @@
     "colYourWR": "Tu WR",
     "colMetaWR": "Meta WR",
     "colDiff": "Dif.",
-    "colOpponent": "Oponente"
+    "colOpponent": "Oponente",
+    "noPersonalData": "Juega más partidas con este brawler para ver tus estadísticas personales"
   },
   "stats": {
     "loading": "Cargando estadísticas...",
@@ -507,9 +508,9 @@
     "battles": "Batallas",
     "totalBattles": "{count} batallas analizadas",
     "trialPreviewTitle": "Analytics Avanzados",
-    "trialPreviewDesc": "Reg\u00edstrate y vincula tu #tag para obtener 3 d\u00edas de analytics PRO gratis",
-    "trialPreviewCta": "Prueba 3 d\u00edas gratis",
-    "trialPreviewLogin": "Ya tengo cuenta \u2192 Iniciar sesi\u00f3n"
+    "trialPreviewDesc": "Regístrate y vincula tu #tag para obtener 3 días de analytics PRO gratis",
+    "trialPreviewCta": "Prueba 3 días gratis",
+    "trialPreviewLogin": "Ya tengo cuenta → Iniciar sesión"
   },
   "privacy": {
     "title": "Politica de Privacidad",

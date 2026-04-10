@@ -770,6 +770,7 @@
     "colYourWR": "Tua %V",
     "colMetaWR": "Meta %V",
     "colDiff": "Diff.",
-    "colOpponent": "Avversario"
+    "colOpponent": "Avversario",
+    "noPersonalData": "Gioca più partite con questo brawler per vedere le tue statistiche personali"
   }
 }
