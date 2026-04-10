@@ -123,42 +123,50 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
           {/* Equipment */}
           {b && (
             <div className="px-4 py-4 space-y-3">
-              {/* Star Powers */}
-              <div>
-                <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1">Star Powers</p>
-                <div className="flex gap-2">
+              {/* Star Powers — gold background with dark dots */}
+              <div
+                className="relative rounded-xl border-2 border-[var(--color-brawl-dark)] p-3 overflow-hidden"
+                style={{ backgroundColor: '#FFC91B' }}
+              >
+                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#121A2F_1.5px,transparent_1.5px)] [background-size:10px_10px]" />
+                <p className="relative text-[9px] text-[#121A2F] font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Star Powers</p>
+                <div className="relative flex gap-2">
                   {[0, 1].map(i => {
                     const sp = b.starPowers[i]
                     return sp ? (
-                      <div key={sp.id} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                      <div key={sp.id} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/20 border-2 border-[#121A2F]/30">
                         <img src={`/assets/star-powers/${sp.id}.png`} alt={sp.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
                         <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{sp.name}</span>
                       </div>
                     ) : (
-                      <div key={`empty-sp-${i}`} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
-                        <div className="w-6 h-6 rounded bg-white/20" />
-                        <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                      <div key={`empty-sp-${i}`} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/10 border-2 border-[#121A2F]/10 opacity-40">
+                        <div className="w-6 h-6 rounded bg-[#121A2F]/10" />
+                        <span className="text-[10px] text-[#121A2F]/40 font-['Lilita_One']">—</span>
                       </div>
                     )
                   })}
                 </div>
               </div>
 
-              {/* Gadgets */}
-              <div>
-                <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1">Gadgets</p>
-                <div className="flex gap-2">
+              {/* Gadgets — green background with dark dots */}
+              <div
+                className="relative rounded-xl border-2 border-[var(--color-brawl-dark)] p-3 overflow-hidden"
+                style={{ backgroundColor: '#22c55e' }}
+              >
+                <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#121A2F_1.5px,transparent_1.5px)] [background-size:10px_10px]" />
+                <p className="relative text-[9px] text-[#121A2F] font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Gadgets</p>
+                <div className="relative flex gap-2">
                   {[0, 1].map(i => {
                     const g = b.gadgets[i]
                     return g ? (
-                      <div key={g.id} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-green-500 border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                      <div key={g.id} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/20 border-2 border-[#121A2F]/30">
                         <img src={`/assets/gadgets/${g.id}.png`} alt={g.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
                         <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{g.name}</span>
                       </div>
                     ) : (
-                      <div key={`empty-g-${i}`} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
-                        <div className="w-6 h-6 rounded bg-white/20" />
-                        <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                      <div key={`empty-g-${i}`} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/10 border-2 border-[#121A2F]/10 opacity-40">
+                        <div className="w-6 h-6 rounded bg-[#121A2F]/10" />
+                        <span className="text-[10px] text-[#121A2F]/40 font-['Lilita_One']">—</span>
                       </div>
                     )
                   })}
@@ -290,42 +298,44 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
                 <>
                   {/* Equipment grid: 3 columns */}
                   <div className="grid grid-cols-3 gap-3">
-                    {/* Star Powers */}
-                    <div>
-                      <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Star Powers</p>
-                      <div className="flex flex-col gap-1.5">
+                    {/* Star Powers — gold bg with dark dots */}
+                    <div className="relative rounded-xl border-2 border-[var(--color-brawl-dark)] p-2.5 overflow-hidden" style={{ backgroundColor: '#FFC91B' }}>
+                      <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#121A2F_1.5px,transparent_1.5px)] [background-size:10px_10px]" />
+                      <p className="relative text-[9px] text-[#121A2F] font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Star Powers</p>
+                      <div className="relative flex flex-col gap-1.5">
                         {[0, 1].map(i => {
                           const sp = b.starPowers[i]
                           return sp ? (
-                            <div key={sp.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                            <div key={sp.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/20 border-2 border-[#121A2F]/30">
                               <img src={`/assets/star-powers/${sp.id}.png`} alt={sp.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
                               <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{sp.name}</span>
                             </div>
                           ) : (
-                            <div key={`empty-sp-${i}`} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
-                              <div className="w-6 h-6 rounded bg-white/20" />
-                              <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                            <div key={`empty-sp-${i}`} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/10 border-2 border-[#121A2F]/10 opacity-40">
+                              <div className="w-6 h-6 rounded bg-[#121A2F]/10" />
+                              <span className="text-[10px] text-[#121A2F]/40 font-['Lilita_One']">—</span>
                             </div>
                           )
                         })}
                       </div>
                     </div>
 
-                    {/* Gadgets */}
-                    <div>
-                      <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Gadgets</p>
-                      <div className="flex flex-col gap-1.5">
+                    {/* Gadgets — green bg with dark dots */}
+                    <div className="relative rounded-xl border-2 border-[var(--color-brawl-dark)] p-2.5 overflow-hidden" style={{ backgroundColor: '#22c55e' }}>
+                      <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#121A2F_1.5px,transparent_1.5px)] [background-size:10px_10px]" />
+                      <p className="relative text-[9px] text-[#121A2F] font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Gadgets</p>
+                      <div className="relative flex flex-col gap-1.5">
                         {[0, 1].map(i => {
                           const g = b.gadgets[i]
                           return g ? (
-                            <div key={g.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-green-500 border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                            <div key={g.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/20 border-2 border-[#121A2F]/30">
                               <img src={`/assets/gadgets/${g.id}.png`} alt={g.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
                               <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{g.name}</span>
                             </div>
                           ) : (
-                            <div key={`empty-g-${i}`} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
-                              <div className="w-6 h-6 rounded bg-white/20" />
-                              <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                            <div key={`empty-g-${i}`} className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#121A2F]/10 border-2 border-[#121A2F]/10 opacity-40">
+                              <div className="w-6 h-6 rounded bg-[#121A2F]/10" />
+                              <span className="text-[10px] text-[#121A2F]/40 font-['Lilita_One']">—</span>
                             </div>
                           )
                         })}
