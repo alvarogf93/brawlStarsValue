@@ -54,7 +54,8 @@
     "finalSubtitle": "永遠に無料。プロにはプレミアム。",
     "finalGoogle": "Googleでログイン",
     "picksTitle": "マップ別ベストピック",
-    "picksDesc": "現在のローテーションの各マップで最高Win Rateのブロウラーを確認しよう"
+    "picksDesc": "現在のローテーションの各マップで最高Win Rateのブロウラーを確認しよう",
+    "paradeSubtitle": "ブロウラーをタップして統計を確認"
   },
   "nav": {
     "overview": "概要",

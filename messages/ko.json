@@ -54,7 +54,8 @@
     "finalSubtitle": "무료는 영원히. 프리미엄은 프로를 위해.",
     "finalGoogle": "Google로 로그인",
     "picksTitle": "맵별 최고 픽",
-    "picksDesc": "현재 로테이션의 모든 맵에서 최고 Win Rate 브롤러를 확인하세요"
+    "picksDesc": "현재 로테이션의 모든 맵에서 최고 Win Rate 브롤러를 확인하세요",
+    "paradeSubtitle": "브롤러를 탭하여 통계를 확인하세요"
   },
   "nav": {
     "overview": "개요",

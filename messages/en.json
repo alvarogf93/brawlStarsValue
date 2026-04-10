@@ -54,7 +54,8 @@
     "finalSubtitle": "Free forever. Premium for pros.",
     "finalGoogle": "Sign in with Google",
     "picksTitle": "Best Picks by Map",
-    "picksDesc": "Discover the best win rate brawlers for every map in the current rotation"
+    "picksDesc": "Discover the best win rate brawlers for every map in the current rotation",
+    "paradeSubtitle": "Tap a brawler to see their stats"
   },
   "nav": {
     "overview": "Overview",
