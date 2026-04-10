@@ -34,7 +34,7 @@ export async function GET(request: Request) {
   // 3. Fetch meta_stats for this brawler (all sources: global + users)
   const { data: rawStats, error: statsError } = await serviceSupabase
     .from('meta_stats')
-    .select('brawler_id, map, mode, wins, losses, total')
+    .select('brawler_id, map, mode, date, wins, losses, total')
     .eq('brawler_id', brawlerId)
     .gte('date', cutoffDate)
 
@@ -153,6 +153,23 @@ export async function GET(request: Request) {
   const strongAgainst: MatchupStat[] = matchupStats.slice(0, 5).map(({ bayesianWR: _, ...rest }) => rest)
   const weakAgainst: MatchupStat[] = matchupStats.slice(-5).reverse().map(({ bayesianWR: _, ...rest }) => rest)
 
+  // 11. Calculate trend: compare WR from last 7 days vs previous 7 days
+  const now = Date.now()
+  const d7ago = new Date(now - 7 * 86400000).toISOString().slice(0, 10)
+  const d14ago = new Date(now - 14 * 86400000).toISOString().slice(0, 10)
+
+  let recentWins = 0, recentTotal = 0, prevWins = 0, prevTotal = 0
+  for (const r of rawStats ?? []) {
+    const date = (r as { date?: string }).date ?? ''
+    if (date >= d7ago) { recentWins += r.wins; recentTotal += r.total }
+    else if (date >= d14ago) { prevWins += r.wins; prevTotal += r.total }
+  }
+  const recentWR = recentTotal > 0 ? (recentWins / recentTotal) * 100 : 0
+  const prevWR = prevTotal > 0 ? (prevWins / prevTotal) * 100 : 0
+  const trend7d = prevTotal >= 5 && recentTotal >= 5
+    ? Math.round((recentWR - prevWR) * 10) / 10
+    : 0
+
   // 11. Build response
   const response: BrawlerMetaResponse = {
     brawlerId,
@@ -160,7 +177,7 @@ export async function GET(request: Request) {
       winRate: Math.round(globalWinRate * 100) / 100,
       pickRate: Math.round(pickRate * 100) / 100,
       totalBattles: brawlerGames,
-      trend7d: 0, // v1 simplified — no trend calculation yet
+      trend7d,
     },
     bestMaps,
     worstMaps,

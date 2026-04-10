@@ -337,7 +337,7 @@ export default function BrawlersPage() {
             <Link
               key={brawler.id}
               href={`${brawlersBasePath}/${brawler.id}`}
-              className="transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="transition-transform hover:scale-[1.03] hover:-translate-y-1 active:scale-[0.98]"
             >
             <div
               className="group relative pt-6"
@@ -348,12 +348,12 @@ export default function BrawlersPage() {
                 fallbackSrc={getBrawlerPortraitFallback(brawler.id)}
                 alt={brawler.name}
                 fallbackText={brawler.name}
-                className="absolute -top-1 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-115 group-hover:-translate-y-2 w-[100px] h-[100px] rounded-xl"
+                className="absolute -top-1 left-1/2 -translate-x-1/2 z-[5] drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] transition-transform duration-300 group-hover:scale-110 w-[100px] h-[100px] rounded-xl"
               />
 
               {/* Card body */}
               <div
-                className="brawl-card relative overflow-visible transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_24px_-8px_rgba(0,0,0,0.6)]"
+                className="brawl-card relative overflow-visible transition-all duration-300 group-hover:shadow-[0_16px_24px_-8px_rgba(0,0,0,0.6)]"
               >
                 {/* Rarity color header */}
                 <div
@@ -375,7 +375,7 @@ export default function BrawlersPage() {
 
                   {/* Prestige badge — uses Brawlify CDN tiered prestige icons */}
                   {brawler.prestigeLevel > 0 && (
-                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30">
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-[3]">
                       <img
                         src={`https://cdn.brawlify.com/tiers/tiered/prestige-${brawler.prestigeLevel}/${brawler.id}.png`}
                         alt={`Prestige ${brawler.prestigeLevel}`}
