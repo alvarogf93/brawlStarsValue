@@ -505,7 +505,11 @@
     "winRate": "Win Rate",
     "trophies": "Trofeos",
     "battles": "Batallas",
-    "totalBattles": "{count} batallas analizadas"
+    "totalBattles": "{count} batallas analizadas",
+    "trialPreviewTitle": "Analytics Avanzados",
+    "trialPreviewDesc": "Reg\u00edstrate y vincula tu #tag para obtener 3 d\u00edas de analytics PRO gratis",
+    "trialPreviewCta": "Prueba 3 d\u00edas gratis",
+    "trialPreviewLogin": "Ya tengo cuenta \u2192 Iniciar sesi\u00f3n"
   },
   "privacy": {
     "title": "Politica de Privacidad",

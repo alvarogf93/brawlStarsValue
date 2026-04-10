@@ -42,6 +42,7 @@ import { CarryCard } from '@/components/analytics/CarryCard'
 import { SessionEfficiencyCard } from '@/components/analytics/SessionEfficiencyCard'
 import { RecoveryCard } from '@/components/analytics/RecoveryCard'
 import { GadgetImpactCard } from '@/components/analytics/GadgetImpactCard'
+import { AuthModal } from '@/components/auth/AuthModal'
 
 const TAB_IDS = ['overview', 'performance', 'matchups', 'team', 'trends', 'draft', 'metaPro'] as const
 type TabId = (typeof TAB_IDS)[number]
@@ -60,6 +61,66 @@ const TAB_IMAGE_ICONS: Partial<Record<TabId, string>> = {
   trends: '/assets/modes/record-8.png',
   draft: '/assets/modes/48000028.png',
   metaPro: '/assets/modes/record-3.png',
+}
+
+function AnalyticsTrialPreview() {
+  const t = useTranslations('analytics')
+  const [authOpen, setAuthOpen] = useState(false)
+
+  return (
+    <>
+      <div className="animate-fade-in w-full pb-10 space-y-6 relative">
+        {/* Fake analytics skeleton — gives visual preview */}
+        <div className="blur-sm pointer-events-none select-none opacity-60">
+          {/* Header card mimicking real analytics */}
+          <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[var(--color-brawl-blue)] to-[#121A2F]">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-[#FFC91B] border-4 border-[#121A2F] rounded-2xl flex items-center justify-center">
+                <span className="text-2xl">📊</span>
+              </div>
+              <div>
+                <h1 className="text-3xl font-['Lilita_One'] text-white">Analytics</h1>
+                <p className="text-[var(--color-brawl-gold)] text-sm font-['Lilita_One']">PRO</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Fake stat cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {['72.3%', '68/26', '+704', '33.0%'].map((val, i) => (
+              <div key={i} className="brawl-card-dark p-5 text-center border-[#090E17]">
+                <p className="text-xs text-slate-400 mb-1">Stat</p>
+                <p className="font-['Lilita_One'] text-2xl text-white">{val}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Fake chart area */}
+          <div className="brawl-card-dark p-6 border-[#090E17] h-48" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="brawl-card-dark p-6 border-[#090E17] h-32" />
+            <div className="brawl-card-dark p-6 border-[#090E17] h-32" />
+          </div>
+        </div>
+
+        {/* Overlay CTA */}
+        <div className="absolute inset-0 flex items-center justify-center bg-[#121A2F]/40 backdrop-blur-[2px]">
+          <div className="brawl-card p-8 max-w-md text-center">
+            <span className="text-5xl mb-4 block">🔓</span>
+            <h2 className="font-['Lilita_One'] text-2xl text-white mb-2">{t('trialPreviewTitle')}</h2>
+            <p className="text-sm text-slate-400 mb-6">{t('trialPreviewDesc')}</p>
+            <button onClick={() => setAuthOpen(true)} className="brawl-button px-8 py-3 text-lg w-full mb-3">
+              {t('trialPreviewCta')}
+            </button>
+            <button onClick={() => setAuthOpen(true)} className="text-sm text-slate-400 hover:text-white transition-colors">
+              {t('trialPreviewLogin')}
+            </button>
+          </div>
+        </div>
+      </div>
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+    </>
+  )
 }
 
 export default function AnalyticsPage() {
@@ -183,15 +244,9 @@ export default function AnalyticsPage() {
     } catch { /* ignore */ }
   }, [profile])
 
-  // Redirect non-premium users to subscribe page
-  useEffect(() => {
-    if (!authLoading && !hasPremium) {
-      router.replace(`/${params.locale}/profile/${params.tag}/subscribe`)
-    }
-  }, [authLoading, hasPremium, params.locale, params.tag, router])
-
+  // Show blur preview + trial CTA for non-premium users
   if (!authLoading && !hasPremium) {
-    return <AnalyticsSkeleton />
+    return <AnalyticsTrialPreview />
   }
 
   if (authLoading || loading) {
