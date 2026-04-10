@@ -34,10 +34,18 @@ export async function GET(request: Request) {
     }
   )
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (error) {
     console.error('[auth/callback] exchange failed:', error.message)
+    // Retry once — incognito/cold sessions sometimes fail on first attempt
+    const { error: retryError } = await supabase.auth.exchangeCodeForSession(code)
+    if (retryError) {
+      console.error('[auth/callback] retry also failed:', retryError.message)
+      // Redirect to landing with error flag — don't send user to a page expecting auth
+      const locale = next.split('/')[1] || 'es'
+      return NextResponse.redirect(`${origin}/${locale}?auth_error=1`)
+    }
   }
 
   return NextResponse.redirect(`${origin}${next}`)
