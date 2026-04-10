@@ -15,8 +15,12 @@ interface Props {
   playerBrawler: BrawlerStat | null
 }
 
-// All brawlers have these 6 base gears
-const ALL_GEAR_IDS = [62000000, 62000001, 62000002, 62000003, 62000004, 62000017]
+// 6 universal base gears that every brawler can equip
+const BASE_GEAR_IDS = [62000000, 62000001, 62000002, 62000003, 62000004, 62000017]
+
+function getGearImageUrl(id: number): string {
+  return `https://cdn.brawlify.com/gears/regular/${id}.png`
+}
 
 export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
   const { tag, locale } = useParams<{ tag: string; locale: string }>()
@@ -28,7 +32,11 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
   const basePath = tag ? `/${locale}/profile/${tag}` : ''
   const b = playerBrawler
 
-  const ownedGearIds = new Set(b?.gears?.map(g => g.id) ?? [])
+  const ownedGears = b?.gears ?? []
+  const ownedGearIds = new Set(ownedGears.map(g => g.id))
+  // Show base gears + any special gears the brawler owns that aren't in the base set
+  const specialGears = ownedGears.filter(g => !BASE_GEAR_IDS.includes(g.id))
+  const allDisplayGearIds = [...BASE_GEAR_IDS, ...specialGears.map(g => g.id)]
   const hasHC = (b?.hyperCharges?.length ?? 0) > 0
 
   return (
@@ -160,17 +168,17 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
               {/* Gears + HC + Buffies */}
               <div>
                 <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1">Gears</p>
-                <div className="grid grid-cols-6 gap-1">
-                  {ALL_GEAR_IDS.map(gid => (
+                <div className={`grid gap-1 ${allDisplayGearIds.length > 6 ? 'grid-cols-7' : 'grid-cols-6'}`}>
+                  {allDisplayGearIds.map(gid => (
                     <div
                       key={gid}
-                      className={`aspect-square rounded-lg border-2 flex items-center justify-center text-xs ${
+                      className={`aspect-square rounded-lg border-2 flex items-center justify-center p-1 ${
                         ownedGearIds.has(gid)
                           ? 'bg-slate-600 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]'
                           : 'bg-slate-200 border-slate-300 opacity-30'
                       }`}
                     >
-                      🔩
+                      <img src={getGearImageUrl(gid)} alt="" className="w-full h-full object-contain" loading="lazy" />
                     </div>
                   ))}
                 </div>
@@ -327,17 +335,17 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
                     {/* Gears + HC + Buffies */}
                     <div>
                       <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Gears</p>
-                      <div className="grid grid-cols-6 gap-1 max-w-[160px]">
-                        {ALL_GEAR_IDS.map(gid => (
+                      <div className={`grid gap-1 max-w-[180px] ${allDisplayGearIds.length > 6 ? 'grid-cols-7' : 'grid-cols-6'}`}>
+                        {allDisplayGearIds.map(gid => (
                           <div
                             key={gid}
-                            className={`aspect-square rounded-lg border-2 flex items-center justify-center text-[10px] ${
+                            className={`aspect-square rounded-lg border-2 flex items-center justify-center p-0.5 ${
                               ownedGearIds.has(gid)
                                 ? 'bg-slate-600 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]'
                                 : 'bg-slate-200 border-slate-300 opacity-30'
                             }`}
                           >
-                            🔩
+                            <img src={getGearImageUrl(gid)} alt="" className="w-full h-full object-contain" loading="lazy" />
                           </div>
                         ))}
                       </div>
