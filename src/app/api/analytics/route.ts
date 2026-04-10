@@ -4,8 +4,8 @@ import { isPremium } from '@/lib/premium'
 import { computeAdvancedAnalytics } from '@/lib/analytics/compute'
 import type { Profile, Battle } from '@/lib/supabase/types'
 
-/** Per-user rate limit: 1 request per 60 seconds (in-memory, per function instance) */
-const RATE_LIMIT_MS = 60_000
+/** Per-user rate limit: 1 request per 10 seconds (in-memory, per function instance) */
+const RATE_LIMIT_MS = 10_000
 const rateLimitMap = new Map<string, number>()
 
 export async function GET(request: Request) {
