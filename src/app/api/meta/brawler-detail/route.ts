@@ -4,8 +4,9 @@ import { bayesianWinRate } from '@/lib/draft/scoring'
 import { META_ROLLING_DAYS } from '@/lib/draft/constants'
 import type { BrawlerMetaResponse, MapStat, MatchupStat } from '@/lib/brawler-detail/types'
 
-/** Minimum battles required to include a map or matchup in rankings */
-const MIN_GAMES = 10
+/** Minimum battles required to include a map or matchup in rankings.
+ *  Low threshold because Bayesian WR already handles small sample sizes. */
+const MIN_GAMES = 3
 
 /**
  * GET /api/meta/brawler-detail?brawlerId=X&window=14
@@ -30,24 +31,22 @@ export async function GET(request: Request) {
 
   const serviceSupabase = await createServiceClient()
 
-  // 3. Fetch meta_stats for this brawler (global source, within window)
+  // 3. Fetch meta_stats for this brawler (all sources: global + users)
   const { data: rawStats, error: statsError } = await serviceSupabase
     .from('meta_stats')
     .select('brawler_id, map, mode, wins, losses, total')
     .eq('brawler_id', brawlerId)
-    .eq('source', 'global')
     .gte('date', cutoffDate)
 
   if (statsError) {
     return NextResponse.json({ error: 'Failed to fetch meta stats' }, { status: 500 })
   }
 
-  // 4. Fetch meta_matchups for this brawler (global source, within window)
+  // 4. Fetch meta_matchups for this brawler (all sources)
   const { data: rawMatchups, error: matchupsError } = await serviceSupabase
     .from('meta_matchups')
     .select('brawler_id, opponent_id, wins, losses, total')
     .eq('brawler_id', brawlerId)
-    .eq('source', 'global')
     .gte('date', cutoffDate)
 
   if (matchupsError) {
@@ -58,7 +57,6 @@ export async function GET(request: Request) {
   const { data: totalBattlesData, error: totalError } = await serviceSupabase
     .from('meta_stats')
     .select('total')
-    .eq('source', 'global')
     .gte('date', cutoffDate)
 
   if (totalError) {
