@@ -26,12 +26,7 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
   const basePath = tag ? `/${locale}/profile/${tag}` : ''
 
   return (
-    <div
-      className="brawl-card p-5 md:p-8 relative overflow-hidden"
-      style={{
-        background: `linear-gradient(135deg, ${rarityColor}20 0%, transparent 60%)`,
-      }}
-    >
+    <div className="brawl-card p-5 md:p-8 relative overflow-hidden">
       {/* Back link */}
       {basePath && (
         <Link
