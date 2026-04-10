@@ -72,7 +72,7 @@ function useRegistry(): BrawlerEntry[] {
 }
 
 function resolveName(registry: BrawlerEntry[], brawlerId: number): string {
-  return registry.find(b => b.id === brawlerId)?.name ?? ''
+  return registry.find(b => b.id === brawlerId)?.name ?? `#${brawlerId}`
 }
 
 // ── Matchup List ────────────────────────────────────────────
@@ -117,11 +117,9 @@ function MatchupList({ title, entries, registry }: MatchupListProps) {
                 fallbackText={name}
                 className="w-10 h-10 rounded-lg"
               />
-              {name && (
-                <span className="font-['Lilita_One'] text-sm text-white truncate flex-1">
-                  {name}
-                </span>
-              )}
+              <span className="font-['Lilita_One'] text-sm text-white truncate flex-1">
+                {name}
+              </span>
               <span className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(entry.winRate)}`}>
                 {entry.winRate.toFixed(1)}%
               </span>
