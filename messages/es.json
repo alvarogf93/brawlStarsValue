@@ -57,7 +57,18 @@
     "picksDesc": "Descubre los brawlers con mejor win rate en cada mapa de la rotación actual",
     "paradeSubtitle": "Toca un brawler para ver sus estadísticas",
     "brawlerExplorerTitle": "Explora todos los Brawlers",
-    "brawlerExplorerDesc": "Estadísticas, mejores mapas, counters y matchups de cada brawler"
+    "brawlerExplorerDesc": "Estadísticas, mejores mapas, counters y matchups de cada brawler",
+    "trialBannerFreeTitle": "Gratis con tu #tag",
+    "trialBannerFreeP1": "Últimas 25 batallas",
+    "trialBannerFreeP2": "Valor de gemas de tu cuenta",
+    "trialBannerFreeP3": "Stats básicos de rendimiento",
+    "trialBannerProTitle": "3 días PRO gratis",
+    "trialBannerProBadge": "GRATIS",
+    "trialBannerProP1": "Historial ilimitado de batallas",
+    "trialBannerProP2": "Analytics avanzados",
+    "trialBannerProP3": "Meta PRO: qué juegan los mejores",
+    "trialBannerProP4": "Recomendaciones personalizadas",
+    "trialBannerCta": "Registrarme con Google"
   },
   "nav": {
     "overview": "Vista General",

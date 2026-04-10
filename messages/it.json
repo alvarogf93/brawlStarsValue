@@ -57,7 +57,18 @@
     "picksDesc": "Scopri i migliori brawler per ogni mappa della rotazione attuale",
     "paradeSubtitle": "Tocca un brawler per vedere le sue statistiche",
     "brawlerExplorerTitle": "Esplora tutti i Brawler",
-    "brawlerExplorerDesc": "Statistiche, mappe migliori, counter e matchup di ogni brawler"
+    "brawlerExplorerDesc": "Statistiche, mappe migliori, counter e matchup di ogni brawler",
+    "trialBannerFreeTitle": "Free with your #tag",
+    "trialBannerFreeP1": "Last 25 battles",
+    "trialBannerFreeP2": "Gem value of your account",
+    "trialBannerFreeP3": "Basic performance stats",
+    "trialBannerProTitle": "3 days PRO free",
+    "trialBannerProBadge": "FREE",
+    "trialBannerProP1": "Unlimited battle history",
+    "trialBannerProP2": "Advanced analytics",
+    "trialBannerProP3": "Pro Meta: what the best players use",
+    "trialBannerProP4": "Personalized recommendations",
+    "trialBannerCta": "Sign up with Google"
   },
   "nav": {
     "overview": "Panoramica",
