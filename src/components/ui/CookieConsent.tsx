@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 
-const CONSENT_KEY = 'brawlvalue_cookie_consent'
+const CONSENT_KEY = 'brawlvalue:cookie-consent'
 
 export function CookieConsent() {
   const t = useTranslations('consent')

@@ -32,7 +32,7 @@ export default function LandingPage() {
           </div>
 
           <div className="mb-4 flex justify-center">
-            <img src="/assets/brand/logo-full.png" alt="BrawlVision" className="h-24 w-auto drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
+            <img src="/assets/brand/logo-full.png" alt="BrawlVision" width={200} height={96} className="h-24 w-auto drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]" />
           </div>
 
           <h1 className="text-5xl leading-[1.1] font-bold font-['Lilita_One'] mb-2 text-stroke-brawl text-white">

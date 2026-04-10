@@ -66,7 +66,7 @@ export default function PublicBrawlerPage() {
       {/* Simple public header */}
       <header className="bg-[#0F172A] border-b-4 border-[#030712] px-6 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <img src="/assets/brand/logo-full.png" alt="BrawlVision" className="h-auto w-[100px]" />
+          <img src="/assets/brand/logo-full.png" alt="BrawlVision" width={200} height={96} className="h-auto w-[100px]" />
         </Link>
         <div className="flex items-center gap-2">
           <Link
