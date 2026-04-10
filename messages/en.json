@@ -677,7 +677,9 @@
     "window90d": "90 days",
     "noDataForMap": "Not enough pro data for this map",
     "upgradeForGap": "Upgrade to PRO to see your gap analysis",
-    "noGapData": "Play matches on this map to see your gap analysis"
+    "noGapData": "Play matches on this map to see your gap analysis",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "Best Picks",

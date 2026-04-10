@@ -677,7 +677,9 @@
     "window90d": "90 gün",
     "noDataForMap": "Bu harita için yeterli pro verisi yok",
     "upgradeForGap": "Fark analizini görmek için PRO'ya geç",
-    "noGapData": "Fark analizini görmek için bu haritada maçlar oyna"
+    "noGapData": "Fark analizini görmek için bu haritada maçlar oyna",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "En iyi pickler",

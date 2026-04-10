@@ -65,6 +65,14 @@ export const PIN_TIER_LABELS: Record<string, Record<string, string>> = {
   en: { pinSpecial: 'Special', pinEpic: 'Epic', pinCollector: 'Collector' },
 }
 
+/** Centralized display names for game modes (universal game terms, not translated) */
+export const MODE_DISPLAY_NAMES: Record<string, string> = {
+  gemGrab: 'Gem Grab', heist: 'Heist', bounty: 'Bounty', brawlBall: 'Brawl Ball',
+  hotZone: 'Hot Zone', knockout: 'Knockout', wipeout: 'Wipeout',
+  brawlHockey: 'Brawl Hockey', basketBrawl: 'Basket Brawl',
+  soloShowdown: 'Solo SD', duoShowdown: 'Duo SD',
+}
+
 /** Canonical rarity → color map for UI badges, borders, etc. */
 export const RARITY_COLORS: Record<BrawlerRarityName, string> = {
   'Trophy Road': '#95A5A6',

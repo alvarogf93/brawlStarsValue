@@ -677,7 +677,9 @@
     "window90d": "90 Tage",
     "noDataForMap": "Nicht genug Pro-Daten für diese Karte",
     "upgradeForGap": "Upgrade auf PRO für deine Lückenanalyse",
-    "noGapData": "Spiele Kämpfe auf dieser Karte, um deine Lückenanalyse zu sehen"
+    "noGapData": "Spiele Kämpfe auf dieser Karte, um deine Lückenanalyse zu sehen",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "Beste Picks",

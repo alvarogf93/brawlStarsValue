@@ -727,7 +727,9 @@
     "window90d": "90 días",
     "noDataForMap": "No hay suficientes datos pro para este mapa",
     "upgradeForGap": "Mejora a PRO para ver tu análisis de brecha",
-    "noGapData": "Juega partidas en este mapa para ver tu análisis de brecha"
+    "noGapData": "Juega partidas en este mapa para ver tu análisis de brecha",
+    "allModes": "Todos",
+    "showMore": "más mapas"
   },
   "picks": {
     "title": "Mejores Picks",

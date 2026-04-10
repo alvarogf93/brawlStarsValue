@@ -727,7 +727,9 @@
     "window90d": "90 dias",
     "noDataForMap": "Dados pro insuficientes para este mapa",
     "upgradeForGap": "Atualize para PRO para ver sua análise de diferença",
-    "noGapData": "Jogue partidas neste mapa para ver sua análise de diferença"
+    "noGapData": "Jogue partidas neste mapa para ver sua análise de diferença",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "Melhores Picks",

@@ -677,7 +677,9 @@
     "window90d": "90日間",
     "noDataForMap": "このマップのプロデータが不足しています",
     "upgradeForGap": "PROにアップグレードしてギャップ分析を見ましょう",
-    "noGapData": "このマップで試合をプレイしてギャップ分析を確認しましょう"
+    "noGapData": "このマップで試合をプレイしてギャップ分析を確認しましょう",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "ベストピック",

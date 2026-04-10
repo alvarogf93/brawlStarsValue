@@ -677,7 +677,9 @@
     "window90d": "90일",
     "noDataForMap": "이 맵의 프로 데이터가 부족해요",
     "upgradeForGap": "격차 분석을 보려면 PRO로 업그레이드하세요",
-    "noGapData": "이 맵에서 매치를 플레이해야 격차 분석을 볼 수 있어요"
+    "noGapData": "이 맵에서 매치를 플레이해야 격차 분석을 볼 수 있어요",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "최고 픽",

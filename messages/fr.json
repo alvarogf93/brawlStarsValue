@@ -727,7 +727,9 @@
     "window90d": "90 jours",
     "noDataForMap": "Pas assez de données pro pour cette carte",
     "upgradeForGap": "Passe PRO pour voir ton analyse d'écart",
-    "noGapData": "Joue des matchs sur cette carte pour voir ton analyse d'écart"
+    "noGapData": "Joue des matchs sur cette carte pour voir ton analyse d'écart",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "Meilleurs Picks",

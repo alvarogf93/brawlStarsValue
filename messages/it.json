@@ -677,7 +677,9 @@
     "window90d": "90 giorni",
     "noDataForMap": "Dati pro insufficienti per questa mappa",
     "upgradeForGap": "Passa a PRO per vedere la tua analisi",
-    "noGapData": "Gioca partite su questa mappa per vedere la tua analisi di divario"
+    "noGapData": "Gioca partite su questa mappa per vedere la tua analisi di divario",
+    "allModes": "All",
+    "showMore": "more maps"
   },
   "picks": {
     "title": "Migliori Pick",
