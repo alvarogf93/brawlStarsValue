@@ -71,11 +71,7 @@ function useRegistry(): BrawlerEntry[] {
   return registry
 }
 
-function resolveName(registry: BrawlerEntry[], brawlerId: number, playerNames?: Map<number, string>): string {
-  return registry.find(b => b.id === brawlerId)?.name
-    ?? playerNames?.get(brawlerId)
-    ?? `#${brawlerId}`
-}
+import { resolveBrawlerName } from '@/lib/brawler-name'
 
 // ── Matchup List ────────────────────────────────────────────
 
@@ -107,7 +103,7 @@ function MatchupList({ title, entries, registry, playerNames }: MatchupListProps
       </h3>
       <div className="space-y-2">
         {entries.slice(0, 5).map(entry => {
-          const name = resolveName(registry, entry.opponentId, playerNames)
+          const name = resolveBrawlerName(entry.opponentId, playerNames)
           return (
             <div
               key={entry.opponentId}
@@ -243,7 +239,7 @@ export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
           </h3>
           <div className="space-y-2">
             {bestTeammates.slice(0, 5).map(tm => {
-              const name = resolveName(registry, tm.teammateId, playerBrawlerNames)
+              const name = resolveBrawlerName(tm.teammateId, playerBrawlerNames)
               return (
                 <div key={tm.teammateId} className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-2.5">
                   <BrawlImg

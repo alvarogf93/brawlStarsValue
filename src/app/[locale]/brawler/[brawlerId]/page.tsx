@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { useBrawlerMeta } from '@/hooks/useBrawlerMeta'
 import { getCachedRegistry } from '@/lib/brawler-registry'
+import { resolveBrawlerName } from '@/lib/brawler-name'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, RARITY_COLORS } from '@/lib/constants'
 import { MetaIntelligence } from '@/components/brawler-detail/MetaIntelligence'
@@ -57,7 +58,7 @@ export default function PublicBrawlerPage() {
   const brawlerInfo: BrawlerEntry | null = registry?.find(b => b.id === brawlerId) ?? null
   const rarity: BrawlerRarityName = BRAWLER_RARITY_MAP[brawlerId] ?? 'Trophy Road'
   const rarityColor = RARITY_COLORS[rarity]
-  const name = brawlerInfo?.name ?? `Brawler ${brawlerId}`
+  const name = resolveBrawlerName(brawlerId)
 
   if (isLoading) return <PublicBrawlerSkeleton />
 
