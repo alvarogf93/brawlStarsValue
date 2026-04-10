@@ -96,7 +96,10 @@ export default function BrawlerDetailPage() {
       />
 
       {metaData && (
-        <MetaIntelligence data={metaData} />
+        <MetaIntelligence
+          data={metaData}
+          playerBrawlerNames={playerData?.player?.brawlers?.reduce((m, b) => { m.set(b.id, b.name); return m }, new Map<number, string>())}
+        />
       )}
 
       {playerBrawler && (

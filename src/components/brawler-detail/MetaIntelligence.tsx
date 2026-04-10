@@ -71,8 +71,10 @@ function useRegistry(): BrawlerEntry[] {
   return registry
 }
 
-function resolveName(registry: BrawlerEntry[], brawlerId: number): string {
-  return registry.find(b => b.id === brawlerId)?.name ?? `#${brawlerId}`
+function resolveName(registry: BrawlerEntry[], brawlerId: number, playerNames?: Map<number, string>): string {
+  return registry.find(b => b.id === brawlerId)?.name
+    ?? playerNames?.get(brawlerId)
+    ?? `#${brawlerId}`
 }
 
 // ── Matchup List ────────────────────────────────────────────
@@ -81,9 +83,10 @@ interface MatchupListProps {
   title: string
   entries: MatchupStat[]
   registry: BrawlerEntry[]
+  playerNames?: Map<number, string>
 }
 
-function MatchupList({ title, entries, registry }: MatchupListProps) {
+function MatchupList({ title, entries, registry, playerNames }: MatchupListProps) {
   const t = useTranslations('brawlerDetail')
 
   if (entries.length === 0) {
@@ -104,7 +107,7 @@ function MatchupList({ title, entries, registry }: MatchupListProps) {
       </h3>
       <div className="space-y-2">
         {entries.slice(0, 5).map(entry => {
-          const name = resolveName(registry, entry.opponentId)
+          const name = resolveName(registry, entry.opponentId, playerNames)
           return (
             <div
               key={entry.opponentId}
@@ -135,9 +138,11 @@ function MatchupList({ title, entries, registry }: MatchupListProps) {
 
 interface Props {
   data: BrawlerMetaResponse
+  /** Optional name map from player's own brawlers — fallback when BrawlAPI registry is incomplete */
+  playerBrawlerNames?: Map<number, string>
 }
 
-export function MetaIntelligence({ data }: Props) {
+export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
   const t = useTranslations('brawlerDetail')
   const registry = useRegistry()
   const mapImages = useMapImages()
@@ -226,8 +231,8 @@ export function MetaIntelligence({ data }: Props) {
 
       {/* ── Counters ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <MatchupList title={`💪 ${t('strongAgainst')}`} entries={strongAgainst} registry={registry} />
-        <MatchupList title={`⚠️ ${t('weakAgainst')}`} entries={weakAgainst} registry={registry} />
+        <MatchupList title={`💪 ${t('strongAgainst')}`} entries={strongAgainst} registry={registry} playerNames={playerBrawlerNames} />
+        <MatchupList title={`⚠️ ${t('weakAgainst')}`} entries={weakAgainst} registry={registry} playerNames={playerBrawlerNames} />
       </div>
 
       {/* ── Best Teammates ── */}
@@ -238,7 +243,7 @@ export function MetaIntelligence({ data }: Props) {
           </h3>
           <div className="space-y-2">
             {bestTeammates.slice(0, 5).map(tm => {
-              const name = resolveName(registry, tm.teammateId)
+              const name = resolveName(registry, tm.teammateId, playerBrawlerNames)
               return (
                 <div key={tm.teammateId} className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-2.5">
                   <BrawlImg
