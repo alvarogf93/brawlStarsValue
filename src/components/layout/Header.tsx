@@ -7,7 +7,6 @@ import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
-import type { Profile } from '@/lib/supabase/types'
 import { Menu, LogOut, RefreshCw, User, Crown, Home, Gift } from 'lucide-react'
 import Link from 'next/link'
 
@@ -48,13 +47,13 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [profileMenuOpen])
 
-  const hasPremium = !loading && user && profile && isPremium(profile as Profile)
+  const hasPremium = !loading && user && profile && isPremium(profile)
 
   const handleSync = async () => {
     setSyncing(true)
 
     // Premium: call sync API first
-    if (user && profile && isPremium(profile as Profile)) {
+    if (user && profile && isPremium(profile)) {
       try {
         await fetch('/api/sync', { method: 'POST' })
       } catch { /* ignore */ }
@@ -126,7 +125,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               {playerTag}
             </span>
           )}
-          {!loading && user && isPremium(profile as Profile) && profile?.last_sync && (
+          {!loading && user && isPremium(profile) && profile?.last_sync && (
             <span className="text-[10px] text-slate-500 font-semibold hidden md:inline-block">
               {t('lastSync')}: {formatTimeAgo(profile.last_sync)}
             </span>
@@ -143,7 +142,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
               <span className="hidden sm:inline">{t('login')}</span>
             </button>
           )}
-          {!loading && user && profile && !isPremium(profile as Profile) && (
+          {!loading && user && profile && !isPremium(profile) && (
             <Link
               href={`/${locale}/profile/${encodeURIComponent(profile.player_tag)}/subscribe`}
               className="cursor-pointer flex items-center gap-1.5 px-3 py-2 text-sm font-['Lilita_One'] text-slate-400 bg-white/5 hover:bg-white/10 hover:text-[#FFC91B] rounded-xl transition-colors border border-white/10 hover:border-[#FFC91B]/30"
@@ -238,17 +237,17 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
                   )}
 
                   {/* Referral code copy */}
-                  {(profile as Profile)?.referral_code && (
+                  {profile?.referral_code && (
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${(profile as Profile).referral_code}`)
+                        navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${profile.referral_code}`)
                         setRefCopied(true)
                         setTimeout(() => setRefCopied(false), 2000)
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors"
                     >
                       <Gift className="w-4 h-4" />
-                      {refCopied ? `✓ ${t('referralCopied')}` : `${t('referral')} (${(profile as Profile).referral_code})`}
+                      {refCopied ? `✓ ${t('referralCopied')}` : `${t('referral')} (${profile.referral_code})`}
                     </button>
                   )}
 

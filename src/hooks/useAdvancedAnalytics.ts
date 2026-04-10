@@ -29,7 +29,12 @@ export function useAdvancedAnalytics(enabled = true): UseAdvancedAnalyticsResult
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json()
       })
-      .then(json => setData(json as AdvancedAnalytics))
+      .then(json => {
+        if (!json || typeof json !== 'object' || !('byBrawler' in json)) {
+          throw new Error('Invalid analytics response')
+        }
+        setData(json as AdvancedAnalytics)
+      })
       .catch(err => {
         if (err.name === 'AbortError') return
         setError(err.message)

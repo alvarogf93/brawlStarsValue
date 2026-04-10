@@ -7,7 +7,6 @@ import { useAuth } from '@/hooks/useAuth'
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
 import { isPremium, isOnTrial } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
-import type { Profile } from '@/lib/supabase/types'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { FlaskConical, ChevronDown } from 'lucide-react'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
@@ -129,7 +128,7 @@ export default function AnalyticsPage() {
   const ta = useTranslations('advancedAnalytics')
   const router = useRouter()
   const { user, profile, loading: authLoading } = useAuth()
-  const hasPremium = isPremium(profile as Profile | null)
+  const hasPremium = isPremium(profile)
   // Only fetch analytics after auth resolves AND user is premium
   const tag = decodeURIComponent(params.tag)
 
@@ -232,7 +231,7 @@ export default function AnalyticsPage() {
 
   // Trial celebration — show confetti once on first premium visit after trial activation
   useEffect(() => {
-    if (!isOnTrial(profile as Profile)) return
+    if (!isOnTrial(profile)) return
     const key = 'brawlvalue:trial-celebrated'
     try {
       if (localStorage.getItem(key)) return
@@ -421,7 +420,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* Subscription section for trial users — always accessible */}
-      {isOnTrial(profile as Profile) && (
+      {isOnTrial(profile) && (
         <div id="upgrade-section" className="mt-8 space-y-4">
           <UpgradeCard redirectTo={`/${params.locale}/profile/${params.tag}/analytics`} />
           <ReferralCard />

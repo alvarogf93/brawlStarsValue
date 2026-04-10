@@ -9,7 +9,6 @@ import { Footer } from '@/components/common/Footer'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
-import type { Profile } from '@/lib/supabase/types'
 
 const AUTO_SYNC_INTERVAL_MS = 60 * 60 * 1000 // 1 hour
 
@@ -72,7 +71,7 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (authLoading) return
     if (!user || !profile?.player_tag) return
-    if (!isPremium(profile as Profile)) return
+    if (!isPremium(profile)) return
     // Only auto-sync when viewing own profile
     if (tag.toUpperCase() !== profile.player_tag.toUpperCase()) return
 
