@@ -440,7 +440,11 @@
     "winRate": "% Vittoria",
     "trophies": "Trofei",
     "battles": "Battaglie",
-    "totalBattles": "{count} battaglie analizzate"
+    "totalBattles": "{count} battaglie analizzate",
+    "trialPreviewTitle": "Advanced Analytics",
+    "trialPreviewDesc": "Sign up and link your #tag to get 3 days of PRO analytics for free",
+    "trialPreviewCta": "Try 3 days free",
+    "trialPreviewLogin": "Already have an account \u2192 Sign in"
   },
   "privacy": {
     "title": "Informativa sulla Privacy",

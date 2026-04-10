@@ -440,7 +440,11 @@
     "winRate": "Win Rate",
     "trophies": "Trophies",
     "battles": "Battles",
-    "totalBattles": "{count} battles analyzed"
+    "totalBattles": "{count} battles analyzed",
+    "trialPreviewTitle": "Advanced Analytics",
+    "trialPreviewDesc": "Sign up and link your #tag to get 3 days of PRO analytics for free",
+    "trialPreviewCta": "Try 3 days free",
+    "trialPreviewLogin": "Already have an account \u2192 Sign in"
   },
   "privacy": {
     "title": "Privacy Policy",

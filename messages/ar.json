@@ -440,7 +440,11 @@
     "winRate": "معدل الفوز",
     "trophies": "الكؤوس",
     "battles": "المعارك",
-    "totalBattles": "{count} معارك محللة"
+    "totalBattles": "{count} معارك محللة",
+    "trialPreviewTitle": "Advanced Analytics",
+    "trialPreviewDesc": "Sign up and link your #tag to get 3 days of PRO analytics for free",
+    "trialPreviewCta": "Try 3 days free",
+    "trialPreviewLogin": "Already have an account \u2192 Sign in"
   },
   "privacy": {
     "title": "سياسة الخصوصية",
