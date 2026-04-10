@@ -31,6 +31,13 @@
             "command": "bash .claude/hooks/pre-push-check.sh",
             "timeout": 120,
             "statusMessage": "Running TypeScript check before push..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push *)",
+            "command": "bash .claude/hooks/pre-push-i18n.sh",
+            "timeout": 30,
+            "statusMessage": "Validating i18n key consistency..."
           }
         ]
       }

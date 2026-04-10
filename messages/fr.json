@@ -58,7 +58,6 @@
     "paradeSubtitle": "Touche un brawler pour voir ses stats",
     "brawlerExplorerTitle": "Explorez tous les Brawlers",
     "brawlerExplorerDesc": "Stats, meilleures cartes, contres et matchups de chaque brawler",
-    "trialBannerFreeTitle": "Gratuit avec ton #tag",
     "trialBannerFreeP1": "25 derniers combats",
     "trialBannerFreeP2": "Valeur en gemmes de ton compte",
     "trialBannerFreeP3": "Stats de performance basiques",
@@ -73,7 +72,8 @@
     "explorePicksTitle": "Picks du jour",
     "explorePicksDesc": "Les meilleurs picks pour chaque carte en rotation",
     "exploreBrawlersTitle": "Stats des Brawlers",
-    "exploreBrawlersDesc": "Contres, meilleures cartes et matchups"
+    "exploreBrawlersDesc": "Contres, meilleures cartes et matchups",
+    "trialBannerFreeTitle": "Gratuit avec ton #tag"
   },
   "nav": {
     "overview": "Aperçu",
