@@ -68,7 +68,12 @@
     "trialBannerProP2": "Advanced analytics",
     "trialBannerProP3": "Pro Meta: what the best players use",
     "trialBannerProP4": "Personalized recommendations",
-    "trialBannerCta": "Sign up with Google"
+    "trialBannerCta": "Sign up with Google",
+    "exploreTitle": "Explore",
+    "explorePicksTitle": "Today's Picks",
+    "explorePicksDesc": "Best picks for each map in rotation",
+    "exploreBrawlersTitle": "Brawler Stats",
+    "exploreBrawlersDesc": "Counters, best maps and matchups"
   },
   "nav": {
     "overview": "Przegląd",
