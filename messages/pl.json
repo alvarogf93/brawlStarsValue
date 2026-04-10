@@ -57,7 +57,18 @@
     "picksDesc": "Odkryj najlepszych pod względem Win Rate brawlerów dla każdej mapy w bieżącej rotacji",
     "paradeSubtitle": "Dotknij brawlera, aby zobaczyć jego statystyki",
     "brawlerExplorerTitle": "Odkryj wszystkich Brawlerów",
-    "brawlerExplorerDesc": "Statystyki, najlepsze mapy, kontrpicki i matchupy każdego brawlera"
+    "brawlerExplorerDesc": "Statystyki, najlepsze mapy, kontrpicki i matchupy każdego brawlera",
+    "trialBannerFreeTitle": "Free with your #tag",
+    "trialBannerFreeP1": "Last 25 battles",
+    "trialBannerFreeP2": "Gem value of your account",
+    "trialBannerFreeP3": "Basic performance stats",
+    "trialBannerProTitle": "3 days PRO free",
+    "trialBannerProBadge": "FREE",
+    "trialBannerProP1": "Unlimited battle history",
+    "trialBannerProP2": "Advanced analytics",
+    "trialBannerProP3": "Pro Meta: what the best players use",
+    "trialBannerProP4": "Personalized recommendations",
+    "trialBannerCta": "Sign up with Google"
   },
   "nav": {
     "overview": "Przegląd",
