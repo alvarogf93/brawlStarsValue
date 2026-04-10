@@ -55,7 +55,9 @@
     "finalGoogle": "Googleでログイン",
     "picksTitle": "マップ別ベストピック",
     "picksDesc": "現在のローテーションの各マップで最高Win Rateのブロウラーを確認しよう",
-    "paradeSubtitle": "ブロウラーをタップして統計を確認"
+    "paradeSubtitle": "ブロウラーをタップして統計を確認",
+    "brawlerExplorerTitle": "すべてのブロウラーを探索",
+    "brawlerExplorerDesc": "各ブロウラーの統計、ベストマップ、カウンター、マッチアップ"
   },
   "nav": {
     "overview": "概要",

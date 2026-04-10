@@ -55,7 +55,9 @@
     "finalGoogle": "Google ile giriş yap",
     "picksTitle": "Haritaya göre en iyi pickler",
     "picksDesc": "Mevcut rotasyondaki her harita için en yüksek Win Rate brawler'ları keşfet",
-    "paradeSubtitle": "İstatistiklerini görmek için bir brawler'a dokun"
+    "paradeSubtitle": "İstatistiklerini görmek için bir brawler'a dokun",
+    "brawlerExplorerTitle": "Tüm Brawler'ları keşfet",
+    "brawlerExplorerDesc": "İstatistikler, en iyi haritalar, counterlar ve her brawler için matchup'lar"
   },
   "nav": {
     "overview": "Genel bakış",

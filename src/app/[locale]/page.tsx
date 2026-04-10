@@ -78,7 +78,26 @@ export default function LandingPage() {
         </Link>
       </SectionReveal>
 
-      {/* Section 5: Brawler Parade */}
+      {/* Section 5: Brawler Explorer Banner */}
+      <SectionReveal className="px-4 py-8">
+        <Link
+          href={`/${locale}/brawler/16000000`}
+          className="block max-w-[900px] mx-auto brawl-card-dark p-6 md:p-8 border-[#FFC91B]/20 hover:border-[#FFC91B]/40 transition-all hover:scale-[1.01] group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-4xl">🔍</span>
+              <div>
+                <h3 className="font-['Lilita_One'] text-xl md:text-2xl text-white">{t('brawlerExplorerTitle')}</h3>
+                <p className="text-sm text-slate-400 mt-0.5">{t('brawlerExplorerDesc')}</p>
+              </div>
+            </div>
+            <span className="font-['Lilita_One'] text-[#FFC91B] text-2xl group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </Link>
+      </SectionReveal>
+
+      {/* Section 6: Brawler Parade */}
       <SectionReveal className="py-16 px-4 overflow-hidden">
         <BrawlerParade />
       </SectionReveal>

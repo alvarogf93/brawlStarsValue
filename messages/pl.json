@@ -55,7 +55,9 @@
     "finalGoogle": "Zaloguj się przez Google",
     "picksTitle": "Najlepsze picki na mapę",
     "picksDesc": "Odkryj najlepszych pod względem Win Rate brawlerów dla każdej mapy w bieżącej rotacji",
-    "paradeSubtitle": "Dotknij brawlera, aby zobaczyć jego statystyki"
+    "paradeSubtitle": "Dotknij brawlera, aby zobaczyć jego statystyki",
+    "brawlerExplorerTitle": "Odkryj wszystkich Brawlerów",
+    "brawlerExplorerDesc": "Statystyki, najlepsze mapy, kontrpicki i matchupy każdego brawlera"
   },
   "nav": {
     "overview": "Przegląd",

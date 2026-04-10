@@ -55,7 +55,9 @@
     "finalGoogle": "Sign in with Google",
     "picksTitle": "Best Picks by Map",
     "picksDesc": "Discover the best win rate brawlers for every map in the current rotation",
-    "paradeSubtitle": "Tap a brawler to see their stats"
+    "paradeSubtitle": "Tap a brawler to see their stats",
+    "brawlerExplorerTitle": "Explore all Brawlers",
+    "brawlerExplorerDesc": "Stats, best maps, counters and matchups for every brawler"
   },
   "nav": {
     "overview": "Overview",

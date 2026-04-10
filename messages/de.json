@@ -55,7 +55,9 @@
     "finalGoogle": "Mit Google anmelden",
     "picksTitle": "Beste Picks pro Karte",
     "picksDesc": "Entdecke die besten Brawler für jede Karte der aktuellen Rotation",
-    "paradeSubtitle": "Tippe auf einen Brawler um seine Statistiken zu sehen"
+    "paradeSubtitle": "Tippe auf einen Brawler um seine Statistiken zu sehen",
+    "brawlerExplorerTitle": "Alle Brawler entdecken",
+    "brawlerExplorerDesc": "Statistiken, beste Karten, Counter und Matchups für jeden Brawler"
   },
   "nav": {
     "overview": "Übersicht",
