@@ -1,54 +1,50 @@
-# Event ID Migration — Design Spec (DRAFT)
+# Event ID Migration — Design Spec
 
 **Date:** 2026-04-10
-**Status:** Draft — needs brainstorming session
-**Priority:** HIGH — simplifies data model, enables map images everywhere
+**Status:** REJECTED — investigation concluded, not viable
+**Priority:** N/A
 
 ---
 
-## Problem
+## Original Problem
 
-`meta_stats` currently groups by `brawler_id + map (string) + mode (string)`. This has issues:
+`meta_stats` groups by `brawler_id + map (string) + mode (string)`. Proposed replacing with `event_id (integer)` for cleaner lookups and direct CDN image URLs.
 
-1. **No map images** — We need `event_id` to get map images from Brawlify CDN (`cdn.brawlify.com/maps/regular/{eventId}.png`). Currently resolving images by map name via a separate `useMapImages` hook is a workaround.
-2. **String comparison is slower** than integer comparison for queries and indexes.
-3. **Redundancy** — `event_id` already encodes both the map AND the mode. `map + mode` as strings are redundant when we have the integer ID.
+## Investigation Results
 
-## Proposed Change
+### Data from BrawlAPI (verified 2026-04-10)
 
-Replace `map (text) + mode (text)` with `event_id (integer)` as the grouping key in `meta_stats`.
+Queried `https://api.brawlapi.com/v1/maps` — 1,132 map entries, 853 unique names.
 
-**Key insight:** A Brawl Stars `event_id` is permanent per map. "Pinhole Punt" always has the same `event_id` regardless of rotation schedule.
+**Key findings:**
 
-## Impact Analysis (must verify each)
+1. **event_id is stable per map version** — does NOT change between rotations. "Pinhole Punt" in Brawl Ball is always `15000026`.
 
-### Database
-- `meta_stats` table: add `event_id integer` column, possibly replace `map + mode` or keep for backward compat
-- `bulk_upsert_meta_stats` RPC: update to accept `event_id`, update upsert conflict key
-- Indexes: new index on `(brawler_id, event_id, source, date)`
+2. **CRITICAL: 108 map+mode combinations have MULTIPLE event_ids.** The same map in the same mode can have different IDs across time (map remakes, balance updates, seasonal versions).
+   - "Hard Rock Mine" in Gem Grab: **6 different event_ids** (15000007, 15000305, 15000664, 15000685, 15000708, 15000780)
+   - "Skull Creek" across modes: **10 different event_ids**
+   - "Shooting Star" in Bounty: **4 different event_ids**
 
-### Backend
-- `meta-accumulator.ts`: change `BattleMetaInput` to include `eventId`, change stat key from `brawlerId|map|mode` to `brawlerId|eventId`
-- `cron/sync/route.ts`: pass `event_id` from parsed battle
-- `cron/meta-poll/route.ts`: pass `entry.event.id`
-- `api/draft/data/route.ts`: query by `event_id` instead of `map + mode`
-- `api/meta/brawler-detail/route.ts`: select `event_id`, group by it
-- `api/meta/pro-analysis/route.ts`: query by `event_id`
+3. **event_id encodes map+mode+version**, not just map+mode.
 
-### Frontend
-- `MetaIntelligence.tsx`: use `getMapImageUrl(eventId)` directly, remove `useMapImages` dependency
-- `MapSelector.tsx`: may need updates if it uses map name for queries
-- Remove `useMapImages` hook if no longer needed
+### Why This Kills the Migration
 
-### Data
-- Need a `event_id → map_name + mode` lookup (from BrawlAPI or stored in DB)
-- Existing data in `meta_stats` needs migration (backfill `event_id` from map name)
+If we group by `event_id`, data for "Hard Rock Mine in Gem Grab" would split across 6 separate groups instead of 1. Win rates would be fragmented across versions, making statistical calculations meaningless with small sample sizes.
 
-## Questions to Resolve
-1. Keep `map + mode` columns for human readability, or drop them?
-2. How to backfill `event_id` for existing rows? (match map name against BrawlAPI)
-3. Should `meta_matchups` also get `event_id`? (currently mode-level only)
-4. Impact on `battles` table? (already has `event_id` column?)
+The current approach (`map + mode` strings) correctly groups all versions together, which is what users expect — they want to know "how does Shelly perform on Hard Rock Mine?" regardless of which version of the map it is.
 
-## Recommendation
-This is a **schema migration** that touches 6+ API routes, 2 RPC functions, and the accumulator. Needs its own spec → plan → execution cycle. Don't rush it.
+## Decision: NOT DOING
+
+**Reason:** `event_id` is not a 1:1 replacement for `map+mode`. It's more granular (includes version), which fragments data and reduces statistical significance.
+
+**Current solution works correctly:**
+- `useMapImages` hook resolves `mapName → imageUrl` via `/api/maps` endpoint
+- Cached 24h in localStorage
+- Zero database changes needed
+- MetaIntelligence component uses it for map background images
+
+**The only "cost" is one extra HTTP call (cached) — negligible vs. a production schema migration.**
+
+## Lesson
+
+Before proposing a database migration, verify the data model assumptions against real data. "event_id is permanent per map" was partially true but missed the version dimension that makes it unsuitable as an aggregation key.
