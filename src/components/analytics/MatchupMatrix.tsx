@@ -116,71 +116,101 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
         </div>
       </div>
 
-      {/* Matchup list */}
-      <div className="space-y-1.5">
-        {visible.map(m => {
-          const losses = m.total - m.wins
-          return (
-            <div
-              key={`${m.myBrawlerId}-${m.opponentBrawlerId}`}
-              className={`flex items-center gap-2 brawl-row rounded-xl px-3 py-2 ${m.total < 3 ? 'opacity-50' : ''}`}
-            >
-              {/* Confidence dot */}
-              <ConfidenceBadge total={m.total} />
+      {/* Matchup table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[9px] text-slate-500 uppercase tracking-wider">
+              <th className="text-left pb-2 pl-1 font-bold">{t('matchupYou')}</th>
+              <th className="text-left pb-2 font-bold">vs</th>
+              <th className="text-right pb-2 font-bold">WR</th>
+              <th className="text-right pb-2 font-bold hidden sm:table-cell">W/L</th>
+              <th className="text-right pb-2 font-bold hidden sm:table-cell">{t('matchupGames')}</th>
+              {proMatchups && <th className="text-right pb-2 font-bold">PRO</th>}
+              {proMatchups && <th className="text-right pb-2 pr-1 font-bold hidden sm:table-cell">Diff</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map(m => {
+              const losses = m.total - m.wins
+              const proEntry = proMatchups?.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`)
+              const diff = proEntry ? m.winRate - proEntry.winRate : null
+              return (
+                <tr
+                  key={`${m.myBrawlerId}-${m.opponentBrawlerId}`}
+                  className={`border-t border-white/5 hover:bg-white/[0.03] transition-colors ${m.total < 3 ? 'opacity-40' : ''}`}
+                >
+                  {/* My brawler */}
+                  <td className="py-1.5 pl-1">
+                    <div className="flex items-center gap-1.5">
+                      <BrawlImg
+                        src={getBrawlerPortraitUrl(m.myBrawlerId)}
+                        fallbackSrc={getBrawlerPortraitFallback(m.myBrawlerId)}
+                        alt={m.myBrawlerName}
+                        className="w-6 h-6 rounded-md"
+                      />
+                      <span className="text-xs text-white font-['Lilita_One'] truncate max-w-[70px]">{m.myBrawlerName}</span>
+                    </div>
+                  </td>
 
-              {/* My brawler */}
-              <BrawlImg
-                src={getBrawlerPortraitUrl(m.myBrawlerId)}
-                fallbackSrc={getBrawlerPortraitFallback(m.myBrawlerId)}
-                alt={m.myBrawlerName}
-                className="w-6 h-6 rounded-md flex-shrink-0"
-              />
+                  {/* Opponent */}
+                  <td className="py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <BrawlImg
+                        src={getBrawlerPortraitUrl(m.opponentBrawlerId)}
+                        fallbackSrc={getBrawlerPortraitFallback(m.opponentBrawlerId)}
+                        alt={m.opponentBrawlerName}
+                        className="w-6 h-6 rounded-md"
+                      />
+                      <span className="text-xs text-slate-300 truncate max-w-[70px]">{m.opponentBrawlerName}</span>
+                    </div>
+                  </td>
 
-              <span className="text-[10px] text-slate-500 font-bold flex-shrink-0">vs</span>
+                  {/* Win Rate */}
+                  <td className={`py-1.5 text-right font-['Lilita_One'] text-sm tabular-nums ${wrColor(m.winRate)}`}>
+                    {m.winRate.toFixed(1)}%
+                  </td>
 
-              {/* Opponent brawler */}
-              <BrawlImg
-                src={getBrawlerPortraitUrl(m.opponentBrawlerId)}
-                fallbackSrc={getBrawlerPortraitFallback(m.opponentBrawlerId)}
-                alt={m.opponentBrawlerName}
-                className="w-6 h-6 rounded-md flex-shrink-0"
-              />
+                  {/* W/L */}
+                  <td className="py-1.5 text-right text-[10px] text-slate-400 tabular-nums hidden sm:table-cell">
+                    <span className="text-green-400">{m.wins}</span>
+                    <span className="text-slate-600">/</span>
+                    <span className="text-red-400">{losses}</span>
+                  </td>
 
-              {/* Win rate bar */}
-              <div className="flex-1 min-w-0 mx-2">
-                <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full bg-gradient-to-r ${barGradient(m.winRate)}`}
-                    style={{ width: `${Math.min(m.winRate, 100)}%` }}
-                  />
-                </div>
-              </div>
+                  {/* Games */}
+                  <td className="py-1.5 text-right text-[10px] text-slate-500 tabular-nums hidden sm:table-cell">
+                    {m.total}
+                  </td>
 
-              {/* Win rate text */}
-              <span className={`font-['Lilita_One'] text-sm flex-shrink-0 w-12 text-right ${wrColor(m.winRate)}`}>
-                {m.winRate.toFixed(1)}%
-              </span>
-              {proMatchups?.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`) && (
-                <ProBadge
-                  proValue={proMatchups.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`)!.winRate}
-                  userValue={m.winRate}
-                  total={proMatchups.get(`${m.myBrawlerId}|${m.opponentBrawlerId}`)!.total}
-                  compact
-                />
-              )}
+                  {/* PRO WR */}
+                  {proMatchups && (
+                    <td className="py-1.5 text-right text-[10px] tabular-nums">
+                      {proEntry ? (
+                        <span className="text-[#FFC91B]">{proEntry.winRate.toFixed(1)}%</span>
+                      ) : (
+                        <span className="text-slate-600">—</span>
+                      )}
+                    </td>
+                  )}
 
-              {/* W/L count */}
-              <span className="text-[10px] text-slate-500 flex-shrink-0 w-14 text-right">
-                {m.wins}W {losses}L
-              </span>
-
-              {/* Sample size */}
-              <span className="text-[9px] text-slate-600 flex-shrink-0 w-8 text-right">
-                {m.total}g
-              </span>
-            </div>
-          )
-        })}
+                  {/* Diff vs PRO */}
+                  {proMatchups && (
+                    <td className="py-1.5 pr-1 text-right text-[10px] font-bold tabular-nums hidden sm:table-cell">
+                      {diff !== null ? (
+                        <span className={diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-slate-500'}>
+                          {diff > 0 ? '+' : ''}{diff.toFixed(1)}%
+                        </span>
+                      ) : (
+                        <span className="text-slate-600">—</span>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* Show all / collapse */}

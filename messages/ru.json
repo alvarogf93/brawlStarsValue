@@ -643,7 +643,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "Результаты по режимам",
     "mapPerformance": "Результаты по картам",
-    "brawlerTierList": "Твой тир-лист бойцов"
+    "brawlerTierList": "Твой тир-лист бойцов",
+    "matchupYou": "You",
+    "matchupGames": "Games"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

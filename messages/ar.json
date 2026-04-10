@@ -643,7 +643,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "الأداء حسب الوضع",
     "mapPerformance": "الأداء حسب الخريطة",
-    "brawlerTierList": "قائمة تصنيف أبطالك"
+    "brawlerTierList": "قائمة تصنيف أبطالك",
+    "matchupYou": "You",
+    "matchupGames": "Games"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

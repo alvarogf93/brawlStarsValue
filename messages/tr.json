@@ -643,7 +643,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "Moda göre performans",
     "mapPerformance": "Haritaya göre performans",
-    "brawlerTierList": "Senin brawler tier listen"
+    "brawlerTierList": "Senin brawler tier listen",
+    "matchupYou": "You",
+    "matchupGames": "Games"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

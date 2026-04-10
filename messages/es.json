@@ -693,7 +693,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "Rendimiento por Modo",
     "mapPerformance": "Rendimiento por Mapa",
-    "brawlerTierList": "Tu Tier List de Brawlers"
+    "brawlerTierList": "Tu Tier List de Brawlers",
+    "matchupYou": "Tú",
+    "matchupGames": "Partidas"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

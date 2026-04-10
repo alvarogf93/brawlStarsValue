@@ -643,7 +643,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "各模式表现",
     "mapPerformance": "各地图表现",
-    "brawlerTierList": "你的英雄梯队排名"
+    "brawlerTierList": "你的英雄梯队排名",
+    "matchupYou": "You",
+    "matchupGames": "Games"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

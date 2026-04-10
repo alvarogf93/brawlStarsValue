@@ -643,7 +643,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "Leistung nach Modus",
     "mapPerformance": "Leistung nach Karte",
-    "brawlerTierList": "Deine Brawler-Tier-List"
+    "brawlerTierList": "Deine Brawler-Tier-List",
+    "matchupYou": "You",
+    "matchupGames": "Games"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

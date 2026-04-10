@@ -643,7 +643,9 @@
     "tabMetaPro": "Meta PRO",
     "modePerformance": "모드별 퍼포먼스",
     "mapPerformance": "맵별 퍼포먼스",
-    "brawlerTierList": "내 브롤러 티어 리스트"
+    "brawlerTierList": "내 브롤러 티어 리스트",
+    "matchupYou": "You",
+    "matchupGames": "Games"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
