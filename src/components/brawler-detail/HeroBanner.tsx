@@ -15,6 +15,9 @@ interface Props {
   playerBrawler: BrawlerStat | null
 }
 
+// All brawlers have these 6 base gears
+const ALL_GEAR_IDS = [62000000, 62000001, 62000002, 62000003, 62000004, 62000017]
+
 export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
   const { tag, locale } = useParams<{ tag: string; locale: string }>()
   const t = useTranslations('brawlerDetail')
@@ -25,177 +28,357 @@ export function HeroBanner({ brawlerId, brawlerInfo, playerBrawler }: Props) {
   const basePath = tag ? `/${locale}/profile/${tag}` : ''
   const b = playerBrawler
 
-  // Trophy progress percentage (current / highest)
-  const trophyPct = b && b.highestTrophies > 0
-    ? Math.round((b.trophies / b.highestTrophies) * 100)
-    : 0
+  const ownedGearIds = new Set(b?.gears?.map(g => g.id) ?? [])
+  const hasHC = (b?.hyperCharges?.length ?? 0) > 0
 
   return (
-    <div className="brawl-card p-0 overflow-hidden">
-      {/* ═══ TOP: Dark hero section with portrait ═══ */}
+    <div
+      className="rounded-3xl border-4 border-[var(--color-brawl-dark)] overflow-hidden relative"
+      style={{ boxShadow: '4px 8px 0px var(--color-brawl-dark), inset 0px -6px 0px rgba(0,0,0,0.1), inset 0px 4px 0px rgba(255,255,255,0.7)' }}
+    >
+      {/* White dotted background layer */}
       <div
-        className="relative px-5 pt-4 pb-6 md:px-8 md:pt-5 md:pb-8"
+        className="absolute inset-0 z-0"
         style={{
-          background: `linear-gradient(135deg, #121A2F 0%, #1a2744 50%, ${rarityColor}25 100%)`,
+          backgroundColor: 'white',
+          backgroundImage: 'radial-gradient(circle, #c8ccd4 1px, transparent 1px)',
+          backgroundSize: '18px 18px',
         }}
-      >
-        {/* Back link */}
-        {basePath && (
-          <Link
-            href={`${basePath}/brawlers`}
-            className="text-sm text-slate-400 hover:text-white transition-colors font-['Lilita_One'] inline-block mb-4"
-          >
-            &larr; {t('backToBrawlers')}
-          </Link>
-        )}
+      />
 
-        {/* Portrait + Name row */}
-        <div className="flex items-center gap-5 md:gap-8">
-          {/* Portrait with glow */}
-          <div className="relative shrink-0">
-            <div
-              className="absolute -inset-2 rounded-3xl opacity-30 blur-xl"
-              style={{ backgroundColor: rarityColor }}
-            />
-            <div
-              className="relative w-[110px] h-[110px] md:w-[140px] md:h-[140px] rounded-2xl border-4 overflow-hidden shadow-[0_6px_0_rgba(0,0,0,0.4)]"
-              style={{ borderColor: rarityColor }}
+      {/* Fade overlay: white near portrait → transparent at edges */}
+      {/* Mobile: top→bottom fade. Desktop: top-left→bottom-right fade */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none md:hidden"
+        style={{
+          background: 'linear-gradient(180deg, transparent 0%, transparent 30%, rgba(15,23,42,0.15) 50%, rgba(15,23,42,0.45) 70%, rgba(15,23,42,0.75) 85%, rgba(15,23,42,0.92) 100%)',
+        }}
+      />
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none hidden md:block"
+        style={{
+          background: 'linear-gradient(135deg, transparent 0%, transparent 20%, rgba(15,23,42,0.1) 35%, rgba(15,23,42,0.3) 50%, rgba(15,23,42,0.55) 65%, rgba(15,23,42,0.78) 80%, rgba(15,23,42,0.92) 100%)',
+        }}
+      />
+
+      {/* Content — above both layers */}
+      <div className="relative z-[2]">
+
+        {/* ═══ MOBILE LAYOUT ═══ */}
+        <div className="md:hidden">
+          {/* Portrait hero */}
+          <div className="relative h-[200px] flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse at center 50%, ${rarityColor}18 0%, transparent 70%)` }} />
+
+            <span
+              className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full text-[9px] font-['Lilita_One'] uppercase tracking-[1.5px] border-2 border-[var(--color-brawl-dark)]"
+              style={{ backgroundColor: rarityColor, color: '#121A2F', boxShadow: '0 2px 0 rgba(0,0,0,0.3)' }}
             >
-              <BrawlImg
-                src={getBrawlerPortraitUrl(brawlerId)}
-                fallbackSrc={getBrawlerPortraitFallback(brawlerId)}
-                alt={name}
-                fallbackText={name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
-          {/* Name + rarity + class */}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-3xl md:text-5xl text-white font-['Lilita_One'] leading-none text-stroke-brawl tracking-wide truncate">
-              {name}
-            </h1>
-            <div className="flex items-center gap-2.5 mt-2.5">
-              <span
-                className="px-3 py-1 rounded-full text-[10px] font-['Lilita_One'] border-2 shadow-[0_2px_0_rgba(0,0,0,0.4)] uppercase tracking-wider"
-                style={{ backgroundColor: rarityColor, borderColor: `${rarityColor}`, color: '#121A2F' }}
-              >
-                {rarity}
+              {rarity}
+            </span>
+            {brawlerInfo?.class && (
+              <span className="absolute top-3 right-3 z-10 text-[10px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px]">
+                {brawlerInfo.class}
               </span>
-              {brawlerInfo?.class && (
-                <span className="text-xs text-slate-400 font-['Lilita_One'] uppercase tracking-wider">
-                  {brawlerInfo.class}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+            )}
 
-      {/* ═══ BOTTOM: White section with stats + loadout ═══ */}
-      {b ? (
-        <div className="px-5 py-5 md:px-8 md:py-6 space-y-5">
-          {/* ── STATS ROW ── */}
-          <div className="grid grid-cols-4 gap-2">
-            {/* Power */}
-            <div className="bg-purple-600/10 rounded-xl p-3 text-center border-2 border-purple-500/20">
-              <p className="text-[9px] text-purple-400 font-['Lilita_One'] uppercase">Power</p>
-              <p className="text-2xl font-['Lilita_One'] text-purple-500">{b.power}</p>
-            </div>
-            {/* Rank */}
-            <div className="bg-amber-500/10 rounded-xl p-3 text-center border-2 border-amber-400/20">
-              <p className="text-[9px] text-amber-500 font-['Lilita_One'] uppercase">Rank</p>
-              <p className="text-2xl font-['Lilita_One'] text-amber-500">{b.rank}</p>
-            </div>
-            {/* Trophies — with progress bar */}
-            <div className="col-span-2 bg-[#121A2F]/5 rounded-xl p-3 border-2 border-slate-200/50">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase">🏆 Trophies</p>
-                <p className="text-[9px] text-slate-400 font-['Inter']">max {b.highestTrophies.toLocaleString()}</p>
-              </div>
-              <p className="text-2xl font-['Lilita_One'] text-[var(--color-brawl-dark)]">{b.trophies.toLocaleString()}</p>
-              {/* Progress bar */}
-              <div className="mt-1.5 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: `${trophyPct}%`, backgroundColor: rarityColor }}
+            {basePath && (
+              <Link
+                href={`${basePath}/brawlers`}
+                className="absolute top-3 left-3 mt-8 z-10 text-xs text-slate-400 hover:text-[var(--color-brawl-dark)] transition-colors font-['Lilita_One']"
+              >
+                &larr; {t('backToBrawlers')}
+              </Link>
+            )}
+
+            <div className="relative z-[2]">
+              <div className="absolute -inset-2 rounded-2xl opacity-30 blur-xl" style={{ backgroundColor: rarityColor }} />
+              <div
+                className="relative w-[130px] h-[130px] rounded-2xl border-4 overflow-hidden"
+                style={{ borderColor: rarityColor, boxShadow: `0 0 40px ${rarityColor}40, 0 6px 0 rgba(0,0,0,0.3)` }}
+              >
+                <BrawlImg
+                  src={getBrawlerPortraitUrl(brawlerId)}
+                  fallbackSrc={getBrawlerPortraitFallback(brawlerId)}
+                  alt={name}
+                  fallbackText={name}
+                  className="w-full h-full object-cover"
                 />
               </div>
             </div>
+
+            <h1 className="absolute bottom-2 left-4 z-10 text-3xl text-white font-['Lilita_One'] text-stroke-brawl tracking-wide">
+              {name}
+            </h1>
           </div>
 
-          {/* ── BADGES: Prestige + Win Streak ── */}
-          {(b.prestigeLevel > 0 || b.maxWinStreak > 0) && (
-            <div className="flex flex-wrap gap-2">
-              {b.prestigeLevel > 0 && (
-                <span className="px-3 py-1.5 rounded-xl bg-[#FFC91B] border-2 border-[#121A2F] text-[#121A2F] text-xs font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">
-                  ⭐ Prestige {b.prestigeLevel}
-                </span>
-              )}
-              {b.maxWinStreak > 0 && (
-                <span className="px-3 py-1.5 rounded-xl bg-[var(--color-brawl-blue)] border-2 border-[#121A2F] text-white text-xs font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">
-                  🔥 {b.maxWinStreak} Win Streak
-                </span>
-              )}
-            </div>
-          )}
+          {/* Equipment */}
+          {b && (
+            <div className="px-4 py-4 space-y-3">
+              {/* Star Powers */}
+              <div>
+                <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1">Star Powers</p>
+                <div className="flex gap-2">
+                  {[0, 1].map(i => {
+                    const sp = b.starPowers[i]
+                    return sp ? (
+                      <div key={sp.id} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                        <img src={`/assets/star-powers/${sp.id}.png`} alt={sp.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
+                        <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{sp.name}</span>
+                      </div>
+                    ) : (
+                      <div key={`empty-sp-${i}`} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
+                        <div className="w-6 h-6 rounded bg-white/20" />
+                        <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
 
-          {/* ── LOADOUT: Star Powers + Gadgets ── */}
-          {(b.starPowers.length > 0 || b.gadgets.length > 0) && (
-            <div>
-              <p className="text-[10px] text-slate-400 font-['Lilita_One'] uppercase tracking-[0.2em] mb-2.5 flex items-center gap-2">
-                <span className="h-[1px] flex-1 bg-slate-200" />
-                Loadout
-                <span className="h-[1px] flex-1 bg-slate-200" />
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {b.starPowers.map(sp => (
-                  <div key={sp.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#FFC91B] border-2 border-[#121A2F] shadow-[0_2px_0_rgba(18,26,47,1)]">
-                    <img src={`/assets/star-powers/${sp.id}.png`} alt={sp.name} className="w-7 h-7" width={28} height={28} loading="lazy" />
-                    <span className="text-xs text-[#121A2F] font-['Lilita_One'] truncate">{sp.name}</span>
+              {/* Gadgets */}
+              <div>
+                <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1">Gadgets</p>
+                <div className="flex gap-2">
+                  {[0, 1].map(i => {
+                    const g = b.gadgets[i]
+                    return g ? (
+                      <div key={g.id} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-green-500 border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                        <img src={`/assets/gadgets/${g.id}.png`} alt={g.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
+                        <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{g.name}</span>
+                      </div>
+                    ) : (
+                      <div key={`empty-g-${i}`} className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
+                        <div className="w-6 h-6 rounded bg-white/20" />
+                        <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Gears + HC + Buffies */}
+              <div>
+                <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1">Gears</p>
+                <div className="grid grid-cols-6 gap-1">
+                  {ALL_GEAR_IDS.map(gid => (
+                    <div
+                      key={gid}
+                      className={`aspect-square rounded-lg border-2 flex items-center justify-center text-xs ${
+                        ownedGearIds.has(gid)
+                          ? 'bg-slate-600 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]'
+                          : 'bg-slate-200 border-slate-300 opacity-30'
+                      }`}
+                    >
+                      🔩
+                    </div>
+                  ))}
+                </div>
+                {/* HC + Buffies row */}
+                <div className="flex gap-1 mt-1.5">
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[9px] font-['Lilita_One'] ${
+                    hasHC
+                      ? 'bg-purple-600 border-[var(--color-brawl-dark)] text-white shadow-[0_2px_0_rgba(18,26,47,1)]'
+                      : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                  }`}>
+                    ⚡ HC
                   </div>
-                ))}
-                {b.gadgets.map(g => (
-                  <div key={g.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500 border-2 border-[#121A2F] shadow-[0_2px_0_rgba(18,26,47,1)]">
-                    <img src={`/assets/gadgets/${g.id}.png`} alt={g.name} className="w-7 h-7" width={28} height={28} loading="lazy" />
-                    <span className="text-xs text-[#121A2F] font-['Lilita_One'] truncate">{g.name}</span>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[9px] font-['Lilita_One'] ${
+                    b.buffies.gadget
+                      ? 'bg-green-500 border-[var(--color-brawl-dark)] text-[#121A2F] shadow-[0_2px_0_rgba(18,26,47,1)]'
+                      : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                  }`}>
+                    🅱️G
                   </div>
-                ))}
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[9px] font-['Lilita_One'] ${
+                    b.buffies.starPower
+                      ? 'bg-[#FFC91B] border-[var(--color-brawl-dark)] text-[#121A2F] shadow-[0_2px_0_rgba(18,26,47,1)]'
+                      : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                  }`}>
+                    🅱️S
+                  </div>
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[9px] font-['Lilita_One'] ${
+                    b.buffies.hyperCharge
+                      ? 'bg-purple-600 border-[var(--color-brawl-dark)] text-white shadow-[0_2px_0_rgba(18,26,47,1)]'
+                      : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                  }`}>
+                    🅱️H
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* ── EXTRAS: Hypercharges + Gears + Buffies ── */}
-          {(b.hyperCharges.length > 0 || b.gears.length > 0 || b.buffies.gadget || b.buffies.starPower || b.buffies.hyperCharge) && (
-            <div className="flex flex-wrap gap-2">
-              {b.hyperCharges.map(hc => (
-                <span key={hc.id} className="px-3 py-1.5 rounded-xl bg-purple-600 border-2 border-[#121A2F] text-xs text-white font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)] flex items-center gap-1">
-                  ⚡ {hc.name}
-                </span>
-              ))}
-              {b.gears.length > 0 && (
-                <span className="px-3 py-1.5 rounded-xl bg-slate-600 border-2 border-[#121A2F] text-xs text-white font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">
-                  🔩 {b.gears.length} Gears
-                </span>
+          {/* Chips */}
+          {b && (
+            <div className="px-4 pb-4 flex flex-wrap gap-1.5">
+              <span className="px-2.5 py-1 rounded-lg bg-purple-600 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">PWR {b.power}</span>
+              <span className="px-2.5 py-1 rounded-lg bg-amber-500 border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">RANK {b.rank}</span>
+              <span className="px-2.5 py-1 rounded-lg bg-[#1e293b] border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🏆 {b.trophies.toLocaleString()}</span>
+              {b.prestigeLevel > 0 && (
+                <span className="px-2.5 py-1 rounded-lg bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">⭐ Prestige {b.prestigeLevel}</span>
               )}
-              {b.buffies.gadget && (
-                <span className="px-3 py-1.5 rounded-xl bg-green-600 border-2 border-[#121A2F] text-xs text-white font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🅱️G</span>
-              )}
-              {b.buffies.starPower && (
-                <span className="px-3 py-1.5 rounded-xl bg-[#FFC91B] border-2 border-[#121A2F] text-xs text-[#121A2F] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🅱️S</span>
-              )}
-              {b.buffies.hyperCharge && (
-                <span className="px-3 py-1.5 rounded-xl bg-purple-600 border-2 border-[#121A2F] text-xs text-white font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🅱️H</span>
+              {b.maxWinStreak > 0 && (
+                <span className="px-2.5 py-1 rounded-lg bg-blue-500 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🔥 {b.maxWinStreak} Streak</span>
               )}
             </div>
           )}
+
+          {!b && (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-slate-500 font-['Lilita_One']">{t('notUnlocked')}</p>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="px-5 py-6 md:px-8 text-center">
-          <p className="text-sm text-slate-500 font-['Lilita_One']">{t('notUnlocked')}</p>
+
+        {/* ═══ DESKTOP LAYOUT ═══ */}
+        <div className="hidden md:block">
+          {basePath && (
+            <Link
+              href={`${basePath}/brawlers`}
+              className="absolute top-4 left-5 z-10 text-xs text-slate-400 hover:text-[var(--color-brawl-dark)] transition-colors font-['Lilita_One']"
+            >
+              &larr; {t('backToBrawlers')}
+            </Link>
+          )}
+
+          <div className="flex items-start gap-5 p-5 pt-10">
+            {/* Portrait column */}
+            <div className="flex flex-col items-center gap-2 shrink-0">
+              <div className="relative">
+                <div className="absolute -inset-2 rounded-2xl opacity-25 blur-xl" style={{ backgroundColor: rarityColor }} />
+                <div
+                  className="relative w-[120px] h-[120px] rounded-2xl border-4 overflow-hidden"
+                  style={{ borderColor: rarityColor, boxShadow: `0 0 30px ${rarityColor}40, 0 5px 0 rgba(0,0,0,0.3)` }}
+                >
+                  <BrawlImg
+                    src={getBrawlerPortraitUrl(brawlerId)}
+                    fallbackSrc={getBrawlerPortraitFallback(brawlerId)}
+                    alt={name}
+                    fallbackText={name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <span
+                className="px-3 py-1 rounded-full text-[8px] font-['Lilita_One'] uppercase tracking-[1.5px] border-2 border-[var(--color-brawl-dark)]"
+                style={{ backgroundColor: rarityColor, color: '#121A2F', boxShadow: '0 2px 0 rgba(0,0,0,0.3)' }}
+              >
+                {rarity}
+              </span>
+            </div>
+
+            {/* Info column */}
+            <div className="flex-1 min-w-0 flex flex-col gap-3">
+              {/* Name + class */}
+              <div className="flex items-baseline gap-3">
+                <h1 className="text-4xl text-white font-['Lilita_One'] text-stroke-brawl tracking-wide truncate">{name}</h1>
+                {brawlerInfo?.class && (
+                  <span className="text-[10px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] shrink-0">{brawlerInfo.class}</span>
+                )}
+              </div>
+
+              {b ? (
+                <>
+                  {/* Equipment grid: 3 columns */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Star Powers */}
+                    <div>
+                      <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Star Powers</p>
+                      <div className="flex flex-col gap-1.5">
+                        {[0, 1].map(i => {
+                          const sp = b.starPowers[i]
+                          return sp ? (
+                            <div key={sp.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                              <img src={`/assets/star-powers/${sp.id}.png`} alt={sp.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
+                              <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{sp.name}</span>
+                            </div>
+                          ) : (
+                            <div key={`empty-sp-${i}`} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
+                              <div className="w-6 h-6 rounded bg-white/20" />
+                              <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Gadgets */}
+                    <div>
+                      <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Gadgets</p>
+                      <div className="flex flex-col gap-1.5">
+                        {[0, 1].map(i => {
+                          const g = b.gadgets[i]
+                          return g ? (
+                            <div key={g.id} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-green-500 border-2 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]">
+                              <img src={`/assets/gadgets/${g.id}.png`} alt={g.name} className="w-6 h-6 rounded" width={24} height={24} loading="lazy" />
+                              <span className="text-[10px] text-[#121A2F] font-['Lilita_One'] truncate">{g.name}</span>
+                            </div>
+                          ) : (
+                            <div key={`empty-g-${i}`} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-white/20 border-2 border-white/10 opacity-30">
+                              <div className="w-6 h-6 rounded bg-white/20" />
+                              <span className="text-[10px] text-white/40 font-['Lilita_One']">—</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Gears + HC + Buffies */}
+                    <div>
+                      <p className="text-[9px] text-slate-500 font-['Lilita_One'] uppercase tracking-[2px] mb-1.5">Gears</p>
+                      <div className="grid grid-cols-6 gap-1 max-w-[160px]">
+                        {ALL_GEAR_IDS.map(gid => (
+                          <div
+                            key={gid}
+                            className={`aspect-square rounded-lg border-2 flex items-center justify-center text-[10px] ${
+                              ownedGearIds.has(gid)
+                                ? 'bg-slate-600 border-[var(--color-brawl-dark)] shadow-[0_2px_0_rgba(18,26,47,1)]'
+                                : 'bg-slate-200 border-slate-300 opacity-30'
+                            }`}
+                          >
+                            🔩
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-1 mt-1.5 max-w-[160px]">
+                        <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border-2 text-[8px] font-['Lilita_One'] ${
+                          hasHC ? 'bg-purple-600 border-[var(--color-brawl-dark)] text-white shadow-[0_2px_0_rgba(18,26,47,1)]' : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                        }`}>⚡</div>
+                        <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border-2 text-[8px] font-['Lilita_One'] ${
+                          b.buffies.gadget ? 'bg-green-500 border-[var(--color-brawl-dark)] text-[#121A2F] shadow-[0_2px_0_rgba(18,26,47,1)]' : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                        }`}>🅱️G</div>
+                        <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border-2 text-[8px] font-['Lilita_One'] ${
+                          b.buffies.starPower ? 'bg-[#FFC91B] border-[var(--color-brawl-dark)] text-[#121A2F] shadow-[0_2px_0_rgba(18,26,47,1)]' : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                        }`}>🅱️S</div>
+                        <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border-2 text-[8px] font-['Lilita_One'] ${
+                          b.buffies.hyperCharge ? 'bg-purple-600 border-[var(--color-brawl-dark)] text-white shadow-[0_2px_0_rgba(18,26,47,1)]' : 'bg-slate-200 border-slate-300 text-slate-400 opacity-30'
+                        }`}>🅱️H</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Chips */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="px-2.5 py-1 rounded-lg bg-purple-600 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">PWR {b.power}</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-amber-500 border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">RANK {b.rank}</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-[#1e293b] border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🏆 {b.trophies.toLocaleString()}</span>
+                    {b.prestigeLevel > 0 && (
+                      <span className="px-2.5 py-1 rounded-lg bg-[#FFC91B] border-2 border-[var(--color-brawl-dark)] text-[#121A2F] text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">⭐ Prestige {b.prestigeLevel}</span>
+                    )}
+                    {b.maxWinStreak > 0 && (
+                      <span className="px-2.5 py-1 rounded-lg bg-blue-500 border-2 border-[var(--color-brawl-dark)] text-white text-[10px] font-['Lilita_One'] shadow-[0_2px_0_rgba(18,26,47,1)]">🔥 {b.maxWinStreak} Streak</span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500 font-['Lilita_One'] mt-2">{t('notUnlocked')}</p>
+              )}
+            </div>
+          </div>
         </div>
-      )}
+
+      </div>
     </div>
   )
 }
