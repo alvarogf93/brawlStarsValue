@@ -26,11 +26,11 @@ export async function GET(request: Request) {
     { cookies: { getAll: () => [], setAll: () => {} } }
   )
 
-  // Find premium users who need syncing
+  // Find premium users who need syncing (include last_sync for cursor-based meta dedup)
   const cutoff = new Date(Date.now() - SYNC_INTERVAL_MS).toISOString()
   const { data: profiles, error: queryErr } = await supabase
     .from('profiles')
-    .select('player_tag')
+    .select('player_tag, last_sync')
     .in('tier', ['premium', 'pro'])
     .or(`last_sync.is.null,last_sync.lt.${cutoff}`)
     .limit(BATCH_SIZE)
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   }
 
   const results = []
-  for (const { player_tag } of profiles) {
+  for (const { player_tag, last_sync } of profiles) {
     try {
       const response = await fetchBattlelog(player_tag)
       const entries = response.items ?? []
@@ -59,9 +59,15 @@ export async function GET(request: Request) {
       })
 
       // Aggregate into meta_stats/meta_matchups (source='users')
+      // CRITICAL: only process battles NEWER than last_sync to prevent double counting.
+      // The battles table has its own dedup (ignoreDuplicates), but meta_stats uses
+      // additive ON CONFLICT (wins += EXCLUDED.wins), so re-processing the same
+      // battles would inflate the stats.
       const acc: MetaAccumulators = { stats: new Map(), matchups: new Map(), trios: new Map() }
       const today = new Date().toISOString().slice(0, 10)
       for (const b of parsed) {
+        // Skip battles already processed in a previous sync
+        if (last_sync && b.battle_time <= last_sync) continue
         if (!isDraftMode(b.mode) || !b.map) continue
         if (b.result !== 'victory' && b.result !== 'defeat') continue
         const myBrawlerId = b.my_brawler?.id ?? null
