@@ -57,7 +57,12 @@
     "picksDesc": "Entdecke die besten Brawler für jede Karte der aktuellen Rotation",
     "paradeSubtitle": "Tippe auf einen Brawler um seine Statistiken zu sehen",
     "brawlerExplorerTitle": "Alle Brawler entdecken",
-    "brawlerExplorerDesc": "Statistiken, beste Karten, Counter und Matchups für jeden Brawler"
+    "brawlerExplorerDesc": "Statistiken, beste Karten, Counter und Matchups für jeden Brawler",
+    "exploreTitle": "Explore",
+    "explorePicksTitle": "Today's Picks",
+    "explorePicksDesc": "Best picks for each map in rotation",
+    "exploreBrawlersTitle": "Brawler Stats",
+    "exploreBrawlersDesc": "Counters, best maps and matchups"
   },
   "nav": {
     "overview": "Übersicht",

@@ -57,7 +57,12 @@
     "picksDesc": "Узнай лучших по Win Rate бойцов для каждой карты в текущей ротации",
     "paradeSubtitle": "Нажми на бравлера, чтобы увидеть его статистику",
     "brawlerExplorerTitle": "Исследуй всех бравлеров",
-    "brawlerExplorerDesc": "Статистика, лучшие карты, контрпики и матчапы каждого бравлера"
+    "brawlerExplorerDesc": "Статистика, лучшие карты, контрпики и матчапы каждого бравлера",
+    "exploreTitle": "Explore",
+    "explorePicksTitle": "Today's Picks",
+    "explorePicksDesc": "Best picks for each map in rotation",
+    "exploreBrawlersTitle": "Brawler Stats",
+    "exploreBrawlersDesc": "Counters, best maps and matchups"
   },
   "nav": {
     "overview": "Обзор",

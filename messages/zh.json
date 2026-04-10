@@ -57,7 +57,12 @@
     "picksDesc": "查看当前轮换中每张地图上Win Rate最高的英雄",
     "paradeSubtitle": "点击角色查看统计数据",
     "brawlerExplorerTitle": "探索所有角色",
-    "brawlerExplorerDesc": "每个角色的统计数据、最佳地图、克制和对战数据"
+    "brawlerExplorerDesc": "每个角色的统计数据、最佳地图、克制和对战数据",
+    "exploreTitle": "Explore",
+    "explorePicksTitle": "Today's Picks",
+    "explorePicksDesc": "Best picks for each map in rotation",
+    "exploreBrawlersTitle": "Brawler Stats",
+    "exploreBrawlersDesc": "Counters, best maps and matchups"
   },
   "nav": {
     "overview": "概览",

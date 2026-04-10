@@ -57,7 +57,12 @@
     "picksDesc": "Odkryj najlepszych pod względem Win Rate brawlerów dla każdej mapy w bieżącej rotacji",
     "paradeSubtitle": "Dotknij brawlera, aby zobaczyć jego statystyki",
     "brawlerExplorerTitle": "Odkryj wszystkich Brawlerów",
-    "brawlerExplorerDesc": "Statystyki, najlepsze mapy, kontrpicki i matchupy każdego brawlera"
+    "brawlerExplorerDesc": "Statystyki, najlepsze mapy, kontrpicki i matchupy każdego brawlera",
+    "exploreTitle": "Explore",
+    "explorePicksTitle": "Today's Picks",
+    "explorePicksDesc": "Best picks for each map in rotation",
+    "exploreBrawlersTitle": "Brawler Stats",
+    "exploreBrawlersDesc": "Counters, best maps and matchups"
   },
   "nav": {
     "overview": "Przegląd",

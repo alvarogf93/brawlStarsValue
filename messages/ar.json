@@ -57,7 +57,12 @@
     "picksDesc": "اكتشف أفضل المقاتلين لكل خريطة في الدورة الحالية",
     "paradeSubtitle": "انقر على براولر لرؤية إحصائياته",
     "brawlerExplorerTitle": "استكشف جميع البراولرز",
-    "brawlerExplorerDesc": "إحصائيات وأفضل الخرائط والكاونترات والمواجهات لكل براولر"
+    "brawlerExplorerDesc": "إحصائيات وأفضل الخرائط والكاونترات والمواجهات لكل براولر",
+    "exploreTitle": "Explore",
+    "explorePicksTitle": "Today's Picks",
+    "explorePicksDesc": "Best picks for each map in rotation",
+    "exploreBrawlersTitle": "Brawler Stats",
+    "exploreBrawlersDesc": "Counters, best maps and matchups"
   },
   "nav": {
     "overview": "نظرة عامة",
