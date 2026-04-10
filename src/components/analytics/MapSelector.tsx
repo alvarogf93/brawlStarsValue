@@ -27,6 +27,7 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
   const hasPremium = isPremium(profile as Profile | null)
 
   const [maps, setMaps] = useState<LiveMap[]>([])
+  const [historicalMaps, setHistoricalMaps] = useState<LiveMap[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -72,6 +73,26 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
           const first = liveMaps[0]
           onSelect(first.map, first.mode, first.eventId)
         }
+
+        // Load historical maps (non-live) for each mode in rotation
+        const liveModes = [...new Set(liveMaps.map(m => m.mode))]
+        const liveMapNames = new Set(liveMaps.map(m => `${m.map}|${m.mode}`))
+
+        Promise.all(
+          liveModes.map(mode =>
+            fetch(`/api/draft/maps?mode=${mode}`, { signal: controller.signal })
+              .then(r => r.ok ? r.json() : { maps: [] })
+              .then(data => (data.maps ?? [])
+                .filter((m: { isLive?: boolean; eventId?: number; map?: string }) =>
+                  !m.isLive && m.eventId && m.map && !liveMapNames.has(`${m.map}|${mode}`)
+                )
+                .map((m: { map: string; eventId: number }) => ({ map: m.map, mode, eventId: m.eventId }))
+              )
+              .catch(() => [] as LiveMap[])
+          )
+        ).then(results => {
+          setHistoricalMaps(results.flat())
+        })
       })
       .catch(err => {
         if (err.name !== 'AbortError') setLoading(false)
@@ -174,8 +195,53 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
         </p>
         {!hasPremium ? (
           <p className="font-['Lilita_One'] text-xs text-slate-600 italic">{t('historicalLocked')}</p>
+        ) : historicalMaps.length === 0 ? (
+          <p className="font-['Lilita_One'] text-xs text-slate-600 italic">—</p>
         ) : (
-          <p className="font-['Lilita_One'] text-xs text-slate-500 italic">{t('historicalMaps')}</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {historicalMaps.map(m => {
+              const isSelected = selectedMap === m.map && selectedMode === m.mode
+              const mapImageUrl = getMapImageUrl(m.eventId)
+              const modeIconUrl = getGameModeImageUrl(m.mode)
+
+              return (
+                <button
+                  key={`hist-${m.map}-${m.mode}-${m.eventId}`}
+                  onClick={() => onSelect(m.map, m.mode, m.eventId)}
+                  className={`relative h-24 overflow-hidden rounded-xl border-2 transition-all duration-200 text-left ${
+                    isSelected
+                      ? 'border-[#FFC91B] shadow-[0_0_16px_rgba(255,201,27,0.35)]'
+                      : 'border-white/10 hover:border-white/25'
+                  }`}
+                >
+                  <img
+                    src={mapImageUrl}
+                    alt={m.map}
+                    className="absolute inset-0 w-full h-full object-cover opacity-40"
+                    loading="lazy"
+                    width={200}
+                    height={96}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/60 to-transparent" />
+                  {isSelected && <div className="absolute inset-0 bg-[#FFC91B]/8" />}
+                  {modeIconUrl && (
+                    <div className="absolute top-2 left-2">
+                      <span className="bg-black/50 backdrop-blur-sm rounded-lg p-1 border border-white/10 inline-flex">
+                        <img src={modeIconUrl} alt={m.mode} className="w-4 h-4" width={16} height={16} />
+                      </span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className={`font-['Lilita_One'] text-xs leading-tight truncate ${
+                      isSelected ? 'text-[#FFC91B]' : 'text-white'
+                    }`}>
+                      {m.map}
+                    </p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         )}
       </div>
     </div>
