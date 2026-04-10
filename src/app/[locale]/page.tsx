@@ -2,10 +2,10 @@ import { useTranslations, useLocale } from 'next-intl'
 import { InputForm } from '@/components/landing/InputForm'
 import { HeroBrawlers } from '@/components/landing/HeroBrawlers'
 import { HeroSignIn } from '@/components/landing/HeroSignIn'
-import { StatsTicker } from '@/components/landing/StatsTicker'
 import { FeaturesGrid } from '@/components/landing/FeaturesGrid'
+import { TrialBanner } from '@/components/landing/TrialBanner'
+import { ExploreSection } from '@/components/landing/ExploreSection'
 import { BrawlerParade } from '@/components/landing/BrawlerParade'
-import { HowItWorks } from '@/components/landing/HowItWorks'
 import { PremiumTeaser } from '@/components/landing/PremiumTeaser'
 import { FinalCTA } from '@/components/landing/FinalCTA'
 import { SectionReveal } from '@/components/landing/SectionReveal'
@@ -21,12 +21,12 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <RefCapture />
-      {/* Section 1: Hero */}
+
+      {/* 1. Hero — logo, search, trial CTA */}
       <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden">
         <HeroBrawlers />
 
         <div className="text-center brawl-card p-10 max-w-[500px] w-full animate-fade-in relative z-10">
-          {/* Language selector — inside the card, top-right */}
           <div className="absolute top-3 right-3 z-50">
             <LocaleSwitcher />
           </div>
@@ -49,75 +49,37 @@ export default function LandingPage() {
         <ScrollIndicator />
       </section>
 
-      {/* Section 2: Stats Ticker */}
-      <SectionReveal className="px-4 -mt-6 relative z-20">
-        <StatsTicker />
+      {/* 2. Trial Banner — free vs trial PRO */}
+      <SectionReveal className="px-4 py-16">
+        <TrialBanner />
       </SectionReveal>
 
-      {/* Section 3: Features Grid */}
+      {/* 3. Features Grid — 4-6 cards con imágenes */}
       <SectionReveal className="px-4 py-16">
         <FeaturesGrid />
       </SectionReveal>
 
-      {/* Section 4: Best Picks Banner */}
+      {/* 4. Explore — picks + brawler stats con imágenes de fondo */}
       <SectionReveal className="px-4 py-8">
-        <Link
-          href={`/${locale}/picks`}
-          className="block max-w-[900px] mx-auto brawl-card-dark p-6 md:p-8 border-[#FFC91B]/20 hover:border-[#FFC91B]/40 transition-all hover:scale-[1.01] group"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">⚔️</span>
-              <div>
-                <h3 className="font-['Lilita_One'] text-xl md:text-2xl text-white">{t('picksTitle')}</h3>
-                <p className="text-sm text-slate-400 mt-0.5">{t('picksDesc')}</p>
-              </div>
-            </div>
-            <span className="font-['Lilita_One'] text-[#FFC91B] text-2xl group-hover:translate-x-1 transition-transform">→</span>
-          </div>
-        </Link>
+        <ExploreSection />
       </SectionReveal>
 
-      {/* Section 5: Brawler Explorer Banner */}
-      <SectionReveal className="px-4 py-8">
-        <Link
-          href={`/${locale}/brawler/16000000`}
-          className="block max-w-[900px] mx-auto brawl-card-dark p-6 md:p-8 border-[#FFC91B]/20 hover:border-[#FFC91B]/40 transition-all hover:scale-[1.01] group"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">🔍</span>
-              <div>
-                <h3 className="font-['Lilita_One'] text-xl md:text-2xl text-white">{t('brawlerExplorerTitle')}</h3>
-                <p className="text-sm text-slate-400 mt-0.5">{t('brawlerExplorerDesc')}</p>
-              </div>
-            </div>
-            <span className="font-['Lilita_One'] text-[#FFC91B] text-2xl group-hover:translate-x-1 transition-transform">→</span>
-          </div>
-        </Link>
-      </SectionReveal>
-
-      {/* Section 6: Brawler Parade */}
+      {/* 5. Brawler Parade — scroll infinito clickable */}
       <SectionReveal className="py-16 px-4 overflow-hidden">
         <BrawlerParade />
       </SectionReveal>
 
-      {/* Section 5: How It Works */}
-      <SectionReveal className="px-4 py-16">
-        <HowItWorks />
-      </SectionReveal>
-
-      {/* Section 6: Premium Teaser */}
+      {/* 6. Premium Teaser — features PRO */}
       <SectionReveal className="px-4 py-16">
         <PremiumTeaser />
       </SectionReveal>
 
-      {/* Section 7: Final CTA */}
+      {/* 7. Final CTA */}
       <SectionReveal className="px-4 py-16">
         <FinalCTA />
       </SectionReveal>
 
-      {/* Footer */}
+      {/* 8. Footer */}
       <footer className="py-4 px-4">
         <div className="brawl-card-dark px-6 py-3 max-w-[720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-3 text-xs font-['Lilita_One']">
