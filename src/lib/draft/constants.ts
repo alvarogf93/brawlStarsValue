@@ -27,8 +27,8 @@ export const META_MIN_BATTLES = 30
 /** Days of rolling window for meta queries */
 export const META_ROLLING_DAYS = 14
 
-/** Max players to poll per cron run (bulk RPCs keep it fast — ~30s for 100) */
-export const META_POLL_BATCH_SIZE = 100
+/** Max players to poll per cron run (bulk RPCs keep it fast — ~60s for 200) */
+export const META_POLL_BATCH_SIZE = 200
 
 /** Delay between API calls in ms (throttle) */
 export const META_POLL_DELAY_MS = 100
