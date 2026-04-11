@@ -50,8 +50,10 @@ export function BrawlerParade() {
       <h2 className="text-4xl font-['Lilita_One'] text-white text-stroke-brawl text-center mb-8">
         {t('paradeTitle')}
       </h2>
-      <p className="text-center text-sm text-slate-400 mb-4 font-['Lilita_One']">
-        {t('paradeSubtitle')}
+      <p className="text-center mb-4">
+        <Link href={`/${locale}/brawler`} className="text-sm text-[#FFC91B] font-['Lilita_One'] hover:underline">
+          {t('paradeSubtitle')} →
+        </Link>
       </p>
       <div className="flex flex-col gap-3">
         <ParadeRow ids={ROW1_IDS} direction="left" locale={locale} />

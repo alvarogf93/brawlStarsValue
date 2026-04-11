@@ -26,14 +26,29 @@ function buildLanguageAlternates(locale: string) {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
 
+  const titles: Record<string, string> = {
+    es: 'BrawlVision | Analíticas de Brawl Stars, Historial de Batallas y Calculadora de Gemas',
+    en: 'BrawlVision | Brawl Stars Analytics, Battle History & Gem Calculator',
+    fr: 'BrawlVision | Analytiques Brawl Stars, Historique de Combats et Calculateur de Gemmes',
+    pt: 'BrawlVision | Análises de Brawl Stars, Histórico de Batalhas e Calculadora de Gemas',
+    de: 'BrawlVision | Brawl Stars Analysen, Kampfverlauf & Edelstein-Rechner',
+  }
+  const descriptions: Record<string, string> = {
+    es: 'Analiza tus batallas de Brawl Stars, consulta tu historial, calcula el valor en gemas de tu cuenta y compite en el ranking global. Stats de todos los brawlers, mejores mapas y counters.',
+    en: 'Analyze your Brawl Stars battles, check your battle history, calculate your gem value and compete on the global leaderboard. Stats for every brawler, best maps and counters.',
+    fr: 'Analysez vos combats Brawl Stars, consultez votre historique, calculez la valeur en gemmes et participez au classement mondial.',
+    pt: 'Analise suas batalhas de Brawl Stars, consulte seu histórico, calcule o valor em gemas da sua conta e compita no ranking global.',
+    de: 'Analysiere deine Brawl Stars Kämpfe, prüfe deinen Kampfverlauf, berechne den Edelstein-Wert und tritt im globalen Ranking an.',
+  }
+
   return {
     metadataBase: new URL('https://brawlvision.com'),
     title: {
-      absolute: 'BrawlVision | Brawl Stars Combat Analytics & Gem Calculator',
+      absolute: titles[locale] ?? titles.en,
       template: '%s | BrawlVision',
     },
-    description: 'Brawl Stars combat analytics platform. Calculate gem value, analyze battles, track win rates, and compete on the Global Leaderboard.',
-    keywords: ['Brawl Stars', 'BrawlVision', 'Battle Analytics', 'Gem Calculator', 'Brawl Stars Stats', 'Leaderboard', 'Supercell', 'Profile Tracker'],
+    description: descriptions[locale] ?? descriptions.en,
+    keywords: ['Brawl Stars', 'BrawlVision', 'Brawl Stars stats', 'historial de batallas', 'battle history', 'calculadora de gemas', 'gem calculator', 'mejores mapas', 'best maps', 'counters', 'win rate', 'brawler stats', 'ranking', 'leaderboard', 'Supercell'],
     authors: [{ name: 'BrawlVision Team' }],
     openGraph: {
       type: 'website',

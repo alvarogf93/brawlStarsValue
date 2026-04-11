@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { createServerClient } from '@supabase/ssr'
+import { BRAWLER_RARITY_MAP } from '@/lib/constants'
 
 const BASE_URL = 'https://brawlvision.com'
 const LOCALES = ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh']
@@ -9,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '', priority: 1, changeFrequency: 'daily' },
     { path: '/leaderboard', priority: 0.8, changeFrequency: 'hourly' },
     { path: '/picks', priority: 0.8, changeFrequency: 'hourly' },
+    { path: '/brawler', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/privacy', priority: 0.3, changeFrequency: 'monthly' },
   ]
 
@@ -30,6 +32,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency: page.changeFrequency,
         priority: page.priority,
+        alternates: { languages: alternates },
+      })
+    }
+  }
+
+  // Brawler detail pages (public, ~100+ brawlers × 13 locales)
+  const brawlerIds = Object.keys(BRAWLER_RARITY_MAP).map(Number)
+  for (const brawlerId of brawlerIds) {
+    for (const locale of LOCALES) {
+      const alternates: Record<string, string> = {
+        'x-default': `${BASE_URL}/es/brawler/${brawlerId}`,
+      }
+      for (const alt of LOCALES) {
+        alternates[alt] = `${BASE_URL}/${alt}/brawler/${brawlerId}`
+      }
+      entries.push({
+        url: `${BASE_URL}/${locale}/brawler/${brawlerId}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.6,
         alternates: { languages: alternates },
       })
     }

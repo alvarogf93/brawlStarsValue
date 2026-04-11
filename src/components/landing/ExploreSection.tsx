@@ -48,7 +48,7 @@ export function ExploreSection() {
 
         {/* Stats de Brawlers */}
         <Link
-          href={`/${locale}/brawler/16000000`}
+          href={`/${locale}/brawler`}
           className="group relative overflow-hidden rounded-2xl border-4 border-[var(--color-brawl-dark)] h-32 md:h-40 hover:scale-[1.02] transition-transform shadow-[0_4px_0_0_rgba(18,26,47,1)]"
         >
           {/* Overlapping brawler portraits */}
