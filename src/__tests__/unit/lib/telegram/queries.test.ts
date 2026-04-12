@@ -256,3 +256,92 @@ describe('queries.getCronStatus', () => {
     expect(result.syncFreshness.status).toBe('unknown')
   })
 })
+
+describe('queries.getMapList', () => {
+  it('aggregates meta_stats rows into (map, mode) entries sorted by battles', async () => {
+    fromQueue.push({
+      data: [
+        { map: 'Sidetrack', mode: 'brawlBall', total: 1000, brawler_id: 1 },
+        { map: 'Sidetrack', mode: 'brawlBall', total:  800, brawler_id: 2 },
+        { map: 'Nutmeg',    mode: 'brawlBall', total:  500, brawler_id: 1 },
+      ],
+    })
+
+    const result = await queries.getMapList()
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ map: 'Sidetrack', mode: 'brawlBall', battles: 1800, brawlerCount: 2 })
+    expect(result[1]).toEqual({ map: 'Nutmeg',    mode: 'brawlBall', battles: 500,  brawlerCount: 1 })
+  })
+
+  it('returns empty array when no data', async () => {
+    fromQueue.push({ data: [] })
+    const result = await queries.getMapList()
+    expect(result).toEqual([])
+  })
+})
+
+describe('queries.findMapByPrefix', () => {
+  it('returns "found" with the single match', async () => {
+    fromQueue.push({
+      data: [{ map: 'Sidetrack', mode: 'brawlBall' }],
+    })
+    const result = await queries.findMapByPrefix('side')
+    expect(result).toEqual({ kind: 'found', map: 'Sidetrack', mode: 'brawlBall' })
+  })
+
+  it('returns "none" when no matches', async () => {
+    fromQueue.push({ data: [] })
+    const result = await queries.findMapByPrefix('xyz')
+    expect(result).toEqual({ kind: 'none' })
+  })
+
+  it('returns "ambiguous" with candidates when multiple distinct pairs match', async () => {
+    fromQueue.push({
+      data: [
+        { map: 'Beach Ball',  mode: 'brawlBall' },
+        { map: 'Bea Stadium', mode: 'knockout'  },
+      ],
+    })
+    const result = await queries.findMapByPrefix('bea')
+    expect(result.kind).toBe('ambiguous')
+    if (result.kind === 'ambiguous') {
+      expect(result.candidates).toHaveLength(2)
+    }
+  })
+})
+
+describe('queries.getMapData', () => {
+  it('returns coverage + rankings for an existing map', async () => {
+    const nowIso = new Date().toISOString()
+    const today = new Date().toISOString().slice(0, 10)
+    fromQueue.push(
+      { data: [{ total: 2798 }] },                                                                // today total rows
+      { data: [{ total: 19586 }] },                                                               // 7d total rows
+      { data: [{ brawler_id: 1 }, { brawler_id: 2 }, { brawler_id: 3 }] },                        // brawler coverage
+      {
+        data: [
+          { brawler_id: 1, wins: 60, losses: 40, total: 100 },
+          { brawler_id: 2, wins: 45, losses: 55, total: 100 },
+        ],
+      },                                                                                          // WR rows
+      { data: [{ date: today, total: 19586 }] },                                                  // 7d sparkline rows (bucketed by date)
+      {
+        data: [
+          { map: 'Sidetrack', mode: 'brawlBall', total: 2798 },
+          { map: 'Nutmeg',    mode: 'brawlBall', total: 1848 },
+        ],
+      },                                                                                          // same-mode comparison
+      { data: { last_battle_time: nowIso } },                                                     // last cursor update
+    )
+
+    const result = await queries.getMapData('Sidetrack', 'brawlBall')
+    expect(result.map).toBe('Sidetrack')
+    expect(result.mode).toBe('brawlBall')
+    expect(result.battlesToday).toBe(2798)
+    expect(result.battlesLast7d).toBe(19586)
+    expect(result.brawlerCovered).toBe(3)
+    expect(result.topWinRates.length).toBeGreaterThan(0)
+    expect(result.sameModeComparison.length).toBe(2)
+    expect(result.lastCursorUpdate).toBe(nowIso)
+  })
+})
