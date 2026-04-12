@@ -1,6 +1,6 @@
 import { EXPECTED_CRON_RUNS_24H, FRESHNESS_EMOJI, FRESHNESS_THRESHOLDS } from '../constants'
 import { escapeHtml, fmtTimeAgo, section } from '../formatters'
-import type { CommandHandler, CronData, PgCronJob, PgCronRun } from '../types'
+import type { CommandHandler, CronData, PgCronRun } from '../types'
 
 export const handleCron: CommandHandler = async ({ queries }) => {
   const c = await queries.getCronStatus()
@@ -103,6 +103,3 @@ function fmtTimeAgoFromAgeMs(ageMs: number | null): string {
   const iso = new Date(Date.now() - ageMs).toISOString()
   return fmtTimeAgo(iso)
 }
-
-// Suppress unused-import lint when type is only used narratively above.
-export type _UnusedPgCronJob = PgCronJob

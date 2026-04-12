@@ -21,13 +21,14 @@ export const handleStats: CommandHandler = async ({ queries }) => {
     formatSparkLine(s.anonSparkline, `${s.anonSparkline[s.anonSparkline.length - 1] ?? 0} new today`),
   ].join('\n')
 
+  const battlesLast7d = s.battleSparkline.reduce((sum, n) => sum + n, 0)
   const activity = [
     `  Total batallas: ${fmtNumber(s.totalBattles)}`,
     `  Hoy:            ${fmtNumber(s.battlesToday)}`,
-    `  Últimos 7 días: ${fmtNumber(s.totalBattles)}`,
+    `  Últimos 7 días: ${fmtNumber(battlesLast7d)}`,
     '',
-    '  Battles / day (7d)',
-    formatSparkLine(s.battleSparkline, `${s.battlesToday} today`),
+    '  Batallas / día (7d)',
+    formatSparkLine(s.battleSparkline, `${s.battlesToday} hoy`),
   ].join('\n')
 
   const metaPoll = [

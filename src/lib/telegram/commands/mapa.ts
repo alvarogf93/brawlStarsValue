@@ -1,5 +1,5 @@
 import { MIN_BATTLES_FOR_RANKING } from '../constants'
-import { bar, fmtNumber, fmtTimeAgo, section, sparkline } from '../formatters'
+import { bar, escapeHtml, fmtNumber, fmtTimeAgo, section, sparkline } from '../formatters'
 import type { CommandHandler, MapData, MapListItem } from '../types'
 
 export const handleMapa: CommandHandler = async ({ args, queries }) => {
@@ -9,18 +9,19 @@ export const handleMapa: CommandHandler = async ({ args, queries }) => {
   }
 
   const prefix = args[0]
+  const safePrefix = escapeHtml(prefix)
   const match = await queries.findMapByPrefix(prefix)
 
   if (match.kind === 'none') {
-    return `❌ No hay mapa que empiece por '${prefix}'. Usa /mapa para ver el listado completo.`
+    return `❌ No hay mapa que empiece por '${safePrefix}'. Usa /mapa para ver el listado completo.`
   }
 
   if (match.kind === 'ambiguous') {
     const lines = match.candidates
-      .map((c) => `  • ${c.map} (${c.mode})`)
+      .map((c) => `  • ${escapeHtml(c.map)} (${escapeHtml(c.mode)})`)
       .join('\n')
     return [
-      `⚠️ Ambiguo: '${prefix}' matchea varios mapas:`,
+      `⚠️ Ambiguo: '${safePrefix}' matchea varios mapas:`,
       '',
       lines,
       '',

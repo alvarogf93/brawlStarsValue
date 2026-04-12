@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { commandRegistry, parseCommand } from '@/lib/telegram/dispatcher'
 import { clampToTelegramLimit, escapeHtml } from '@/lib/telegram/formatters'
@@ -8,6 +9,24 @@ import type { TelegramUpdate } from '@/lib/telegram/types'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 export const dynamic = 'force-dynamic'
+
+/**
+ * Constant-time comparison of the L1 auth header against the expected secret.
+ * Prevents byte-by-byte timing oracle on the secret value. The length check
+ * exits early if the buffers differ — this reveals the secret's length, which
+ * is acceptable: the entropy lives in the 256 bits of the hex value, not in
+ * its length (which is a fixed 64-char convention).
+ */
+function safeCompareHeader(
+  header: string | null,
+  expected: string | undefined,
+): boolean {
+  if (!header || !expected) return false
+  const a = Buffer.from(header, 'utf-8')
+  const b = Buffer.from(expected, 'utf-8')
+  if (a.length !== b.length) return false
+  return timingSafeEqual(a, b)
+}
 
 /**
  * POST /api/telegram/webhook
@@ -24,7 +43,7 @@ export async function POST(request: Request) {
   try {
     // ── L1: secret header ────────────────────────────────────
     const headerSecret = request.headers.get('x-telegram-bot-api-secret-token')
-    if (headerSecret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+    if (!safeCompareHeader(headerSecret, process.env.TELEGRAM_WEBHOOK_SECRET)) {
       console.warn('[telegram/webhook] L1 auth fail')
       return NextResponse.json({ ok: true })
     }

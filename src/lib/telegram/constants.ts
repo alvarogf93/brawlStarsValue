@@ -6,7 +6,12 @@ export const TELEGRAM_MESSAGE_LIMIT = 4000
 
 // Minimum battles for a win-rate ranking to be shown as reliable.
 // Used by /mapa <name>: if today's total < MIN, the ranking block is omitted.
+// Also applied as a filter in getStats.top3Brawlers and getMapData.wrRows.
 export const MIN_BATTLES_FOR_RANKING = 30
+
+// Total brawlers in Brawl Stars as of 2026-04. Update when new brawlers are added.
+// Consumed by getMapData to compute the brawler coverage ratio.
+export const BRAWLER_TOTAL = 82
 
 // Expected runs in the last 24h, per pg_cron job.
 // MUST be updated when adding or modifying a pg_cron job.
