@@ -47,7 +47,7 @@ export function fmtTimeAgo(iso: string | null, now: number = Date.now()): string
     return `hace ${hours}h ${remainingMin}m`
   }
   const days = Math.floor(hours / 24)
-  return `hace ${days} días`
+  return `hace ${days} ${days === 1 ? 'día' : 'días'}`
 }
 
 // ── fmtNumber ──────────────────────────────────────────────────
@@ -85,7 +85,13 @@ export function escapeHtml(s: string): string {
 // ── bucketByDay ────────────────────────────────────────────────
 // Buckets a list of row objects into daily counts over a fixed
 // window that ends "today". Index 0 = oldest, index (days-1) = today.
-// `field` is the key of the ISO timestamp inside each row.
+//
+// PRECONDITION: `field` must reference an ISO timestamp string on the
+// row (e.g. '2026-04-12T18:30:00Z'), NOT a date-only string
+// ('2026-04-12'). Date-only strings still parse (JS Date treats them as
+// UTC midnight) but this path is tested only with timestamptz columns
+// (`battle_time`, `first_visit_at`). For date-only aggregation (see
+// getMapData.sparkline7d), open-code the loop instead.
 export function bucketByDay<T extends Record<string, unknown>>(
   rows: T[],
   field: keyof T,
