@@ -69,6 +69,7 @@ export interface PremiumData {
   trialsActivatedLast30d: number
   trialToPremiumLast30d: number
   trialsExpiredLast30d: number
+  // Explicit placeholders for v2:
   upcomingRenewals7d: null
   ltvTotal: null
 }
