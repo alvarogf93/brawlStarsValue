@@ -57,6 +57,12 @@ export default function SharePage() {
   const shareText = `${t('text', { gems: data.totalGems.toLocaleString(), prestige: prestigeCount.toString() })}`
   const shareUrl = typeof window !== 'undefined' ? window.location.origin + `/${locale}/profile/${encodeURIComponent(tag)}` : ''
 
+  // Brawl Stars name colors come as '0xffRRGGBB'; convert to CSS-friendly '#RRGGBB'.
+  const rawNameColor = (data.player as { nameColor?: string })?.nameColor
+  const playerNameBgColor = rawNameColor
+    ? (rawNameColor.startsWith('0x') ? '#' + rawNameColor.slice(2) : rawNameColor)
+    : '#1C5CF1'
+
   async function handleShare() {
     const shareData = {
       title: t('title'),
@@ -122,13 +128,9 @@ export default function SharePage() {
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center h-full w-full">
 
-          <div 
+          <div
             className="px-6 py-2 rounded-xl border-[4px] border-[#0D1321] shadow-[0_6px_0_0_#0D1321] transform rotate-[-3deg] mt-6 mb-auto"
-            style={{ backgroundColor: (data.player as any)?.nameColor 
-                ? ((data.player as any).nameColor.startsWith('0x') 
-                    ? '#' + (data.player as any).nameColor.slice(2) 
-                    : (data.player as any).nameColor) 
-                : '#1C5CF1' }}
+            style={{ backgroundColor: playerNameBgColor }}
           >
             <span className="font-['Lilita_One'] text-white text-2xl drop-shadow-[0_2px_0_rgba(0,0,0,0.8)] text-stroke-brawl tracking-widest uppercase">
               {data.playerName}

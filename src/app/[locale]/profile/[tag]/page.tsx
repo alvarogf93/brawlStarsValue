@@ -71,7 +71,7 @@ export default function OverviewPage() {
   const clubBadgeId = club && 'badgeId' in club ? (club as { badgeId?: number | null }).badgeId : null
 
   // Brawl Stars colors come as 0xffRRGGBB.
-  const rawColor = (data.player as any)?.nameColor || ''
+  const rawColor = (data.player as { nameColor?: string })?.nameColor || ''
   const nameColorHex = rawColor.startsWith('0xff') ? `#${rawColor.slice(4)}` : rawColor || '#FFFFFF'
 
   return (
