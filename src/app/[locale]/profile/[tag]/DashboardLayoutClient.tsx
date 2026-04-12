@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { Header } from '@/components/layout/Header'
@@ -95,7 +95,9 @@ export function DashboardLayoutClient({ children }: { children: React.ReactNode 
         <main className={`flex-1 min-h-0 ${sidebarOpen ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-16 min-h-full">
             <ErrorBoundary fallback={<ErrorFallback onReload={() => window.location.reload()} />}>
-              {children}
+              <Suspense fallback={null}>
+                {children}
+              </Suspense>
             </ErrorBoundary>
           </div>
         </main>
