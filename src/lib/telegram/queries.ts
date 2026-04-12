@@ -6,9 +6,12 @@ import {
   createClient as createSupabaseAdmin,
   type SupabaseClient,
 } from '@supabase/supabase-js'
+import { FRESHNESS_THRESHOLDS } from './constants'
 import { bucketByDay } from './formatters'
 import type {
   BattlesData,
+  CronData,
+  FreshnessStatus,
   PremiumData,
   Queries,
   StatsData,
@@ -247,17 +250,82 @@ async function getPremium(): Promise<PremiumData> {
   }
 }
 
+// ── freshness inference ────────────────────────────────────────
+
+export function inferCronHealth(
+  ageMs: number | null,
+  expectedMin: number,
+  graceMin: number,
+): FreshnessStatus {
+  if (ageMs === null) return 'unknown'
+  const ageMin = ageMs / (60 * 1000)
+  if (ageMin < expectedMin + graceMin) return 'fresh'
+  if (ageMin < expectedMin * 3) return 'stale'
+  return 'dead'
+}
+
+// ── getCronStatus ──────────────────────────────────────────────
+
+async function getCronStatus(): Promise<CronData> {
+  const admin = getAdmin()
+  const now = Date.now()
+  const h24Ago = now - 24 * 60 * 60 * 1000
+
+  const [jobsRes, runsRes, latestCursorRes, latestSyncRes] = await Promise.all([
+    admin.rpc('diagnose_cron_jobs'),
+    admin.rpc('diagnose_cron_runs', { p_limit: 500 }),
+    admin.from('meta_poll_cursors').select('last_battle_time').order('last_battle_time', { ascending: false }).limit(1).maybeSingle(),
+    admin.from('profiles').select('last_sync').in('tier', ['premium', 'pro']).order('last_sync', { ascending: false }).limit(1).maybeSingle(),
+  ])
+
+  const pgCronJobs = (jobsRes.data ?? []) as CronData['pgCronJobs']
+  const cronRuns   = (runsRes.data  ?? []) as CronData['cronRuns']
+
+  const runsByJob = new Map<string, number>()
+  for (const r of cronRuns) {
+    const startMs = new Date(r.start_time).getTime()
+    if (startMs < h24Ago) continue
+    runsByJob.set(r.jobname, (runsByJob.get(r.jobname) ?? 0) + 1)
+  }
+
+  const metaPollAge = (latestCursorRes.data as { last_battle_time: string } | null)
+    ? now - new Date((latestCursorRes.data as { last_battle_time: string }).last_battle_time).getTime()
+    : null
+  const metaPollStatus = inferCronHealth(
+    metaPollAge,
+    FRESHNESS_THRESHOLDS['meta-poll'].expectedMin,
+    FRESHNESS_THRESHOLDS['meta-poll'].graceMin,
+  )
+
+  const syncAge = (latestSyncRes.data as { last_sync: string } | null)
+    ? now - new Date((latestSyncRes.data as { last_sync: string }).last_sync).getTime()
+    : null
+  const syncStatus = inferCronHealth(
+    syncAge,
+    FRESHNESS_THRESHOLDS['sync'].expectedMin,
+    FRESHNESS_THRESHOLDS['sync'].graceMin,
+  )
+
+  return {
+    pgCronJobs,
+    cronRuns,
+    runsByJob,
+    metaPollFreshness: { ageMs: metaPollAge, status: metaPollStatus },
+    syncFreshness:     { ageMs: syncAge,     status: syncStatus },
+  }
+}
+
 // ── Public export ─────────────────────────────────────────────
-// NOTE: other query functions (getCronStatus, getMapList,
-// findMapByPrefix, getMapData) are appended in subsequent tasks.
-// The `queries` export below is extended accordingly.
+// NOTE: other query functions (getMapList, findMapByPrefix,
+// getMapData) are appended in subsequent tasks. The `queries`
+// export below is extended accordingly.
 
 export const queries: Queries = {
   getStats,
   getBattles,
   getPremium,
+  getCronStatus,
   // Placeholders filled in by later tasks:
-  async getCronStatus() { throw new Error('not implemented yet (task 6)') },
   async getMapList() { throw new Error('not implemented yet (task 7)') },
   async findMapByPrefix() { throw new Error('not implemented yet (task 7)') },
   async getMapData() { throw new Error('not implemented yet (task 7)') },

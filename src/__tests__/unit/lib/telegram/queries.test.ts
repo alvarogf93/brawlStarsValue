@@ -206,3 +206,53 @@ describe('queries.getPremium', () => {
     expect(result.ltvTotal).toBeNull()
   })
 })
+
+describe('queries.getCronStatus', () => {
+  it('counts runs per job in last 24h and infers VPS freshness', async () => {
+    const nowIso = new Date().toISOString()
+    const old   = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
+
+    rpcQueue.push(
+      {
+        data: [
+          { jobid: 1, jobname: 'enqueue-premium-syncs', schedule: '*/15 * * * *', active: true, command: '' },
+          { jobid: 2, jobname: 'process-sync-queue',    schedule: '*/5 * * * *',  active: true, command: '' },
+        ],
+      },
+      {
+        data: [
+          { jobid: 1, jobname: 'enqueue-premium-syncs', status: 'succeeded', return_message: null, start_time: nowIso, end_time: nowIso },
+          { jobid: 1, jobname: 'enqueue-premium-syncs', status: 'succeeded', return_message: null, start_time: nowIso, end_time: nowIso },
+          { jobid: 2, jobname: 'process-sync-queue',    status: 'succeeded', return_message: null, start_time: nowIso, end_time: nowIso },
+          { jobid: 2, jobname: 'process-sync-queue',    status: 'succeeded', return_message: null, start_time: old,    end_time: old },  // outside 24h
+        ],
+      },
+    )
+
+    // Latest meta cursor: fresh (10 min ago)
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    // Latest sync: stale (65 min ago)
+    const sixtyFiveMinAgo = new Date(Date.now() - 65 * 60 * 1000).toISOString()
+    fromQueue.push(
+      { data: { last_battle_time: tenMinAgo } },
+      { data: { last_sync: sixtyFiveMinAgo } },
+    )
+
+    const result = await queries.getCronStatus()
+
+    expect(result.pgCronJobs).toHaveLength(2)
+    expect(result.runsByJob.get('enqueue-premium-syncs')).toBe(2)
+    expect(result.runsByJob.get('process-sync-queue')).toBe(1)  // 1 inside 24h
+    expect(result.metaPollFreshness.status).toBe('fresh')
+    expect(result.syncFreshness.status).toBe('dead')  // 65 min > 20 + 5, and > 20 × 3 → dead
+  })
+
+  it('returns unknown freshness when proxy data is missing', async () => {
+    rpcQueue.push({ data: [] }, { data: [] })
+    fromQueue.push({ data: null }, { data: null })
+
+    const result = await queries.getCronStatus()
+    expect(result.metaPollFreshness.status).toBe('unknown')
+    expect(result.syncFreshness.status).toBe('unknown')
+  })
+})
