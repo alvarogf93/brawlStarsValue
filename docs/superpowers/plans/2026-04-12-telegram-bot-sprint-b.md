@@ -3313,7 +3313,7 @@ import type { StatsData } from '@/lib/telegram/types'
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 
-const getStatsMock = vi.fn<[], Promise<StatsData>>()
+const getStatsMock = vi.fn<() => Promise<StatsData>>()
 
 vi.mock('@/lib/telegram/queries', () => ({
   queries: {
@@ -3420,7 +3420,7 @@ import type { BattlesData } from '@/lib/telegram/types'
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 
-const getBattlesMock = vi.fn<[], Promise<BattlesData>>()
+const getBattlesMock = vi.fn<() => Promise<BattlesData>>()
 
 vi.mock('@/lib/telegram/queries', () => ({
   queries: {
@@ -3538,7 +3538,7 @@ import type { PremiumData } from '@/lib/telegram/types'
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 
-const getPremiumMock = vi.fn<[], Promise<PremiumData>>()
+const getPremiumMock = vi.fn<() => Promise<PremiumData>>()
 
 vi.mock('@/lib/telegram/queries', () => ({
   queries: {
@@ -3624,7 +3624,7 @@ import type { CronData } from '@/lib/telegram/types'
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 
-const getCronStatusMock = vi.fn<[], Promise<CronData>>()
+const getCronStatusMock = vi.fn<() => Promise<CronData>>()
 
 vi.mock('@/lib/telegram/queries', () => ({
   queries: {
@@ -3752,9 +3752,9 @@ import type { MapData, MapListItem, MapMatchResult } from '@/lib/telegram/types'
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 
-const getMapListMock = vi.fn<[], Promise<MapListItem[]>>()
-const findMapByPrefixMock = vi.fn<[string], Promise<MapMatchResult>>()
-const getMapDataMock = vi.fn<[string, string], Promise<MapData>>()
+const getMapListMock = vi.fn<() => Promise<MapListItem[]>>()
+const findMapByPrefixMock = vi.fn<(prefix: string) => Promise<MapMatchResult>>()
+const getMapDataMock = vi.fn<(map: string, mode: string) => Promise<MapData>>()
 
 vi.mock('@/lib/telegram/queries', () => ({
   queries: {
