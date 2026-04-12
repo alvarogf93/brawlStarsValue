@@ -1234,13 +1234,13 @@ async function getPremium(): Promise<PremiumData> {
     admin.from('profiles').select('*', { count: 'exact', head: true }).gt('trial_ends_at', now.toISOString()),
     admin.from('profiles').select('*', { count: 'exact', head: true }).eq('tier', 'free'),
     admin.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', d30Ago),
-    admin.from('profiles').select('*', { count: 'exact', head: true }).gte('trial_started_at', d30Ago),
+    admin.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', d30Ago),
     admin.from('profiles').select('*', { count: 'exact', head: true })
       .in('tier', ['premium', 'pro']).gte('created_at', d30Ago),
     admin.from('profiles').select('*', { count: 'exact', head: true })
       .lt('trial_ends_at', now.toISOString())
       .eq('tier', 'free')
-      .gte('trial_started_at', d30Ago),
+      .gte('created_at', d30Ago),
   ])
 
   return {
@@ -1282,7 +1282,7 @@ export const queries: Queries = {
 }
 ```
 
-> **Schema note:** `trial_started_at` is assumed to exist on `profiles`. If the schema has no such column, relax the query to use `created_at` + the boolean "did this user ever activate trial" invariant, or remove the trial-funnel metric entirely and surface "(requires schema change)" in `/premium`. Check `supabase/migrations/*.sql` for the column before implementing; if it is missing, FLAG IT to the human before proceeding.
+> **Schema note (resolved 2026-04-12):** the `profiles` table does NOT have a `trial_started_at` column. It has `trial_ends_at`, set by the `BEFORE INSERT` trigger in `006_trial_referrals.sql` to `NOW() + INTERVAL '3 days'`. Since every signup auto-activates a trial at profile creation, the trial start time is `created_at` by definition. Both `trialsActivatedLast30d` and `trialsExpiredLast30d` therefore filter on `created_at` above. A consequence: `trialsActivatedLast30d === signupsLast30d` always, so `/premium` will show `Activaron trial: N (100%)`. This is factual — it reflects the current design where trial is auto-on — and should not be "fixed" with fabricated numbers.
 
 - [ ] **Step 5.4 — Run tests — expect PASS**
 
