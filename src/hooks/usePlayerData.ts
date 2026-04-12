@@ -38,7 +38,10 @@ function writeCache(tag: string, gemScore: GemScore): void {
   }
 }
 
-export function usePlayerData(tag: string) {
+export function usePlayerData(
+  tag: string,
+  opts?: { fromLanding?: boolean; locale?: string },
+) {
   const [data, setData] = useState<GemScore | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -63,7 +66,11 @@ export function usePlayerData(tag: string) {
     fetch('/api/calculate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerTag: tag }),
+      body: JSON.stringify({
+        playerTag: tag,
+        ...(opts?.fromLanding ? { fromLanding: true } : {}),
+        ...(opts?.locale ? { locale: opts.locale } : {}),
+      }),
       signal: controller.signal,
     })
       .then(async (res) => {
@@ -86,7 +93,7 @@ export function usePlayerData(tag: string) {
       })
 
     return () => controller.abort()
-  }, [tag])
+  }, [tag, opts?.fromLanding, opts?.locale])
 
   return { data, isLoading, error }
 }
