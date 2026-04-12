@@ -124,3 +124,85 @@ describe('queries.getStats', () => {
     expect(result.latestMetaActivity).toBeNull()
   })
 })
+
+describe('queries.getBattles', () => {
+  it('aggregates counts and 14d sparkline', async () => {
+    const nowIso = '2026-04-12T18:30:00Z'
+    fromQueue.push(
+      { data: null, count: 108 },  // total
+      { data: null, count: 14 },   // today
+      { data: null, count: 0 },    // yesterday
+      { data: null, count: 108 },  // last7d
+      { data: null, count: 108 },  // last30d
+      { data: [{ battle_time: nowIso }, { battle_time: nowIso }] },  // 14d rows
+      {
+        data: [
+          { mode: 'brawlBall', result: 'victory', player_tag: '#A' },
+          { mode: 'brawlBall', result: 'defeat',  player_tag: '#A' },
+          { mode: 'gemGrab',   result: 'draw',    player_tag: '#B' },
+        ],
+      },  // distributions
+      { data: { last_sync: nowIso } },  // latest sync
+      { data: null, count: 0 },  // queue pending
+    )
+
+    const result = await queries.getBattles()
+
+    expect(result.total).toBe(108)
+    expect(result.today).toBe(14)
+    expect(result.yesterday).toBe(0)
+    expect(result.last7d).toBe(108)
+    expect(result.last30d).toBe(108)
+    expect(result.sparkline14d).toHaveLength(14)
+    expect(result.modeDistribution.length).toBeGreaterThan(0)
+    expect(result.resultDistribution.map((r) => r.result)).toEqual(
+      expect.arrayContaining(['victory', 'defeat', 'draw']),
+    )
+    expect(result.topPlayers.length).toBeGreaterThan(0)
+    expect(result.lastSuccessfulSyncAt).toBe(nowIso)
+    expect(result.queuePending).toBe(0)
+  })
+
+  it('returns zeros when battles table empty', async () => {
+    fromQueue.push(
+      { data: null, count: 0 },
+      { data: null, count: 0 },
+      { data: null, count: 0 },
+      { data: null, count: 0 },
+      { data: null, count: 0 },
+      { data: [] },
+      { data: [] },
+      { data: null },
+      { data: null, count: 0 },
+    )
+
+    const result = await queries.getBattles()
+    expect(result.total).toBe(0)
+    expect(result.topPlayers).toEqual([])
+    expect(result.lastSuccessfulSyncAt).toBeNull()
+  })
+})
+
+describe('queries.getPremium', () => {
+  it('returns funnel counts with nullable v2 fields', async () => {
+    fromQueue.push(
+      { data: null, count: 1 },  // premium active
+      { data: null, count: 0 },  // trial active
+      { data: null, count: 2 },  // free
+      { data: null, count: 3 },  // signups 30d
+      { data: null, count: 3 },  // trials activated 30d
+      { data: null, count: 1 },  // trial→premium 30d
+      { data: null, count: 0 },  // trials expired 30d
+    )
+
+    const result = await queries.getPremium()
+    expect(result.premiumActive).toBe(1)
+    expect(result.trialActive).toBe(0)
+    expect(result.freeUsers).toBe(2)
+    expect(result.signupsLast30d).toBe(3)
+    expect(result.trialsActivatedLast30d).toBe(3)
+    expect(result.trialToPremiumLast30d).toBe(1)
+    expect(result.upcomingRenewals7d).toBeNull()
+    expect(result.ltvTotal).toBeNull()
+  })
+})
