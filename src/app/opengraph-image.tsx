@@ -1,6 +1,14 @@
 import { ImageResponse } from 'next/og'
 
-export const runtime = 'edge'
+// Next.js 16 file convention: this file is auto-registered as
+// <meta property="og:image"> + <meta name="twitter:image"> in the
+// <head> of every route. No manual `images: [...]` needed in
+// generateMetadata — that would actually override and break the
+// auto-inject (see commit history for debug details).
+//
+// Intentionally NOT using `runtime = 'edge'`: Vercel recommends
+// the default Node.js runtime on Fluid Compute for Next.js 16.
+
 export const alt = 'BrawlVision - Brawl Stars Combat Analytics'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'

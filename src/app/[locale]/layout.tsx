@@ -59,13 +59,16 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       title: 'BrawlVision - Brawl Stars Combat Analytics',
       description: 'Analyze your battles, track win rates, and calculate your gem value.',
       locale,
-      images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'BrawlVision' }],
+      // `images` intentionally omitted: Next.js auto-injects the
+      // opengraph-image.tsx file convention from src/app/ into every
+      // route. Declaring images manually here overrides that auto-inject
+      // and was pointing at a 404 URL (`/opengraph-image`) in production.
     },
     twitter: {
       card: 'summary_large_image',
       title: 'BrawlVision | Combat Analytics & Gem Calculator',
       description: 'Analyze your battles, track win rates, and calculate your gem value.',
-      images: ['/opengraph-image'],
+      // Same as openGraph.images — let the file convention inject.
     },
     verification: {
       google: '5uwFXu6M3E0O0IOawv8nl-Ae-OKw72tBOblsWHrXQ2Y',
