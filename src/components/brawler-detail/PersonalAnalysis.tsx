@@ -55,11 +55,6 @@ export function PersonalAnalysis({
     [analytics, brawlerId],
   )
 
-  const comfort = useMemo(
-    () => analytics?.brawlerComfort.find(b => b.brawlerId === brawlerId),
-    [analytics, brawlerId],
-  )
-
   // ── Calendar data from battlelog ────────────────────────────
 
   const calendarDays = useMemo(() => {
@@ -96,6 +91,20 @@ export function PersonalAnalysis({
       locale,
     )
   }, [brawlerStats, metaData, mapMatrix, matchups, locale])
+
+  // ── Derived premium views (moved above early returns to respect
+  //    rules-of-hooks — the results are only read inside the
+  //    premium branch, but the hooks must be called unconditionally).
+
+  const topMatchups = useMemo(
+    () => [...matchups].sort((a, b) => b.total - a.total).slice(0, 8),
+    [matchups],
+  )
+
+  const topMaps = useMemo(
+    () => [...mapMatrix].sort((a, b) => b.total - a.total).slice(0, 8),
+    [mapMatrix],
+  )
 
   // ── Guard: no analytics data ────────────────────────────────
 
@@ -142,18 +151,6 @@ export function PersonalAnalysis({
   const wrDiff = metaWR !== null ? yourWR - metaWR : null
 
   const redirectPath = `/${locale}/profile/${encodeURIComponent(tag)}/subscribe`
-
-  // ── Top matchups (sorted by games, top 8) ───────────────────
-  const topMatchups = useMemo(
-    () => [...matchups].sort((a, b) => b.total - a.total).slice(0, 8),
-    [matchups],
-  )
-
-  // ── Top maps (sorted by games, top 8) ───────────────────────
-  const topMaps = useMemo(
-    () => [...mapMatrix].sort((a, b) => b.total - a.total).slice(0, 8),
-    [mapMatrix],
-  )
 
   // ── Premium content block ───────────────────────────────────
 
