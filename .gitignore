@@ -43,3 +43,14 @@ next-env.d.ts
 supabase/.temp/
 
 .vercel
+
+# playwright outputs
+/playwright-report
+/test-results
+
+# local tooling configs (agents, skills, tool preferences)
+/.agents
+/.claude/skills
+/.gemini
+/.expect
+/.github/copilot
