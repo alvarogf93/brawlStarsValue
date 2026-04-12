@@ -21,7 +21,7 @@ export default function OverviewPage() {
   const searchParams = useSearchParams()
   const fromLanding = searchParams.get('from') === 'landing'
   const { data, isLoading, error } = usePlayerData(tag, { fromLanding, locale })
-  const { totalCosmeticGems, classifiedCount } = useSkinClassifications(tag)
+  const { totalCosmeticGems } = useSkinClassifications(tag)
   const confettiFired = useRef(false)
 
   useEffect(() => {

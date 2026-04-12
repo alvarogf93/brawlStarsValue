@@ -15,7 +15,7 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
-import { fetchPlayer, SuprecellApiError } from '@/lib/api'
+import { fetchPlayer } from '@/lib/api'
 const mockFetchPlayer = vi.mocked(fetchPlayer)
 
 // ───────────────── Mocks for anonymous visit tracking ─────────────────

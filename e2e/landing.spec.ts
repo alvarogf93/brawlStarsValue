@@ -82,7 +82,6 @@ test.describe('Landing page', () => {
     // Either redirected to profile, or stayed on landing with tag in input
     // (redirect may fail if profile page compilation is slow)
     await page.waitForTimeout(5_000)
-    const url = page.url()
     const hasTagInStorage = await page.evaluate(() =>
       localStorage.getItem('brawlvalue:user') === '#2P0Q8C2C0'
     )

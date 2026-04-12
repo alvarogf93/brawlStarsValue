@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -34,7 +33,6 @@ interface HeaderProps {
 }
 
 export function Header({ playerTag, onMenuToggle }: HeaderProps) {
-  const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('nav')
   const { user, profile, loading, signOut } = useAuth()
