@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef } from 'react'
 import { BreakdownGrid } from '@/components/profile/BreakdownGrid'
@@ -18,7 +18,9 @@ export default function OverviewPage() {
   const t = useTranslations('profile')
   const tag = decodeURIComponent(params.tag)
   const locale = params.locale || 'es'
-  const { data, isLoading, error } = usePlayerData(tag)
+  const searchParams = useSearchParams()
+  const fromLanding = searchParams.get('from') === 'landing'
+  const { data, isLoading, error } = usePlayerData(tag, { fromLanding, locale })
   const { totalCosmeticGems, classifiedCount } = useSkinClassifications(tag)
   const confettiFired = useRef(false)
 
