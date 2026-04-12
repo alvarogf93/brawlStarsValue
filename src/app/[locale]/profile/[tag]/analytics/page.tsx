@@ -226,6 +226,10 @@ export default function AnalyticsPage() {
         }
       })
       .catch(() => { /* Play Now is optional — silent fail */ })
+    // liveMap is read once as a "first-time only" guard inside the
+    // fetch callback. Adding it to deps would re-run the fetch every
+    // time the live map is captured, causing an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analytics])
 
   // Trial celebration — show confetti once on first premium visit after trial activation

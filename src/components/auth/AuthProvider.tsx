@@ -12,7 +12,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [needsTag, setNeedsTag] = useState(false)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const supabase = useMemo(() => createClient(), [])
 
   const fetchProfile = useCallback(async (userId: string) => {

@@ -115,7 +115,10 @@ export default function BrawlersPage() {
     updateParams({ rarity: serialized || null })
   }, [updateParams, activeRarities])
 
-  const brawlers = data?.player?.brawlers ?? []
+  // Wrap in useMemo so the fallback `[]` keeps a stable identity
+  // across renders — otherwise the downstream useMemo recomputes
+  // on every render.
+  const brawlers = useMemo(() => data?.player?.brawlers ?? [], [data?.player?.brawlers])
 
   const filteredAndSorted = useMemo(() => {
     let result = brawlers
