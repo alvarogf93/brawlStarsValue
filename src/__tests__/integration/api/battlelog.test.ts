@@ -14,6 +14,8 @@ vi.mock('@/lib/api', () => ({
 import { fetchBattlelog, SuprecellApiError } from '@/lib/api'
 import { POST } from '@/app/api/battlelog/route'
 
+type BattlelogData = Awaited<ReturnType<typeof fetchBattlelog>>
+
 const mockFetchBattlelog = vi.mocked(fetchBattlelog)
 
 beforeEach(() => vi.clearAllMocks())
@@ -28,7 +30,7 @@ function makeRequest(body: unknown) {
 
 describe('POST /api/battlelog', () => {
   it('returns battlelog for valid tag', async () => {
-    mockFetchBattlelog.mockResolvedValueOnce({ items: [{ battleTime: '20260405T170000.000Z' }] } as any)
+    mockFetchBattlelog.mockResolvedValueOnce({ items: [{ battleTime: '20260405T170000.000Z' }] } as BattlelogData)
     const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
     expect(res.status).toBe(200)
     const data = await res.json()

@@ -39,7 +39,7 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
   }, [data])
 
   const filtered = useMemo(() => {
-    let list = selectedBrawler === 'all'
+    const list = selectedBrawler === 'all'
       ? data
       : data.filter(d => d.myBrawlerName === selectedBrawler)
 

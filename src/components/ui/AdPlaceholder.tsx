@@ -5,6 +5,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
 
+// AdSense injects an `adsbygoogle` array on the global window. Declare it
+// once so we don't need `any` casts every time we call push().
+declare global {
+  interface Window {
+    adsbygoogle?: Array<Record<string, unknown>>
+  }
+}
+
 const ADSENSE_PUB_ID = 'ca-pub-6838192381842255'
 
 export function AdPlaceholder({ className = '' }: { className?: string }) {
@@ -17,12 +25,13 @@ export function AdPlaceholder({ className = '' }: { className?: string }) {
   useEffect(() => {
     if (!ADSENSE_PUB_ID || pushed.current || hasPremium) return
     try {
-      ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({})
+      window.adsbygoogle = window.adsbygoogle || []
+      window.adsbygoogle.push({})
       pushed.current = true
     } catch {
       // AdSense not loaded yet or blocked
     }
-  }, [])
+  }, [hasPremium])
 
   if (hasPremium) return null
 

@@ -14,6 +14,8 @@ vi.mock('@/lib/api', () => ({
 import { fetchClub, SuprecellApiError } from '@/lib/api'
 import { POST } from '@/app/api/club/route'
 
+type ClubData = Awaited<ReturnType<typeof fetchClub>>
+
 const mockFetchClub = vi.mocked(fetchClub)
 
 beforeEach(() => vi.clearAllMocks())
@@ -28,7 +30,7 @@ function makeRequest(body: unknown) {
 
 describe('POST /api/club', () => {
   it('returns club data for valid tag', async () => {
-    mockFetchClub.mockResolvedValueOnce({ tag: '#CLUB1', name: 'TestClub', members: [] } as any)
+    mockFetchClub.mockResolvedValueOnce({ tag: '#CLUB1', name: 'TestClub', members: [] } as unknown as ClubData)
     const res = await POST(makeRequest({ clubTag: '#CLUB1' }))
     expect(res.status).toBe(200)
     const data = await res.json()

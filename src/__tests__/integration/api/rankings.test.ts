@@ -14,6 +14,8 @@ vi.mock('@/lib/api', () => ({
 import { fetchPlayerRankings, SuprecellApiError } from '@/lib/api'
 import { GET } from '@/app/api/rankings/route'
 
+type RankingsData = Awaited<ReturnType<typeof fetchPlayerRankings>>
+
 const mockFetchRankings = vi.mocked(fetchPlayerRankings)
 
 beforeEach(() => vi.clearAllMocks())
@@ -26,19 +28,19 @@ function makeRequest(params: Record<string, string> = {}) {
 
 describe('GET /api/rankings', () => {
   it('returns global rankings by default', async () => {
-    mockFetchRankings.mockResolvedValueOnce({ items: [{ tag: '#P1', name: 'Player1', trophies: 50000 }] } as any)
+    mockFetchRankings.mockResolvedValueOnce({ items: [{ tag: '#P1', name: 'Player1', trophies: 50000 }] } as unknown as RankingsData)
     const res = await GET(makeRequest())
     expect(res.status).toBe(200)
   })
 
   it('passes country param to API', async () => {
-    mockFetchRankings.mockResolvedValueOnce({ items: [] } as any)
+    mockFetchRankings.mockResolvedValueOnce({ items: [] } as unknown as RankingsData)
     await GET(makeRequest({ country: 'ES' }))
     expect(mockFetchRankings).toHaveBeenCalledWith('ES', 200)
   })
 
   it('caps limit at 200', async () => {
-    mockFetchRankings.mockResolvedValueOnce({ items: [] } as any)
+    mockFetchRankings.mockResolvedValueOnce({ items: [] } as unknown as RankingsData)
     await GET(makeRequest({ limit: '500' }))
     expect(mockFetchRankings).toHaveBeenCalledWith('global', 200)
   })

@@ -14,6 +14,8 @@ vi.mock('@/lib/api', () => ({
 import { fetchEventRotation, SuprecellApiError } from '@/lib/api'
 import { GET } from '@/app/api/events/route'
 
+type EventsData = Awaited<ReturnType<typeof fetchEventRotation>>
+
 const mockFetchEvents = vi.mocked(fetchEventRotation)
 
 beforeEach(() => vi.clearAllMocks())
@@ -22,7 +24,7 @@ describe('GET /api/events', () => {
   it('returns event rotation', async () => {
     mockFetchEvents.mockResolvedValueOnce([
       { startTime: '20260405T100000.000Z', endTime: '20260406T100000.000Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } },
-    ] as any)
+    ] as EventsData)
     const res = await GET()
     expect(res.status).toBe(200)
     const data = await res.json()
@@ -31,7 +33,7 @@ describe('GET /api/events', () => {
   })
 
   it('returns empty array when no events', async () => {
-    mockFetchEvents.mockResolvedValueOnce([] as any)
+    mockFetchEvents.mockResolvedValueOnce([] as EventsData)
     const res = await GET()
     expect(res.status).toBe(200)
     const data = await res.json()
