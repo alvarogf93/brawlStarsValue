@@ -95,6 +95,14 @@ The user proposed three alternatives in the conversation. Audit data lets us sco
 
 **Rejected — invalid.** I proposed this based on a false assumption about the API. The Supercell API updates battlelogs with ~30 min latency and returns only the last 25 battles. Polling faster than every 30 min yields duplicates without new data. Discarded.
 
+### Follow-up correction (added after user clarification)
+
+After writing the first version of this audit I proposed "migrate the meta-poll cron to Vercel Cron" as Priority 0. **That recommendation was based on a false assumption about Vercel Hobby limits** — I thought Hobby allowed `0 * * * *` (hourly). The user corrected me: Vercel Hobby historically limited cron jobs to **1 invocation per day**, and that is exactly why the meta-poll was placed on the Oracle VPS crontab in the first place. It was the correct decision given the constraints of a free tier.
+
+The revised Priority 0 is **not** "migrate to Vercel Cron" — it is "add health monitoring to the VPS cron" (healthchecks.io, 1 hour of work, no migration) plus optionally "migrate to `pg_cron` + `pg_net` for centralized observability without changing plan" (1 sprint). Vercel Cron migration is only on the table if the project upgrades to Pro for unrelated reasons.
+
+This correction is important: the VPS cron is **not** a mistake to be undone. It is a correct architectural decision that needs better operational hygiene, not replacement.
+
 ### Alternative 2: "Add regional pro player pools"
 
 **Rejected — data disproves the hypothesis.** The user's reasoning was that the global pool is timezone-biased. But the actual sparsity pattern is **by mode**, not by hour. Tier D maps (`heist::Pit Stop` etc.) would remain sparse even with perfect 24h geographic coverage, because pro players don't play those modes anywhere in the world.
