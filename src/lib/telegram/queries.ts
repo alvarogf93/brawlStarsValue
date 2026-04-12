@@ -12,6 +12,9 @@ import type {
   BattlesData,
   CronData,
   FreshnessStatus,
+  MapData,
+  MapListItem,
+  MapMatchResult,
   PremiumData,
   Queries,
   StatsData,
@@ -315,18 +318,152 @@ async function getCronStatus(): Promise<CronData> {
   }
 }
 
+// ── getMapList ─────────────────────────────────────────────────
+
+async function getMapList(): Promise<MapListItem[]> {
+  const admin = getAdmin()
+  const today = new Date().toISOString().slice(0, 10)
+
+  const { data } = await admin
+    .from('meta_stats')
+    .select('map, mode, total, brawler_id')
+    .eq('date', today)
+    .eq('source', 'global')
+
+  const agg = new Map<string, { map: string; mode: string; battles: number; brawlers: Set<number> }>()
+  for (const row of (data ?? []) as Array<{ map: string; mode: string; total: number; brawler_id: number }>) {
+    const key = `${row.mode}::${row.map}`
+    let entry = agg.get(key)
+    if (!entry) {
+      entry = { map: row.map, mode: row.mode, battles: 0, brawlers: new Set() }
+      agg.set(key, entry)
+    }
+    entry.battles += row.total ?? 0
+    entry.brawlers.add(row.brawler_id)
+  }
+
+  return Array.from(agg.values())
+    .map((e) => ({ map: e.map, mode: e.mode, battles: e.battles, brawlerCount: e.brawlers.size }))
+    .sort((a, b) => b.battles - a.battles)
+}
+
+// ── findMapByPrefix ────────────────────────────────────────────
+// Case-insensitive prefix match against distinct (map, mode) pairs
+// that have data today. Dedup runs in JS because Supabase JS client
+// does not support SELECT DISTINCT cleanly.
+
+async function findMapByPrefix(prefix: string): Promise<MapMatchResult> {
+  const admin = getAdmin()
+  const today = new Date().toISOString().slice(0, 10)
+
+  const { data } = await admin
+    .from('meta_stats')
+    .select('map, mode')
+    .eq('date', today)
+    .eq('source', 'global')
+    .ilike('map', `${prefix}%`)
+    .limit(200)
+
+  const pairs = new Map<string, { map: string; mode: string }>()
+  for (const row of (data ?? []) as Array<{ map: string; mode: string }>) {
+    const key = `${row.mode}::${row.map}`
+    if (!pairs.has(key)) pairs.set(key, { map: row.map, mode: row.mode })
+  }
+  const candidates = Array.from(pairs.values()).slice(0, 10)
+
+  if (candidates.length === 0) return { kind: 'none' }
+  if (candidates.length === 1) return { kind: 'found', map: candidates[0].map, mode: candidates[0].mode }
+  return { kind: 'ambiguous', candidates }
+}
+
+// ── getMapData ─────────────────────────────────────────────────
+
+async function getMapData(map: string, mode: string): Promise<MapData> {
+  const admin = getAdmin()
+  const now = new Date()
+  const today = now.toISOString().slice(0, 10)
+  const d7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+  const [
+    todayRes,
+    last7dRes,
+    brawlerCoverageRes,
+    wrRowsRes,
+    sparklineRowsRes,
+    sameModeRes,
+    cursorRes,
+  ] = await Promise.all([
+    admin.from('meta_stats').select('total').eq('date', today).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('total').gte('date', d7Ago).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('brawler_id').eq('date', today).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('brawler_id, wins, losses, total').eq('date', today).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('date, total').gte('date', d7Ago).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('map, mode, total').eq('date', today).eq('source', 'global').eq('mode', mode),
+    admin.from('meta_poll_cursors').select('last_battle_time').order('last_battle_time', { ascending: false }).limit(1).maybeSingle(),
+  ])
+
+  // Aggregate today's total
+  const battlesToday = ((todayRes.data ?? []) as Array<{ total: number }>)
+    .reduce((sum, r) => sum + (r.total ?? 0), 0)
+  const battlesLast7d = ((last7dRes.data ?? []) as Array<{ total: number }>)
+    .reduce((sum, r) => sum + (r.total ?? 0), 0)
+
+  // Brawler coverage
+  const brawlerSet = new Set<number>()
+  for (const r of (brawlerCoverageRes.data ?? []) as Array<{ brawler_id: number }>) {
+    brawlerSet.add(r.brawler_id)
+  }
+
+  // WR rankings (min 30 battles)
+  const wrRows = ((wrRowsRes.data ?? []) as Array<{ brawler_id: number; wins: number; losses: number; total: number }>)
+    .filter((r) => r.total >= 30)
+    .map((r) => ({ brawlerId: r.brawler_id, winRate: r.wins / r.total, total: r.total }))
+  const topWinRates    = [...wrRows].sort((a, b) => b.winRate - a.winRate).slice(0, 5)
+  const bottomWinRates = [...wrRows].sort((a, b) => a.winRate - b.winRate).slice(0, 3)
+
+  // 7d sparkline grouped by date
+  const dayBuckets = new Map<string, number>()
+  for (const row of (sparklineRowsRes.data ?? []) as Array<{ date: string; total: number }>) {
+    dayBuckets.set(row.date, (dayBuckets.get(row.date) ?? 0) + (row.total ?? 0))
+  }
+  const sparkline7d: number[] = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    sparkline7d.push(dayBuckets.get(d) ?? 0)
+  }
+
+  // Same-mode comparison — aggregate by map, sort desc
+  const comparisonAgg = new Map<string, number>()
+  for (const r of (sameModeRes.data ?? []) as Array<{ map: string; total: number }>) {
+    comparisonAgg.set(r.map, (comparisonAgg.get(r.map) ?? 0) + (r.total ?? 0))
+  }
+  const sameModeComparison = Array.from(comparisonAgg.entries())
+    .map(([m, battles]) => ({ map: m, battles }))
+    .sort((a, b) => b.battles - a.battles)
+
+  return {
+    map,
+    mode,
+    battlesToday,
+    battlesLast7d,
+    brawlerCovered: brawlerSet.size,
+    brawlerTotal: 82,  // total brawlers in the game as of 2026-04. Update in constants.ts if needed.
+    sparkline7d,
+    topWinRates,
+    bottomWinRates,
+    sameModeComparison,
+    lastCursorUpdate: (cursorRes.data as { last_battle_time: string } | null)?.last_battle_time ?? null,
+  }
+}
+
 // ── Public export ─────────────────────────────────────────────
-// NOTE: other query functions (getMapList, findMapByPrefix,
-// getMapData) are appended in subsequent tasks. The `queries`
-// export below is extended accordingly.
 
 export const queries: Queries = {
   getStats,
   getBattles,
   getPremium,
   getCronStatus,
-  // Placeholders filled in by later tasks:
-  async getMapList() { throw new Error('not implemented yet (task 7)') },
-  async findMapByPrefix() { throw new Error('not implemented yet (task 7)') },
-  async getMapData() { throw new Error('not implemented yet (task 7)') },
+  getMapList,
+  findMapByPrefix,
+  getMapData,
 }
