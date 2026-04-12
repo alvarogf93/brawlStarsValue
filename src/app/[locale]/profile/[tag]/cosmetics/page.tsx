@@ -190,9 +190,10 @@ function CosmeticSection({
               <button
                 onClick={() => setCount(tier.key, count - 1)}
                 disabled={count <= 0}
+                aria-label={`− ${labels[tier.key] || tier.key}`}
                 className="w-8 h-8 rounded-lg bg-[#121A2F] border-2 border-[#0D1321] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#4EC0FA] transition-colors disabled:opacity-30"
               >
-                <Minus size={14} />
+                <Minus size={14} aria-hidden="true" />
               </button>
               <input
                 type="number"
@@ -200,13 +201,15 @@ function CosmeticSection({
                 max={999}
                 value={count}
                 onChange={(e) => setCount(tier.key, parseInt(e.target.value) || 0)}
+                aria-label={labels[tier.key] || tier.key}
                 className="w-14 h-8 text-center bg-[#121A2F] border-2 border-[#0D1321] rounded-lg font-['Lilita_One'] text-white text-sm outline-none focus:border-[var(--color-brawl-gold)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button
                 onClick={() => setCount(tier.key, count + 1)}
+                aria-label={`+ ${labels[tier.key] || tier.key}`}
                 className="w-8 h-8 rounded-lg bg-[#121A2F] border-2 border-[#0D1321] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#4EC0FA] transition-colors"
               >
-                <Plus size={14} />
+                <Plus size={14} aria-hidden="true" />
               </button>
             </div>
 

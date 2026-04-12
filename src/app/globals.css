@@ -160,6 +160,7 @@ body {
 /* Brawl row — glass-like row elements with hover + backdrop blur */
 .brawl-row {
   background-color: color-mix(in oklab, var(--color-white) 3%, transparent);
+  -webkit-backdrop-filter: blur(3px);
   backdrop-filter: blur(3px);
   transition: background-color 0.15s ease;
 }
