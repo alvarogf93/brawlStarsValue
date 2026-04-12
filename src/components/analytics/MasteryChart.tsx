@@ -36,8 +36,6 @@ const INNER_W = CHART_W - PAD.left - PAD.right
 const INNER_H = CHART_H - PAD.top - PAD.bottom
 
 const CYAN = '#4EC0FA'
-const GREEN = '#4ade80'
-const RED = '#ef4444'
 
 /* ─────────────────────── helpers ─────────────────────── */
 

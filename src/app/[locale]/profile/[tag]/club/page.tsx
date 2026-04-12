@@ -15,7 +15,6 @@ import { useClubTrophyChanges } from '@/hooks/useClubTrophyChanges'
 import { formatPlaytime } from '@/lib/utils'
 import { ClubSkeleton } from '@/components/ui/Skeleton'
 import { Crown, Shield, Star, Users, Trophy, Lock, Unlock, Mail, TrendingUp, TrendingDown, BarChart3, UserCheck, ChevronDown, Gem, Swords, Clock } from 'lucide-react'
-import type { ClubMember } from '@/lib/api'
 
 /* ── Sort options ─────────────────────────────────────────── */
 

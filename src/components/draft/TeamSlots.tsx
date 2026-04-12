@@ -39,7 +39,7 @@ function Slot({ brawlerId, brawlerMap, isActive, team }: {
   )
 }
 
-export function TeamSlots({ blueTeam, redTeam, brawlerMap, currentTeam, picksCompletedInTurn, phase }: Props) {
+export function TeamSlots({ blueTeam, redTeam, brawlerMap, currentTeam, phase }: Props) {
   const isDrafting = phase === 'DRAFTING'
 
   // Find the active slot index for each team

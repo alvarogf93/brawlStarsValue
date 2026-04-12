@@ -13,7 +13,6 @@ import { useMapImages } from '@/hooks/useMapImages'
 import type {
   BrawlerMetaResponse,
   MatchupStat,
-  TeammateStat,
 } from '@/lib/brawler-detail/types'
 
 // ── WR color helper ─────────────────────────────────────────
@@ -82,7 +81,7 @@ interface MatchupListProps {
   playerNames?: Map<number, string>
 }
 
-function MatchupList({ title, entries, registry, playerNames }: MatchupListProps) {
+function MatchupList({ title, entries, playerNames }: MatchupListProps) {
   const t = useTranslations('brawlerDetail')
 
   if (entries.length === 0) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createInitialState, draftReducer, type DraftAction } from '@/lib/draft/state'
+import { createInitialState, draftReducer } from '@/lib/draft/state'
 
 describe('Draft State Machine', () => {
   it('starts in IDLE state', () => {

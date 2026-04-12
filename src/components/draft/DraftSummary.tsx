@@ -34,15 +34,10 @@ export function DraftSummary({ blueTeam, redTeam, brawlerMap, recommendations, m
     const blueAvg = blueCount > 0 ? blueTotal / blueCount : 50
 
     // Red team: compute their meta scores (how good their picks are on this map)
-    let redTotal = 0, redCount = 0
-    for (const bId of redTeam) {
-      // Find meta score for red brawler (it was in the original recommendation pool)
-      const allRecs = recommendations
-      // Red brawlers were removed from recommendations, so we need to estimate
-      // Use 50 as baseline — they were picked, so probably decent
-      redTotal += 50
-      redCount++
-    }
+    // Red brawlers were removed from recommendations, so we need to estimate
+    // Use 50 as baseline — they were picked, so probably decent
+    const redCount = redTeam.length
+    const redTotal = redCount * 50
     const redAvg = redCount > 0 ? redTotal / redCount : 50
 
     // Relative advantage: blue score vs average of both

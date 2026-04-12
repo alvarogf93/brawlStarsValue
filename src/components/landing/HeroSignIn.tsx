@@ -6,7 +6,6 @@ import { AuthModal } from '@/components/auth/AuthModal'
 import { Crown } from 'lucide-react'
 
 export function HeroSignIn() {
-  const t = useTranslations('landing')
   const tSub = useTranslations('subscribe')
   const [authOpen, setAuthOpen] = useState(false)
 

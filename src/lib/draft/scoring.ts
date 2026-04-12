@@ -35,7 +35,7 @@ export interface Recommendation {
  * All computation is done in-memory — no API calls.
  */
 export function computeRecommendations(input: RecommendationInput): Recommendation[] {
-  const { meta, matchups, blueTeam, redTeam, pickedIds, personal } = input
+  const { meta, matchups, redTeam, pickedIds, personal } = input
 
   // Build lookup maps for O(1) access
   const matchupMap = new Map<string, { wins: number; total: number }>()

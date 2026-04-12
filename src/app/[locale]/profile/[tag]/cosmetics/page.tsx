@@ -32,7 +32,7 @@ export default function CosmeticsPage() {
   const locale = useLocale()
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
-  const { counts, setCount, totalSkinGems, totalPinGems, totalCosmeticGems, classifiedCount } = useSkinClassifications(tag)
+  const { counts, setCount, totalSkinGems, totalPinGems, totalCosmeticGems } = useSkinClassifications(tag)
 
   const skinLabels = SKIN_TIER_LABELS[locale] || SKIN_TIER_LABELS.en
   const pinLabels = PIN_TIER_LABELS[locale] || PIN_TIER_LABELS.en

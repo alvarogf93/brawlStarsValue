@@ -29,7 +29,6 @@ export default function StatsPage() {
     )
   }
 
-  const player = data.player
   const bd = data.breakdown
   const st = data.stats
   const trophyPercent = st.highestTrophies > 0

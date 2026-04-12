@@ -6,24 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/supabase/types'
 
-/** Extract the player tag from URL path or localStorage */
-function extractPlayerTag(): string | null {
-  // Try URL: /es/profile/%23YJU282PV/battles → #YJU282PV
-  const match = window.location.pathname.match(/\/profile\/([^/]+)/)
-  if (match) {
-    try {
-      return decodeURIComponent(match[1])
-    } catch { /* ignore */ }
-  }
-
-  // Fallback: localStorage
-  try {
-    return localStorage.getItem('brawlvalue:user')
-  } catch { /* ignore */ }
-
-  return null
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)

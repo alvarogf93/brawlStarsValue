@@ -4,7 +4,6 @@ import {
   GEM_COSTS,
   AVG_MATCH_MINUTES,
   ESTIMATED_WIN_RATE,
-  BRAWLER_RARITY_MAP,
 } from './constants'
 
 interface CalculateOptions {
@@ -19,7 +18,6 @@ function countBuffies(b: BrawlerStat): number {
 }
 
 export function calculateValue(playerData: PlayerData, opts: CalculateOptions = {}): GemScore {
-  const rarityMap = opts.rarityMap ?? BRAWLER_RARITY_MAP
   const winRate = opts.winRate && opts.winRate > 0 ? opts.winRate : ESTIMATED_WIN_RATE
   let powerCount = 0, powerGems = 0
   let gadgetCount = 0, gadgetGems = 0

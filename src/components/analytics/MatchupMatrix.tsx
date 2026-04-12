@@ -2,12 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor, barGradient } from '@/lib/utils'
+import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { MatchupEntry } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
-import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
-import { ProBadge } from '@/components/analytics/ProBadge'
 
 interface Props {
   data: MatchupEntry[]

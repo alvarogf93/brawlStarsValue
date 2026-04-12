@@ -9,12 +9,6 @@ interface Props {
   data: MapPerformance[]
 }
 
-const MODE_NAMES: Record<string, string> = {
-  gemGrab: 'Gem Grab', heist: 'Heist', bounty: 'Bounty', brawlBall: 'Brawl Ball',
-  hotZone: 'Hot Zone', knockout: 'Knockout', wipeout: 'Wipeout', brawlHockey: 'Brawl Hockey',
-  soloShowdown: 'Solo SD', duoShowdown: 'Duo SD',
-}
-
 export function MapPerformanceList({ data }: Props) {
   const t = useTranslations('advancedAnalytics')
   const mapImages = useMapImages()

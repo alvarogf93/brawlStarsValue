@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { detectSegment, type PlayerSegment } from '@/lib/analytics/detect-segment'
+import { detectSegment } from '@/lib/analytics/detect-segment'
 
 // Local alias so test fixtures can be cast without importing BattleInsert.
 type Battles = Parameters<typeof detectSegment>[0]

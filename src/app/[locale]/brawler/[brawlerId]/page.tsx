@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useTranslations, useLocale } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { useBrawlerMeta } from '@/hooks/useBrawlerMeta'
 import { getCachedRegistry } from '@/lib/brawler-registry'
@@ -37,7 +37,6 @@ function PublicBrawlerSkeleton() {
 
 export default function PublicBrawlerPage() {
   const params = useParams<{ brawlerId: string }>()
-  const locale = useLocale()
   const t = useTranslations('brawlerDetail')
   const brawlerId = parseInt(params.brawlerId, 10)
 

@@ -26,7 +26,7 @@ const MODE_ICONS: Record<string, string> = {
 function formatBattleTime(iso: string): string {
   // "20260405T171604.000Z" → readable
   try {
-    const y = iso.slice(0, 4), m = iso.slice(4, 6), d = iso.slice(6, 8)
+    const m = iso.slice(4, 6), d = iso.slice(6, 8)
     const h = iso.slice(9, 11), min = iso.slice(11, 13)
     return `${d}/${m} ${h}:${min}`
   } catch { return iso }
@@ -36,12 +36,6 @@ const RESULT_COLORS: Record<string, { bg: string; border: string; text: string; 
   victory: { bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400', accent: '#22c55e', glow: 'shadow-[0_0_12px_rgba(34,197,94,0.15)]' },
   defeat: { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400', accent: '#ef4444', glow: 'shadow-[0_0_12px_rgba(239,68,68,0.15)]' },
   draw: { bg: 'bg-yellow-500/10', border: 'border-yellow-500/30', text: 'text-yellow-400', accent: '#eab308', glow: 'shadow-[0_0_12px_rgba(234,179,8,0.15)]' },
-}
-
-const RESULT_STYLES: Record<string, string> = {
-  victory: 'bg-green-500/20 text-green-400 border-green-500/30',
-  defeat: 'bg-red-500/20 text-red-400 border-red-500/30',
-  draw: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
 }
 
 export default function BattlesPage() {

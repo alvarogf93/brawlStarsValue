@@ -1,10 +1,8 @@
-import type { Battle } from '@/lib/supabase/types'
 import type {
   PlayNowRecommendation, BrawlerRecommendation,
-  CounterPickResult, BrawlerMapEntry, MatchupEntry, TrioSynergy,
+  BrawlerMapEntry, TrioSynergy,
 } from './types'
 import { MIN_GAMES } from './types'
-import { wilsonPct, winRate, compositeKey, isWin } from './stats'
 
 interface EventSlot {
   startTime: string

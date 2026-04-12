@@ -2,9 +2,6 @@
 
 import { useState } from 'react'
 
-/** CDN fallback base for assets not found locally */
-const CDN_FALLBACK = 'https://cdn.brawlify.com/brawler'
-
 interface BrawlImgProps {
   src: string
   alt: string

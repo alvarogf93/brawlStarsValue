@@ -14,12 +14,6 @@ function wrColor(wr: number): string {
   return 'bg-red-500'
 }
 
-function wrTextColor(wr: number): string {
-  if (wr >= 60) return 'text-green-400'
-  if (wr >= 45) return 'text-[#FFC91B]'
-  return 'text-red-400'
-}
-
 export function PowerLevelChart({ data }: Props) {
   const t = useTranslations('advancedAnalytics')
 

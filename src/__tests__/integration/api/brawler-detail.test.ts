@@ -148,10 +148,8 @@ describe('GET /api/meta/brawler-detail', () => {
     const statsChain = chainable({ data: [], error: null })
     const matchupsChain = chainable({ data: null, error: { message: 'timeout' } })
 
-    let metaStatsCallCount = 0
     mockFrom.mockImplementation((table: string) => {
       if (table === 'meta_stats') {
-        metaStatsCallCount++
         return statsChain
       }
       if (table === 'meta_matchups') {
@@ -192,10 +190,8 @@ describe('GET /api/meta/brawler-detail', () => {
   // ── Edge cases ──────────────────────────────────────────────
 
   it('returns empty arrays when brawler has no stats', async () => {
-    let metaStatsCallCount = 0
     mockFrom.mockImplementation((table: string) => {
       if (table === 'meta_stats') {
-        metaStatsCallCount++
         return chainable({ data: [], error: null })
       }
       if (table === 'meta_matchups') {

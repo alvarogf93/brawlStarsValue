@@ -11,7 +11,6 @@ import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { FlaskConical, ChevronDown } from 'lucide-react'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 import { useProAnalysis } from '@/hooks/useProAnalysis'
-import { bayesianWinRate } from '@/lib/draft/scoring'
 
 // Components
 import { UpgradeCard } from '@/components/premium/UpgradeCard'
@@ -127,7 +126,7 @@ export default function AnalyticsPage() {
   const t = useTranslations('analytics')
   const ta = useTranslations('advancedAnalytics')
   const router = useRouter()
-  const { user, profile, loading: authLoading } = useAuth()
+  const { profile, loading: authLoading } = useAuth()
   const hasPremium = isPremium(profile)
   // Only fetch analytics after auth resolves AND user is premium
   const tag = decodeURIComponent(params.tag)

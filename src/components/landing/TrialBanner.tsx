@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
-import { Check } from 'lucide-react'
 
 const FREE_BULLETS = [
   { key: 'trialBannerFreeP1', emoji: '🏆' },

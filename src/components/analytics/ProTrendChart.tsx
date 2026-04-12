@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { DailyTrendEntry, TopBrawlerEntry } from '@/lib/draft/pro-analysis'
@@ -34,7 +33,6 @@ function pickLabelIndices(total: number): number[] {
 }
 
 export function ProTrendChart({ dailyTrend, topBrawlers }: Props) {
-  const t = useTranslations('metaPro')
   const top5Ids = useMemo(() => topBrawlers.slice(0, 5).map(b => b.brawlerId), [topBrawlers])
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(top5Ids.slice(0, 3)))
 

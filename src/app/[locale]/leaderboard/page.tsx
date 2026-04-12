@@ -7,7 +7,7 @@ import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from '@/i18n/routing'
-import { Home, Trophy, Loader2, Search, ChevronDown } from 'lucide-react'
+import { Home, Trophy, Loader2, Search } from 'lucide-react'
 import type { RankedPlayer } from '@/lib/api'
 
 export default function LeaderboardPage() {
@@ -79,7 +79,6 @@ export default function LeaderboardPage() {
   const filteredRest = search
     ? rest.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
     : rest
-  const selectedCountry = COUNTRIES.find(c => c.code === country)
   const podiumOrder = [1, 0, 2] // 2nd, 1st, 3rd
   const podiumColors = ['#94A3B8', '#F59E0B', '#B45309']
   const podiumHeights = ['h-[200px]', 'h-[260px]', 'h-[170px]']
