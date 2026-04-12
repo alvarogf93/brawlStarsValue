@@ -34,10 +34,13 @@ export function DraftSimulator() {
     return map
   }, [brawlers])
 
-  // Fetch brawler registry
+  // Fetch brawler registry. Cache-first pattern — setState on cache hit
+  // is intentional (classic useEffect-based data fetching with in-memory
+  // cache). Refactoring to derived state would break the localStorage cache.
   useEffect(() => {
     const cached = getCachedRegistry()
     if (cached && cached.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setBrawlers(cached)
       setLoadingBrawlers(false)
       return
@@ -59,10 +62,13 @@ export function DraftSimulator() {
       .finally(() => setLoadingBrawlers(false))
   }, [])
 
-  // Fetch draft data when map selected
+  // Fetch draft data when map selected. setLoadingData inside the effect
+  // is the classic async-fetch reset pattern; derived state would not work
+  // here because state.map/state.mode change independently of the result.
   useEffect(() => {
     if (state.phase !== 'SELECT_STARTER' && state.phase !== 'DRAFTING') return
     if (!state.map || !state.mode) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingData(true)
     fetch(`/api/draft/data?map=${encodeURIComponent(state.map)}&mode=${state.mode}`)
       .then(r => { if (!r.ok) throw new Error('Draft data error'); return r.json() })

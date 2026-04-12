@@ -10,7 +10,11 @@ export function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    // Read localStorage on mount to decide whether to show the banner.
+    // Must happen after hydration (not in initial state) because
+    // localStorage is not available during SSR.
     const consent = localStorage.getItem(CONSENT_KEY)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!consent) setVisible(true)
   }, [])
 

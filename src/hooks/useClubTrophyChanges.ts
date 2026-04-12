@@ -141,6 +141,11 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
 
   useEffect(() => {
     if (!members?.length) return
+    // load() is a useCallback that internally setStates (results map +
+    // isLoading). This is the classic on-mount fetch pattern; the
+    // alternative (derived state over members) would recompute on every
+    // render which is worse for a hook with N async fetches.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load(members)
   }, [members, load])
 

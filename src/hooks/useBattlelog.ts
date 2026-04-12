@@ -48,12 +48,16 @@ export function useBattlelog(tag: string) {
   useEffect(() => {
     if (!tag) return
 
-    // Check cache
+    // Check localStorage cache. Cache-hit on mount is the classic pattern;
+    // moving to derived state would couple cache reads to render and break
+    // SSR/hydration. See docs/superpowers/specs/2026-04-12-anonymous-visit-tracking-design.md
+    // Q-A decision for the rationale applied across all cache-on-mount hooks.
     try {
       const raw = localStorage.getItem(getCacheKey(tag))
       if (raw) {
         const cached = JSON.parse(raw)
         if (Date.now() - cached.timestamp < CACHE_TTL) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setData(cached.data)
           setIsLoading(false)
           return

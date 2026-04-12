@@ -58,6 +58,10 @@ export default function LeaderboardPage() {
   }
 
   useEffect(() => {
+    // Resetting loading/error before an async fetch is the canonical
+    // pattern; refactoring to derived state would complicate the
+    // country-change reload flow.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     setError('')
     fetch(`/api/rankings?country=${country}&limit=200`)

@@ -45,6 +45,10 @@ export function useAdvancedAnalytics(enabled = true): UseAdvancedAnalyticsResult
   }, [])
 
   useEffect(() => {
+    // fetchAnalytics internally calls setState when the request resolves.
+    // That's the classic effect-driven fetch pattern; moving to derived
+    // state would break the abort/refresh contract used by consumers.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (enabled) fetchAnalytics()
     return () => controllerRef.current?.abort()
   }, [enabled, fetchAnalytics])

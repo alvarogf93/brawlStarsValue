@@ -76,8 +76,11 @@ export function useProAnalysis(
   }, [map, mode, window])
 
   useEffect(() => {
-    // If params are set and we have a cache hit, use it immediately
+    // If params are set and we have a cache hit, use it immediately.
+    // Cache-hit setState is intentional (classic pattern); refactoring
+    // to derived state would break the shared module-level cache.
     if (cacheKey && cache.has(cacheKey)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setData(cache.get(cacheKey)!)
       setLoading(false)
       setError(null)

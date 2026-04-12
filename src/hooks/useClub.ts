@@ -20,6 +20,8 @@ export function useClub(clubTag: string | null) {
       if (raw) {
         const cached = JSON.parse(raw)
         if (Date.now() - cached.timestamp < CACHE_TTL) {
+          // Cache-hit on mount — setState here is intentional.
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setData(cached.data)
           return
         }

@@ -18,8 +18,11 @@ export function useSkinClassifications(playerTag: string) {
   const [counts, setCounts] = useState<CosmeticCounts>({})
 
   useEffect(() => {
+    // Rehydrate counts from localStorage whenever the player changes.
+    // Must be inside an effect because localStorage is browser-only.
     try {
       const raw = localStorage.getItem(getStorageKey(playerTag))
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setCounts(JSON.parse(raw))
     } catch { /* ignore */ }
   }, [playerTag])

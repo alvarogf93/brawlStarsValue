@@ -91,7 +91,11 @@ export function useBrawlerMeta(brawlerId: number, window = 14) {
   }, [brawlerId, window])
 
   useEffect(() => {
+    // Input validation path sets state synchronously before the fetch
+    // is even attempted. Refactoring to derived state would require
+    // duplicating the isNaN check in render; left as-is intentionally.
     if (!brawlerId || Number.isNaN(brawlerId)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError('Invalid brawler ID')
       setIsLoading(false)
       return
