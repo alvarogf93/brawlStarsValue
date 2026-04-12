@@ -6,6 +6,13 @@ import { useAuth } from '@/hooks/useAuth'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
 /**
  * Shown when user is authenticated with Google but has no player tag linked.
@@ -23,8 +30,6 @@ export function TagRequiredModal() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (!needsTag) return null
-
   const handleTagChange = (raw: string) => {
     const stripped = raw.replace(/#/g, '').toUpperCase()
     setTag('#' + stripped)
@@ -41,7 +46,6 @@ export function TagRequiredModal() {
     setLoading(true)
     setError('')
 
-    // Sync edited referral code to localStorage before linkTag reads it
     if (referralCode.trim()) {
       try { localStorage.setItem('brawlvalue:ref', referralCode.trim().toUpperCase()) }
       catch { /* ignore */ }
@@ -53,7 +57,6 @@ export function TagRequiredModal() {
     setLoading(false)
 
     if (result.ok) {
-      // Redirect to the player's profile
       router.push(`/${locale}/profile/${encodeURIComponent(trimmed)}`)
     } else {
       setError(result.error || t('tagNotFound'))
@@ -61,21 +64,20 @@ export function TagRequiredModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-
-      <div className="relative brawl-card p-8 max-w-sm w-full mx-4 animate-fade-in">
-        <div className="text-center mb-5">
+    <Dialog open={needsTag} onOpenChange={() => { /* cannot close */ }}>
+      <DialogContent
+        hideClose
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-brawl-gold)] border-4 border-[var(--color-brawl-dark)] flex items-center justify-center shadow-[0_4px_0_rgba(18,26,47,1)]">
             <span className="text-3xl">🎮</span>
           </div>
-          <h2 className="font-['Lilita_One'] text-2xl text-white text-stroke-brawl">
-            {t('linkTagTitle')}
-          </h2>
-          <p className="text-sm text-slate-400 mt-2">
-            {t('linkTagDesc')}
-          </p>
-        </div>
+          <DialogTitle>{t('linkTagTitle')}</DialogTitle>
+          <DialogDescription>{t('linkTagDesc')}</DialogDescription>
+        </DialogHeader>
 
         <input
           type="text"
@@ -92,7 +94,6 @@ export function TagRequiredModal() {
           </p>
         )}
 
-        {/* Referral code (optional) */}
         <input
           type="text"
           value={referralCode}
@@ -116,7 +117,7 @@ export function TagRequiredModal() {
         >
           {t('signOutInstead')}
         </button>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

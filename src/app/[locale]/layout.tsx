@@ -5,6 +5,8 @@ import { CookieConsent } from '@/components/ui/CookieConsent'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { TagRequiredModal } from '@/components/auth/TagRequiredModal'
 import { ReferralToast } from '@/components/premium/ReferralToast'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { AdSenseScript } from '@/components/ads/AdSenseScript'
 import '../globals.css'
 
@@ -120,10 +122,13 @@ export default async function LocaleLayout({
         <AdSenseScript />
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
-            {children}
-            <TagRequiredModal />
-            <ReferralToast />
-            <CookieConsent />
+            <TooltipProvider delayDuration={300}>
+              {children}
+              <TagRequiredModal />
+              <ReferralToast />
+              <CookieConsent />
+              <Toaster />
+            </TooltipProvider>
           </AuthProvider>
         </NextIntlClientProvider>
       </body>

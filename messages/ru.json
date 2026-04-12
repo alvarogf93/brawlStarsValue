@@ -425,7 +425,8 @@
     "hookMap": "Ты доминируешь на {map} с {wr}%",
     "hookClutch": "Как Star Player ты побеждаешь с {wr}%",
     "hookCompetitive": "С {trophies}+ трофеями — узнай свои матчапы",
-    "hookExplorer": "Ты играешь {count} режимов — узнай, где ты доминируешь"
+    "hookExplorer": "Ты играешь {count} режимов — узнай, где ты доминируешь",
+    "checkoutError": "Ошибка оплаты. Попробуйте снова."
   },
   "subscribe": {
     "title": "Premium-аналитика",

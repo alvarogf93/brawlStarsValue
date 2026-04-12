@@ -52,7 +52,7 @@ describe('GET /api/auth/callback', () => {
 
     const res = await GET(makeRequest('http://localhost:3000/api/auth/callback?code=badcode&next=/es'))
     expect(res.status).toBe(307)
-    // Route always redirects to next (or /) even on error — graceful failure
-    expect(res.headers.get('location')).toBe('http://localhost:3000/es')
+    // Both attempts fail → redirect to locale landing with auth_error flag
+    expect(res.headers.get('location')).toBe('http://localhost:3000/es?auth_error=1')
   })
 })

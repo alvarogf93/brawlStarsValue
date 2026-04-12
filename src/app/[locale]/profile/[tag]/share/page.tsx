@@ -7,6 +7,7 @@ import { usePlayerData } from '@/hooks/usePlayerData'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { Download } from 'lucide-react'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
+import { toast } from 'sonner'
 
 export default function SharePage() {
   const params = useParams<{ tag: string; locale: string }>()
@@ -76,9 +77,10 @@ export default function SharePage() {
     try {
       await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`)
       setCopied(true)
+      toast.success(t('copied'))
       setTimeout(() => setCopied(false), 3000)
     } catch {
-      // Clipboard failed
+      toast.error(t('error'))
     }
   }
 

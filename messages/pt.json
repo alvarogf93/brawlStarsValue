@@ -475,7 +475,8 @@
     "hookMap": "Você domina {map} com {wr}%",
     "hookClutch": "Como Star Player você ganha {wr}%",
     "hookCompetitive": "Com {trophies}+ troféus, descubra seus confrontos",
-    "hookExplorer": "Você joga {count} modos — descubra onde domina"
+    "hookExplorer": "Você joga {count} modos — descubra onde domina",
+    "checkoutError": "Erro ao iniciar o pagamento. Tente novamente."
   },
   "subscribe": {
     "title": "Premium Analytics",

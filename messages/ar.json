@@ -425,7 +425,8 @@
     "hookMap": "أنت تسيطر على {map} بنسبة {wr}%",
     "hookClutch": "كـ Star Player تفوز بنسبة {wr}%",
     "hookCompetitive": "مع {trophies}+ كأس، اكتشف مواجهاتك",
-    "hookExplorer": "تلعب {count} أوضاع — اكتشف أين تسيطر"
+    "hookExplorer": "تلعب {count} أوضاع — اكتشف أين تسيطر",
+    "checkoutError": "فشل الدفع. يرجى المحاولة مرة أخرى."
   },
   "subscribe": {
     "title": "تحليلات بريميوم",

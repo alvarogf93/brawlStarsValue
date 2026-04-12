@@ -425,7 +425,8 @@
     "hookMap": "{map}で{wr}%の支配率",
     "hookClutch": "Star Player時は{wr}%で勝利",
     "hookCompetitive": "トロフィー{trophies}+でマッチアップを確認しよう",
-    "hookExplorer": "{count}モードをプレイ中 — どこで支配しているか確認しよう"
+    "hookExplorer": "{count}モードをプレイ中 — どこで支配しているか確認しよう",
+    "checkoutError": "決済エラー。もう一度お試しください。"
   },
   "subscribe": {
     "title": "プレミアムアナリティクス",

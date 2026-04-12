@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
@@ -9,6 +9,15 @@ import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import { Menu, LogOut, RefreshCw, User, Crown, Home, Gift } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 
 function formatTimeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime()
@@ -32,34 +41,18 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
 
   const [syncing, setSyncing] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-  const [refCopied, setRefCopied] = useState(false)
-  const profileMenuRef = useRef<HTMLDivElement>(null)
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
-        setProfileMenuOpen(false)
-      }
-    }
-    if (profileMenuOpen) document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [profileMenuOpen])
 
   const hasPremium = !loading && user && profile && isPremium(profile)
 
   const handleSync = async () => {
     setSyncing(true)
 
-    // Premium: call sync API first
     if (user && profile && isPremium(profile)) {
       try {
         await fetch('/api/sync', { method: 'POST' })
       } catch { /* ignore */ }
     }
 
-    // Always clear local cache
     try {
       const keysToKeep = ['brawlvalue:user']
       const keysToKeepPrefixes = ['brawlvalue:skins:']
@@ -74,7 +67,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   }
 
   const handleLogout = async () => {
-    // 1. Sign out from Supabase (with timeout to prevent hanging)
     try {
       if (user) {
         await Promise.race([
@@ -84,7 +76,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       }
     } catch { /* ignore lock errors */ }
 
-    // 2. Clear ALL app data from localStorage
     try {
       const keysToRemove: string[] = []
       for (let i = 0; i < localStorage.length; i++) {
@@ -96,7 +87,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       keysToRemove.forEach(k => localStorage.removeItem(k))
     } catch { /* ignore */ }
 
-    // 3. Clear Supabase auth cookies (fallback if signOut failed)
     try {
       document.cookie.split(';').forEach(c => {
         const name = c.trim().split('=')[0]
@@ -106,8 +96,13 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       })
     } catch { /* ignore */ }
 
-    // 4. Hard redirect to landing (always, even if signOut hung)
     window.location.href = `/${locale}`
+  }
+
+  const handleCopyReferral = () => {
+    if (!profile?.referral_code) return
+    navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${profile.referral_code}`)
+    toast.success(t('referralCopied'))
   }
 
   return (
@@ -132,7 +127,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           )}
         </div>
         <div className="flex gap-2 items-center">
-          {/* Auth: Login or Premium Upgrade */}
           {!loading && !user && (
             <button
               onClick={() => setAuthModalOpen(true)}
@@ -168,7 +162,6 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           </Link>
           <LocaleSwitcher />
 
-          {/* Exit button for non-logged-in users viewing a profile */}
           {!loading && !user && playerTag && (
             <Link
               href={`/${locale}`}
@@ -180,88 +173,76 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
             </Link>
           )}
 
-          {/* Profile avatar dropdown (logged in) */}
+          {/* Profile dropdown (logged in) */}
           {!loading && user && (
-            <div ref={profileMenuRef} className="relative">
-              <button
-                onClick={() => setProfileMenuOpen(prev => !prev)}
-                aria-label={t('profile')}
-                className="relative transition-all hover:scale-105 active:scale-95"
-              >
-                <div className={`w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center ${hasPremium ? 'border-[#FFC91B] shadow-[0_0_8px_rgba(255,201,27,0.3)]' : 'border-white/20 hover:border-white/40'}`}>
-                  {user.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt={user.user_metadata?.full_name || 'Avatar'}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <User className="w-5 h-5 text-slate-400" />
-                  )}
-                </div>
-                {hasPremium && (
-                  <span className="absolute -top-1 -right-1 z-10 w-4 h-4 bg-[#FFC91B] rounded-full flex items-center justify-center border-2 border-[#0F172A]">
-                    <Crown className="w-2.5 h-2.5 text-[#121A2F]" />
-                  </span>
-                )}
-              </button>
-
-              {profileMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 bg-[#1A2744] border-2 border-[#090E17] rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.5)] overflow-hidden z-50">
-                  {/* User info */}
-                  <div className="px-4 py-3 border-b border-white/5">
-                    <p className="text-sm font-semibold text-white truncate">{user.user_metadata?.full_name || user.email}</p>
-                    {profile?.player_tag && (
-                      <p className="text-[10px] text-slate-500 font-['Lilita_One']">{profile.player_tag}</p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label={t('profile')}
+                  className="relative transition-all hover:scale-105 active:scale-95 outline-none"
+                >
+                  <div className={`w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center ${hasPremium ? 'border-[#FFC91B] shadow-[0_0_8px_rgba(255,201,27,0.3)]' : 'border-white/20 hover:border-white/40'}`}>
+                    {user.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt={user.user_metadata?.full_name || 'Avatar'}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-slate-400" />
                     )}
                   </div>
+                  {hasPremium && (
+                    <span className="absolute -top-1 -right-1 z-10 w-4 h-4 bg-[#FFC91B] rounded-full flex items-center justify-center border-2 border-[#0F172A]">
+                      <Crown className="w-2.5 h-2.5 text-[#121A2F]" />
+                    </span>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
 
-                  {/* Manage subscription */}
-                  {hasPremium ? (
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  <p className="text-sm font-semibold text-white truncate">{user.user_metadata?.full_name || user.email}</p>
+                  {profile?.player_tag && (
+                    <p className="text-[10px] text-slate-500 font-['Lilita_One']">{profile.player_tag}</p>
+                  )}
+                </DropdownMenuLabel>
+
+                {hasPremium ? (
+                  <DropdownMenuItem asChild>
                     <a
                       href="https://www.paypal.com/myaccount/autopay/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setProfileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors"
+                      className="hover:text-[#FFC91B]"
                     >
                       <Crown className="w-4 h-4 text-[#FFC91B]" />
                       {t('manage')}
                     </a>
-                  ) : (
-                    <div className="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 cursor-not-allowed">
-                      <Crown className="w-4 h-4" />
-                      {t('manage')}
-                    </div>
-                  )}
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem disabled>
+                    <Crown className="w-4 h-4" />
+                    {t('manage')}
+                  </DropdownMenuItem>
+                )}
 
-                  {/* Referral code copy */}
-                  {profile?.referral_code && (
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`https://brawlvision.com/${locale}?ref=${profile.referral_code}`)
-                        setRefCopied(true)
-                        setTimeout(() => setRefCopied(false), 2000)
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors"
-                    >
-                      <Gift className="w-4 h-4" />
-                      {refCopied ? `✓ ${t('referralCopied')}` : `${t('referral')} (${profile.referral_code})`}
-                    </button>
-                  )}
+                {profile?.referral_code && (
+                  <DropdownMenuItem onClick={handleCopyReferral}>
+                    <Gift className="w-4 h-4" />
+                    {t('referral')} ({profile.referral_code})
+                  </DropdownMenuItem>
+                )}
 
-                  {/* Logout */}
-                  <button
-                    onClick={() => { setProfileMenuOpen(false); handleLogout() }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-red-400 transition-colors border-t border-white/5"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    {t('logout')}
-                  </button>
-                </div>
-              )}
-            </div>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={handleLogout} className="hover:!text-red-400">
+                  <LogOut className="w-4 h-4" />
+                  {t('logout')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </header>

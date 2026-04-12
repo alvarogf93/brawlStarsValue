@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Crown, Shield, Check } from 'lucide-react'
+import { toast } from 'sonner'
 
 /**
  * Smart hook: picks ONE phrase based on player context.
@@ -97,7 +98,9 @@ export function UpgradeCard({ redirectTo }: UpgradeCardProps) {
       if (!res.ok) throw new Error(`Checkout failed: ${res.status}`)
       const data = await res.json()
       if (data.url) window.location.href = data.url
-    } catch { /* ignore */ }
+    } catch {
+      toast.error(t('checkoutError'))
+    }
     setLoading(false)
   }
 

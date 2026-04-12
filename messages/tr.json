@@ -425,7 +425,8 @@
     "hookMap": "{map}'te {wr}% ile domine ediyorsun",
     "hookClutch": "Star Player olarak {wr}% kazanıyorsun",
     "hookCompetitive": "{trophies}+ kupada — eşleşmelerini keşfet",
-    "hookExplorer": "{count} mod oynuyorsun — nerede domine ettiğini keşfet"
+    "hookExplorer": "{count} mod oynuyorsun — nerede domine ettiğini keşfet",
+    "checkoutError": "Ödeme başarısız oldu. Lütfen tekrar deneyin."
   },
   "subscribe": {
     "title": "Premium analitik",

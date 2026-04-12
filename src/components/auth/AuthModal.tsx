@@ -1,9 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { X } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslations } from 'next-intl'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 
 interface AuthModalProps {
   open: boolean
@@ -16,38 +22,21 @@ export function AuthModal({ open, onClose, redirectTo }: AuthModalProps) {
   const t = useTranslations('auth')
   const [loading, setLoading] = useState(false)
 
-  if (!open) return null
-
   const handleGoogleLogin = async () => {
     setLoading(true)
     await signIn(redirectTo)
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="relative brawl-card p-8 max-w-sm w-full mx-4 animate-fade-in">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1 text-slate-400 hover:text-white transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <div className="text-center mb-6">
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent>
+        <DialogHeader>
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--color-brawl-sky)] border-4 border-[var(--color-brawl-dark)] flex items-center justify-center shadow-[0_4px_0_rgba(18,26,47,1)]">
             <span className="text-3xl">🔓</span>
           </div>
-          <h2 className="font-['Lilita_One'] text-2xl text-white text-stroke-brawl">
-            {t('title')}
-          </h2>
-          <p className="text-sm text-slate-400 mt-2">
-            {t('subtitle')}
-          </p>
-        </div>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('subtitle')}</DialogDescription>
+        </DialogHeader>
 
         <button
           onClick={handleGoogleLogin}
@@ -66,7 +55,7 @@ export function AuthModal({ open, onClose, redirectTo }: AuthModalProps) {
         <p className="text-[10px] text-slate-600 text-center mt-4">
           {t('disclaimer')}
         </p>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

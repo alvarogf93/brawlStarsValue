@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { Gift, Copy, Check } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function ReferralCard() {
   const { profile } = useAuth()
@@ -21,6 +22,7 @@ export function ReferralCard() {
     try {
       await navigator.clipboard.writeText(referralLink)
       setCopied(true)
+      toast.success(t('referralCopied'))
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Fallback for older browsers
@@ -31,6 +33,7 @@ export function ReferralCard() {
       document.execCommand('copy')
       document.body.removeChild(input)
       setCopied(true)
+      toast.success(t('referralCopied'))
       setTimeout(() => setCopied(false), 2000)
     }
   }

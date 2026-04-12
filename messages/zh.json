@@ -425,7 +425,8 @@
     "hookMap": "你在{map}的统治率是{wr}%",
     "hookClutch": "作为Star Player时你的胜率是{wr}%",
     "hookCompetitive": "在{trophies}+奖杯段位，了解你的对战情况",
-    "hookExplorer": "你游玩了{count}个模式 — 看看你在哪里最强"
+    "hookExplorer": "你游玩了{count}个模式 — 看看你在哪里最强",
+    "checkoutError": "支付失败。请重试。"
   },
   "subscribe": {
     "title": "高级版分析",

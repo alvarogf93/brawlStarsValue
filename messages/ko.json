@@ -425,7 +425,8 @@
     "hookMap": "{map}에서 {wr}%로 지배하고 있어요",
     "hookClutch": "Star Player일 때 {wr}%로 이겨요",
     "hookCompetitive": "트로피 {trophies}+ 이상에서 매치업을 확인하세요",
-    "hookExplorer": "{count}개 모드를 플레이해요 — 어디서 지배하는지 확인하세요"
+    "hookExplorer": "{count}개 모드를 플레이해요 — 어디서 지배하는지 확인하세요",
+    "checkoutError": "결제 오류. 다시 시도해 주세요."
   },
   "subscribe": {
     "title": "프리미엄 분석",
