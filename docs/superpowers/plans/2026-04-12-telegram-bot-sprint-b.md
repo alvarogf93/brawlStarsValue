@@ -1552,9 +1552,10 @@ describe('queries.findMapByPrefix', () => {
 describe('queries.getMapData', () => {
   it('returns coverage + rankings for an existing map', async () => {
     const nowIso = new Date().toISOString()
+    const today = new Date().toISOString().slice(0, 10)
     fromQueue.push(
-      { data: null, count: 2798 },                                                                // today count
-      { data: null, count: 19586 },                                                               // 7d count
+      { data: [{ total: 2798 }] },                                                                // today total rows (impl reduces .total)
+      { data: [{ total: 19586 }] },                                                               // 7d total rows (impl reduces .total)
       { data: [{ brawler_id: 1 }, { brawler_id: 2 }, { brawler_id: 3 }] },                        // brawler coverage
       {
         data: [
@@ -1562,7 +1563,7 @@ describe('queries.getMapData', () => {
           { brawler_id: 2, wins: 45, losses: 55, total: 100 },
         ],
       },                                                                                          // WR rows
-      { data: [{ battle_time: nowIso }] },                                                        // 7d sparkline rows (here: reusing meta_stats date-bucketing is fine as placeholder; real impl bucketizes by date)
+      { data: [{ date: today, total: 19586 }] },                                                  // 7d sparkline rows (impl buckets by date)
       {
         data: [
           { map: 'Sidetrack', mode: 'brawlBall', total: 2798 },
