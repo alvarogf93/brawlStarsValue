@@ -1,4 +1,10 @@
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 import { PLAYER_TAG_REGEX } from './constants'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 export function isValidPlayerTag(tag: string): boolean {
   return PLAYER_TAG_REGEX.test(tag)
