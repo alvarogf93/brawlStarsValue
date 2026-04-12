@@ -51,7 +51,7 @@ export function InputForm() {
     try { localStorage.setItem(STORAGE_KEY, formattedTag) } catch { /* ignore */ }
 
     // Push route
-    router.push(`/${locale}/profile/${encodeURIComponent(formattedTag)}`)
+    router.push(`/${locale}/profile/${encodeURIComponent(formattedTag)}?from=landing`)
   }
 
   return (
