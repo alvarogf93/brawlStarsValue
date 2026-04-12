@@ -18,6 +18,43 @@ vi.mock('@/lib/api', () => ({
 import { fetchPlayer, SuprecellApiError } from '@/lib/api'
 const mockFetchPlayer = vi.mocked(fetchPlayer)
 
+// ───────────────── Mocks for anonymous visit tracking ─────────────────
+
+// Hoisted helper for capturing the after() callback without invoking it.
+// All four accessors come from a single vi.hoisted() block so they're
+// guaranteed to exist when the vi.mock factory runs.
+const { getCaptured, resetCaptured, mockAfter } = vi.hoisted(() => {
+  let captured: (() => Promise<void>) | null = null
+  return {
+    getCaptured: () => captured,
+    resetCaptured: () => { captured = null },
+    mockAfter: (cb: () => Promise<void>) => { captured = cb },
+  }
+})
+
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: vi.fn(mockAfter) }
+})
+
+// Mock the tracker — we only verify it was called with the right args.
+// Hoisted so the mock factory (which is itself hoisted) can reach it.
+const { trackAnonymousVisitMock } = vi.hoisted(() => ({
+  trackAnonymousVisitMock: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@/lib/anonymous-visits', () => ({
+  trackAnonymousVisit: trackAnonymousVisitMock,
+}))
+
+// Mock createClient from @/lib/supabase/server to control auth.getUser() response.
+// getUserMock is hoisted so it's defined when the vi.mock factory executes.
+const { getUserMock } = vi.hoisted(() => ({ getUserMock: vi.fn() }))
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn().mockResolvedValue({
+    auth: { getUser: getUserMock },
+  }),
+}))
+
 const MOCK_PLAYER: PlayerData = {
   tag: '#YJU282PV' as never,
   name: 'TestPlayer',
@@ -105,5 +142,100 @@ describe('POST /api/calculate', () => {
     mockFetchPlayer.mockRejectedValue(new MockError(404, 'notFound'))
     const res = await POST(makeRequest({ playerTag: '#NOTEXIST' }))
     expect(res.status).toBe(404)
+  })
+})
+
+describe('POST /api/calculate — anonymous visit tracking', () => {
+  beforeEach(() => {
+    resetCaptured()
+    vi.clearAllMocks()
+    // Default: Supercell returns a valid player and user is anonymous
+    mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null })
+  })
+
+  function makeTrackingRequest(overrides: Record<string, unknown> = {}) {
+    return makeRequest({
+      playerTag: '#YJU282PV',
+      fromLanding: true,
+      locale: 'es',
+      ...overrides,
+    })
+  }
+
+  it('fromLanding=true + anonymous user → registers after() callback, tracker NOT yet invoked', async () => {
+    const res = await POST(makeTrackingRequest())
+
+    expect(res.status).toBe(200)
+
+    // Response went out BEFORE any tracking happened
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+
+    // But the after() callback was registered
+    const captured = getCaptured()
+    expect(captured).not.toBeNull()
+
+    // Now drain the callback — tracker runs
+    await captured!()
+    expect(trackAnonymousVisitMock).toHaveBeenCalledTimes(1)
+    expect(trackAnonymousVisitMock).toHaveBeenCalledWith({
+      tag: '#YJU282PV',
+      locale: 'es',
+    })
+  })
+
+  it('fromLanding=false → no after() callback, tracker never called', async () => {
+    await POST(makeTrackingRequest({ fromLanding: false }))
+
+    expect(getCaptured()).toBeNull()
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+  })
+
+  it('fromLanding=true + locale not in whitelist → no after()', async () => {
+    await POST(makeTrackingRequest({ locale: 'xx' }))
+
+    expect(getCaptured()).toBeNull()
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+  })
+
+  it('fromLanding=true + HTML-injection locale → no after()', async () => {
+    await POST(makeTrackingRequest({ locale: '<b>evil</b>' }))
+
+    expect(getCaptured()).toBeNull()
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+  })
+
+  it('fromLanding=true + authenticated user → no after()', async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: { id: 'user-uuid', email: 'a@b.c' } },
+      error: null,
+    })
+    await POST(makeTrackingRequest())
+
+    expect(getCaptured()).toBeNull()
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+  })
+
+  it('fromLanding=true + locale is a number → no after() (type guard)', async () => {
+    await POST(makeTrackingRequest({ locale: 12345 }))
+
+    expect(getCaptured()).toBeNull()
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+  })
+
+  it('auth.getUser() throws → fail-closed, no after(), no throw', async () => {
+    getUserMock.mockRejectedValue(new Error('supabase auth down'))
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    const res = await POST(makeTrackingRequest())
+
+    expect(res.status).toBe(200)  // response still succeeds
+    expect(getCaptured()).toBeNull()
+    expect(trackAnonymousVisitMock).not.toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith(
+      '[calculate] auth check for tracking failed',
+      expect.any(Error),
+    )
+    consoleError.mockRestore()
   })
 })

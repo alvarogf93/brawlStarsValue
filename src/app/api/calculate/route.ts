@@ -1,7 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import { fetchPlayer, fetchBattlelog, fetchClub, SuprecellApiError } from '@/lib/api'
 import { calculateValue } from '@/lib/calculate'
+import { createClient } from '@/lib/supabase/server'
+import { trackAnonymousVisit } from '@/lib/anonymous-visits'
+
+// Locale whitelist for anonymous-visit tracking.
+// ⚠️ MUST stay in sync with `src/i18n/routing.ts` (`routing.locales`).
+// Intentionally hardcoded rather than imported because routing.ts also
+// exports `createNavigation(routing)` which pulls in client-only
+// next-intl navigation hooks that crash server bundles from API routes.
+const SUPPORTED_LOCALES = new Set<string>([
+  'es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh',
+])
 
 export async function POST(req: Request) {
   try {
@@ -40,6 +51,35 @@ export async function POST(req: Request) {
     }
 
     const result = calculateValue(playerData, { winRate })
+
+    // ─── Anonymous visit tracking (fire-and-forget via after()) ───
+    // Runs only when the request originated from the landing InputForm
+    // AND the locale is in the whitelist AND the user is not authenticated.
+    if (
+      body.fromLanding === true &&
+      typeof body.locale === 'string' &&
+      SUPPORTED_LOCALES.has(body.locale)
+    ) {
+      try {
+        // Auth check inline while request context (cookies) is guaranteed valid.
+        // Fail-closed: if this throws, we skip tracking entirely.
+        const supabaseAuth = await createClient()
+        const { data: { user } } = await supabaseAuth.auth.getUser()
+
+        if (!user) {
+          const trackingLocale: string = body.locale  // narrowed to string by the typeof guard
+          after(async () => {
+            try {
+              await trackAnonymousVisit({ tag: playerTag, locale: trackingLocale })
+            } catch (err) {
+              console.error('[calculate] tracking failed', err)
+            }
+          })
+        }
+      } catch (authErr) {
+        console.error('[calculate] auth check for tracking failed', authErr)
+      }
+    }
 
     return NextResponse.json({
       ...result,
