@@ -18,6 +18,13 @@ function HookBanner() {
   const hooks: string[] = (t.raw('hooks') as string[]) ?? []
   const subs: string[] = (t.raw('hookSubs') as string[]) ?? []
 
+  // Math.random() inside useMemo is intentional: we want the hook banner
+  // phrasing to vary between renders for the same player segment (A/B
+  // flavour within a category). The useMemo deps bound it to segment
+  // changes. Concurrent-rendering double-execution is acceptable — the
+  // only visible effect would be briefly picking a different phrase
+  // inside the same category, which is in-spec for the feature.
+  /* eslint-disable react-hooks/purity */
   const index = useMemo(() => {
     if (hooks.length === 0) return 0
     // Try to detect player segment from profile context
@@ -45,6 +52,7 @@ function HookBanner() {
     const punchy = [4, 5, 8]
     return punchy[Math.floor(Math.random() * punchy.length)]
   }, [hooks.length, profile])
+  /* eslint-enable react-hooks/purity */
 
   if (hooks.length === 0) return null
 

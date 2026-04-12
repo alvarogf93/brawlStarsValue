@@ -49,9 +49,13 @@ export function usePlayerData(
   useEffect(() => {
     if (!tag) return
 
-    // Check localStorage first
+    // Check localStorage first. The setState-in-effect below is intentional:
+    // this is the classic "cache hit on mount" pattern. Refactoring it to a
+    // lazy useState initializer would couple cache reads to render, which
+    // is worse for SSR/hydration than the single extra render on cache hit.
     const cached = readCache(tag)
     if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setData(cached)
       setIsLoading(false)
       return
