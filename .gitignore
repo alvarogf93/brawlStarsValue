@@ -50,7 +50,7 @@ supabase/.temp/
 
 # local tooling configs (agents, skills, tool preferences)
 /.agents
-/.claude/skills
+/.claude
 /.gemini
 /.expect
 /.github/copilot
