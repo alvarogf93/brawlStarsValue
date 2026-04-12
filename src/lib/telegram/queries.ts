@@ -6,7 +6,7 @@ import {
   createClient as createSupabaseAdmin,
   type SupabaseClient,
 } from '@supabase/supabase-js'
-import { FRESHNESS_THRESHOLDS } from './constants'
+import { BRAWLER_TOTAL, FRESHNESS_THRESHOLDS, MIN_BATTLES_FOR_RANKING } from './constants'
 import { bucketByDay } from './formatters'
 import type {
   BattlesData,
@@ -103,7 +103,7 @@ async function getStats(): Promise<StatsData> {
     brAgg.set(row.brawler_id, e)
   }
   const top3Brawlers = Array.from(brAgg.values())
-    .filter((e) => e.total >= 30)
+    .filter((e) => e.total >= MIN_BATTLES_FOR_RANKING)
     .map((e) => ({ brawlerId: e.brawlerId, winRate: e.wins / e.total, total: e.total }))
     .sort((a, b) => b.winRate - a.winRate)
     .slice(0, 3)
@@ -382,7 +382,9 @@ async function getMapData(map: string, mode: string): Promise<MapData> {
   const admin = getAdmin()
   const now = new Date()
   const today = now.toISOString().slice(0, 10)
-  const d7Ago = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  // 7-day window inclusive of today: from 6 days ago (index 6 in sparkline) to today.
+  // Using d7Ago here would cover 8 calendar dates and desynchronise the total vs the sparkline.
+  const d6Ago = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
   const [
     todayRes,
@@ -394,10 +396,10 @@ async function getMapData(map: string, mode: string): Promise<MapData> {
     cursorRes,
   ] = await Promise.all([
     admin.from('meta_stats').select('total').eq('date', today).eq('source', 'global').eq('map', map).eq('mode', mode),
-    admin.from('meta_stats').select('total').gte('date', d7Ago).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('total').gte('date', d6Ago).eq('source', 'global').eq('map', map).eq('mode', mode),
     admin.from('meta_stats').select('brawler_id').eq('date', today).eq('source', 'global').eq('map', map).eq('mode', mode),
     admin.from('meta_stats').select('brawler_id, wins, losses, total').eq('date', today).eq('source', 'global').eq('map', map).eq('mode', mode),
-    admin.from('meta_stats').select('date, total').gte('date', d7Ago).eq('source', 'global').eq('map', map).eq('mode', mode),
+    admin.from('meta_stats').select('date, total').gte('date', d6Ago).eq('source', 'global').eq('map', map).eq('mode', mode),
     admin.from('meta_stats').select('map, mode, total').eq('date', today).eq('source', 'global').eq('mode', mode),
     admin.from('meta_poll_cursors').select('last_battle_time').order('last_battle_time', { ascending: false }).limit(1).maybeSingle(),
   ])
@@ -416,7 +418,7 @@ async function getMapData(map: string, mode: string): Promise<MapData> {
 
   // WR rankings (min 30 battles)
   const wrRows = ((wrRowsRes.data ?? []) as Array<{ brawler_id: number; wins: number; losses: number; total: number }>)
-    .filter((r) => r.total >= 30)
+    .filter((r) => r.total >= MIN_BATTLES_FOR_RANKING)
     .map((r) => ({ brawlerId: r.brawler_id, winRate: r.wins / r.total, total: r.total }))
   const topWinRates    = [...wrRows].sort((a, b) => b.winRate - a.winRate).slice(0, 5)
   const bottomWinRates = [...wrRows].sort((a, b) => a.winRate - b.winRate).slice(0, 3)
@@ -447,7 +449,7 @@ async function getMapData(map: string, mode: string): Promise<MapData> {
     battlesToday,
     battlesLast7d,
     brawlerCovered: brawlerSet.size,
-    brawlerTotal: 82,  // total brawlers in the game as of 2026-04. Update in constants.ts if needed.
+    brawlerTotal: BRAWLER_TOTAL,
     sparkline7d,
     topWinRates,
     bottomWinRates,

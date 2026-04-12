@@ -1,3 +1,4 @@
+import { MIN_BATTLES_FOR_RANKING } from '../constants'
 import { fmtNumber, fmtTimeAgo, sparkline, section } from '../formatters'
 import type { CommandHandler, StatsData } from '../types'
 
@@ -12,29 +13,30 @@ export const handleStats: CommandHandler = async ({ queries }) => {
   const nowLabel = now.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
 
   const users = [
-    `  Total registered:    ${fmtNumber(s.totalUsers)}`,
+    `  Registrados:         ${fmtNumber(s.totalUsers)}`,
     `  Premium activos:     ${fmtNumber(s.premiumCount)}`,
     `  En trial:            ${fmtNumber(s.trialCount)}`,
     `  Visitantes anónimos: ${fmtNumber(s.anonCount30d)} (últimos 30d)`,
     '',
-    '  Anon new / day (7d)',
-    formatSparkLine(s.anonSparkline, `${s.anonSparkline[s.anonSparkline.length - 1] ?? 0} new today`),
+    '  Anón nuevos / día (7d)',
+    formatSparkLine(s.anonSparkline, `${s.anonSparkline[s.anonSparkline.length - 1] ?? 0} nuevos hoy`),
   ].join('\n')
 
+  const battlesLast7d = s.battleSparkline.reduce((sum, n) => sum + n, 0)
   const activity = [
     `  Total batallas: ${fmtNumber(s.totalBattles)}`,
     `  Hoy:            ${fmtNumber(s.battlesToday)}`,
-    `  Últimos 7 días: ${fmtNumber(s.totalBattles)}`,
+    `  Últimos 7 días: ${fmtNumber(battlesLast7d)}`,
     '',
-    '  Battles / day (7d)',
-    formatSparkLine(s.battleSparkline, `${s.battlesToday} today`),
+    '  Batallas / día (7d)',
+    formatSparkLine(s.battleSparkline, `${s.battlesToday} hoy`),
   ].join('\n')
 
   const metaPoll = [
-    `  Meta rows hoy:    ${fmtNumber(s.metaRowsToday)}`,
-    `  Meta rows total:  ${fmtNumber(s.metaRowsTotal)}`,
-    `  Pool efectivo:    ${fmtNumber(s.activeCursors)} / ${fmtNumber(s.activeCursors + s.staleCursors)} cursors`,
-    `                    (${fmtNumber(s.staleCursors)} stale &gt;24h)`,
+    `  Filas meta hoy:   ${fmtNumber(s.metaRowsToday)}`,
+    `  Filas meta total: ${fmtNumber(s.metaRowsTotal)}`,
+    `  Pool efectivo:    ${fmtNumber(s.activeCursors)} / ${fmtNumber(s.activeCursors + s.staleCursors)} cursores`,
+    `                    (${fmtNumber(s.staleCursors)} obsoletos &gt;24h)`,
     `  Última actividad: ${fmtTimeAgo(s.latestMetaActivity, now.getTime())}`,
   ].join('\n')
 
@@ -47,20 +49,20 @@ export const handleStats: CommandHandler = async ({ queries }) => {
     '',
     section('👥', 'USUARIOS', users),
     '',
-    section('⚔️', 'ACTIVIDAD (battles table — premium sync)', activity),
+    section('⚔️', 'ACTIVIDAD (tabla battles — sync premium)', activity),
     '',
-    section('🌐', 'META POLL (global pool)', metaPoll),
+    section('🌐', 'META POLL (pool global)', metaPoll),
     '',
     section('🎯', 'TOP 3 MAPAS (hoy)', topMaps),
     '',
-    section('🏆', 'TOP 3 BRAWLERS (hoy, por win rate)', topBrawlers),
+    section('🏆', `TOP 3 BRAWLERS (hoy, min ${MIN_BATTLES_FOR_RANKING} partidas, por win rate)`, topBrawlers),
   ].join('\n')
 }
 
 function renderTop3Maps(rows: StatsData['top3Maps']): string {
   if (rows.length === 0) return '  — sin datos'
   return rows
-    .map((r, i) => `  ${i + 1}. ${r.map.padEnd(24)} ${fmtNumber(r.battles)} battles`)
+    .map((r, i) => `  ${i + 1}. ${r.map.padEnd(24)} ${fmtNumber(r.battles)} batallas`)
     .join('\n')
 }
 

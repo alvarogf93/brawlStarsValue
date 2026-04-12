@@ -54,7 +54,7 @@ export const handleBatallas: CommandHandler = async ({ queries }) => {
 function renderModeDistribution(rows: BattlesData['modeDistribution']): string {
   if (rows.length === 0) return '  — sin datos'
   return rows
-    .map((r) => `  ${r.mode.padEnd(12)} ${String(r.count).padStart(3)} (${Math.round(r.pct * 100)}%) ${bar(r.pct, 16)}`)
+    .map((r) => `  ${r.mode.padEnd(12)} ${fmtNumber(r.count).padStart(5)} (${Math.round(r.pct * 100)}%) ${bar(r.pct, 16)}`)
     .join('\n')
 }
 
@@ -65,7 +65,7 @@ function renderResultDistribution(rows: BattlesData['resultDistribution']): stri
     draw:    'Draw   ',
   }
   return rows
-    .map((r) => `  ${labels[r.result]} ${String(r.count).padStart(3)} (${Math.round(r.pct * 100)}%) ${bar(r.pct, 10)}`)
+    .map((r) => `  ${labels[r.result]} ${fmtNumber(r.count).padStart(5)} (${Math.round(r.pct * 100)}%) ${bar(r.pct, 10)}`)
     .join('\n')
 }
 
