@@ -171,3 +171,168 @@ Una vez que healthchecks.io esté activo y haya recibido al menos 5 pings sin fa
 
 1. **Test de resilencia**: apagar manualmente el cron-daemon del VPS durante 30 min (`sudo systemctl stop cron`). Debería llegar notificación. Reactivar: `sudo systemctl start cron`.
 2. **Documentar el escalation path**: cuando llegue una notificación a las 3 AM, ¿qué se hace? Orden de investigación: healthchecks.io dashboard → Vercel function logs → Supabase logs → `tail /tmp/meta-poll.log` en el VPS.
+
+---
+
+## Parte 6 — Integración futura con el comando `/cron` del bot Telegram
+
+> **Estado**: pending. Requiere que los Parte 1-5 anteriores estén completadas y que el bot Telegram (Sprint B) esté en producción con el comando `/cron` versión v1 (basado en `pg_cron` + data freshness inference).
+
+### Qué añade esta integración
+
+La v1 del comando `/cron` del bot solo ve los 3 jobs de `pg_cron` (vía las RPCs `diagnose_cron_jobs` / `diagnose_cron_runs`) y usa **data freshness inference** para estimar si los 2 crons del VPS están vivos (mirando `MAX(last_battle_time) FROM meta_poll_cursors` y `MAX(last_sync) FROM profiles`). Es bueno pero indirecto: sabes que los datos son frescos, no sabes explícitamente que el cron del VPS corrió.
+
+Con la integración healthchecks.io API, el comando `/cron` puede reportar el estado **exacto y directo** de los 2 checks del VPS, igual que hace con los de pg_cron. El output pasa de "probablemente vivo según los datos" a "healthchecks.io reportó ping OK hace 8 min".
+
+### Pasos de implementación
+
+#### 1. Obtener el API Read-Only Key de healthchecks.io
+
+1. Ir al dashboard de healthchecks.io → Settings → API Access
+2. Copiar o generar un **Read-Only API Key**
+3. **No usar el Management API Key** para esto — solo necesitamos leer estado, no crear/borrar checks. El principio de menor privilegio aplica.
+
+#### 2. Añadir el API key al environment
+
+**Vercel (production)**:
+- Dashboard → Project Settings → Environment Variables
+- Añadir `HEALTHCHECKS_READ_KEY` con el valor copiado
+- Scope: `Production` (no es necesario en Preview ni Development a menos que quieras testear en preview)
+
+**Local**:
+- Añadir a `.env.local`:
+  ```
+  HEALTHCHECKS_READ_KEY=<el-key>
+  ```
+- El archivo ya está en `.gitignore`, nunca se commitea
+
+#### 3. Escribir el fetcher
+
+Crear `src/lib/telegram/healthchecks-client.ts` con:
+
+```ts
+// Read-only wrapper around the healthchecks.io API.
+// Docs: https://healthchecks.io/docs/api/
+
+interface HealthCheckStatus {
+  name: string
+  slug: string
+  status: 'up' | 'down' | 'grace' | 'new' | 'paused'
+  last_ping: string | null  // ISO 8601
+  next_ping: string | null
+  n_pings: number
+  schedule: string
+  grace: number
+  desc: string
+}
+
+interface HealthCheckListResponse {
+  checks: HealthCheckStatus[]
+}
+
+const API_URL = 'https://healthchecks.io/api/v3/checks/'
+
+export async function fetchHealthChecks(): Promise<HealthCheckStatus[]> {
+  const apiKey = process.env.HEALTHCHECKS_READ_KEY
+  if (!apiKey) {
+    throw new Error('HEALTHCHECKS_READ_KEY not set — skip integration')
+  }
+
+  const res = await fetch(API_URL, {
+    headers: { 'X-Api-Key': apiKey },
+    // Short timeout — this is called inside /cron bot command,
+    // don't let a slow healthchecks.io API delay the bot response.
+    signal: AbortSignal.timeout(5000),
+  })
+
+  if (!res.ok) {
+    throw new Error(`healthchecks.io API returned ${res.status}`)
+  }
+
+  const data: HealthCheckListResponse = await res.json()
+  return data.checks
+}
+
+/**
+ * Filter down to only the brawlvision checks we care about,
+ * identified by the name prefix we used at creation time.
+ */
+export function filterBrawlvisionChecks(checks: HealthCheckStatus[]): HealthCheckStatus[] {
+  return checks.filter((c) => c.name.startsWith('brawlvision-'))
+}
+```
+
+#### 4. Integrar en el handler del comando `/cron`
+
+En `src/lib/telegram/commands/cron.ts`:
+
+```ts
+import { fetchHealthChecks, filterBrawlvisionChecks } from '@/lib/telegram/healthchecks-client'
+
+export async function handleCronCommand(): Promise<string> {
+  // ... existing pg_cron section (RPCs diagnose_cron_jobs / diagnose_cron_runs) ...
+
+  // NEW: healthchecks.io VPS section
+  let vpsSection = ''
+  try {
+    const allChecks = await fetchHealthChecks()
+    const brawlChecks = filterBrawlvisionChecks(allChecks)
+
+    vpsSection += '\n🖥️ VPS Oracle crons (healthchecks.io)\n'
+    for (const c of brawlChecks) {
+      const emoji =
+        c.status === 'up' ? '✅'
+        : c.status === 'grace' ? '⚠️'
+        : c.status === 'down' ? '🔴'
+        : '❓'
+      const lastPingAgo = c.last_ping
+        ? formatTimeAgo(new Date(c.last_ping))
+        : 'never'
+      vpsSection += `  ${emoji} ${c.name}  (${c.status})\n`
+      vpsSection += `     last ping: ${lastPingAgo}\n`
+      vpsSection += `     pings total: ${c.n_pings}\n`
+    }
+  } catch (err) {
+    // Degrade gracefully if healthchecks.io is unreachable or the
+    // env var is missing. The rest of the /cron output still renders.
+    vpsSection += '\n🖥️ VPS Oracle crons\n'
+    vpsSection += `  (no disponible: ${err.message})\n`
+    vpsSection += `  Ver docs/crons/SETUP-HEALTHCHECKS.md\n`
+  }
+
+  return pgCronSection + vpsSection + freshnessSection
+}
+```
+
+#### 5. Quitar la nota de "no visible" del output del comando
+
+La v1 de `/cron` incluye una nota al final tipo:
+
+```
+⚠️ Nota: los 2 crons del VPS no son visibles desde aquí.
+```
+
+Con la integración, esa nota desaparece. El output es completamente transparente sobre los 3 tiers (pg_cron directo + VPS vía healthchecks.io + freshness inference como backup).
+
+#### 6. Test
+
+- **Mock `fetchHealthChecks`** en unit tests del comando `/cron` para simular los 4 estados (up, grace, down, paused).
+- **Integration test**: llamar al comando con un mock del `fetch` global que devuelva un JSON conocido y verificar que el output del bot contiene los emojis correctos.
+- **Error path**: test que cuando el API devuelve 401 o 500, el comando sigue funcionando y solo degrada la sección del VPS con un mensaje de error.
+
+### Consideraciones
+
+- **Coste**: healthchecks.io Read-Only API es **gratuita** en todos los planes, incluido el free tier. No hay que upgradear nada.
+- **Rate limits de la API**: según sus docs actuales (2025), el free tier permite ~10 requests/minuto por API key. Como solo llamamos 1 vez cada vez que haces `/cron`, nunca lo vas a rozar.
+- **Latencia**: el fetch a healthchecks.io añade ~100-300ms al tiempo de respuesta del comando `/cron`. Con el `AbortSignal.timeout(5000)` bound aseguramos que en el peor caso (API caída) no se cuelga más de 5 segundos.
+- **Seguridad**: el API key es read-only — aunque se filtrara, un atacante solo podría **leer** el estado de tus checks, no modificarlos ni borrarlos. Aun así, tratar el key como secret y rotarlo si hay sospecha de compromiso.
+
+### Cuándo implementar esta integración
+
+**No antes** de tener:
+
+1. Healthchecks.io Parte 1-5 completado y recibiendo pings sin fallos durante al menos 1 semana
+2. Bot Telegram Sprint B v1 en producción con `/cron` funcionando sobre la base de pg_cron + freshness inference
+3. Ganas reales de ver el estado del VPS con el `/cron` directamente en Telegram (si con la v1 te sientes bien, no hagas esta integración — YAGNI)
+
+**Sprint estimado**: media jornada de trabajo. 3 archivos nuevos (client, command patch, tests), 1 env var nueva, 0 migraciones, 0 cambios de schema.
