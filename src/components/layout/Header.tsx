@@ -6,9 +6,15 @@ import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
+import { STORAGE_KEYS, STORAGE_PREFIX, isAppStorageKey } from '@/lib/storage'
 import { Menu, LogOut, RefreshCw, User, Crown, Home, Gift } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+
+/** How often the "last sync" label in the header re-computes.
+ *  1 minute keeps the number honest without burning cycles — the
+ *  label rounds to minutes anyway, so faster ticks buy nothing. */
+const HEADER_SYNC_TICK_MS = 60_000
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -50,7 +56,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
   const [, setTick] = useState(0)
   useEffect(() => {
     if (!profile?.last_sync) return
-    const interval = setInterval(() => setTick(t => t + 1), 60_000)
+    const interval = setInterval(() => setTick(t => t + 1), HEADER_SYNC_TICK_MS)
     return () => clearInterval(interval)
   }, [profile?.last_sync])
 
@@ -66,12 +72,12 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
     }
 
     try {
-      const keysToKeep = ['brawlvalue:user']
-      const keysToKeepPrefixes = ['brawlvalue:skins:']
+      const keysToKeep: string[] = [STORAGE_KEYS.USER]
+      const keysToKeepPrefixes = [`${STORAGE_PREFIX}skins:`]
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i)
-        if (key?.startsWith('brawlvalue:') && !keysToKeep.includes(key) && !keysToKeepPrefixes.some(p => key.startsWith(p))) {
-          localStorage.removeItem(key)
+        if (isAppStorageKey(key) && !keysToKeep.includes(key!) && !keysToKeepPrefixes.some(p => key!.startsWith(p))) {
+          localStorage.removeItem(key!)
         }
       }
     } catch { /* ignore */ }
@@ -92,8 +98,8 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       const keysToRemove: string[] = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (key?.startsWith('brawlvalue:') || key?.startsWith('sb-')) {
-          keysToRemove.push(key)
+        if (isAppStorageKey(key) || key?.startsWith('sb-')) {
+          keysToRemove.push(key!)
         }
       }
       keysToRemove.forEach(k => localStorage.removeItem(k))
@@ -177,7 +183,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
           {!loading && !user && playerTag && (
             <Link
               href={`/${locale}`}
-              onClick={() => { try { localStorage.removeItem('brawlvalue:user') } catch {} }}
+              onClick={() => { try { localStorage.removeItem(STORAGE_KEYS.USER) } catch {} }}
               className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-white transition-colors rounded-xl hover:bg-white/5"
               title={t('exit')}
             >

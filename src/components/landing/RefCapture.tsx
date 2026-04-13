@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { STORAGE_KEYS } from '@/lib/storage'
 
 /** Captures ?ref=CODE from URL and stores in localStorage for later use during registration */
 export function RefCapture() {
@@ -11,7 +12,7 @@ export function RefCapture() {
     const ref = searchParams.get('ref')
     if (ref) {
       try {
-        localStorage.setItem('brawlvalue:ref', ref.toUpperCase())
+        localStorage.setItem(STORAGE_KEYS.REF, ref.toUpperCase())
       } catch { /* ignore */ }
     }
   }, [searchParams])

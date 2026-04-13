@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ProBadge } from '@/components/analytics/ProBadge'
 
@@ -36,16 +36,25 @@ function formatLabel(dateStr: string): string {
   return `${parseInt(m, 10)}/${parseInt(d, 10)}`
 }
 
-/** Longer date format for the tooltip header: "lun 13 abr" style. */
-function formatTooltipDate(dateStr: string): string {
+/** Longer date format for the tooltip header — localized per UI
+ *  locale so 13 languages don't all see Spanish month names. Uses
+ *  `Intl.DateTimeFormat` with `timeZone: 'UTC'` so the label matches
+ *  the calendar day the point represents (we parse the `YYYY-MM-DD`
+ *  string as a UTC date upstream). */
+function formatTooltipDate(dateStr: string, locale: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
   if (!y || !m || !d) return dateStr
   const date = new Date(Date.UTC(y, m - 1, d))
-  const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
-  const weekdayNames = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
-  const weekday = weekdayNames[date.getUTCDay()] ?? ''
-  const month = monthNames[m - 1] ?? ''
-  return `${weekday} ${d} ${month}`
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    }).format(date)
+  } catch {
+    return dateStr
+  }
 }
 
 /** Pick ~5-7 evenly-spaced indices for X-axis labels */
@@ -165,6 +174,7 @@ interface LineChartProps {
   tooltipLines: (d: DailyPoint) => string[]
   referenceLine?: number
   colorFn: (value: number) => string
+  locale: string
 }
 
 function LineChart({
@@ -177,6 +187,7 @@ function LineChart({
   tooltipLines,
   referenceLine,
   colorFn,
+  locale,
 }: LineChartProps) {
   const [hover, setHover] = useState<TooltipInfo | null>(null)
 
@@ -307,7 +318,7 @@ function LineChart({
                 setHover({
                   x: p.x,
                   y: p.y,
-                  label: formatTooltipDate(d.date),
+                  label: formatTooltipDate(d.date, locale),
                   lines: tooltipLines(d),
                   accentColor: colorFn(getValue(d)),
                 })
@@ -327,6 +338,7 @@ function LineChart({
 
 export function TrendsChart({ dailyTrend, proAvgWR }: Props) {
   const t = useTranslations('advancedAnalytics')
+  const locale = useLocale()
 
   if (dailyTrend.length === 0) {
     return (
@@ -385,6 +397,7 @@ export function TrendsChart({ dailyTrend, proAvgWR }: Props) {
               `WR: ${d.winRate.toFixed(1)}%`,
               `${d.wins}W / ${d.total - d.wins}L`,
             ]}
+            locale={locale}
           />
         </div>
 
@@ -406,6 +419,7 @@ export function TrendsChart({ dailyTrend, proAvgWR }: Props) {
               `Total: ${d.cumulativeTrophies >= 0 ? '+' : ''}${d.cumulativeTrophies}`,
               `Day: ${d.trophyChange >= 0 ? '+' : ''}${d.trophyChange}`,
             ]}
+            locale={locale}
           />
         </div>
       </div>

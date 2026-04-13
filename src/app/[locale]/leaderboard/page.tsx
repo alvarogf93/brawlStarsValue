@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { Link } from '@/i18n/routing'
 import { Home, Trophy, Loader2, Search } from 'lucide-react'
 import type { RankedPlayer } from '@/lib/api'
+import { STORAGE_KEYS } from '@/lib/storage'
 
 export default function LeaderboardPage() {
   const t = useTranslations('leaderboard')
@@ -48,7 +49,7 @@ export default function LeaderboardPage() {
     } else {
       // Not logged in: try from localStorage or navigate to their profile
       let storedTag: string | null = null
-      try { storedTag = localStorage.getItem('brawlvalue:user') } catch {}
+      try { storedTag = localStorage.getItem(STORAGE_KEYS.USER) } catch {}
       if (storedTag) {
         router.push(`/${locale}/profile/${encodeURIComponent(storedTag)}/compare?vs=${encodeURIComponent(playerTag)}`)
       } else {

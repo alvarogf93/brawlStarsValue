@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/hooks/useAuth'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
+import { STORAGE_KEYS } from '@/lib/storage'
 import { useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import {
@@ -25,7 +26,7 @@ export function TagRequiredModal() {
   const router = useRouter()
   const [tag, setTag] = useState('#')
   const [referralCode, setReferralCode] = useState(() => {
-    try { return localStorage.getItem('brawlvalue:ref') ?? '' } catch { return '' }
+    try { return localStorage.getItem(STORAGE_KEYS.REF) ?? '' } catch { return '' }
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,10 +48,10 @@ export function TagRequiredModal() {
     setError('')
 
     if (referralCode.trim()) {
-      try { localStorage.setItem('brawlvalue:ref', referralCode.trim().toUpperCase()) }
+      try { localStorage.setItem(STORAGE_KEYS.REF, referralCode.trim().toUpperCase()) }
       catch { /* ignore */ }
     } else {
-      try { localStorage.removeItem('brawlvalue:ref') } catch { /* ignore */ }
+      try { localStorage.removeItem(STORAGE_KEYS.REF) } catch { /* ignore */ }
     }
 
     const result = await linkTag(trimmed)

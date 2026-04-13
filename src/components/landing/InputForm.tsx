@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
-
-const STORAGE_KEY = 'brawlvalue:user'
+import { STORAGE_KEYS } from '@/lib/storage'
 
 export function InputForm() {
   const t = useTranslations('landing')
@@ -27,7 +26,7 @@ export function InputForm() {
   // Auto-redirect if user already saved
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
+      const saved = localStorage.getItem(STORAGE_KEYS.USER)
       if (saved) {
         router.replace(`/${locale}/profile/${encodeURIComponent(saved)}`)
       }
@@ -48,7 +47,7 @@ export function InputForm() {
     const formattedTag = tag.trim()
 
     // Persist user tag
-    try { localStorage.setItem(STORAGE_KEY, formattedTag) } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEYS.USER, formattedTag) } catch { /* ignore */ }
 
     // Push route
     router.push(`/${locale}/profile/${encodeURIComponent(formattedTag)}?from=landing`)

@@ -13,7 +13,17 @@ export const DRAFT_MODES = [
 
 export type DraftMode = typeof DRAFT_MODES[number]
 
-/** Check if a mode string is a valid 3v3 draft mode */
+/**
+ * Check if a mode string is a valid 3v3 draft mode.
+ *
+ * This is a pure membership check against DRAFT_MODES — no fallback,
+ * no quirk handling. Use this ONLY for data that has already been
+ * normalized (e.g. rows from `meta_stats`, `battles.mode` after
+ * `parseBattle()`). For RAW Supercell API payloads — which can
+ * report `mode: "unknown"` for brand-new modes while the `modeId`
+ * is correct — use `normalizeSupercellMode(mode, modeId)` first
+ * and only fall back to `isDraftMode` on the normalized result.
+ */
 export function isDraftMode(mode: string): mode is DraftMode {
   return (DRAFT_MODES as readonly string[]).includes(mode)
 }

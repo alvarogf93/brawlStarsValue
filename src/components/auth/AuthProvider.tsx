@@ -5,6 +5,7 @@ import { AuthContext, type AuthState } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/supabase/types'
+import { STORAGE_KEYS, STORAGE_PREFIX } from '@/lib/storage'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -25,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(data as Profile)
       setNeedsTag(false)
       // Restore localStorage tag so InputForm auto-redirects on next visit
-      try { localStorage.setItem('brawlvalue:user', data.player_tag) } catch { /* ignore */ }
+      try { localStorage.setItem(STORAGE_KEYS.USER, data.player_tag) } catch { /* ignore */ }
       return
     }
 
@@ -76,17 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setProfile(insertResult.data as Profile)
     setNeedsTag(false)
-    try { localStorage.setItem('brawlvalue:user', tag) } catch { /* ignore */ }
+    try { localStorage.setItem(STORAGE_KEYS.USER, tag) } catch { /* ignore */ }
 
     // Apply referral code (best-effort, non-blocking)
-    const refCode = (() => { try { return localStorage.getItem('brawlvalue:ref') } catch { return null } })()
+    const refCode = (() => { try { return localStorage.getItem(STORAGE_KEYS.REF) } catch { return null } })()
     if (refCode) {
       try {
         await supabase.rpc('apply_referral', {
           p_new_user_id: user.id,
           p_referral_code: refCode,
         })
-        localStorage.removeItem('brawlvalue:ref')
+        localStorage.removeItem(STORAGE_KEYS.REF)
       } catch { /* referral is best-effort */ }
     }
 
@@ -168,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           try {
             for (let i = localStorage.length - 1; i >= 0; i--) {
               const key = localStorage.key(i)
-              if (key?.startsWith('brawlvalue:player:')) {
+              if (key?.startsWith(`${STORAGE_PREFIX}player:`)) {
                 localStorage.removeItem(key)
               }
             }
@@ -196,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setProfile(null)
     setNeedsTag(false)
-    try { localStorage.removeItem('brawlvalue:user') } catch { /* ignore */ }
+    try { localStorage.removeItem(STORAGE_KEYS.USER) } catch { /* ignore */ }
   }, [supabase])
 
   const value: AuthState = { user, profile, loading, needsTag, signIn, signOut, linkTag }
