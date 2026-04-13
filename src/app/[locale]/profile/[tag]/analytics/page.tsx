@@ -52,9 +52,9 @@ const TAB_KEYS: Record<TabId, string> = {
   team: 'tabTeam', trends: 'tabTrends', draft: 'tabDraft', metaPro: 'tabMetaPro',
 }
 const TAB_IMAGE_ICONS: Partial<Record<TabId, string>> = {
-  overview: '/assets/modes/record-3.png',
+  overview: '/assets/icons/tab-summary.png',
   performance: '/assets/modes/record-12.png',
-  matchups: '/assets/modes/record-6.png',
+  matchups: '/assets/icons/tab-matchups.png',
   team: '/assets/modes/48000058.png',
   trends: '/assets/modes/record-8.png',
   draft: '/assets/modes/48000028.png',

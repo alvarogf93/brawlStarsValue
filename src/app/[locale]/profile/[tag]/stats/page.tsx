@@ -300,7 +300,7 @@ export default function StatsPage() {
           </div>
 
           {([
-            { iconName: null, emoji: '📈', label: t('powerLevels'), unitCost: null, qty: `${breakdown.powerLevels.count}`, gems: breakdown.powerLevels.gems, color: 'border-l-yellow-500' },
+            { iconName: 'brawlers' as BrawlIconName, emoji: null, label: t('powerLevels'), unitCost: null, qty: `${breakdown.powerLevels.count}`, gems: breakdown.powerLevels.gems, color: 'border-l-yellow-500' },
             { iconName: 'gadget' as BrawlIconName, emoji: null, label: t('gadgets'), unitCost: GEM_COSTS.gadget, qty: `${breakdown.gadgets.count}`, gems: breakdown.gadgets.gems, color: 'border-l-green-500' },
             { iconName: 'starpower' as BrawlIconName, emoji: null, label: t('starPowers'), unitCost: GEM_COSTS.starPower, qty: `${breakdown.starPowers.count}`, gems: breakdown.starPowers.gems, color: 'border-l-purple-500' },
             { iconName: 'hypercharge' as BrawlIconName, emoji: null, label: t('hypercharges'), unitCost: GEM_COSTS.hypercharge, qty: `${breakdown.hypercharges.count}`, gems: breakdown.hypercharges.gems, color: 'border-l-red-500' },

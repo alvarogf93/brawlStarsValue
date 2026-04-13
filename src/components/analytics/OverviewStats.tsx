@@ -1,9 +1,11 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { AdvancedAnalytics } from '@/lib/analytics/types'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { ProBadge } from '@/components/analytics/ProBadge'
+import { OneShotGif } from '@/components/ui/OneShotGif'
 
 interface Props {
   overview: AdvancedAnalytics['overview']
@@ -29,6 +31,21 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
     avgDuration,
     streak,
   } = overview
+
+  // Best Win Streak card animation: when the Amber GIF first
+  // becomes visible, schedule the flame emoji to fade in 1s later.
+  // The OneShotGif itself handles the play-once-then-freeze logic.
+  const flameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [flameVisible, setFlameVisible] = useState(false)
+  useEffect(() => {
+    return () => {
+      if (flameTimerRef.current) clearTimeout(flameTimerRef.current)
+    }
+  }, [])
+  const handleAmberStart = () => {
+    if (flameTimerRef.current) clearTimeout(flameTimerRef.current)
+    flameTimerRef.current = setTimeout(() => setFlameVisible(true), 1000)
+  }
 
   const totalLosses = totalBattles - totalWins
   const showStreakBanner = streak.currentCount >= 3 && streak.currentType !== 'none'
@@ -179,9 +196,22 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
           <p className="font-['Lilita_One'] text-[10px] uppercase tracking-wider text-slate-400 mb-1">
             {t('bestWinStreak')}
           </p>
-          <p className="font-['Lilita_One'] text-2xl tabular-nums text-green-400">
-            {streak.longestWin} 🔥
-          </p>
+          <div className="font-['Lilita_One'] text-2xl tabular-nums text-green-400 inline-flex items-center justify-center gap-2">
+            <span>{streak.longestWin}</span>
+            <span
+              aria-hidden="true"
+              className={`transition-opacity duration-700 ${flameVisible ? 'opacity-100' : 'opacity-0'}`}
+            >
+              🔥
+            </span>
+            <OneShotGif
+              src="/assets/animations/amber_win.gif"
+              alt=""
+              className="w-12 h-12"
+              durationMs={3000}
+              onStart={handleAmberStart}
+            />
+          </div>
         </div>
 
         {/* Longest Loss Streak */}

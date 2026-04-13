@@ -30,7 +30,7 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
     gems: number
     detail: string
   }> = [
-    { key: 'powerLevels', iconName: null, emoji: '📈', label: t('powerLevels'), gems: breakdown.powerLevels.gems, detail: `${breakdown.powerLevels.count} brawlers` },
+    { key: 'powerLevels', iconName: 'brawlers', emoji: null, label: t('powerLevels'), gems: breakdown.powerLevels.gems, detail: `${breakdown.powerLevels.count} brawlers` },
     { key: 'gadgets', iconName: 'gadget', emoji: null, label: t('gadgets'), gems: breakdown.gadgets.gems, detail: `×${breakdown.gadgets.count}` },
     { key: 'starPowers', iconName: 'starpower', emoji: null, label: t('starPowers'), gems: breakdown.starPowers.gems, detail: `×${breakdown.starPowers.count}` },
     { key: 'hypercharges', iconName: 'hypercharge', emoji: null, label: t('hypercharges'), gems: breakdown.hypercharges.gems, detail: `×${breakdown.hypercharges.count}` },

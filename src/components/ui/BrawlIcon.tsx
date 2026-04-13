@@ -19,6 +19,7 @@ const ICON_SRC: Record<BrawlIconName, string> = {
   gear: '/assets/icons/gear.png',
   prestige: '/assets/icons/prestige.png',
   buffies: '/assets/icons/buffies.png',
+  brawlers: '/assets/icons/brawlers.png',
 }
 
 /**
@@ -26,8 +27,13 @@ const ICON_SRC: Record<BrawlIconName, string> = {
  * are referenced in aggregate (e.g. the stats details grid). Do NOT
  * use it inside individual brawler cards where the buffies belong
  * to a specific brawler — those still need brawler-specific imagery.
+ *
+ * `brawlers` is the GENERIC brawlers icon (the Brawl Stars gold
+ * star with skull) — use it for "brawlers in aggregate" labels in
+ * the gem breakdown grids, NOT inside individual brawler cards
+ * where you'd use the brawler portrait instead.
  */
-export type BrawlIconName = 'gadget' | 'starpower' | 'hypercharge' | 'gear' | 'prestige' | 'buffies'
+export type BrawlIconName = 'gadget' | 'starpower' | 'hypercharge' | 'gear' | 'prestige' | 'buffies' | 'brawlers'
 
 interface Props {
   name: BrawlIconName
