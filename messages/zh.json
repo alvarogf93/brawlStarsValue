@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "你的对位 — 你对每个对手的表现",
     "playNowSubtitle": "基于你在当前轮换地图上的个人战绩",
     "playNowModeAggregateBadge": "模式",
-    "playNowModeAggregateTooltip": "你没有玩过这张具体地图 — 显示的是该模式的汇总数据"
+    "playNowModeAggregateTooltip": "你没有玩过这张具体地图 — 显示的是该模式的汇总数据",
+    "brawlers": "英雄",
+    "tierListSubtitle": "根据你的个人胜率按等级分组的英雄",
+    "tierListSelectHint": "选择一个英雄查看详情",
+    "tierListDetailGames": "{total}场 ({wins}胜 / {losses}负)",
+    "tierListDetailStarRate": "MVP: {rate}%",
+    "tierListDetailTrophyChange": "奖杯: 平均 {delta}",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

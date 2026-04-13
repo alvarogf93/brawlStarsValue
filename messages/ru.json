@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "ТВОИ МАТЧАПЫ — Как ТЫ играешь против каждого противника",
     "playNowSubtitle": "На основе твоей личной истории на картах текущей ротации",
     "playNowModeAggregateBadge": "Режим",
-    "playNowModeAggregateTooltip": "Ты не играл на этой конкретной карте — показываем твои агрегированные данные по режиму"
+    "playNowModeAggregateTooltip": "Ты не играл на этой конкретной карте — показываем твои агрегированные данные по режиму",
+    "brawlers": "бойцов",
+    "tierListSubtitle": "Твои бойцы, сгруппированные по тирам на основе твоего личного винрейта",
+    "tierListSelectHint": "Выбери бойца, чтобы увидеть детали",
+    "tierListDetailGames": "{total} боёв ({wins}П / {losses}П)",
+    "tierListDetailStarRate": "Звезда матча: {rate}%",
+    "tierListDetailTrophyChange": "Трофеи: {delta} в среднем",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

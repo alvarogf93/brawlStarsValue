@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 
 interface BrawlerPerformance {
   id: number
@@ -21,101 +22,186 @@ interface Props {
   data: BrawlerPerformance[]
 }
 
-function confidenceColor(c: 'high' | 'medium' | 'low'): string {
-  switch (c) {
-    case 'high': return 'text-green-400 bg-green-400/10'
-    case 'medium': return 'text-[#FFC91B] bg-[#FFC91B]/10'
-    case 'low': return 'text-slate-500 bg-white/5'
-  }
+type TierKey = 'S' | 'A' | 'B' | 'C' | 'D'
+
+const TIER_ORDER: readonly TierKey[] = ['S', 'A', 'B', 'C', 'D'] as const
+
+const TIER_META: Record<TierKey, { label: string; color: string; bgColor: string; borderColor: string }> = {
+  S: { label: 'S', color: 'text-[#FFC91B]',  bgColor: 'bg-[#FFC91B]/15',  borderColor: 'border-[#FFC91B]/30' },
+  A: { label: 'A', color: 'text-green-400',  bgColor: 'bg-green-400/15',  borderColor: 'border-green-400/30' },
+  B: { label: 'B', color: 'text-[#4EC0FA]',  bgColor: 'bg-[#4EC0FA]/15',  borderColor: 'border-[#4EC0FA]/30' },
+  C: { label: 'C', color: 'text-orange-400', bgColor: 'bg-orange-400/15', borderColor: 'border-orange-400/30' },
+  D: { label: 'D', color: 'text-red-400',    bgColor: 'bg-red-400/15',    borderColor: 'border-red-400/30' },
 }
 
-function tierLabel(wr: number): { label: string; color: string } {
-  if (wr >= 65) return { label: 'S', color: 'text-[#FFC91B] bg-[#FFC91B]/15 border-[#FFC91B]/30' }
-  if (wr >= 55) return { label: 'A', color: 'text-green-400 bg-green-400/15 border-green-400/30' }
-  if (wr >= 45) return { label: 'B', color: 'text-[#4EC0FA] bg-[#4EC0FA]/15 border-[#4EC0FA]/30' }
-  if (wr >= 35) return { label: 'C', color: 'text-orange-400 bg-orange-400/15 border-orange-400/30' }
-  return { label: 'D', color: 'text-red-400 bg-red-400/15 border-red-400/30' }
+function tierOf(winRate: number): TierKey {
+  if (winRate >= 65) return 'S'
+  if (winRate >= 55) return 'A'
+  if (winRate >= 45) return 'B'
+  if (winRate >= 35) return 'C'
+  return 'D'
 }
 
 export function BrawlerTierList({ data }: Props) {
   const t = useTranslations('advancedAnalytics')
-  const [showAll, setShowAll] = useState(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+
+  // Filter + group by tier (memoized — derived from props during render, no effect)
+  const { byTier, totalCount } = useMemo(() => {
+    const filtered = data.filter(b => b.total >= 3)
+    const groups: Record<TierKey, BrawlerPerformance[]> = {
+      S: [], A: [], B: [], C: [], D: [],
+    }
+    for (const b of filtered) {
+      groups[tierOf(b.winRate)].push(b)
+    }
+    // Sort each tier by winRate descending (best on the left)
+    for (const k of TIER_ORDER) {
+      groups[k].sort((a, b) => b.winRate - a.winRate)
+    }
+    return { byTier: groups, totalCount: filtered.length }
+  }, [data])
 
   if (data.length === 0) return null
 
-  const sorted = [...data]
-    .filter(b => b.total >= 3)
-    .sort((a, b) => b.winRate - a.winRate)
+  // Find selected brawler for the detail panel
+  const selected = selectedId !== null
+    ? data.find(b => b.id === selectedId) ?? null
+    : null
 
-  const displayed = showAll ? sorted : sorted.slice(0, 10)
-  const hasMore = sorted.length > 10
+  const handleToggle = (brawlerId: number) => {
+    setSelectedId(prev => prev === brawlerId ? null : brawlerId)
+  }
 
   return (
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-      <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">{'\uD83C\uDFC5'}</span> {t('brawlerTierList')}
-      </h3>
+      {/* Header */}
+      <div className="mb-4">
+        <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
+          <span className="text-xl">{'\uD83C\uDFC5'}</span> {t('brawlerTierList')}
+          <span className="text-xs text-slate-500 font-normal ml-auto">
+            {totalCount} {t('brawlers')}
+          </span>
+        </h3>
+        <p className="text-[11px] text-slate-500 mt-0.5">{t('tierListSubtitle')}</p>
+      </div>
 
-      <div className="space-y-1.5">
-        {displayed.map((b, i) => {
-          const tier = tierLabel(b.winRate)
+      {/* Tier rows */}
+      <div className="space-y-2">
+        {TIER_ORDER.map(tier => {
+          const brawlers = byTier[tier]
+          const meta = TIER_META[tier]
           return (
-            <div key={b.id} className="flex items-center gap-3 brawl-row rounded-xl px-4 py-2.5">
-              {/* Rank */}
-              <span className="font-['Lilita_One'] text-xs text-slate-600 w-5 text-right tabular-nums">
-                {i + 1}
-              </span>
-
-              {/* Tier badge */}
-              <span className={`font-['Lilita_One'] text-xs w-6 h-6 rounded-md flex items-center justify-center border ${tier.color}`}>
-                {tier.label}
-              </span>
-
-              {/* Portrait */}
-              <BrawlImg
-                src={getBrawlerPortraitUrl(b.id)}
-                fallbackSrc={getBrawlerPortraitFallback(b.id)}
-                alt={b.name}
-                className="w-9 h-9 rounded-lg ring-2 ring-[#090E17]"
-              />
-
-              {/* Name + games */}
-              <div className="flex-1 min-w-0">
-                <p className="font-['Lilita_One'] text-xs text-white truncate">{b.name}</p>
-                <div className="flex items-center gap-2">
-                  <p className="font-['Lilita_One'] text-[10px] text-slate-500">
-                    {b.wins}W / {b.losses}L
-                  </p>
-                  <span className={`font-['Lilita_One'] text-[9px] px-1.5 py-0.5 rounded ${confidenceColor(b.confidence)}`}>
-                    {b.confidence === 'high' ? '10+' : b.confidence === 'medium' ? '3-9' : '1-2'}
-                  </span>
-                </div>
+            <div
+              key={tier}
+              data-tier={tier}
+              className="flex items-stretch gap-2"
+            >
+              {/* Tier badge (left) */}
+              <div
+                className={`flex-shrink-0 w-12 rounded-lg border ${meta.borderColor} ${meta.bgColor} flex items-center justify-center`}
+              >
+                <span className={`font-['Lilita_One'] text-2xl ${meta.color}`}>
+                  {meta.label}
+                </span>
               </div>
 
-              {/* Trophy change */}
-              <span className={`font-['Lilita_One'] text-[10px] tabular-nums ${
-                b.avgTrophyChange > 0 ? 'text-green-400' : b.avgTrophyChange < 0 ? 'text-red-400' : 'text-slate-500'
-              }`}>
-                {b.avgTrophyChange > 0 ? '+' : ''}{b.avgTrophyChange.toFixed(0)}
-              </span>
-
-              {/* Win rate */}
-              <span className={`font-['Lilita_One'] text-sm tabular-nums w-14 text-right ${wrColor(b.winRate)}`}>
-                {b.winRate.toFixed(1)}%
-              </span>
+              {/* Brawler tiles (horizontal, wrap) */}
+              <div className="flex-1 min-h-[52px] flex flex-wrap gap-1.5 items-center rounded-lg bg-white/[0.02] p-1.5">
+                {brawlers.length === 0 ? (
+                  <span className="text-xs text-slate-700 px-2">{t('tierListEmptyTier')}</span>
+                ) : (
+                  brawlers.map(b => {
+                    const isSelected = selectedId === b.id
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        data-brawler-id={b.id}
+                        onClick={() => handleToggle(b.id)}
+                        className={`relative w-11 h-11 rounded-md overflow-hidden transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-[#FFC91B] scale-105'
+                            : 'ring-1 ring-white/10 hover:ring-white/30'
+                        }`}
+                        aria-label={`${b.name} — ${b.winRate.toFixed(1)}% win rate`}
+                        aria-pressed={isSelected}
+                      >
+                        <BrawlImg
+                          src={getBrawlerPortraitUrl(b.id)}
+                          fallbackSrc={getBrawlerPortraitFallback(b.id)}
+                          alt={b.name}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Visually hidden brawler name — accessible to SR + present in textContent for tests */}
+                        <span className="sr-only">{b.name}</span>
+                        {/* Confidence dot in top-right */}
+                        <div className="absolute top-0.5 right-0.5">
+                          <ConfidenceBadge total={b.total} />
+                        </div>
+                        {/* WR overlay on bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-center">
+                          <span className={`text-[9px] font-['Lilita_One'] tabular-nums ${wrColor(b.winRate)}`}>
+                            {b.winRate.toFixed(0)}%
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
             </div>
           )
         })}
       </div>
 
-      {hasMore && (
-        <button
-          onClick={() => setShowAll(prev => !prev)}
-          className="mt-3 w-full py-2 font-['Lilita_One'] text-xs text-slate-400 hover:text-[#FFC91B] transition-colors rounded-lg bg-white/[0.02] hover:bg-white/[0.04]"
-        >
-          {showAll ? '−' : `+${sorted.length - 10}`}
-        </button>
-      )}
+      {/* Detail panel */}
+      <div className="mt-4 pt-4 border-t border-white/5">
+        {selected ? (
+          <div className="brawl-row rounded-xl p-4 flex items-center gap-4">
+            <BrawlImg
+              src={getBrawlerPortraitUrl(selected.id)}
+              fallbackSrc={getBrawlerPortraitFallback(selected.id)}
+              alt={selected.name}
+              className="w-14 h-14 rounded-lg ring-2 ring-[#FFC91B]/50 flex-shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-['Lilita_One'] text-base text-white truncate">{selected.name}</h4>
+                <ConfidenceBadge total={selected.total} />
+              </div>
+              <p className={`font-['Lilita_One'] text-xl tabular-nums ${wrColor(selected.winRate)}`}>
+                {selected.winRate.toFixed(1)}%
+              </p>
+              <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 flex-wrap">
+                <span>
+                  {t('tierListDetailGames', {
+                    total: selected.total,
+                    wins: selected.wins,
+                    losses: selected.losses,
+                  })}
+                </span>
+                <span>
+                  {t('tierListDetailStarRate', { rate: selected.starPlayerRate.toFixed(1) })}
+                </span>
+                <span className={
+                  selected.avgTrophyChange > 0 ? 'text-green-400'
+                    : selected.avgTrophyChange < 0 ? 'text-red-400'
+                    : 'text-slate-500'
+                }>
+                  {t('tierListDetailTrophyChange', {
+                    delta: (selected.avgTrophyChange > 0 ? '+' : '') + selected.avgTrophyChange.toFixed(0),
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-sm text-slate-500 py-2">
+            {t('tierListSelectHint')}
+          </p>
+        )}
+      </div>
     </div>
   )
 }

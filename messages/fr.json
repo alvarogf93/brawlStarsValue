@@ -704,7 +704,14 @@
     "matchupsTitleExplicit": "TES MATCHUPS — Comment TU performes contre chaque adversaire",
     "playNowSubtitle": "Basé sur ton historique personnel sur les cartes de la rotation actuelle",
     "playNowModeAggregateBadge": "Mode",
-    "playNowModeAggregateTooltip": "Tu n'as pas joué cette carte spécifiquement — affichage de tes données agrégées du mode"
+    "playNowModeAggregateTooltip": "Tu n'as pas joué cette carte spécifiquement — affichage de tes données agrégées du mode",
+    "brawlers": "brawlers",
+    "tierListSubtitle": "Tes brawlers regroupés par tier selon ton taux de victoire personnel",
+    "tierListSelectHint": "Sélectionne un brawler pour voir les détails",
+    "tierListDetailGames": "{total} parties ({wins}V / {losses}D)",
+    "tierListDetailStarRate": "Star player : {rate}%",
+    "tierListDetailTrophyChange": "Trophées : {delta} en moyenne",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Méta PRO",
