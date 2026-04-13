@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total}전 ({wins}승 / {losses}패)",
     "tierListDetailStarRate": "스타 플레이어: {rate}%",
     "tierListDetailTrophyChange": "트로피: 평균 {delta}",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "모든 상대",
+    "matchupVs": "상대",
+    "clearFilters": "필터 초기화",
+    "matchupsEmptyFiltered": "이 조합에 해당하는 전투가 없습니다"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total} Spiele ({wins}S / {losses}N)",
     "tierListDetailStarRate": "Star-Spieler: {rate}%",
     "tierListDetailTrophyChange": "Trophäen: {delta} Durchschnitt",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "Alle Gegner",
+    "matchupVs": "Gegen",
+    "clearFilters": "Filter löschen",
+    "matchupsEmptyFiltered": "Keine Kämpfe für diese Kombination"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

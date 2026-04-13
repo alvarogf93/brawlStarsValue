@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total}场 ({wins}胜 / {losses}负)",
     "tierListDetailStarRate": "MVP: {rate}%",
     "tierListDetailTrophyChange": "奖杯: 平均 {delta}",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "所有对手",
+    "matchupVs": "对",
+    "clearFilters": "清除筛选",
+    "matchupsEmptyFiltered": "没有此组合的战斗"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

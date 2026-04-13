@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total} maç ({wins}G / {losses}M)",
     "tierListDetailStarRate": "Maçın yıldızı: {rate}%",
     "tierListDetailTrophyChange": "Kupa: ortalama {delta}",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "Tüm rakipler",
+    "matchupVs": "Karşı",
+    "clearFilters": "Filtreleri temizle",
+    "matchupsEmptyFiltered": "Bu kombinasyon için savaş yok"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

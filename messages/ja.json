@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total}戦 ({wins}勝 / {losses}敗)",
     "tierListDetailStarRate": "スタープレイヤー: {rate}%",
     "tierListDetailTrophyChange": "トロフィー: 平均 {delta}",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "全ての相手",
+    "matchupVs": "対",
+    "clearFilters": "フィルタをクリア",
+    "matchupsEmptyFiltered": "この組み合わせの試合がありません"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

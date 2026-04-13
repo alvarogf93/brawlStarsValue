@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total} боёв ({wins}П / {losses}П)",
     "tierListDetailStarRate": "Звезда матча: {rate}%",
     "tierListDetailTrophyChange": "Трофеи: {delta} в среднем",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "Все противники",
+    "matchupVs": "Против",
+    "clearFilters": "Сбросить фильтры",
+    "matchupsEmptyFiltered": "Нет боёв для этой комбинации"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

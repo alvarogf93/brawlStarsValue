@@ -713,7 +713,11 @@
     "tierListDetailGames": "{total} partidas ({wins}V / {losses}D)",
     "tierListDetailStarRate": "Star player: {rate}%",
     "tierListDetailTrophyChange": "Troféus: {delta} em média",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "Todos os oponentes",
+    "matchupVs": "Contra",
+    "clearFilters": "Limpar filtros",
+    "matchupsEmptyFiltered": "Sem batalhas para esta combinação"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

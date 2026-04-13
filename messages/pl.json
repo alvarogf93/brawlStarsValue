@@ -658,7 +658,11 @@
     "tierListDetailGames": "{total} gier ({wins}W / {losses}P)",
     "tierListDetailStarRate": "Gwiazda meczu: {rate}%",
     "tierListDetailTrophyChange": "Trofea: średnio {delta}",
-    "tierListEmptyTier": "—"
+    "tierListEmptyTier": "—",
+    "allOpponents": "Wszyscy przeciwnicy",
+    "matchupVs": "Przeciw",
+    "clearFilters": "Wyczyść filtry",
+    "matchupsEmptyFiltered": "Brak walk dla tej kombinacji"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

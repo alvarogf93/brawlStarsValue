@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
+import { X } from 'lucide-react'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { MatchupEntry } from '@/lib/analytics/types'
@@ -14,6 +15,103 @@ interface Props {
 
 const INITIAL_LIMIT = 20
 
+// ─── Versus filter slot (reusable for "me" and "opponent") ───
+
+type BrawlerOption = readonly [name: string, id: number]
+
+interface FilterSlotProps {
+  side: 'me' | 'opponent'
+  label: string
+  allLabel: string
+  selectedName: string // 'all' | brawler name
+  selectedId: number | null
+  options: readonly BrawlerOption[]
+  onChange: (name: string) => void
+}
+
+/**
+ * A "portrait card" filter slot. The slot LOOKS like a big clickable
+ * card with the selected brawler's portrait + name; under the hood
+ * the native <select> is positioned invisibly over the slot so all
+ * keyboard navigation, screen reader support and focus management
+ * come for free. When a filter is active, a clear (X) button sits
+ * on the top-right corner.
+ */
+function FilterSlot({
+  side, label, allLabel, selectedName, selectedId, options, onChange,
+}: FilterSlotProps) {
+  const hasFilter = selectedName !== 'all' && selectedId !== null
+  const accent = side === 'me' ? '#4EC0FA' : '#F82F41'
+  const accentBg = side === 'me' ? 'bg-[#4EC0FA]/10' : 'bg-[#F82F41]/10'
+  const accentBorder = hasFilter
+    ? (side === 'me' ? 'border-[#4EC0FA]/60' : 'border-[#F82F41]/60')
+    : 'border-white/10'
+
+  return (
+    <div
+      className={`relative flex-1 min-w-0 brawl-row rounded-xl border-2 ${accentBorder} ${accentBg} transition-all hover:brightness-110`}
+    >
+      {/* Native select positioned invisibly over the card — gives us
+          keyboard / screen reader a11y for free without reinventing
+          a Combobox component. */}
+      <select
+        value={selectedName}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+        aria-label={label}
+      >
+        <option value="all" className="bg-[#0B1120]">{allLabel}</option>
+        {options.map(([name]) => (
+          <option key={name} value={name} className="bg-[#0B1120]">{name}</option>
+        ))}
+      </select>
+
+      <div className="flex items-center gap-3 p-3 pointer-events-none">
+        {hasFilter && selectedId !== null ? (
+          <BrawlImg
+            src={getBrawlerPortraitUrl(selectedId)}
+            fallbackSrc={getBrawlerPortraitFallback(selectedId)}
+            alt={selectedName}
+            className="w-11 h-11 rounded-lg ring-2"
+          />
+        ) : (
+          <div
+            className="w-11 h-11 rounded-lg border-2 border-dashed flex items-center justify-center text-xl shrink-0"
+            style={{ borderColor: `${accent}60` }}
+          >
+            ⚔️
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-[9px] uppercase font-bold tracking-wider"
+            style={{ color: accent }}
+          >
+            {label}
+          </p>
+          <p className="font-['Lilita_One'] text-sm text-white truncate">
+            {hasFilter ? selectedName : allLabel}
+          </p>
+        </div>
+      </div>
+
+      {/* Clear button — only when a filter is active. Sits on top
+          of the invisible select so users can one-click clear
+          without opening the dropdown. */}
+      {hasFilter && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onChange('all') }}
+          className="absolute top-1.5 right-1.5 z-20 w-5 h-5 rounded-full bg-black/50 hover:bg-black/80 flex items-center justify-center transition-colors"
+          aria-label="Clear filter"
+        >
+          <X size={12} className="text-white" />
+        </button>
+      )}
+    </div>
+  )
+}
+
 
 
 
@@ -22,7 +120,10 @@ const INITIAL_LIMIT = 20
 export function MatchupMatrix({ data, proMatchups }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
-  const [bestFirst, setBestFirst] = useState(false)
+  const [selectedOpponent, setSelectedOpponent] = useState<string>('all')
+  // Default to "strengths first" (bestFirst = true) — users want to
+  // see what they're good at before what they're bad at.
+  const [bestFirst, setBestFirst] = useState(true)
   const [showAll, setShowAll] = useState(false)
 
   const brawlerOptions = useMemo(() => {
@@ -36,17 +137,30 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
       .sort(([a], [b]) => a.localeCompare(b))
   }, [data])
 
+  const opponentOptions = useMemo(() => {
+    const names = new Map<string, number>()
+    for (const d of data) {
+      if (!names.has(d.opponentBrawlerName)) {
+        names.set(d.opponentBrawlerName, d.opponentBrawlerId)
+      }
+    }
+    return Array.from(names.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+  }, [data])
+
   const filtered = useMemo(() => {
-    const list = selectedBrawler === 'all'
-      ? data
-      : data.filter(d => d.myBrawlerName === selectedBrawler)
+    const list = data.filter(d => {
+      if (selectedBrawler !== 'all' && d.myBrawlerName !== selectedBrawler) return false
+      if (selectedOpponent !== 'all' && d.opponentBrawlerName !== selectedOpponent) return false
+      return true
+    })
 
     return [...list].sort((a, b) =>
       bestFirst
         ? b.wilsonScore - a.wilsonScore
         : a.wilsonScore - b.wilsonScore
     )
-  }, [data, selectedBrawler, bestFirst])
+  }, [data, selectedBrawler, selectedOpponent, bestFirst])
 
   const visible = showAll ? filtered : filtered.slice(0, INITIAL_LIMIT)
   const hasMore = filtered.length > INITIAL_LIMIT
@@ -66,51 +180,98 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
     )
   }
 
+  // Resolve selected IDs from names — needed to render the portrait
+  // in the filter slot without re-scanning data on every render.
+  const selectedBrawlerId =
+    selectedBrawler === 'all'
+      ? null
+      : brawlerOptions.find(([n]) => n === selectedBrawler)?.[1] ?? null
+  const selectedOpponentId =
+    selectedOpponent === 'all'
+      ? null
+      : opponentOptions.find(([n]) => n === selectedOpponent)?.[1] ?? null
+
+  const hasActiveFilters = selectedBrawler !== 'all' || selectedOpponent !== 'all'
+
   return (
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      {/* Title */}
+      <div className="flex items-center justify-between mb-4">
         <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
           <span className="text-xl">⚔️</span> {t('matchupsTitleExplicit')}
           <InfoTooltip className="ml-1.5" text={t('tipMatchups')} />
         </h3>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Brawler filter */}
-          <select
-            value={selectedBrawler}
-            onChange={e => { setSelectedBrawler(e.target.value); setShowAll(false) }}
-            className="bg-white/[0.06] text-xs text-white border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-[#FFC91B]/40 transition-colors"
-          >
-            <option value="all" className="bg-[#0B1120]">{t('allBrawlers')}</option>
-            {brawlerOptions.map(([name]) => (
-              <option key={name} value={name} className="bg-[#0B1120]">{name}</option>
-            ))}
-          </select>
+      {/* Versus filter banner — two portrait slots paired with a
+          central "VS" divider. Sort toggle below. */}
+      <div className="mb-5">
+        <div className="flex flex-col sm:flex-row items-stretch gap-2 sm:gap-3">
+          <FilterSlot
+            side="me"
+            label={t('matchupYou')}
+            allLabel={t('allBrawlers')}
+            selectedName={selectedBrawler}
+            selectedId={selectedBrawlerId}
+            options={brawlerOptions}
+            onChange={(name) => { setSelectedBrawler(name); setShowAll(false) }}
+          />
+          <div className="flex items-center justify-center shrink-0 px-1">
+            <span className="font-['Lilita_One'] text-[#FFC91B] text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+              VS
+            </span>
+          </div>
+          <FilterSlot
+            side="opponent"
+            label={t('matchupVs')}
+            allLabel={t('allOpponents')}
+            selectedName={selectedOpponent}
+            selectedId={selectedOpponentId}
+            options={opponentOptions}
+            onChange={(name) => { setSelectedOpponent(name); setShowAll(false) }}
+          />
+        </div>
 
-          {/* Sort toggles */}
+        {/* Sort toggles — default to Fortalezas per user request */}
+        <div className="flex items-center justify-between gap-2 mt-3">
           <div className="flex gap-1">
             <button
+              type="button"
               onClick={() => { setBestFirst(true); setShowAll(false) }}
-              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors ${
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-colors ${
                 bestFirst
-                  ? 'bg-green-500/20 text-green-400'
-                  : 'text-slate-500 hover:text-white'
+                  ? 'bg-green-500/20 text-green-400 ring-1 ring-green-400/40'
+                  : 'text-slate-500 hover:text-white hover:bg-white/5'
               }`}
             >
               {t('strengths')} 💪
             </button>
             <button
+              type="button"
               onClick={() => { setBestFirst(false); setShowAll(false) }}
-              className={`px-2 py-1 text-[10px] font-bold rounded transition-colors ${
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg transition-colors ${
                 !bestFirst
-                  ? 'bg-red-500/20 text-red-400'
-                  : 'text-slate-500 hover:text-white'
+                  ? 'bg-red-500/20 text-red-400 ring-1 ring-red-400/40'
+                  : 'text-slate-500 hover:text-white hover:bg-white/5'
               }`}
             >
               {t('weaknesses')} ☠️
             </button>
           </div>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedBrawler('all')
+                setSelectedOpponent('all')
+                setShowAll(false)
+              }}
+              className="text-[10px] font-bold text-slate-500 hover:text-white transition-colors inline-flex items-center gap-1"
+            >
+              <X size={11} />
+              {t('clearFilters')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -221,11 +382,29 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
         </button>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — differentiate "no data at all" from
+          "active filters yield zero rows" so the user knows what
+          to do next. */}
       {visible.length === 0 && (
-        <p className="text-center text-sm text-slate-500 py-6">
-          {t('matchupsEmpty')}
-        </p>
+        <div className="text-center py-8">
+          <p className="text-3xl mb-2">🎯</p>
+          {hasActiveFilters ? (
+            <>
+              <p className="text-sm text-slate-400 font-['Lilita_One']">
+                {t('matchupsEmptyFiltered')}
+              </p>
+              <button
+                type="button"
+                onClick={() => { setSelectedBrawler('all'); setSelectedOpponent('all') }}
+                className="mt-2 text-xs font-bold text-[#FFC91B] hover:underline"
+              >
+                {t('clearFilters')}
+              </button>
+            </>
+          ) : (
+            <p className="text-sm text-slate-500">{t('matchupsEmpty')}</p>
+          )}
+        </div>
       )}
     </div>
   )
