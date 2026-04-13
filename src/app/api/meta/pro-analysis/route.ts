@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { bayesianWinRate } from '@/lib/draft/scoring'
 import { PRO_MIN_BATTLES_DISPLAY, PRO_TREND_DAYS_SHORT, PRO_TREND_DAYS_LONG } from '@/lib/draft/constants'
@@ -25,8 +25,8 @@ export const dynamic = 'force-dynamic'
 const ALLOWED_WINDOWS = [7, 14, 30, 90]
 const CACHE_MAX_AGE = 1800 // 30 minutes
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = request.nextUrl
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
   const map = searchParams.get('map')
   const mode = searchParams.get('mode')
   const windowParam = parseInt(searchParams.get('window') ?? '14', 10)
@@ -117,83 +117,157 @@ export async function GET(request: NextRequest) {
     .gte('date', windowStart)
     .lte('date', todayStr)
 
-  // --- Aggregate stats by brawler ---
+  // ── Aggregation helper: raw stats + trend maps → top brawlers ──
+  // Used by both Tier 1 (map+mode filter) and Tier 2 (mode-only
+  // fallback when the map is empty). Takes trend maps as arguments
+  // so Tier 2 can pass mode-level trends instead of map-level ones.
   type AggStat = { wins: number; losses: number; total: number }
-  const aggStats = new Map<number, AggStat>()
-  let totalProBattles = 0
+  type StatRow = { brawler_id: number; wins: number; losses: number; total: number; date: string }
 
-  for (const row of statsRows ?? []) {
-    const id = row.brawler_id
-    const existing = aggStats.get(id) ?? { wins: 0, losses: 0, total: 0 }
-    existing.wins += row.wins
-    existing.losses += row.losses
-    existing.total += row.total
-    aggStats.set(id, existing)
-    totalProBattles += row.total
+  function buildTrendMaps(
+    rows: StatRow[] | null | undefined,
+    windowStart: string,
+  ): { current: Map<number, AggStat>; prev: Map<number, AggStat> } {
+    const current = new Map<number, AggStat>()
+    const prev = new Map<number, AggStat>()
+    for (const row of rows ?? []) {
+      const target = row.date >= windowStart ? current : prev
+      const existing = target.get(row.brawler_id) ?? { wins: 0, losses: 0, total: 0 }
+      existing.wins += row.wins
+      existing.losses += row.losses
+      existing.total += row.total
+      target.set(row.brawler_id, existing)
+    }
+    return { current, prev }
   }
-  // Each battle has 6 players, so divide by 6 for unique battles
+
+  function aggregateAllBrawlers(
+    rows: StatRow[],
+    trend7d: { current: Map<number, AggStat>; prev: Map<number, AggStat> },
+    trend30d: { current: Map<number, AggStat>; prev: Map<number, AggStat> },
+  ): { allBrawlers: TopBrawlerEntry[]; aggStats: Map<number, AggStat>; totalBattles: number } {
+    const agg = new Map<number, AggStat>()
+    let total = 0
+    for (const row of rows) {
+      const id = row.brawler_id
+      const existing = agg.get(id) ?? { wins: 0, losses: 0, total: 0 }
+      existing.wins += row.wins
+      existing.losses += row.losses
+      existing.total += row.total
+      agg.set(id, existing)
+      total += row.total
+    }
+
+    const result: TopBrawlerEntry[] = []
+    for (const [id, stat] of agg) {
+      if (stat.total < PRO_MIN_BATTLES_DISPLAY) continue
+
+      const winRate = bayesianWinRate(stat.wins, stat.total)
+      const pickRate = computePickRate(stat.total, total)
+
+      // 7d trend
+      const cur7 = trend7d.current.get(id)
+      const prev7 = trend7d.prev.get(id)
+      const trend7dDelta = computeTrendDelta(
+        cur7 && cur7.total >= 5 ? bayesianWinRate(cur7.wins, cur7.total) : winRate,
+        prev7 && prev7.total >= 5 ? bayesianWinRate(prev7.wins, prev7.total) : null,
+      )
+
+      // 30d trend
+      const cur30 = trend30d.current.get(id)
+      const prev30 = trend30d.prev.get(id)
+      const trend30dDelta = computeTrendDelta(
+        cur30 && cur30.total >= 10 ? bayesianWinRate(cur30.wins, cur30.total) : winRate,
+        prev30 && prev30.total >= 10 ? bayesianWinRate(prev30.wins, prev30.total) : null,
+      )
+
+      result.push({
+        brawlerId: id,
+        name: getBrawlerName(brawlerNames, id),
+        winRate: Number(winRate.toFixed(2)),
+        pickRate: Number(pickRate.toFixed(2)),
+        totalBattles: stat.total,
+        trend7d: trend7dDelta,
+        trend30d: trend30dDelta,
+      })
+    }
+    result.sort((a, b) => b.winRate - a.winRate)
+    return { allBrawlers: result, aggStats: agg, totalBattles: total }
+  }
+
+  // ── Tier 1: map+mode aggregation + trends ─────────────
+  // Uses the existing map-filtered stats7d / stats30d queries.
+  const tier1Trend7d = buildTrendMaps(stats7d as StatRow[] | null | undefined, trend7dStart)
+  const tier1Trend30d = buildTrendMaps(stats30d as StatRow[] | null | undefined, trend30dStart)
+  const tier1 = aggregateAllBrawlers(
+    (statsRows ?? []) as StatRow[],
+    tier1Trend7d,
+    tier1Trend30d,
+  )
+
+  let allBrawlers = tier1.allBrawlers
+  let aggStats = tier1.aggStats
+  let totalProBattles = tier1.totalBattles
+  let topBrawlersSource: 'map-mode' | 'mode-fallback' = 'map-mode'
+
+  // ── Tier 2: mode-only fallback when map has no displayable brawlers ──
+  // Spec §7.2 — re-query meta_stats WITHOUT the map filter so the user
+  // sees mode-level aggregation instead of an empty list. Also re-query
+  // 7d and 30d trends without the map filter so trends stay meaningful.
+  if (allBrawlers.length === 0) {
+    // Issue the 3 fallback queries in parallel (current + 7d + 30d)
+    const [modeStatsRowsRes, modeStats7dRes, modeStats30dRes] = await Promise.all([
+      supabase
+        .from('meta_stats')
+        .select('brawler_id, wins, losses, total, date')
+        .eq('mode', mode)
+        .eq('source', 'global')
+        .gte('date', windowStart)
+        .lte('date', todayStr),
+      supabase
+        .from('meta_stats')
+        .select('brawler_id, wins, losses, total, date')
+        .eq('mode', mode)
+        .eq('source', 'global')
+        .gte('date', prev7dStart)
+        .lte('date', todayStr),
+      supabase
+        .from('meta_stats')
+        .select('brawler_id, wins, losses, total, date')
+        .eq('mode', mode)
+        .eq('source', 'global')
+        .gte('date', prev30dStart)
+        .lte('date', todayStr),
+    ])
+
+    const modeStatsRows = modeStatsRowsRes.data
+    if (modeStatsRows && modeStatsRows.length > 0) {
+      const tier2Trend7d = buildTrendMaps(
+        modeStats7dRes.data as StatRow[] | null | undefined,
+        trend7dStart,
+      )
+      const tier2Trend30d = buildTrendMaps(
+        modeStats30dRes.data as StatRow[] | null | undefined,
+        trend30dStart,
+      )
+      const tier2 = aggregateAllBrawlers(
+        modeStatsRows as StatRow[],
+        tier2Trend7d,
+        tier2Trend30d,
+      )
+      if (tier2.allBrawlers.length > 0) {
+        allBrawlers = tier2.allBrawlers
+        aggStats = tier2.aggStats
+        totalProBattles = tier2.totalBattles
+        topBrawlersSource = 'mode-fallback'
+      }
+    }
+  }
+
+  // Each battle has 6 players, so divide by 6 for unique battles.
+  // Computed AFTER Tier 2 fallback so the count reflects whichever
+  // tier actually populated allBrawlers.
   const totalUniqueBattles = Math.round(totalProBattles / 6)
-
-  // --- Compute 7d trends ---
-  const agg7dCurrent = new Map<number, AggStat>()
-  const agg7dPrev = new Map<number, AggStat>()
-  for (const row of stats7d ?? []) {
-    const target = row.date >= trend7dStart ? agg7dCurrent : agg7dPrev
-    const existing = target.get(row.brawler_id) ?? { wins: 0, losses: 0, total: 0 }
-    existing.wins += row.wins
-    existing.losses += row.losses
-    existing.total += row.total
-    target.set(row.brawler_id, existing)
-  }
-
-  // --- Compute 30d trends ---
-  const agg30dCurrent = new Map<number, AggStat>()
-  const agg30dPrev = new Map<number, AggStat>()
-  for (const row of stats30d ?? []) {
-    const target = row.date >= trend30dStart ? agg30dCurrent : agg30dPrev
-    const existing = target.get(row.brawler_id) ?? { wins: 0, losses: 0, total: 0 }
-    existing.wins += row.wins
-    existing.losses += row.losses
-    existing.total += row.total
-    target.set(row.brawler_id, existing)
-  }
-
-  // --- Build topBrawlers ---
-  const allBrawlers: TopBrawlerEntry[] = []
-  for (const [id, stat] of aggStats) {
-    if (stat.total < PRO_MIN_BATTLES_DISPLAY) continue
-
-    const winRate = bayesianWinRate(stat.wins, stat.total)
-    const pickRate = computePickRate(stat.total, totalProBattles)
-
-    // 7d trend
-    const cur7 = agg7dCurrent.get(id)
-    const prev7 = agg7dPrev.get(id)
-    const trend7d = computeTrendDelta(
-      cur7 && cur7.total >= 5 ? bayesianWinRate(cur7.wins, cur7.total) : winRate,
-      prev7 && prev7.total >= 5 ? bayesianWinRate(prev7.wins, prev7.total) : null,
-    )
-
-    // 30d trend
-    const cur30 = agg30dCurrent.get(id)
-    const prev30 = agg30dPrev.get(id)
-    const trend30d = computeTrendDelta(
-      cur30 && cur30.total >= 10 ? bayesianWinRate(cur30.wins, cur30.total) : winRate,
-      prev30 && prev30.total >= 10 ? bayesianWinRate(prev30.wins, prev30.total) : null,
-    )
-
-    allBrawlers.push({
-      brawlerId: id,
-      name: getBrawlerName(brawlerNames, id),
-      winRate: Number(winRate.toFixed(2)),
-      pickRate: Number(pickRate.toFixed(2)),
-      totalBattles: stat.total,
-      trend7d,
-      trend30d,
-    })
-  }
-
-  allBrawlers.sort((a, b) => b.winRate - a.winRate)
 
   // --- Build trending ---
   const rising: TrendEntry[] = []
@@ -437,6 +511,7 @@ export async function GET(request: NextRequest) {
     topBrawlers,
     totalProBattles: totalUniqueBattles,
     windowDays: window,
+    topBrawlersSource,
     trending: {
       rising: rising.slice(0, 3),
       falling: falling.slice(0, 3),
