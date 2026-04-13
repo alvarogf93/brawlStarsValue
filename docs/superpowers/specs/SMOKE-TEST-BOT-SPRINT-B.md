@@ -2,6 +2,14 @@
 
 Run this checklist **once** after each production deploy that touches `src/app/api/telegram/webhook/` or `src/lib/telegram/`. Takes ~3 minutes.
 
+## Quick run (automated)
+
+```bash
+node scripts/smoke-test-bot.js --confirm prod
+```
+
+The script posts the 9 command paths + 3 auth failures to production and prints HTTP results. The happy-path responses arrive in the admin Telegram chat asynchronously — cross-reference visually with the checklist below.
+
 ## Prerequisites
 
 - Deploy is live on `brawlvision.com`.
