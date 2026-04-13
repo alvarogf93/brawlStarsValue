@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import type { TopBrawlerEntry } from '@/lib/draft/pro-analysis'
 
 interface Props {
@@ -67,6 +68,10 @@ export function TopBrawlersGrid({ brawlers, totalBattles }: Props) {
               </span>
             )}
 
+            <div className="absolute top-1.5 right-2">
+              <ConfidenceBadge total={b.totalBattles} />
+            </div>
+
             <BrawlImg
               src={getBrawlerPortraitUrl(b.brawlerId)}
               fallbackSrc={getBrawlerPortraitFallback(b.brawlerId)}
@@ -80,6 +85,10 @@ export function TopBrawlersGrid({ brawlers, totalBattles }: Props) {
 
             <p className={`font-['Lilita_One'] text-lg tabular-nums ${wrColor(b.winRate)}`}>
               {b.winRate.toFixed(1)}%
+            </p>
+
+            <p className="text-[10px] text-slate-400 tabular-nums">
+              {t('sampleSize', { count: b.totalBattles })}
             </p>
 
             <p className="text-[10px] text-slate-500 tabular-nums">
