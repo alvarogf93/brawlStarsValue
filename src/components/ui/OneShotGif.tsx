@@ -25,6 +25,14 @@ interface Props {
    * to be at least 30% in view before we kick the animation off.
    */
   threshold?: number
+  /**
+   * Optional inline style override for the frozen-frame canvas.
+   * Useful when the canvas needs to be sized/positioned differently
+   * from the playing <img> — e.g. when the gif has whitespace
+   * around the subject and you want to crop/offset the static
+   * frame to match the rest of the layout.
+   */
+  canvasStyle?: React.CSSProperties
 }
 
 /**
@@ -47,9 +55,10 @@ export function OneShotGif({
   src,
   alt = '',
   className = '',
-  durationMs = 3000,
+  durationMs = 6000,
   onStart,
   threshold = 0.3,
+  canvasStyle,
 }: Props) {
   const containerRef = useRef<HTMLSpanElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -120,7 +129,8 @@ export function OneShotGif({
           />
           <canvas
             ref={canvasRef}
-            className={`block w-full h-full ${phase === 'frozen' ? '' : 'hidden'}`}
+            className={`block ${canvasStyle ? '' : 'w-full h-full'} ${phase === 'frozen' ? '' : 'hidden'}`}
+            style={canvasStyle}
             aria-hidden="true"
           />
         </>

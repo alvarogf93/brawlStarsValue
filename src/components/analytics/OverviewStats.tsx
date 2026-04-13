@@ -208,8 +208,14 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
               src="/assets/animations/amber_win.gif"
               alt=""
               className="w-12 h-12"
-              durationMs={3000}
+              durationMs={6000}
               onStart={handleAmberStart}
+              canvasStyle={{
+                width: '4rem',
+                height: '5rem',
+                marginTop: '-75%',
+                marginLeft: '-45%',
+              }}
             />
           </div>
         </div>
