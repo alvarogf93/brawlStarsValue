@@ -14,7 +14,7 @@ function enqueue(table: string, response: QueuedResponse) {
 }
 
 function makeBuilder(response: QueuedResponse) {
-  const methods = ['select', 'eq', 'gte', 'lte', 'in', 'order', 'limit', 'maybeSingle']
+  const methods = ['select', 'eq', 'gte', 'lte', 'in', 'order', 'limit', 'maybeSingle', 'single']
   const builder: Record<string, unknown> = {}
   for (const m of methods) builder[m] = () => builder
   // thenable — `await builder` resolves to response
@@ -30,10 +30,32 @@ const fromMock = vi.fn((table: string) => {
   return makeBuilder(queue.shift()!)
 })
 
-const authGetUserMock = vi.fn(async () => ({ data: { user: null } }))
+type AuthGetUserResult = { data: { user: { id: string } | null } }
+const authGetUserMock = vi.fn(
+  async (): Promise<AuthGetUserResult> => ({ data: { user: null } }),
+)
 
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({
+    from: fromMock,
+    auth: { getUser: authGetUserMock },
+  }),
+}))
+
+// The pro-analysis route now calls createClient() from @/lib/supabase/server
+// for cookie-based auth — that helper calls `cookies()` from next/headers,
+// which isn't available in the vitest node environment. Stub both so the
+// auth path resolves to "no user" unless a test explicitly overrides
+// authGetUserMock.
+vi.mock('next/headers', () => ({
+  cookies: async () => ({
+    getAll: () => [],
+    set: () => {},
+  }),
+}))
+
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: async () => ({
     from: fromMock,
     auth: { getUser: authGetUserMock },
   }),
@@ -220,5 +242,112 @@ describe('GET /api/meta/pro-analysis — cascade behaviour', () => {
 
     expect(res.status).toBe(200)
     expect(body.topBrawlerTeammates).toEqual([])
+  })
+
+  it('returns personalGap=null and premium fields=null when no session cookie is present', async () => {
+    // Anonymous request — authGetUserMock returns user=null by default
+    enqueue('meta_stats', {
+      data: [
+        { brawler_id: 1, wins: 80, losses: 20, total: 100, date: '2026-04-13' },
+      ],
+    })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_matchups', { data: [] })
+    enqueue('meta_trios', { data: [] })
+
+    const req = makeRequest({ map: 'Sidetrack', mode: 'brawlBall' })
+    const res = await GET(req as unknown as Parameters<typeof GET>[0])
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.topBrawlers.length).toBeGreaterThan(0)
+    // Anonymous → all premium fields stay null
+    expect(body.personalGap).toBeNull()
+    expect(body.proTrios).toBeNull()
+    expect(body.dailyTrend).toBeNull()
+    expect(body.matchupGaps).toBeNull()
+  })
+
+  it('populates personalGap when a premium cookie session and matching battles exist', async () => {
+    // Simulate a logged-in premium user via cookie auth
+    authGetUserMock.mockResolvedValueOnce({ data: { user: { id: 'user-1' } } })
+
+    // meta_stats (tier 1) — the pro has battles on this map with brawler 1
+    enqueue('meta_stats', {
+      data: [
+        { brawler_id: 1, wins: 80, losses: 20, total: 100, date: '2026-04-13' },
+      ],
+    })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_matchups', { data: [] })
+    // profile query returns a premium user with a player_tag
+    enqueue('profiles', {
+      data: {
+        id: 'user-1',
+        player_tag: 'YJU282PV',
+        tier: 'premium',
+        ls_subscription_status: 'active',
+      },
+    })
+    enqueue('meta_trios', { data: [] })
+    // The user's own battles on (map, mode) — 8 games with brawler 1
+    enqueue('battles', {
+      data: Array.from({ length: 8 }, (_, i) => ({
+        my_brawler: { id: 1 },
+        result: i < 5 ? 'victory' : 'defeat',
+      })),
+    })
+    // The user's mode-wide battles for matchup gaps (can be empty)
+    enqueue('battles', { data: [] })
+
+    const req = makeRequest({ map: 'Sidetrack', mode: 'brawlBall' })
+    const res = await GET(req as unknown as Parameters<typeof GET>[0])
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    // personalGap populated: the user played brawler 1, the pro also has
+    // brawler 1 with enough battles — one gap entry should exist.
+    expect(body.personalGap).not.toBeNull()
+    expect(Array.isArray(body.personalGap)).toBe(true)
+    expect(body.personalGap.length).toBe(1)
+    expect(body.personalGap[0].brawlerId).toBe(1)
+    expect(body.personalGap[0].yourTotal).toBe(8)
+  })
+
+  it('returns personalGap=[] (empty array) when premium session exists but user has zero battles on the map', async () => {
+    authGetUserMock.mockResolvedValueOnce({ data: { user: { id: 'user-2' } } })
+
+    enqueue('meta_stats', {
+      data: [
+        { brawler_id: 1, wins: 80, losses: 20, total: 100, date: '2026-04-13' },
+      ],
+    })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_matchups', { data: [] })
+    enqueue('profiles', {
+      data: {
+        id: 'user-2',
+        player_tag: 'ABC123',
+        tier: 'premium',
+        ls_subscription_status: 'active',
+      },
+    })
+    enqueue('meta_trios', { data: [] })
+    enqueue('battles', { data: [] }) // user has no battles on this map
+    // Note: if userBattles is empty, route skips the matchup block entirely,
+    // so no additional battles query is made.
+
+    const req = makeRequest({ map: 'Sidetrack', mode: 'brawlBall' })
+    const res = await GET(req as unknown as Parameters<typeof GET>[0])
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    // personalGap stays null when userBattles is empty — this is the
+    // signal the UI uses to render the "Juega partidas en este mapa..."
+    // empty state. Lock it in so we never regress the auth mismatch.
+    expect(body.personalGap).toBeNull()
   })
 })

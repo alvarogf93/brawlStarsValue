@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createCookieAuthClient } from '@/lib/supabase/server'
 import { bayesianWinRate } from '@/lib/draft/scoring'
 import { PRO_MIN_BATTLES_DISPLAY, PRO_TREND_DAYS_SHORT, PRO_TREND_DAYS_LONG } from '@/lib/draft/constants'
 import {
@@ -47,14 +48,18 @@ export async function GET(request: Request) {
     { cookies: { getAll: () => [], setAll: () => {} } },
   )
 
-  // --- Auth check ---
-  const authHeader = request.headers.get('authorization')
+  // --- Auth check (cookie-based) ---
+  // The single caller (useProAnalysis hook) fetches with `credentials: 'include'`,
+  // so the user's session travels as cookies — not as a Bearer header. Use the
+  // cookie-reading server client from @/lib/supabase/server to identify the
+  // user. The service-role `supabase` client above is still used for the actual
+  // data queries so meta_stats/meta_matchups/meta_trios reads bypass RLS.
   let userProfile: Profile | null = null
   let playerTag: string | null = null
 
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
-    const { data: { user } } = await supabase.auth.getUser(token)
+  try {
+    const authClient = await createCookieAuthClient()
+    const { data: { user } } = await authClient.auth.getUser()
     if (user) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -64,6 +69,9 @@ export async function GET(request: Request) {
       userProfile = profile as Profile | null
       playerTag = userProfile?.player_tag ?? null
     }
+  } catch {
+    // Anonymous request — no session cookie available. Free-tier response
+    // still builds correctly; premium fields stay null.
   }
 
   const hasPremium = isPremium(userProfile)
