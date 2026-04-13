@@ -3,6 +3,7 @@ import {
   computeMaxGems,
   computeMaxCounts,
   completionPct,
+  safeNumber,
 } from '@/lib/stats-maxes'
 import {
   GEM_COSTS,
@@ -99,5 +100,52 @@ describe('completionPct — safe percentage helper', () => {
 
   it('returns 100 exactly when numerator equals denominator', () => {
     expect(completionPct(100, 100)).toBe(100)
+  })
+
+  // ── NaN / undefined safety (regression for the "NaN in calculations" bug)
+
+  it('returns 0 for NaN numerator', () => {
+    expect(completionPct(NaN, 100)).toBe(0)
+  })
+
+  it('returns 0 for NaN denominator', () => {
+    expect(completionPct(50, NaN)).toBe(0)
+  })
+
+  it('returns 0 for undefined inputs (cast through any)', () => {
+    expect(completionPct(undefined as unknown as number, 100)).toBe(0)
+    expect(completionPct(50, undefined as unknown as number)).toBe(0)
+  })
+
+  it('returns 0 when both inputs are NaN', () => {
+    expect(completionPct(NaN, NaN)).toBe(0)
+  })
+
+  it('returns 0 for Infinity inputs', () => {
+    expect(completionPct(Infinity, 100)).toBe(0)
+    expect(completionPct(50, Infinity)).toBe(0)
+  })
+})
+
+describe('safeNumber — NaN/undefined-safe number coercion', () => {
+  it('passes through finite numbers unchanged', () => {
+    expect(safeNumber(0)).toBe(0)
+    expect(safeNumber(42)).toBe(42)
+    expect(safeNumber(-5)).toBe(-5)
+    expect(safeNumber(3.14)).toBe(3.14)
+  })
+
+  it('returns 0 for NaN', () => {
+    expect(safeNumber(NaN)).toBe(0)
+  })
+
+  it('returns 0 for undefined and null', () => {
+    expect(safeNumber(undefined)).toBe(0)
+    expect(safeNumber(null)).toBe(0)
+  })
+
+  it('returns 0 for Infinity', () => {
+    expect(safeNumber(Infinity)).toBe(0)
+    expect(safeNumber(-Infinity)).toBe(0)
   })
 })

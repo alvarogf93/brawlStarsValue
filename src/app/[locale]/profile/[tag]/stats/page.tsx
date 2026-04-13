@@ -7,7 +7,7 @@ import { usePlayerData } from '@/hooks/usePlayerData'
 import { useBrawlerRegistry } from '@/hooks/useBrawlerRegistry'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { GEM_COSTS, TROPHY_ROAD_MAX } from '@/lib/constants'
-import { computeMaxGems, computeMaxCounts, completionPct } from '@/lib/stats-maxes'
+import { computeMaxGems, computeMaxCounts, completionPct, safeNumber } from '@/lib/stats-maxes'
 import { formatPlaytime } from '@/lib/utils'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
@@ -38,15 +38,31 @@ export default function StatsPage() {
 
   const bd = data.breakdown
   const st = data.stats
+  // Sanitize every numeric pulled from the GemScore payload — cached
+  // localStorage objects from older versions of the type may be missing
+  // fields, which would propagate as NaN through arithmetic and end up
+  // as "NaN" in the rendered DOM. safeNumber maps undefined / null /
+  // NaN / Infinity to 0 so the UI degrades gracefully.
+  const totalGems = safeNumber(data.totalGems)
+  const trophies = safeNumber(st.trophies)
+  const highestTrophies = safeNumber(st.highestTrophies)
+  const breakdown = {
+    powerLevels: { count: safeNumber(bd.powerLevels?.count), gems: safeNumber(bd.powerLevels?.gems) },
+    gadgets: { count: safeNumber(bd.gadgets?.count), gems: safeNumber(bd.gadgets?.gems) },
+    starPowers: { count: safeNumber(bd.starPowers?.count), gems: safeNumber(bd.starPowers?.gems) },
+    hypercharges: { count: safeNumber(bd.hypercharges?.count), gems: safeNumber(bd.hypercharges?.gems) },
+    buffies: { count: safeNumber(bd.buffies?.count), gems: safeNumber(bd.buffies?.gems) },
+    gears: { count: safeNumber(bd.gears?.count), gems: safeNumber(bd.gears?.gems) },
+  }
   // Trophy road: player trophies / current game-wide cap (100k), NOT
   // player's personal highest — the bar should show progress toward
   // the absolute ceiling, not toward a moving personal best.
-  const trophyPercent = completionPct(st.trophies, TROPHY_ROAD_MAX)
+  const trophyPercent = completionPct(trophies, TROPHY_ROAD_MAX)
   // Main donut: overall account completion as a fraction of max possible
   // gems across every upgrade category (powerLevels + gadgets + SPs +
   // gears + HCs + buffies). Replaces the old "power level share of
   // total" which always showed ~50% and meant nothing.
-  const completionPercent = completionPct(data.totalGems, maxGems.total)
+  const completionPercent = completionPct(totalGems, maxGems.total)
 
   return (
     <div className="animate-fade-in w-full pb-10 space-y-6">
@@ -89,7 +105,7 @@ export default function StatsPage() {
                 {completionPercent}%
               </span>
               <span className="font-['Inter'] text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">
-                {data.totalGems.toLocaleString()} / {maxGems.total.toLocaleString()} 💎
+                {totalGems.toLocaleString()} / {maxGems.total.toLocaleString()} 💎
               </span>
             </div>
           </div>
@@ -97,12 +113,12 @@ export default function StatsPage() {
           {/* Gem breakdown bars — each rellena contra su MAX de categoría */}
           <div className="w-full mt-8 space-y-3">
             {[
-              { label: t('powerLevels'), value: bd.powerLevels.gems, max: maxGems.powerLevels, color: '#F59E0B' },
-              { label: t('gadgets'), value: bd.gadgets.gems, max: maxGems.gadgets, color: '#10B981' },
-              { label: t('starPowers'), value: bd.starPowers.gems, max: maxGems.starPowers, color: '#8B5CF6' },
-              { label: t('hypercharges'), value: bd.hypercharges.gems, max: maxGems.hypercharges, color: '#EF4444' },
-              { label: t('buffies'), value: bd.buffies.gems, max: maxGems.buffies, color: '#EC4899' },
-              { label: t('gears'), value: bd.gears.gems, max: maxGems.gears, color: '#6B7280' },
+              { label: t('powerLevels'), value: breakdown.powerLevels.gems, max: maxGems.powerLevels, color: '#F59E0B' },
+              { label: t('gadgets'), value: breakdown.gadgets.gems, max: maxGems.gadgets, color: '#10B981' },
+              { label: t('starPowers'), value: breakdown.starPowers.gems, max: maxGems.starPowers, color: '#8B5CF6' },
+              { label: t('hypercharges'), value: breakdown.hypercharges.gems, max: maxGems.hypercharges, color: '#EF4444' },
+              { label: t('buffies'), value: breakdown.buffies.gems, max: maxGems.buffies, color: '#EC4899' },
+              { label: t('gears'), value: breakdown.gears.gems, max: maxGems.gears, color: '#6B7280' },
             ].map((v) => {
               const pct = completionPct(v.value, v.max)
               return (
@@ -141,11 +157,11 @@ export default function StatsPage() {
               <div>
                 <h3 className="font-['Lilita_One'] text-[#F82F41] text-xl tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.8)]">{tStats('trophyRoad')}</h3>
                 <p className="font-['Inter'] font-bold text-slate-300 text-sm tracking-wide">
-                  {tStats('highest')}<span className="text-yellow-400">{st.highestTrophies.toLocaleString()}</span>
+                  {tStats('highest')}<span className="text-yellow-400">{highestTrophies.toLocaleString()}</span>
                 </p>
               </div>
               <span className="font-['Lilita_One'] text-4xl text-white text-stroke-brawl drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
-                {st.trophies.toLocaleString()} 🏆
+                {trophies.toLocaleString()} 🏆
               </span>
             </div>
 
@@ -167,27 +183,27 @@ export default function StatsPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#1C5CF1] transition-all duration-200">
               <span className="text-4xl mb-2 filter drop-shadow-md">⚔️</span>
-              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.threeVsThreeVictories.toLocaleString()}</span>
+              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{safeNumber(st.threeVsThreeVictories).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('wins3v3')}</span>
             </div>
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#F82F41] transition-all duration-200">
               <span className="text-4xl mb-2 filter drop-shadow-md">👤</span>
-              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.soloVictories.toLocaleString()}</span>
+              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{safeNumber(st.soloVictories).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('soloWins')}</span>
             </div>
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#10B981] transition-all duration-200">
               <span className="text-4xl mb-2 filter drop-shadow-md">👥</span>
-              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{st.duoVictories.toLocaleString()}</span>
+              <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{safeNumber(st.duoVictories).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('duoWins')}</span>
             </div>
-            <div 
+            <div
               className="brawl-card-dark border-[#121A2F] p-4 flex flex-col justify-center items-center relative overflow-hidden group cursor-help"
-              title={tStats('timeTooltip', { winRate: Math.round(st.winRateUsed * 100) })}
+              title={tStats('timeTooltip', { winRate: Math.round(safeNumber(st.winRateUsed) * 100) })}
             >
               <div className="absolute inset-0 bg-[#4EC0FA]/20 group-hover:bg-[#4EC0FA]/40 transition-colors" />
               <span className="text-4xl filter drop-shadow-md relative z-10 mb-2">⏱️</span>
               <span className="text-2xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl relative z-10 border-b border-dashed border-[#A0AEC0]/50 pb-0.5">
-                {formatPlaytime(st.estimatedHoursPlayed)}
+                {formatPlaytime(safeNumber(st.estimatedHoursPlayed))}
               </span>
               <span className="text-[10px] uppercase font-black text-slate-300 relative z-10 tracking-wider">{tStats('timePlayed')}</span>
             </div>
@@ -198,13 +214,13 @@ export default function StatsPage() {
             <h3 className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-lg tracking-widest mb-4">{tStats('details')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: t('gadgets'), value: bd.gadgets.count, max: maxCounts.gadgets, icon: '🔧' },
-                { label: t('starPowers'), value: bd.starPowers.count, max: maxCounts.starPowers, icon: '⭐' },
-                { label: t('hypercharges'), value: bd.hypercharges.count, max: maxCounts.hypercharges, icon: '⚡' },
-                { label: t('buffies'), value: bd.buffies.count, max: maxCounts.buffies, icon: '💪' },
-                { label: t('gears'), value: bd.gears.count, max: maxCounts.gears, icon: '🔩' },
-                { label: t('prestige'), value: st.totalPrestigeLevel, max: null, icon: '👑' },
-                { label: t('timePlayed'), value: formatPlaytime(st.estimatedHoursPlayed), max: null, icon: '⏱️' },
+                { label: t('gadgets'), value: breakdown.gadgets.count, max: maxCounts.gadgets, icon: '🔧' },
+                { label: t('starPowers'), value: breakdown.starPowers.count, max: maxCounts.starPowers, icon: '⭐' },
+                { label: t('hypercharges'), value: breakdown.hypercharges.count, max: maxCounts.hypercharges, icon: '⚡' },
+                { label: t('buffies'), value: breakdown.buffies.count, max: maxCounts.buffies, icon: '💪' },
+                { label: t('gears'), value: breakdown.gears.count, max: maxCounts.gears, icon: '🔩' },
+                { label: t('prestige'), value: safeNumber(st.totalPrestigeLevel), max: null, icon: '👑' },
+                { label: t('timePlayed'), value: formatPlaytime(safeNumber(st.estimatedHoursPlayed)), max: null, icon: '⏱️' },
               ].map((item) => (
                 <div key={item.label} className="bg-white/5 rounded-xl p-3 text-center">
                   <span className="text-2xl">{item.icon}</span>
@@ -238,13 +254,13 @@ export default function StatsPage() {
             onClick={() => {
               const rows = [
                 [tStats('concept'), tStats('quantity'), tStats('gems')],
-                [t('powerLevels'), String(bd.powerLevels.count), String(bd.powerLevels.gems)],
-                [t('gadgets'), String(bd.gadgets.count), String(bd.gadgets.gems)],
-                [t('starPowers'), String(bd.starPowers.count), String(bd.starPowers.gems)],
-                [t('hypercharges'), String(bd.hypercharges.count), String(bd.hypercharges.gems)],
-                [t('buffies'), String(bd.buffies.count), String(bd.buffies.gems)],
-                [t('gears'), String(bd.gears.count), String(bd.gears.gems)],
-                ['TOTAL', '', String(data.totalGems)],
+                [t('powerLevels'), String(breakdown.powerLevels.count), String(breakdown.powerLevels.gems)],
+                [t('gadgets'), String(breakdown.gadgets.count), String(breakdown.gadgets.gems)],
+                [t('starPowers'), String(breakdown.starPowers.count), String(breakdown.starPowers.gems)],
+                [t('hypercharges'), String(breakdown.hypercharges.count), String(breakdown.hypercharges.gems)],
+                [t('buffies'), String(breakdown.buffies.count), String(breakdown.buffies.gems)],
+                [t('gears'), String(breakdown.gears.count), String(breakdown.gears.gems)],
+                ['TOTAL', '', String(totalGems)],
               ]
               const csv = rows.map(r => r.join(',')).join('\n')
               const blob = new Blob([csv], { type: 'text/csv' })
@@ -271,12 +287,12 @@ export default function StatsPage() {
           </div>
 
           {[
-            { icon: '📈', label: `${t('powerLevels')}`, qty: `${bd.powerLevels.count}`, gems: bd.powerLevels.gems, color: 'border-l-yellow-500' },
-            { icon: '🔧', label: `${t('gadgets')} (×${GEM_COSTS.gadget}💎)`, qty: `${bd.gadgets.count}`, gems: bd.gadgets.gems, color: 'border-l-green-500' },
-            { icon: '⭐', label: `${t('starPowers')} (×${GEM_COSTS.starPower}💎)`, qty: `${bd.starPowers.count}`, gems: bd.starPowers.gems, color: 'border-l-purple-500' },
-            { icon: '⚡', label: `${t('hypercharges')} (×${GEM_COSTS.hypercharge}💎)`, qty: `${bd.hypercharges.count}`, gems: bd.hypercharges.gems, color: 'border-l-red-500' },
-            { icon: '💪', label: `${t('buffies')} (×${GEM_COSTS.buffie}💎)`, qty: `${bd.buffies.count}`, gems: bd.buffies.gems, color: 'border-l-pink-500' },
-            { icon: '🔩', label: `${t('gears')} (×${GEM_COSTS.gear}💎)`, qty: `${bd.gears.count}`, gems: bd.gears.gems, color: 'border-l-gray-500' },
+            { icon: '📈', label: `${t('powerLevels')}`, qty: `${breakdown.powerLevels.count}`, gems: breakdown.powerLevels.gems, color: 'border-l-yellow-500' },
+            { icon: '🔧', label: `${t('gadgets')} (×${GEM_COSTS.gadget}💎)`, qty: `${breakdown.gadgets.count}`, gems: breakdown.gadgets.gems, color: 'border-l-green-500' },
+            { icon: '⭐', label: `${t('starPowers')} (×${GEM_COSTS.starPower}💎)`, qty: `${breakdown.starPowers.count}`, gems: breakdown.starPowers.gems, color: 'border-l-purple-500' },
+            { icon: '⚡', label: `${t('hypercharges')} (×${GEM_COSTS.hypercharge}💎)`, qty: `${breakdown.hypercharges.count}`, gems: breakdown.hypercharges.gems, color: 'border-l-red-500' },
+            { icon: '💪', label: `${t('buffies')} (×${GEM_COSTS.buffie}💎)`, qty: `${breakdown.buffies.count}`, gems: breakdown.buffies.gems, color: 'border-l-pink-500' },
+            { icon: '🔩', label: `${t('gears')} (×${GEM_COSTS.gear}💎)`, qty: `${breakdown.gears.count}`, gems: breakdown.gears.gems, color: 'border-l-gray-500' },
           ].map((row, i) => (
             <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-3 rounded-lg border-l-4 ${row.color} ${i % 2 === 0 ? 'bg-white/5' : 'bg-white/[0.02]'}`}>
               <span className="flex items-center gap-2 text-sm text-slate-200">
@@ -297,7 +313,7 @@ export default function StatsPage() {
             </span>
             <span className="text-right text-sm text-white/60 w-20">=</span>
             <span className="text-right font-['Lilita_One'] text-2xl text-white w-24">
-              {data.totalGems.toLocaleString()}
+              {totalGems.toLocaleString()}
             </span>
           </div>
         </div>

@@ -86,11 +86,31 @@ export function computeMaxCounts(registry: RegistryInput): MaxCounts {
  * Percentage of completion for a numerator / denominator pair.
  * Clamped to [0, 100] and floored so the UI never shows a partial
  * or over-100 value from rounding.
+ *
+ * **NaN / undefined safety**: every comparison with NaN is `false`
+ * in JavaScript, so naive clamps like `if (x > 100) return 100` do
+ * NOT catch NaN — the value falls through and ends up as "NaN%" in
+ * the DOM. We explicitly guard the inputs and the computed `raw`
+ * value using `Number.isFinite`. Same class of bug as the "NaNm"
+ * countdown badge fix in `parseSupercellTime`.
  */
 export function completionPct(numerator: number, denominator: number): number {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) return 0
   if (denominator <= 0) return 0
   const raw = (numerator / denominator) * 100
-  if (raw <= 0) return 0
+  if (!Number.isFinite(raw) || raw <= 0) return 0
   if (raw >= 100) return 100
   return Math.floor(raw)
+}
+
+/**
+ * Format a (potentially undefined / NaN) number as a localized string.
+ * Used by the stats page so cached payloads from older versions of the
+ * GemScore type don't render "NaN" or crash on `.toLocaleString()`.
+ * Returns "0" for any non-finite input.
+ */
+export function safeNumber(value: number | undefined | null): number {
+  if (value === undefined || value === null) return 0
+  if (!Number.isFinite(value)) return 0
+  return value
 }

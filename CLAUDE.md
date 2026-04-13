@@ -66,6 +66,29 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - Text: `.text-stroke-brawl` (white text, dark border)
 - Colors: `#FFC91B` (gold), `#4EC0FA` (blue), `wrColor()` util for WR-based coloring
 
+## Game-mode rendering (STRICT)
+- **Always use `<ModeIcon mode={m} size={N} />`** from `src/components/ui/ModeIcon.tsx`. It resolves to the Brawlify CDN asset via `getGameModeImageUrl` and falls back to an emoji when the CDN is down.
+- **Never** reinvent a local `MODE_ICONS` emoji table — two existed (battles + club) and were deleted in Sprint D.
+- **Display names** come from `MODE_DISPLAY_NAMES` in `src/lib/constants.ts`. The raw API string (`"brawlBall"`, `"gemGrab"`) is NOT user-facing copy — always localize via this map.
+- **Inside SVG `foreignObject` tooltips** (TrophyChart, ClubTrophyChart) you can't use React components easily; use `getGameModeImageUrl(mode)` + `<img>` inline. Same CDN asset, no component overhead.
+
+## Event-time parsing
+- Supercell `/events/rotation` returns times in compact format `"20260413T120000.000Z"` (no dashes/colons). **`new Date()` cannot parse this** — it returns `Invalid Date` → `NaN` → `"NaNm"` in the UI.
+- Use `parseSupercellTime(raw)` from `src/lib/battle-parser.ts` for every event-time parse. It returns `Date | null` — the `null` lets callers hide the element instead of rendering garbage.
+- Countdown helpers (`computeTimeLeft` in `PlayNowDashboard`, `MapCard`) return `string | null` and the render uses `{timeLeft && <badge>}` to hide when unknown.
+
+## Stats completion denominators
+- All progress bars on `/profile/:tag/stats` rellena contra un **máximo real del juego**, never against the player's own total (that's a meaningless ratio).
+- Pure helpers in `src/lib/stats-maxes.ts`: `computeMaxGems(registry)`, `computeMaxCounts(registry)`, `completionPct(num, den)`. 10 unit tests.
+- **Game-wide registry** is fetched from `/api/brawlers` (our route → Supercell `/brawlers`, 24h server cache). Consumed via `useBrawlerRegistry()` hook which always returns a value (localStorage cache → in-flight fetch → hardcoded fallback 101 brawlers / 202 gadgets / 202 SPs). Consumers never deal with a null.
+- **Constants that need manual updates** as Supercell releases new content:
+  - `CURRENT_MAX_BUFFIES = 36` in `constants.ts` — tracked game-wide buffies (12 brawlers × 3 slots). The 4th slot bought with Blins is NOT tracked in `BrawlerStat.buffies` yet; excluded from the max until the model extends.
+  - `PER_BRAWLER_MAX = { gears: 6, hypercharges: 1 }` — per-brawler ceilings for items NOT returned by `/brawlers`.
+  - `TROPHY_ROAD_MAX = 100_000` — current season cap, the denominator for the trophy road bar (not `highestTrophies`, which is a moving personal target).
+
+## Derivation-from-memory pattern (no extra fetches)
+When a new UI widget needs aggregates that the existing hooks already fetched, **derive in-memory** instead of adding queries. Example: `src/lib/club-mode-leaders.ts` computes the per-mode club leaderboard from `useClubTrophyChanges`' already-cached `battlePoints[]`, zero extra network. Pure function → easy to unit-test (9 tests cover tiebreaks, fallbacks, sorting, non-draft exclusion).
+
 ## Data Pipeline
 - Supercell API → `battle-parser` → `battles` table (premium users only, via `/api/cron/sync`)
 - Cron sync → `processBattleForMeta` → `meta_stats` / `meta_matchups` (aggregated, source='user')
@@ -89,3 +112,6 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - **Cron stays on Vercel Functions, not Workflow** — the meta-poll is deliberately bounded by `META_POLL_MAX_DEPTH = 600` to fit within `maxDuration = 300`. Not polling, bounded batch; Workflow would be over-engineering.
 - **Duplicate cascade logic between `/api/meta` and `src/app/[locale]/picks/page.tsx`** — the public picks page queries Supabase directly via `fetchMetaEvents`, bypassing the API route, for SSR performance. A ~30 line duplication is YAGNI-acceptable for a single cross-file reuse; do NOT extract into a shared helper. Both paths must be updated when changing cascade logic.
 - **`proTrios` kept in `ProAnalysisResponse` even after removing `ProTrioGrid`** — the private analytics page's `TeamSynergyView` uses it as a lookup to annotate user's own trios with pro comparison badges. `topBrawlerTeammates` is a derived different field for the public Meta PRO tab.
+- **Completion charts normalize to game-wide max, not player total** — the old "gem score donut" showed `powerLevels.gems / totalGems` which is always ~50% for any player and means nothing. Progress bars must rellena toward a real in-game ceiling: `computeMaxGems` for gem-weighted, `TROPHY_ROAD_MAX=100000` for trophies, `computeMaxCounts` for raw unlocks. Never against personal best (moving target) or own total (self-referential).
+- **Club leader cards are derivation-only** — `computeClubModeLeaders` pulls from the in-memory battlepoints that `useClubTrophyChanges` already has. Adding a widget that needs club-battle aggregates? Derive from the hook's data, do NOT add per-member fetches.
+- **Real club badge, not placeholder** — the header uses `getClubBadgeUrl(club.badgeId)` with an `onError` fallback to a shield emoji. Placeholder lucide icons for content that has a real asset are banned.
