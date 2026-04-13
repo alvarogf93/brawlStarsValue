@@ -9,6 +9,13 @@ import type { TopBrawlerEntry } from '@/lib/draft/pro-analysis'
 interface Props {
   brawlers: TopBrawlerEntry[]
   totalBattles: number
+  /**
+   * Which aggregation tier produced `brawlers`.
+   * Optional for backwards compatibility — defaults to 'map-mode'.
+   * When 'mode-fallback', a yellow inline banner explains the substitution.
+   * Added in Sprint C — spec §7.2.
+   */
+  source?: 'map-mode' | 'mode-fallback'
 }
 
 function TrendBadge({ delta }: { delta: number | null }) {
@@ -34,7 +41,7 @@ function TrendBadge({ delta }: { delta: number | null }) {
   )
 }
 
-export function TopBrawlersGrid({ brawlers, totalBattles }: Props) {
+export function TopBrawlersGrid({ brawlers, totalBattles, source = 'map-mode' }: Props) {
   const t = useTranslations('metaPro')
 
   if (brawlers.length === 0) {
@@ -47,6 +54,15 @@ export function TopBrawlersGrid({ brawlers, totalBattles }: Props) {
 
   return (
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
+      {source === 'mode-fallback' && (
+        <div className="mb-3 px-3 py-2 bg-amber-400/10 border border-amber-400/30 rounded-lg">
+          <p className="text-[11px] text-amber-300">
+            <span className="mr-1">{'\u26A0\uFE0F'}</span>
+            {t('modeFallbackBanner')}
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
           <span className="text-xl">{'\uD83C\uDFC6'}</span> {t('topBrawlersTitle')}

@@ -11,6 +11,7 @@ vi.mock('next-intl', () => ({
       confidenceHigh: 'High confidence',
       confidenceMedium: 'Medium confidence',
       confidenceLow: 'Low confidence',
+      modeFallbackBanner: 'Mostrando datos agregados del modo',
     }
     return map[key] ?? key
   },
@@ -58,5 +59,35 @@ describe('TopBrawlersGrid — Task 5 (sample size + confidence)', () => {
   it('renders the empty state when no brawlers', () => {
     render(<TopBrawlersGrid brawlers={[]} totalBattles={0} />)
     expect(screen.getByText('No data for map')).toBeTruthy()
+  })
+})
+
+describe('TopBrawlersGrid — Task 6 (mode-fallback banner)', () => {
+  it('does NOT render the fallback banner when source is "map-mode"', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={MOCK_BRAWLERS}
+        totalBattles={3000}
+        source="map-mode"
+      />,
+    )
+    expect(screen.queryByText(/mode-fallback|datos agregados|fallback/i)).toBeNull()
+  })
+
+  it('renders the fallback banner when source is "mode-fallback"', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={MOCK_BRAWLERS}
+        totalBattles={3000}
+        source="mode-fallback"
+      />,
+    )
+    // The i18n mock returns the key verbatim when missing, so assert on the key name
+    expect(screen.getByText(/modeFallbackBanner|datos agregados/i)).toBeTruthy()
+  })
+
+  it('defaults to "map-mode" behaviour when source prop is omitted (backwards compat)', () => {
+    render(<TopBrawlersGrid brawlers={MOCK_BRAWLERS} totalBattles={3000} />)
+    expect(screen.queryByText(/modeFallbackBanner/i)).toBeNull()
   })
 })
