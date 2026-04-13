@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { Crown, Shield, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { playerCacheKey } from '@/lib/storage'
 
 /**
  * Smart hook: picks ONE phrase based on player context.
@@ -31,7 +32,7 @@ function HookBanner() {
     if (profile) {
       // Check if player data is in localStorage
       try {
-        const cached = localStorage.getItem(`brawlvalue:player:${profile.player_tag.toUpperCase()}`)
+        const cached = localStorage.getItem(playerCacheKey(profile.player_tag))
         if (cached) {
           const { gemScore } = JSON.parse(cached)
           const brawlers = gemScore?.player?.brawlers ?? []

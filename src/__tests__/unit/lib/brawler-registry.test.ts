@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { getCachedRegistry, setCachedRegistry, type BrawlerEntry } from '@/lib/brawler-registry'
+import { STORAGE_KEYS } from '@/lib/storage'
 
-const LS_KEY = 'brawlvalue:brawler-registry'
+const LS_KEY = STORAGE_KEYS.BRAWLER_REGISTRY
 
 const memoryStore = new Map<string, string>()
 const mockLocalStorage = {
@@ -108,15 +109,15 @@ describe('setCachedRegistry — input validation', () => {
 })
 
 describe('localStorage key isolation (Sprint D regression)', () => {
-  it('uses a key that DOES NOT collide with useBrawlerRegistry', async () => {
-    // Hard-coded constants from both consumers — must stay distinct.
-    // If you rename either key, update this test to match.
-    const LEGACY_KEY = 'brawlvalue:brawler-registry'
-    const TOTALS_KEY = 'brawlvalue:brawler-registry-totals'
-    expect(LEGACY_KEY).not.toBe(TOTALS_KEY)
+  it('uses a key that DOES NOT collide with useBrawlerRegistry', () => {
+    // Anchor the regression lock on the canonical STORAGE_KEYS
+    // entries instead of raw string literals — this way any future
+    // rename of either constant is still caught without having to
+    // hand-update the test.
+    expect(STORAGE_KEYS.BRAWLER_REGISTRY).not.toBe(STORAGE_KEYS.BRAWLER_REGISTRY_TOTALS)
     // Sanity: this file's setCachedRegistry must write to the legacy key
     setCachedRegistry(SAMPLE_BRAWLERS)
-    expect(memoryStore.has(LEGACY_KEY)).toBe(true)
-    expect(memoryStore.has(TOTALS_KEY)).toBe(false)
+    expect(memoryStore.has(STORAGE_KEYS.BRAWLER_REGISTRY)).toBe(true)
+    expect(memoryStore.has(STORAGE_KEYS.BRAWLER_REGISTRY_TOTALS)).toBe(false)
   })
 })

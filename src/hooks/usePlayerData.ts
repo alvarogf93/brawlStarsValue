@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { GemScore } from '@/lib/types'
+import { playerCacheKey } from '@/lib/storage'
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
@@ -10,9 +11,7 @@ interface CachedData {
   timestamp: number
 }
 
-function getCacheKey(tag: string): string {
-  return `brawlvalue:player:${tag.toUpperCase()}`
-}
+const getCacheKey = playerCacheKey
 
 function readCache(tag: string): GemScore | null {
   try {

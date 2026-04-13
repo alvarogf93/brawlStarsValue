@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { STORAGE_KEYS } from '@/lib/storage'
 
 /**
  * Denominators for the stats page completion charts, fetched from
@@ -22,12 +23,13 @@ const FALLBACK: BrawlerRegistry = {
   maxStarPowers: 202,
 }
 
-// CRITICAL: this key MUST NOT collide with `src/lib/brawler-registry.ts`
-// which uses 'brawlvalue:brawler-registry' for its BrawlerEntry[] cache.
-// Sprint D 2026-04-13: a previous version of this file used the same
-// key and the shape mismatch (array vs object) crashed the brawler
-// detail page. The string `-totals` namespace is the regression lock.
-const CACHE_KEY = 'brawlvalue:brawler-registry-totals'
+// Uses a distinct key from `src/lib/brawler-registry.ts` (which
+// holds a BrawlerEntry[] array under STORAGE_KEYS.BRAWLER_REGISTRY).
+// Sprint D 2026-04-13: both files briefly shared the same literal
+// and the shape mismatch (object vs array) crashed the brawler
+// detail page. Both keys now live in `src/lib/storage.ts` so any
+// accidental re-aliasing has to go through a single file.
+const CACHE_KEY = STORAGE_KEYS.BRAWLER_REGISTRY_TOTALS
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24h — matches the server revalidate window
 
 interface CachedRegistry {

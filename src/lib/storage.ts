@@ -26,9 +26,34 @@ export const STORAGE_KEYS = {
   /** Referral code captured from `?ref=` query param on landing,
    *  consumed by the auth flow at sign-up time. */
   REF: 'brawlvalue:ref',
+  /** Legacy `BrawlerEntry[]` cache (BrawlAPI community data) used by
+   *  `src/lib/brawler-registry.ts`. The `-totals` sibling below has
+   *  a completely different shape — they MUST remain distinct keys
+   *  or the brawler detail page crashes on `.find()` over an object
+   *  (regression tested in `brawler-registry.test.ts`). */
+  BRAWLER_REGISTRY: 'brawlvalue:brawler-registry',
+  /** Game-wide registry totals (brawlerCount, maxGadgets,
+   *  maxStarPowers) used by `useBrawlerRegistry`. Separate namespace
+   *  from `BRAWLER_REGISTRY` on purpose. */
+  BRAWLER_REGISTRY_TOTALS: 'brawlvalue:brawler-registry-totals',
 } as const
 
-/** True when the given key is owned by this app (prefix match). */
-export function isAppStorageKey(key: string | null | undefined): boolean {
+/** Shared prefix for the per-player GemScore cache — key format is
+ *  `${PLAYER_CACHE_PREFIX}${tag.toUpperCase()}`. Writer is
+ *  `usePlayerData`; readers are `UpgradeCard` (for the hook banner
+ *  segment heuristic) and `AuthProvider` (for bulk invalidation on
+ *  profile sync). Centralized so renaming requires one edit instead
+ *  of three. */
+export const PLAYER_CACHE_PREFIX = `${STORAGE_PREFIX}player:` as const
+
+/** Build the per-player cache key for the given tag. */
+export function playerCacheKey(tag: string): string {
+  return `${PLAYER_CACHE_PREFIX}${tag.toUpperCase()}`
+}
+
+/** Type predicate: narrows `key` to `string` after a truthy return,
+ *  so callers iterating `Storage.key(i)` (which returns
+ *  `string | null`) don't need non-null assertions. */
+export function isAppStorageKey(key: string | null | undefined): key is string {
   return typeof key === 'string' && key.startsWith(STORAGE_PREFIX)
 }

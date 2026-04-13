@@ -5,7 +5,7 @@ import { AuthContext, type AuthState } from '@/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 import type { Profile } from '@/lib/supabase/types'
-import { STORAGE_KEYS, STORAGE_PREFIX } from '@/lib/storage'
+import { STORAGE_KEYS, PLAYER_CACHE_PREFIX } from '@/lib/storage'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           try {
             for (let i = localStorage.length - 1; i >= 0; i--) {
               const key = localStorage.key(i)
-              if (key?.startsWith(`${STORAGE_PREFIX}player:`)) {
+              if (key?.startsWith(PLAYER_CACHE_PREFIX)) {
                 localStorage.removeItem(key)
               }
             }

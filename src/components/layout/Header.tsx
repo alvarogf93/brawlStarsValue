@@ -76,8 +76,8 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       const keysToKeepPrefixes = [`${STORAGE_PREFIX}skins:`]
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i)
-        if (isAppStorageKey(key) && !keysToKeep.includes(key!) && !keysToKeepPrefixes.some(p => key!.startsWith(p))) {
-          localStorage.removeItem(key!)
+        if (isAppStorageKey(key) && !keysToKeep.includes(key) && !keysToKeepPrefixes.some(p => key.startsWith(p))) {
+          localStorage.removeItem(key)
         }
       }
     } catch { /* ignore */ }
@@ -98,8 +98,12 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       const keysToRemove: string[] = []
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)
-        if (isAppStorageKey(key) || key?.startsWith('sb-')) {
-          keysToRemove.push(key!)
+        if (key === null) continue
+        // startsWith('sb-') first so the `isAppStorageKey` type
+        // predicate doesn't over-narrow `key` to `never` via the
+        // `||` short-circuit.
+        if (key.startsWith('sb-') || isAppStorageKey(key)) {
+          keysToRemove.push(key)
         }
       }
       keysToRemove.forEach(k => localStorage.removeItem(k))

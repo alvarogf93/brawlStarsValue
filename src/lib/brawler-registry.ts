@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from '@/lib/storage'
+
 /** Brawler data from BrawlAPI (community API) */
 export interface BrawlerEntry {
   id: number
@@ -8,7 +10,7 @@ export interface BrawlerEntry {
 }
 
 /** Client-side cache — fetches once and caches in localStorage */
-const LS_KEY = 'brawlvalue:brawler-registry'
+const LS_KEY = STORAGE_KEYS.BRAWLER_REGISTRY
 const LS_TTL = 24 * 60 * 60 * 1000
 
 /**
