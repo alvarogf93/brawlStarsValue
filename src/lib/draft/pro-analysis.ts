@@ -9,6 +9,17 @@ export interface ProAnalysisResponse {
   totalProBattles: number
   windowDays: number
 
+  /**
+   * Indicates whether `topBrawlers` was aggregated from the exact
+   * (map, mode) filter ('map-mode') or from the mode-only fallback
+   * when the map had no brawlers passing the display threshold
+   * ('mode-fallback'). The UI renders a banner explaining the
+   * fallback when this is 'mode-fallback'.
+   *
+   * Added in Sprint C — see docs/superpowers/specs/2026-04-13-meta-ux-remediation-design.md §7.2.
+   */
+  topBrawlersSource: 'map-mode' | 'mode-fallback'
+
   trending: {
     rising: TrendEntry[]
     falling: TrendEntry[]
