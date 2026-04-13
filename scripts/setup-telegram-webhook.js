@@ -26,7 +26,16 @@ try {
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET
-const WEBHOOK_URL = 'https://brawlvision.com/api/telegram/webhook'
+// MUST point at the canonically-serving subdomain.
+// Vercel is configured to 307-redirect the apex `brawlvision.com`
+// to `www.brawlvision.com`. Telegram does NOT follow redirects on
+// webhook POSTs — a 307 response causes Telegram to fail delivery
+// with `Wrong response from the webhook: 307 Temporary Redirect`
+// and queue the update (pending_update_count climbs, commands
+// silently never reach the dispatcher). Registering the `www`
+// subdomain directly skips the redirect so POSTs land on the
+// route handler and return 200.
+const WEBHOOK_URL = 'https://www.brawlvision.com/api/telegram/webhook'
 
 async function main() {
   if (!BOT_TOKEN || !WEBHOOK_SECRET) {
