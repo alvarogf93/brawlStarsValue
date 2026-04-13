@@ -7,11 +7,19 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
+import { parseSupercellTime } from '@/lib/battle-parser'
 
 
 
-function computeTimeLeft(endTimeStr: string, endedLabel: string): string {
-  const diff = new Date(endTimeStr).getTime() - Date.now()
+/**
+ * Returns the time remaining until the event ends, formatted as
+ * "Xh Ym" or "Ym". Returns `null` when the input cannot be parsed
+ * so the caller can hide the badge instead of rendering "NaNm".
+ */
+function computeTimeLeft(endTimeStr: string, endedLabel: string): string | null {
+  const end = parseSupercellTime(endTimeStr)
+  if (!end) return null
+  const diff = end.getTime() - Date.now()
   if (diff <= 0) return endedLabel
   const totalMin = Math.floor(diff / 60_000)
   const h = Math.floor(totalMin / 60)
@@ -93,13 +101,15 @@ export function PlayNowDashboard({ recommendations }: Props) {
                   <span className="bg-black/50 backdrop-blur-sm rounded-lg px-2 py-0.5 border border-white/10 flex items-center">
                     <ModeIcon mode={slot.mode} size={18} />
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm border ${
-                    timeLeft === endedLabel
-                      ? 'bg-red-500/30 text-red-300 border-red-500/30'
-                      : 'bg-black/40 text-[#4EC0FA] border-[#4EC0FA]/20'
-                  }`}>
-                    {timeLeft}
-                  </span>
+                  {timeLeft && (
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm border ${
+                      timeLeft === endedLabel
+                        ? 'bg-red-500/30 text-red-300 border-red-500/30'
+                        : 'bg-black/40 text-[#4EC0FA] border-[#4EC0FA]/20'
+                    }`}>
+                      {timeLeft}
+                    </span>
+                  )}
                   {slot.source === 'mode-aggregate' && (
                     <span
                       className="text-[9px] font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded px-1.5 py-0.5"

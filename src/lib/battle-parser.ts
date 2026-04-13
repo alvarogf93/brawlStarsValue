@@ -16,6 +16,37 @@ export function parseBattleTime(raw: string): string {
   return `${y}-${m}-${d}T${h}:${min}:${sec}.000Z`
 }
 
+/**
+ * Parse any Supercell-shaped datetime into a Date, robustly.
+ *
+ * Supercell APIs serialize times in a compact non-ISO format
+ * ("20260413T120000.000Z"). JavaScript's `new Date()` constructor
+ * does NOT parse that format — it returns `Invalid Date`, whose
+ * `.getTime()` is `NaN`, which then propagates through arithmetic
+ * and produces things like "NaNm" in the UI. This helper:
+ *
+ *  1. Detects the compact Supercell format and converts it to ISO
+ *     8601 before `new Date()`.
+ *  2. Accepts already-ISO strings (some endpoints normalize early).
+ *  3. Returns `null` for empty / invalid / unparseable input so the
+ *     caller can hide the UI element instead of rendering NaN.
+ */
+export function parseSupercellTime(raw: string | null | undefined): Date | null {
+  if (!raw || typeof raw !== 'string') return null
+  // Compact Supercell format: YYYYMMDDTHHMMSS(.fff)?Z
+  const compact = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(?:\.(\d{3}))?Z$/
+  const match = raw.match(compact)
+  if (match) {
+    const [, y, mo, d, h, mi, s, ms] = match
+    const iso = `${y}-${mo}-${d}T${h}:${mi}:${s}.${ms ?? '000'}Z`
+    const date = new Date(iso)
+    return Number.isNaN(date.getTime()) ? null : date
+  }
+  // Fallback: let Date try its own heuristics (handles ISO 8601 etc.)
+  const date = new Date(raw)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
 import type { BattlelogBrawler } from '@/lib/api'
 
 interface BattlePlayer {

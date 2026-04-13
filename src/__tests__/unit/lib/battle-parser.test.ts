@@ -1,6 +1,58 @@
 import { describe, it, expect } from 'vitest'
-import { parseBattle, parseBattleTime, parseBattlelog } from '@/lib/battle-parser'
+import { parseBattle, parseBattleTime, parseBattlelog, parseSupercellTime } from '@/lib/battle-parser'
 import type { BattlelogEntry } from '@/lib/api'
+
+describe('parseSupercellTime — robust event-time parser', () => {
+  it('parses the Supercell compact format "YYYYMMDDTHHMMSS.fffZ"', () => {
+    const d = parseSupercellTime('20260413T120000.000Z')
+    expect(d).not.toBeNull()
+    expect(d!.toISOString()).toBe('2026-04-13T12:00:00.000Z')
+  })
+
+  it('parses the Supercell compact format without milliseconds', () => {
+    const d = parseSupercellTime('20260413T120000Z')
+    expect(d).not.toBeNull()
+    expect(d!.toISOString()).toBe('2026-04-13T12:00:00.000Z')
+  })
+
+  it('parses already-ISO 8601 strings as a fallback', () => {
+    const d = parseSupercellTime('2026-04-13T12:00:00.000Z')
+    expect(d).not.toBeNull()
+    expect(d!.toISOString()).toBe('2026-04-13T12:00:00.000Z')
+  })
+
+  it('returns null for empty strings', () => {
+    expect(parseSupercellTime('')).toBeNull()
+  })
+
+  it('returns null for null/undefined input', () => {
+    expect(parseSupercellTime(null)).toBeNull()
+    expect(parseSupercellTime(undefined)).toBeNull()
+  })
+
+  it('returns null for garbage strings that Date cannot parse', () => {
+    expect(parseSupercellTime('not-a-date')).toBeNull()
+    expect(parseSupercellTime('20260413')).toBeNull() // date only, no T/time
+  })
+
+  it('returns null for a compact-format string with an impossible date', () => {
+    // Month 13 — regex matches but Date rejects the resulting ISO string
+    expect(parseSupercellTime('20261345T120000.000Z')).toBeNull()
+  })
+
+  it('regression: the raw Supercell format would produce NaN via new Date() directly', () => {
+    // This is the pre-fix behaviour the helper protects against.
+    // If new Date() ever learns to parse this format, the helper still works
+    // because the compact regex runs FIRST and produces a known-good ISO string.
+    const raw = '20260413T120000.000Z'
+    const directDate = new Date(raw)
+    expect(Number.isNaN(directDate.getTime())).toBe(true) // the bug
+
+    const parsed = parseSupercellTime(raw)
+    expect(parsed).not.toBeNull() // the fix
+    expect(Number.isNaN(parsed!.getTime())).toBe(false)
+  })
+})
 
 const PLAYER_TAG = '#YJU282PV'
 

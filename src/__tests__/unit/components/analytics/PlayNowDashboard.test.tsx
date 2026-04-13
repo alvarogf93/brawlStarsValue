@@ -97,4 +97,63 @@ describe('PlayNowDashboard — Sprint D Task 2 (dataset clarity)', () => {
     expect(badge).toBeTruthy()
     expect(badge?.getAttribute('title')).toBe('No specific map data — showing mode aggregate')
   })
+
+  it('does NOT render "NaNm" when slotEndTime is in raw Supercell compact format', () => {
+    // Regression for the "NaNm" bug: Supercell's /events/rotation returns
+    // times in the compact format (no dashes/colons), which `new Date()`
+    // can't parse directly → NaN → "NaNm" in the time badge.
+    // parseSupercellTime converts it first; this test locks in the fix.
+    const future = new Date(Date.now() + 3_600_000) // 1h from now
+    const compact = future.toISOString().replace(/[-:]/g, '')
+    const withCompactTime: PlayNowRecommendation[] = [
+      {
+        map: 'Sidetrack',
+        mode: 'brawlBall',
+        eventId: 15000026,
+        slotEndTime: compact,
+        source: 'map-specific',
+        recommendations: [
+          {
+            brawlerId: 1,
+            brawlerName: 'EDGAR',
+            winRate: 70,
+            gamesPlayed: 10,
+            wilsonScore: 50,
+            bestTrio: null,
+          },
+        ],
+      },
+    ]
+    const { container } = render(<PlayNowDashboard recommendations={withCompactTime} />)
+    expect(container.textContent).not.toContain('NaN')
+    // The valid parse should produce a "Xh Ym" or "Ym" string
+    expect(container.textContent).toMatch(/\d+(h \d+m|m)/)
+  })
+
+  it('hides the time badge entirely when slotEndTime is unparseable', () => {
+    const withBadTime: PlayNowRecommendation[] = [
+      {
+        map: 'Sidetrack',
+        mode: 'brawlBall',
+        eventId: 15000026,
+        slotEndTime: 'not-a-real-date',
+        source: 'map-specific',
+        recommendations: [
+          {
+            brawlerId: 1,
+            brawlerName: 'EDGAR',
+            winRate: 70,
+            gamesPlayed: 10,
+            wilsonScore: 50,
+            bestTrio: null,
+          },
+        ],
+      },
+    ]
+    const { container } = render(<PlayNowDashboard recommendations={withBadTime} />)
+    // No NaN anywhere
+    expect(container.textContent).not.toContain('NaN')
+    // No "ended" label either — we genuinely don't know if it ended
+    expect(container.textContent).not.toContain('ended')
+  })
 })

@@ -6,13 +6,16 @@ import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl, getG
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { parseSupercellTime } from '@/lib/battle-parser'
 
 
 
 
 
-function computeTimeLeft(endTimeStr: string, endedLabel: string): string {
-  const diff = new Date(endTimeStr).getTime() - Date.now()
+function computeTimeLeft(endTimeStr: string, endedLabel: string): string | null {
+  const end = parseSupercellTime(endTimeStr)
+  if (!end) return null
+  const diff = end.getTime() - Date.now()
   if (diff <= 0) return endedLabel
   const totalMin = Math.floor(diff / 60_000)
   const h = Math.floor(totalMin / 60)
