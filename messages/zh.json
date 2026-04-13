@@ -73,7 +73,8 @@
     "explorePicksTitle": "今日推荐",
     "explorePicksDesc": "当前轮换地图的最佳选择",
     "exploreBrawlersTitle": "角色统计",
-    "exploreBrawlersDesc": "克制关系、最佳地图和对战数据"
+    "exploreBrawlersDesc": "克制关系、最佳地图和对战数据",
+    "battleHistoryLink": "无限历史"
   },
   "nav": {
     "overview": "概览",
@@ -805,5 +806,56 @@
     "bestMapsEmptyContextual": "此英雄暂无地图数据。请24-48小时后再来查看。",
     "bestTeammatesEmptyContextual": "暂无队友记录。",
     "noTrendData": "无数据"
+  },
+  "battleHistory": {
+    "metaTitle": "荒野乱斗完整战斗历史 | BrawlVision",
+    "metaDescription": "Supercell API只保留25场战斗。BrawlVision每10分钟同步一次，永久构建你的无限历史。按英雄、地图、模式分析。",
+    "breadcrumbLabel": "战斗历史",
+    "homeAriaLabel": "返回首页",
+    "heroTitle": "保存你完整的荒野乱斗战斗历史",
+    "heroLead": "Supercell官方API只保留你最近25场比赛。BrawlVision每10分钟同步一次，为你构建永远属于你的无限历史。",
+    "ctaPrimary": "开始保存我的战斗",
+    "benefitsTitle": "BrawlVision为你做什么",
+    "benefits": [
+      {
+        "title": "无限历史",
+        "body": "每场战斗都被保存。回看3个月、6个月、一年前。没有自动删除。"
+      },
+      {
+        "title": "按英雄、地图、模式统计",
+        "body": "每种组合的精确胜率。用真实数据发现你最好和最差的对战组合。"
+      },
+      {
+        "title": "时间趋势",
+        "body": "按天的奖杯和胜率曲线。测量你是否真的在进步。"
+      },
+      {
+        "title": "自动同步",
+        "body": "你的仪表盘每10分钟刷新。无需点击。不会丢失战斗。"
+      }
+    ],
+    "howTitle": "如何开始",
+    "steps": [
+      "在主页输入你的荒野乱斗Player Tag",
+      "激活免费PRO试用（3天，无需银行卡）",
+      "BrawlVision开始同步并自动保存每场战斗"
+    ],
+    "faqTitle": "常见问题",
+    "faq": [
+      {
+        "q": "为什么荒野乱斗只显示25场战斗?",
+        "a": "Supercell公开API通过battlelog只返回每个玩家的最近25场比赛。游戏内部保存更多，但不对外公开。BrawlVision在Supercell删除前同步你的日志，持久化到我们的数据库。"
+      },
+      {
+        "q": "BrawlVision能恢复旧战斗吗?",
+        "a": "我们只能从你开始使用服务的时刻保存战斗 — Supercell不提供追溯访问。你越早激活追踪，积累的历史就越多。"
+      },
+      {
+        "q": "我需要安装什么吗?",
+        "a": "不需要。BrawlVision在浏览器中运行。用Google登录，连接Player Tag，就会在后台同步。我们从不询问你的Supercell密码。"
+      }
+    ],
+    "finalCtaTitle": "准备好不再丢失战斗了吗?",
+    "finalCtaBody": "一分钟内激活追踪，从今天开始构建完整历史。"
   }
 }

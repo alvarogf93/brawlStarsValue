@@ -73,7 +73,8 @@
     "explorePicksTitle": "今日のピック",
     "explorePicksDesc": "ローテーション中の各マップに最適なピック",
     "exploreBrawlersTitle": "ブロウラー統計",
-    "exploreBrawlersDesc": "カウンター、ベストマップ、マッチアップ"
+    "exploreBrawlersDesc": "カウンター、ベストマップ、マッチアップ",
+    "battleHistoryLink": "無制限の履歴"
   },
   "nav": {
     "overview": "概要",
@@ -805,5 +806,56 @@
     "bestMapsEmptyContextual": "このブロウラーのマップデータはまだありません。24〜48時間後に再度確認してください。",
     "bestTeammatesEmptyContextual": "味方の記録はまだありません。",
     "noTrendData": "データなし"
+  },
+  "battleHistory": {
+    "metaTitle": "ブロスタ完全バトル履歴 | BrawlVision",
+    "metaDescription": "Supercell APIは25戦しか保存しません。BrawlVisionは10分ごとに同期し、無制限の履歴を永久に保存します。ブロウラー・マップ・モードごとの分析。",
+    "breadcrumbLabel": "バトル履歴",
+    "homeAriaLabel": "ホームページへ戻る",
+    "heroTitle": "ブロスタのバトル履歴を完全に保存",
+    "heroLead": "Supercell公式APIは直近25試合しか保存しません。BrawlVisionは10分ごとに同期し、永久にあなたのものとなる無制限の履歴を構築します。",
+    "ctaPrimary": "バトル履歴を保存開始",
+    "benefitsTitle": "BrawlVisionができること",
+    "benefits": [
+      {
+        "title": "無制限の履歴",
+        "body": "すべてのバトルが保存されます。3ヶ月前、6ヶ月前、1年前も確認可能。自動削除なし。"
+      },
+      {
+        "title": "ブロウラー・マップ・モードごとの統計",
+        "body": "すべての組み合わせの正確な勝率。実データで最高と最悪のマッチアップを発見。"
+      },
+      {
+        "title": "時系列トレンド",
+        "body": "日別のトロフィーと勝率のグラフ。本当に上達しているかを測定。"
+      },
+      {
+        "title": "自動同期",
+        "body": "ダッシュボードは10分ごとに更新。クリック不要。バトルを失わない。"
+      }
+    ],
+    "howTitle": "始め方",
+    "steps": [
+      "ホームページでブロスタのPlayer Tagを入力",
+      "無料PROトライアルを有効化（3日間、カード不要）",
+      "BrawlVisionが同期を開始し、すべてのバトルを自動保存"
+    ],
+    "faqTitle": "よくある質問",
+    "faq": [
+      {
+        "q": "なぜブロスタは25戦しか表示しないの?",
+        "a": "Supercellの公開APIはbattlelog経由でプレイヤーごとの直近25試合のみを返します。ゲーム内部ではより多く保存されていますが公開されません。BrawlVisionはSupercellが破棄する前にログを同期し、データベースに永続化します。"
+      },
+      {
+        "q": "BrawlVisionは古いバトルを復元できますか?",
+        "a": "サービスの利用を開始した時点からのバトルしか保存できません — Supercellは遡及的アクセスを提供していません。早くトラッキングを有効化するほど、より多くの履歴が蓄積されます。"
+      },
+      {
+        "q": "何かインストールする必要はありますか?",
+        "a": "いいえ。BrawlVisionはブラウザで動作します。Googleでサインインし、Player Tagを連携するとバックグラウンドで同期します。Supercellのパスワードは決して求めません。"
+      }
+    ],
+    "finalCtaTitle": "もうバトルを失いたくないですか?",
+    "finalCtaBody": "1分以内でトラッキングを有効化し、今日から完全な履歴の構築を開始しましょう。"
   }
 }

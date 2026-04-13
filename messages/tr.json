@@ -73,7 +73,8 @@
     "explorePicksTitle": "Bugünün Pickleri",
     "explorePicksDesc": "Rotasyondaki her harita için en iyi pickler",
     "exploreBrawlersTitle": "Brawler İstatistikleri",
-    "exploreBrawlersDesc": "Counterlar, en iyi haritalar ve matchup'lar"
+    "exploreBrawlersDesc": "Counterlar, en iyi haritalar ve matchup'lar",
+    "battleHistoryLink": "Sınırsız geçmiş"
   },
   "nav": {
     "overview": "Genel bakış",
@@ -805,5 +806,56 @@
     "bestMapsEmptyContextual": "Bu brawler için henüz harita verisi yok. 24-48 saat sonra tekrar kontrol et.",
     "bestTeammatesEmptyContextual": "Henüz kayıtlı takım arkadaşı yok.",
     "noTrendData": "Veri yok"
+  },
+  "battleHistory": {
+    "metaTitle": "Tam Brawl Stars Savaş Geçmişi | BrawlVision",
+    "metaDescription": "Supercell API'si sadece 25 savaş tutar. BrawlVision 10 dakikada bir senkronize eder ve sınırsız geçmişini sonsuza kadar saklar. Brawler, harita ve mod analizleri.",
+    "breadcrumbLabel": "Savaş geçmişi",
+    "homeAriaLabel": "Ana sayfaya git",
+    "heroTitle": "Brawl Stars savaş geçmişini tam olarak kaydet",
+    "heroLead": "Supercell'in resmi API'si sadece son 25 maçını tutar. BrawlVision her 10 dakikada bir senkronize eder ve sonsuza kadar senin olan sınırsız bir geçmiş oluşturur.",
+    "ctaPrimary": "Savaşlarımı kaydetmeye başla",
+    "benefitsTitle": "BrawlVision senin için ne yapar",
+    "benefits": [
+      {
+        "title": "Sınırsız geçmiş",
+        "body": "Her savaş kaydedilir. 3 ay, 6 ay, bir yıl öncesine bak. Otomatik silme yok."
+      },
+      {
+        "title": "Brawler, harita ve mod istatistikleri",
+        "body": "Her kombinasyon için tam kazanma oranı. En iyi ve en kötü eşleşmelerini gerçek verilerle keşfet."
+      },
+      {
+        "title": "Zaman içindeki trendler",
+        "body": "Günlük kupa ve kazanma oranı grafikleri. Gerçekten gelişip gelişmediğini ölç."
+      },
+      {
+        "title": "Otomatik senkronizasyon",
+        "body": "Dashboardun her 10 dakikada bir yenilenir. Elle dokunmadan. Kayıp savaş olmadan."
+      }
+    ],
+    "howTitle": "Nasıl başlarsın",
+    "steps": [
+      "Ana sayfaya Brawl Stars Player Tag'ini gir",
+      "Ücretsiz PRO denemeni aktive et (3 gün, kart yok)",
+      "BrawlVision senkronize etmeye ve her savaşı otomatik kaydetmeye başlar"
+    ],
+    "faqTitle": "Sık sorulan sorular",
+    "faq": [
+      {
+        "q": "Brawl Stars neden sadece 25 savaş gösterir?",
+        "a": "Supercell'in genel API'si battlelog üzerinden oyuncu başına sadece son 25 maçı döner. Oyun dahilde daha fazlasını saklar ama açmaz. BrawlVision logunu Supercell silmeden önce senkronize eder ve veritabanımıza kaydeder."
+      },
+      {
+        "q": "BrawlVision eski savaşları kurtarabilir mi?",
+        "a": "Sadece servisi kullanmaya başladığın andan itibaren savaşları kaydedebiliriz — Supercell geriye dönük erişim sunmuyor. Takibi ne kadar erken aktive edersen, o kadar çok geçmiş biriktirirsin."
+      },
+      {
+        "q": "Bir şey kurmam gerekiyor mu?",
+        "a": "Hayır. BrawlVision tarayıcıda çalışır. Google ile giriş yap, Player Tag'ini bağla, arka planda senkronize olur. Supercell parolanı asla istemeyiz."
+      }
+    ],
+    "finalCtaTitle": "Artık savaş kaybetmemeye hazır mısın?",
+    "finalCtaBody": "Bir dakikadan kısa sürede takibi aktive et ve bugünden itibaren tam geçmişini oluşturmaya başla."
   }
 }

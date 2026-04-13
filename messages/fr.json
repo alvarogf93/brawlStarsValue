@@ -73,7 +73,8 @@
     "explorePicksDesc": "Les meilleurs picks pour chaque carte en rotation",
     "exploreBrawlersTitle": "Stats des Brawlers",
     "exploreBrawlersDesc": "Contres, meilleures cartes et matchups",
-    "trialBannerFreeTitle": "Gratuit avec ton #tag"
+    "trialBannerFreeTitle": "Gratuit avec ton #tag",
+    "battleHistoryLink": "Historique illimité"
   },
   "nav": {
     "overview": "Aperçu",
@@ -805,5 +806,56 @@
     "errorLoadingBrawlers": "Impossible de charger les brawlers",
     "retry": "Réessayer",
     "winProbability": "Probabilité de victoire"
+  },
+  "battleHistory": {
+    "metaTitle": "Historique complet de Brawl Stars | BrawlVision",
+    "metaDescription": "L'API de Supercell ne garde que 25 combats. BrawlVision les synchronise toutes les 10 minutes et construit ton historique illimité. Analyses par brawler, carte et mode.",
+    "breadcrumbLabel": "Historique de combats",
+    "homeAriaLabel": "Aller à la page d'accueil",
+    "heroTitle": "Sauvegarde ton historique complet de combats Brawl Stars",
+    "heroLead": "L'API officielle de Supercell ne conserve que tes 25 derniers matchs. BrawlVision les synchronise toutes les 10 minutes et construit un historique illimité qui t'appartient pour toujours.",
+    "ctaPrimary": "Commencer à sauvegarder mes combats",
+    "benefitsTitle": "Ce que BrawlVision fait pour toi",
+    "benefits": [
+      {
+        "title": "Historique illimité",
+        "body": "Chaque combat est sauvegardé. Reviens 3 mois, 6 mois, un an en arrière. Pas de suppressions automatiques."
+      },
+      {
+        "title": "Stats par brawler, carte et mode",
+        "body": "Taux de victoire exact de chaque combinaison. Découvre tes meilleurs et pires matchs avec des données réelles."
+      },
+      {
+        "title": "Tendances dans le temps",
+        "body": "Courbes de trophées et de taux de victoire par jour. Mesure si tu progresses vraiment ou si tu stagnes."
+      },
+      {
+        "title": "Synchronisation automatique",
+        "body": "Ton tableau de bord se rafraîchit toutes les 10 minutes. Sans rien faire. Sans perdre de combats."
+      }
+    ],
+    "howTitle": "Comment commencer",
+    "steps": [
+      "Entre ton Player Tag Brawl Stars sur la page d'accueil",
+      "Active ton essai gratuit PRO (3 jours, sans carte)",
+      "BrawlVision commence à synchroniser et sauvegarde chaque combat automatiquement"
+    ],
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "q": "Pourquoi Brawl Stars n'affiche que 25 combats ?",
+        "a": "L'API publique de Supercell ne renvoie que les 25 derniers matchs par joueur via le battlelog. Le jeu en stocke plus en interne mais ne les expose pas. BrawlVision synchronise ton log avant que Supercell ne l'efface et le persiste dans notre base."
+      },
+      {
+        "q": "BrawlVision peut-il récupérer les anciens combats ?",
+        "a": "On ne peut sauvegarder les combats qu'à partir du moment où tu commences à utiliser le service — Supercell n'offre pas d'accès rétroactif. Plus tôt tu actives le suivi, plus d'historique tu accumules."
+      },
+      {
+        "q": "Dois-je installer quelque chose ?",
+        "a": "Non. BrawlVision fonctionne dans le navigateur. Connecte-toi avec Google, lie ton Player Tag et la synchro se fait en arrière-plan. On ne demande jamais ton mot de passe Supercell."
+      }
+    ],
+    "finalCtaTitle": "Prêt à ne plus perdre de combats ?",
+    "finalCtaBody": "Active le suivi en moins d'une minute et commence à bâtir ton historique complet dès aujourd'hui."
   }
 }

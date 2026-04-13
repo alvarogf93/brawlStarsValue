@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/leaderboard', priority: 0.8, changeFrequency: 'hourly' },
     { path: '/picks', priority: 0.8, changeFrequency: 'hourly' },
     { path: '/brawler', priority: 0.9, changeFrequency: 'weekly' },
+    { path: '/battle-history', priority: 0.9, changeFrequency: 'monthly' },
   ]
 
   const entries: MetadataRoute.Sitemap = []

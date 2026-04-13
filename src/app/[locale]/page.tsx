@@ -82,7 +82,11 @@ export default function LandingPage() {
       {/* 8. Footer */}
       <footer className="py-4 px-4">
         <div className="brawl-card-dark px-6 py-3 max-w-[720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-3 text-xs font-['Lilita_One']">
+          <div className="flex items-center gap-3 text-xs font-['Lilita_One'] flex-wrap justify-center">
+            <Link href={`/${locale}/battle-history`} className="text-slate-400 hover:text-[var(--color-brawl-gold)] transition-colors">
+              {t('battleHistoryLink')}
+            </Link>
+            <span className="text-slate-600">·</span>
             <Link href={`/${locale}/privacy`} className="text-slate-400 hover:text-[var(--color-brawl-gold)] transition-colors">
               {t('privacyLink')}
             </Link>

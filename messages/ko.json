@@ -73,7 +73,8 @@
     "explorePicksTitle": "오늘의 픽",
     "explorePicksDesc": "로테이션 맵별 최고의 픽",
     "exploreBrawlersTitle": "브롤러 통계",
-    "exploreBrawlersDesc": "카운터, 최고의 맵, 매치업"
+    "exploreBrawlersDesc": "카운터, 최고의 맵, 매치업",
+    "battleHistoryLink": "무제한 기록"
   },
   "nav": {
     "overview": "개요",
@@ -805,5 +806,56 @@
     "bestMapsEmptyContextual": "이 브롤러의 맵 데이터가 아직 없습니다. 24-48시간 후에 다시 확인하세요.",
     "bestTeammatesEmptyContextual": "아직 등록된 팀원이 없습니다.",
     "noTrendData": "데이터 없음"
+  },
+  "battleHistory": {
+    "metaTitle": "브롤스타즈 전체 전투 기록 | BrawlVision",
+    "metaDescription": "슈퍼셀 API는 25개 전투만 저장합니다. BrawlVision은 10분마다 동기화하고 무제한 기록을 영구 보관합니다. 브롤러, 맵, 모드별 분석.",
+    "breadcrumbLabel": "전투 기록",
+    "homeAriaLabel": "홈 페이지로 이동",
+    "heroTitle": "브롤스타즈 전투 기록을 완전하게 저장하세요",
+    "heroLead": "슈퍼셀 공식 API는 마지막 25경기만 저장합니다. BrawlVision은 10분마다 동기화하며 영원히 당신의 것인 무제한 기록을 구축합니다.",
+    "ctaPrimary": "전투 기록 저장 시작",
+    "benefitsTitle": "BrawlVision이 해드리는 일",
+    "benefits": [
+      {
+        "title": "무제한 기록",
+        "body": "모든 전투가 저장됩니다. 3개월, 6개월, 1년 전을 확인하세요. 자동 삭제 없음."
+      },
+      {
+        "title": "브롤러·맵·모드별 통계",
+        "body": "모든 조합의 정확한 승률. 실제 데이터로 최고와 최악의 매치업을 발견하세요."
+      },
+      {
+        "title": "시간에 따른 추이",
+        "body": "일별 트로피와 승률 그래프. 실제로 실력이 늘고 있는지 측정하세요."
+      },
+      {
+        "title": "자동 동기화",
+        "body": "대시보드가 10분마다 갱신됩니다. 클릭 없이. 잃어버린 전투 없이."
+      }
+    ],
+    "howTitle": "시작 방법",
+    "steps": [
+      "메인 페이지에 브롤스타즈 Player Tag 입력",
+      "무료 PRO 체험 활성화 (3일, 카드 불필요)",
+      "BrawlVision이 동기화하고 모든 전투를 자동 저장"
+    ],
+    "faqTitle": "자주 묻는 질문",
+    "faq": [
+      {
+        "q": "브롤스타즈가 왜 25전투만 보여주나요?",
+        "a": "슈퍼셀 공개 API는 battlelog를 통해 플레이어당 최근 25경기만 반환합니다. 게임은 내부적으로 더 저장하지만 노출하지 않습니다. BrawlVision은 슈퍼셀이 삭제하기 전에 로그를 동기화하여 데이터베이스에 보관합니다."
+      },
+      {
+        "q": "BrawlVision이 오래된 전투를 복구할 수 있나요?",
+        "a": "서비스 사용을 시작한 시점부터의 전투만 저장할 수 있습니다 — 슈퍼셀은 소급 접근을 제공하지 않습니다. 트래킹을 빨리 활성화할수록 더 많은 기록이 쌓입니다."
+      },
+      {
+        "q": "설치해야 할 것이 있나요?",
+        "a": "아니요. BrawlVision은 브라우저에서 작동합니다. Google로 로그인하고 Player Tag를 연결하면 백그라운드에서 동기화됩니다. 슈퍼셀 비밀번호는 절대 묻지 않습니다."
+      }
+    ],
+    "finalCtaTitle": "더 이상 전투를 잃고 싶지 않으신가요?",
+    "finalCtaBody": "1분 이내에 트래킹을 활성화하고 오늘부터 완전한 기록을 구축하세요."
   }
 }

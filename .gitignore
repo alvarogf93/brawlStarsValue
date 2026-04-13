@@ -47,6 +47,9 @@ supabase/.temp/
 # playwright outputs
 /playwright-report
 /test-results
+# ad-hoc screenshots taken during dev-server verification
+/battle-history-*.png
+/page-*.png
 
 # local tooling configs (agents, skills, tool preferences)
 /.agents
