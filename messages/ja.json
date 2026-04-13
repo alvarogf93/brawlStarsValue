@@ -799,6 +799,7 @@
     "sampleSize": "{count}戦",
     "matchupsEmptyContextual": "このブロウラーの過去90日間のマッチアップ記録がありません。新規リリースや利用率の低いブロウラーでよく起こります。",
     "bestMapsEmptyContextual": "このブロウラーのマップデータはまだありません。24〜48時間後に再度確認してください。",
-    "bestTeammatesEmptyContextual": "味方の記録はまだありません。"
+    "bestTeammatesEmptyContextual": "味方の記録はまだありません。",
+    "noTrendData": "データなし"
   }
 }

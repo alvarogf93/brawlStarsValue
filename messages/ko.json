@@ -799,6 +799,7 @@
     "sampleSize": "{count}전",
     "matchupsEmptyContextual": "최근 90일 동안 이 브롤러에 대한 매치업 기록이 없습니다. 신규 출시 또는 사용률이 낮은 브롤러에서 자주 발생합니다.",
     "bestMapsEmptyContextual": "이 브롤러의 맵 데이터가 아직 없습니다. 24-48시간 후에 다시 확인하세요.",
-    "bestTeammatesEmptyContextual": "아직 등록된 팀원이 없습니다."
+    "bestTeammatesEmptyContextual": "아직 등록된 팀원이 없습니다.",
+    "noTrendData": "데이터 없음"
   }
 }

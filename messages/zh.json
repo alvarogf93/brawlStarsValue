@@ -799,6 +799,7 @@
     "sampleSize": "{count}场对战",
     "matchupsEmptyContextual": "过去90天没有此英雄的对战记录。通常发生在新上线或很少使用的英雄身上。",
     "bestMapsEmptyContextual": "此英雄暂无地图数据。请24-48小时后再来查看。",
-    "bestTeammatesEmptyContextual": "暂无队友记录。"
+    "bestTeammatesEmptyContextual": "暂无队友记录。",
+    "noTrendData": "无数据"
   }
 }

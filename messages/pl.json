@@ -799,6 +799,7 @@
     "sampleSize": "{count} bitew",
     "matchupsEmptyContextual": "Brak zarejestrowanych pojedynków dla tego brawlera w ciągu ostatnich 90 dni. Zwykle dotyczy nowych lub rzadko granych brawlerów.",
     "bestMapsEmptyContextual": "Brak danych o mapach dla tego brawlera. Wróć za 24-48 godzin.",
-    "bestTeammatesEmptyContextual": "Brak zarejestrowanych sojuszników."
+    "bestTeammatesEmptyContextual": "Brak zarejestrowanych sojuszników.",
+    "noTrendData": "Brak danych"
   }
 }

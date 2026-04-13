@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { bayesianWinRate } from '@/lib/draft/scoring'
 import { META_ROLLING_DAYS } from '@/lib/draft/constants'
+import { compute7dTrend } from '@/lib/brawler-detail/trend'
 import type { BrawlerMetaResponse, MapStat, MatchupStat } from '@/lib/brawler-detail/types'
 
 /** Minimum battles required to include a map or matchup in rankings.
@@ -153,22 +154,19 @@ export async function GET(request: Request) {
   const strongAgainst: MatchupStat[] = matchupStats.slice(0, 5).map(({ bayesianWR: _, ...rest }) => rest)
   const weakAgainst: MatchupStat[] = matchupStats.slice(-5).reverse().map(({ bayesianWR: _, ...rest }) => rest)
 
-  // 11. Calculate trend: compare WR from last 7 days vs previous 7 days
-  const now = Date.now()
-  const d7ago = new Date(now - 7 * 86400000).toISOString().slice(0, 10)
-  const d14ago = new Date(now - 14 * 86400000).toISOString().slice(0, 10)
-
-  let recentWins = 0, recentTotal = 0, prevWins = 0, prevTotal = 0
-  for (const r of rawStats ?? []) {
-    const date = (r as { date?: string }).date ?? ''
-    if (date >= d7ago) { recentWins += r.wins; recentTotal += r.total }
-    else if (date >= d14ago) { prevWins += r.wins; prevTotal += r.total }
-  }
-  const recentWR = recentTotal > 0 ? (recentWins / recentTotal) * 100 : 0
-  const prevWR = prevTotal > 0 ? (prevWins / prevTotal) * 100 : 0
-  const trend7d = prevTotal >= 5 && recentTotal >= 5
-    ? Math.round((recentWR - prevWR) * 10) / 10
-    : 0
+  // 11. Calculate trend via the pure helper. Returns null when
+  // either window has fewer than MIN_BATTLES_PER_TREND_WINDOW battles
+  // — the UI shows "—" / "Sin datos" instead of a fake "Estable".
+  // Sprint D 2026-04-13: extracted from inline code where it
+  // returned 0 on insufficient data, masking the case where the
+  // cron simply hadn't been collecting long enough.
+  const trend7d = compute7dTrend(
+    (rawStats ?? []).map((r) => ({
+      date: (r as { date?: string }).date ?? '',
+      wins: r.wins,
+      total: r.total,
+    })),
+  )
 
   // 11. Build response
   const response: BrawlerMetaResponse = {

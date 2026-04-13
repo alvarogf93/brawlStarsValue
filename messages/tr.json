@@ -799,6 +799,7 @@
     "sampleSize": "{count} savaş",
     "matchupsEmptyContextual": "Bu brawler için son 90 gün içinde kayıtlı eşleşme yok. Genellikle yeni çıkan veya az oynanan brawlerlarda olur.",
     "bestMapsEmptyContextual": "Bu brawler için henüz harita verisi yok. 24-48 saat sonra tekrar kontrol et.",
-    "bestTeammatesEmptyContextual": "Henüz kayıtlı takım arkadaşı yok."
+    "bestTeammatesEmptyContextual": "Henüz kayıtlı takım arkadaşı yok.",
+    "noTrendData": "Veri yok"
   }
 }

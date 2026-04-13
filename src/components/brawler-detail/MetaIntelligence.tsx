@@ -26,19 +26,22 @@ function wrColor(wr: number): string {
 
 // ── Trend helpers ───────────────────────────────────────────
 
-function trendArrow(delta: number): string {
+function trendArrow(delta: number | null): string {
+  if (delta === null) return '—'
   if (delta > 0) return '↑'
   if (delta < 0) return '↓'
   return '→'
 }
 
-function trendColor(delta: number): string {
+function trendColor(delta: number | null): string {
+  if (delta === null) return 'text-slate-500'
   if (delta > 0) return 'text-green-400'
   if (delta < 0) return 'text-red-400'
   return 'text-slate-400'
 }
 
-function trendLabel(delta: number, t: ReturnType<typeof useTranslations>): string {
+function trendLabel(delta: number | null, t: ReturnType<typeof useTranslations>): string {
+  if (delta === null) return t('noTrendData')
   if (delta > 0) return t('rising')
   if (delta < 0) return t('falling')
   return t('stable')

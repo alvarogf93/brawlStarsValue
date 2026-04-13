@@ -799,6 +799,7 @@
     "sampleSize": "{count} battles",
     "matchupsEmptyContextual": "No matchups recorded for this brawler in the last 90 days. This usually happens with newly-released or rarely-played brawlers.",
     "bestMapsEmptyContextual": "No map data for this brawler yet. Check back in 24-48h.",
-    "bestTeammatesEmptyContextual": "No teammates recorded yet."
+    "bestTeammatesEmptyContextual": "No teammates recorded yet.",
+    "noTrendData": "No data"
   }
 }

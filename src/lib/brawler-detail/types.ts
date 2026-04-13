@@ -30,7 +30,14 @@ export interface BrawlerMetaResponse {
     winRate: number
     pickRate: number
     totalBattles: number
-    trend7d: number
+    /**
+     * 7-day WR trend in percentage points: recent 7 days minus the
+     * previous 7 days. `null` means we don't have enough data in
+     * one of the two windows to compute a meaningful trend — the UI
+     * should show "—" / "Sin datos" rather than "Estable" (which
+     * implied a false signal pre-Sprint D).
+     */
+    trend7d: number | null
   }
   bestMaps: MapStat[]
   worstMaps: MapStat[]

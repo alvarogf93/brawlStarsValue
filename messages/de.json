@@ -799,6 +799,7 @@
     "sampleSize": "{count} Kämpfe",
     "matchupsEmptyContextual": "Keine Matchups für diesen Brawler in den letzten 90 Tagen. Das passiert oft bei neuen oder selten gespielten Brawlern.",
     "bestMapsEmptyContextual": "Noch keine Kartendaten für diesen Brawler. Schau in 24-48h wieder vorbei.",
-    "bestTeammatesEmptyContextual": "Noch keine Teammates erfasst."
+    "bestTeammatesEmptyContextual": "Noch keine Teammates erfasst.",
+    "noTrendData": "Keine Daten"
   }
 }

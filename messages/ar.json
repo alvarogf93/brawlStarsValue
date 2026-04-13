@@ -799,6 +799,7 @@
     "sampleSize": "{count} معركة",
     "matchupsEmptyContextual": "لا توجد مواجهات مسجلة لهذا المقاتل في آخر 90 يوماً. يحدث هذا عادةً مع المقاتلين الجدد أو غير الشائعين.",
     "bestMapsEmptyContextual": "لا توجد بيانات خرائط لهذا المقاتل حتى الآن. تحقق خلال 24-48 ساعة.",
-    "bestTeammatesEmptyContextual": "لا توجد شراكات مسجلة بعد."
+    "bestTeammatesEmptyContextual": "لا توجد شراكات مسجلة بعد.",
+    "noTrendData": "لا توجد بيانات"
   }
 }

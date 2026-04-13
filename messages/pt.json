@@ -345,7 +345,8 @@
     "sampleSize": "{count} batalhas",
     "matchupsEmptyContextual": "Nenhum matchup registrado para este brawler nos últimos 90 dias. Isso costuma acontecer com brawlers recém-lançados ou pouco jogados.",
     "bestMapsEmptyContextual": "Ainda não há dados de mapas para este brawler. Volte em 24-48h.",
-    "bestTeammatesEmptyContextual": "Nenhum aliado registrado ainda."
+    "bestTeammatesEmptyContextual": "Nenhum aliado registrado ainda.",
+    "noTrendData": "Sem dados"
   },
   "stats": {
     "loading": "Carregando estatísticas...",
