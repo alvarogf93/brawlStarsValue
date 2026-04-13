@@ -83,6 +83,8 @@ describe('GET /api/meta/pro-analysis — cascade behaviour', () => {
     enqueue('meta_stats', { data: [] })
     // matchups
     enqueue('meta_matchups', { data: [] })
+    // meta_trios (Sprint D — topBrawlerTeammates queries this for all users)
+    enqueue('meta_trios', { data: [] })
 
     const req = makeRequest({ map: 'Sidetrack', mode: 'brawlBall' })
     const res = await GET(req as unknown as Parameters<typeof GET>[0])
@@ -109,6 +111,7 @@ describe('GET /api/meta/pro-analysis — cascade behaviour', () => {
     })                                                    // Tier 2 current window
     enqueue('meta_stats', { data: [] })                  // Tier 2 7d trend (empty is fine)
     enqueue('meta_stats', { data: [] })                  // Tier 2 30d trend
+    enqueue('meta_trios', { data: [] })                  // meta_trios (Sprint D)
 
     const req = makeRequest({ map: 'Pit Stop', mode: 'heist' })
     const res = await GET(req as unknown as Parameters<typeof GET>[0])
@@ -130,6 +133,7 @@ describe('GET /api/meta/pro-analysis — cascade behaviour', () => {
     enqueue('meta_stats', { data: [] })                  // Tier 2 current (still issued, empty result)
     enqueue('meta_stats', { data: [] })                  // Tier 2 7d
     enqueue('meta_stats', { data: [] })                  // Tier 2 30d
+    enqueue('meta_trios', { data: [] })                  // meta_trios (Sprint D)
 
     const req = makeRequest({ map: 'NewMap', mode: 'brandNewMode' })
     const res = await GET(req as unknown as Parameters<typeof GET>[0])
@@ -144,5 +148,77 @@ describe('GET /api/meta/pro-analysis — cascade behaviour', () => {
     const req = makeRequest({ map: 'Sidetrack' })
     const res = await GET(req as unknown as Parameters<typeof GET>[0])
     expect(res.status).toBe(400)
+  })
+
+  it('computes topBrawlerTeammates with anchor excluded, sorted by total descending', async () => {
+    // Tier 1: two top brawlers with enough battles to pass display threshold
+    enqueue('meta_stats', {
+      data: [
+        { brawler_id: 1, wins: 80, losses: 20, total: 100, date: '2026-04-13' },
+        { brawler_id: 2, wins: 60, losses: 40, total: 100, date: '2026-04-13' },
+      ],
+    })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_matchups', { data: [] })
+
+    // Trios:
+    //  - 1+2+3 played 10 times (most frequent trio with CROW anchor)
+    //  - 1+2+4 played  6 times (second)  — brawler 4 is unknown → "#4"
+    //  - 1+3+4 played  2 times (below TEAMMATE_MIN_BATTLES=3 → filtered)
+    //  - 2+3+4 played  4 times (trio containing PIPER but NOT CROW)
+    enqueue('meta_trios', {
+      data: [
+        { brawler1_id: 1, brawler2_id: 2, brawler3_id: 3, wins: 6, losses: 4, total: 10 },
+        { brawler1_id: 1, brawler2_id: 2, brawler3_id: 4, wins: 4, losses: 2, total: 6 },
+        { brawler1_id: 1, brawler2_id: 3, brawler3_id: 4, wins: 1, losses: 1, total: 2 },
+        { brawler1_id: 2, brawler2_id: 3, brawler3_id: 4, wins: 2, losses: 2, total: 4 },
+      ],
+    })
+
+    const req = makeRequest({ map: 'Sidetrack', mode: 'brawlBall' })
+    const res = await GET(req as unknown as Parameters<typeof GET>[0])
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    // Each top brawler has its own entry with trios sorted by total desc
+    const crowEntry = body.topBrawlerTeammates.find((e: { brawlerId: number }) => e.brawlerId === 1)
+    expect(crowEntry).toBeDefined()
+    expect(crowEntry.trios.length).toBe(2) // 2+3 and 2+4 — the 3+4 one is filtered (<3 battles)
+    // First trio is the most-frequent (total=10): teammates 2 and 3, anchor 1 excluded
+    expect(crowEntry.trios[0].total).toBe(10)
+    const firstTrioIds = crowEntry.trios[0].teammates.map((t: { id: number }) => t.id).sort((a: number, b: number) => a - b)
+    expect(firstTrioIds).toEqual([2, 3])
+    // Second trio has total=6
+    expect(crowEntry.trios[1].total).toBe(6)
+
+    const piperEntry = body.topBrawlerTeammates.find((e: { brawlerId: number }) => e.brawlerId === 2)
+    expect(piperEntry).toBeDefined()
+    // PIPER appears in 3 trios total, all 3 pass the min-battles threshold
+    // (1+2+3 with 10, 1+2+4 with 6, 2+3+4 with 4)
+    expect(piperEntry.trios.length).toBe(3)
+    // First trio for PIPER is 1+2+3 (total=10): teammates are 1 and 3
+    expect(piperEntry.trios[0].total).toBe(10)
+    const piperFirstTrioIds = piperEntry.trios[0].teammates.map((t: { id: number }) => t.id).sort((a: number, b: number) => a - b)
+    expect(piperFirstTrioIds).toEqual([1, 3])
+  })
+
+  it('returns empty topBrawlerTeammates when no pro trio data exists', async () => {
+    enqueue('meta_stats', {
+      data: [
+        { brawler_id: 1, wins: 80, losses: 20, total: 100, date: '2026-04-13' },
+      ],
+    })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_stats', { data: [] })
+    enqueue('meta_matchups', { data: [] })
+    enqueue('meta_trios', { data: [] })
+
+    const req = makeRequest({ map: 'Sidetrack', mode: 'brawlBall' })
+    const res = await GET(req as unknown as Parameters<typeof GET>[0])
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.topBrawlerTeammates).toEqual([])
   })
 })

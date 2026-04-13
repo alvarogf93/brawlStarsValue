@@ -671,7 +671,6 @@
     "trendFalling": "下降中",
     "trendStable": "安定",
     "trendDelta": "今週{delta}%",
-    "proTriosTitle": "ベストチーム構成（PRO）",
     "gapTitle": "PROとのギャップ",
     "gapAbove": "PRO以上",
     "gapOnPar": "PRO同等",
@@ -695,7 +694,10 @@
     "sampleSize": "{count}戦",
     "modeFallbackBanner": "モード全体のデータを表示中 — このマップはデータが不足しています。",
     "countersLabel": "カウンター",
-    "topBrawlersSubtitle": "グローバルトップ200プロプレイヤーに基づいています（グローバルメタ）"
+    "topBrawlersSubtitle": "グローバルトップ200プロプレイヤーに基づいています（グローバルメタ）",
+    "teammatesLabel": "チームメイト",
+    "teammatesSeeMore": "もっと見る ({count})",
+    "teammatesSeeLess": "閉じる"
   },
   "picks": {
     "title": "ベストピック",

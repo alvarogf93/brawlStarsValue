@@ -671,7 +671,6 @@
     "trendFalling": "下降中",
     "trendStable": "稳定",
     "trendDelta": "本周{delta}%",
-    "proTriosTitle": "最佳阵容（PRO）",
     "gapTitle": "与PRO的差距",
     "gapAbove": "超越PRO",
     "gapOnPar": "与PRO持平",
@@ -695,7 +694,10 @@
     "sampleSize": "{count}场对战",
     "modeFallbackBanner": "显示模式汇总数据 — 此地图数据较少。",
     "countersLabel": "克制",
-    "topBrawlersSubtitle": "基于全球顶级 200 职业玩家（全球 meta）"
+    "topBrawlersSubtitle": "基于全球顶级 200 职业玩家（全球 meta）",
+    "teammatesLabel": "队友",
+    "teammatesSeeMore": "查看更多 ({count})",
+    "teammatesSeeLess": "收起"
   },
   "picks": {
     "title": "最佳选择",

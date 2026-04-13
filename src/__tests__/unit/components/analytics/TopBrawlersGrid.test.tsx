@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string, params?: Record<string, string | number>) => {
@@ -13,6 +13,9 @@ vi.mock('next-intl', () => ({
       confidenceMedium: 'Medium confidence',
       confidenceLow: 'Low confidence',
       modeFallbackBanner: 'Mostrando datos agregados del modo',
+      teammatesLabel: 'COMPAÑEROS',
+      teammatesSeeMore: `Ver más (${params?.count ?? '?'})`,
+      teammatesSeeLess: 'Ver menos',
     }
     return map[key] ?? key
   },
@@ -169,5 +172,112 @@ describe('TopBrawlersGrid — Task 7 (inline counters)', () => {
     // 1 badge for the brawler card + 3 for the counters = 4 total
     const badges = container.querySelectorAll('[data-confidence]')
     expect(badges.length).toBeGreaterThanOrEqual(4)
+  })
+})
+
+describe('TopBrawlersGrid — Sprint D (inline teammates + ver más)', () => {
+  const MOCK_TEAMMATES = [
+    {
+      brawlerId: 1, // CROW
+      trios: [
+        { teammates: [{ id: 20, name: 'FRANK' }, { id: 21, name: 'TARA' }], winRate: 68.4, total: 23 },
+        { teammates: [{ id: 22, name: 'BYRON' }, { id: 23, name: 'POCO' }], winRate: 62.1, total: 11 },
+        { teammates: [{ id: 24, name: 'STU' }, { id: 25, name: 'MORTIS' }], winRate: 60.0, total: 7 },
+      ],
+    },
+    {
+      brawlerId: 2, // BULL
+      trios: [
+        { teammates: [{ id: 30, name: 'ROSA' }, { id: 31, name: 'JACKY' }], winRate: 55.2, total: 9 },
+      ],
+    },
+  ]
+
+  it('renders the teammates label and the top 1 trio by default', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[0]]}
+        totalBattles={3000}
+        topBrawlerTeammates={MOCK_TEAMMATES}
+      />,
+    )
+    expect(screen.getByText('COMPAÑEROS')).toBeTruthy()
+    // Default visible trio for CROW: FRANK + TARA
+    expect(screen.getByText('FRANK + TARA')).toBeTruthy()
+    // Hidden trio should NOT appear by default
+    expect(screen.queryByText('BYRON + POCO')).toBeNull()
+  })
+
+  it('renders a "Ver más (N)" button when multiple trios are available', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[0]]}
+        totalBattles={3000}
+        topBrawlerTeammates={MOCK_TEAMMATES}
+      />,
+    )
+    // CROW has 3 trios total; default shows 1 → button reveals 2 more
+    expect(screen.getByText('Ver más (2)')).toBeTruthy()
+  })
+
+  it('does NOT render a "Ver más" button when only 1 trio exists', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[1]]}
+        totalBattles={3000}
+        topBrawlerTeammates={MOCK_TEAMMATES}
+      />,
+    )
+    // BULL has only 1 trio — no expand button
+    expect(screen.queryByText(/Ver más/)).toBeNull()
+  })
+
+  it('expands to show all trios when "Ver más" is clicked', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[0]]}
+        totalBattles={3000}
+        topBrawlerTeammates={MOCK_TEAMMATES}
+      />,
+    )
+    const button = screen.getByText('Ver más (2)')
+    fireEvent.click(button)
+    // All three trios should now be visible
+    expect(screen.getByText('FRANK + TARA')).toBeTruthy()
+    expect(screen.getByText('BYRON + POCO')).toBeTruthy()
+    expect(screen.getByText('STU + MORTIS')).toBeTruthy()
+    // Button toggles to "Ver menos"
+    expect(screen.getByText('Ver menos')).toBeTruthy()
+  })
+
+  it('collapses back to 1 trio when "Ver menos" is clicked', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[0]]}
+        totalBattles={3000}
+        topBrawlerTeammates={MOCK_TEAMMATES}
+      />,
+    )
+    fireEvent.click(screen.getByText('Ver más (2)'))
+    fireEvent.click(screen.getByText('Ver menos'))
+    expect(screen.getByText('FRANK + TARA')).toBeTruthy()
+    expect(screen.queryByText('BYRON + POCO')).toBeNull()
+  })
+
+  it('does not render a teammates block when the prop is missing', () => {
+    render(<TopBrawlersGrid brawlers={MOCK_BRAWLERS} totalBattles={3000} />)
+    expect(screen.queryByText('COMPAÑEROS')).toBeNull()
+  })
+
+  it('does not render a teammates block for a brawler with no trio entry', () => {
+    // PIPER (id 3) is not in MOCK_TEAMMATES
+    render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[2]]}
+        totalBattles={3000}
+        topBrawlerTeammates={MOCK_TEAMMATES}
+      />,
+    )
+    expect(screen.queryByText('COMPAÑEROS')).toBeNull()
   })
 })

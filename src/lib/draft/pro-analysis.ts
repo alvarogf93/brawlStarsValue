@@ -27,10 +27,29 @@ export interface ProAnalysisResponse {
 
   counters: CounterEntry[]
 
+  /**
+   * Most-repeated teammate pairings per top brawler — derived from
+   * meta_trios for the same map+mode. Each entry is keyed by
+   * brawlerId and carries up to 3 trios sorted by pick frequency.
+   * Surfaced inline under each card in TopBrawlersGrid (top 1 visible,
+   * "Ver más" expands to the rest). Shown to all users; the standalone
+   * ProTrioGrid section was removed in Sprint D because per-brawler
+   * context is more actionable than a decontextualised global ranking.
+   */
+  topBrawlerTeammates: TeammateGroupEntry[]
+
   // === PREMIUM ONLY (null for free users) ===
 
   dailyTrend: DailyTrendEntry[] | null
 
+  /**
+   * Full list of trios (3 brawlers) the pros used on this map+mode,
+   * filtered by PRO_MIN_BATTLES_DISPLAY and sorted by WR. Consumed by
+   * the private profile analytics page (TeamSynergyView) as a lookup
+   * map to annotate the user's own trios with a PRO comparison badge.
+   * The standalone ProTrioGrid section was removed in Sprint D; this
+   * field remains to power the cross-reference on the analytics page.
+   */
   proTrios: ProTrioEntry[] | null
 
   personalGap: GapEntry[] | null
@@ -73,6 +92,27 @@ export interface DailyTrendEntry {
   brawlers: Array<{ brawlerId: number; winRate: number; picks: number }>
 }
 
+export interface TeammateTrio {
+  /** The 2 OTHER brawlers in the trio — the anchor brawler is excluded. */
+  teammates: Array<{ id: number; name: string }>
+  winRate: number
+  total: number
+}
+
+export interface TeammateGroupEntry {
+  /** Anchor brawler — one of the topBrawlers entries. */
+  brawlerId: number
+  /** Up to 3 teammate trios, sorted by total (frequency) descending. */
+  trios: TeammateTrio[]
+}
+
+/**
+ * Full pro trio (3 brawlers) on a specific map+mode. Used by the
+ * private profile analytics page to annotate the user's own trios
+ * with a PRO comparison badge. Retained in Sprint D after the
+ * standalone ProTrioGrid was removed — the field still powers the
+ * cross-reference on TeamSynergyView.
+ */
 export interface ProTrioEntry {
   brawlers: Array<{ id: number; name: string }>
   winRate: number

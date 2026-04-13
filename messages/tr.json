@@ -671,7 +671,6 @@
     "trendFalling": "Düşüyor",
     "trendStable": "Stabil",
     "trendDelta": "Bu hafta {delta}%",
-    "proTriosTitle": "En iyi takım kompozisyonları (PRO)",
     "gapTitle": "PRO'lara göre farkın",
     "gapAbove": "PRO üstünde",
     "gapOnPar": "Aynı seviyede",
@@ -695,7 +694,10 @@
     "sampleSize": "{count} savaş",
     "modeFallbackBanner": "Mod geneli veriler gösteriliyor — bu haritada yeterli veri yok.",
     "countersLabel": "Karşı seçimler",
-    "topBrawlersSubtitle": "Global ilk 200 pro player verilerine dayanıyor (global meta)"
+    "topBrawlersSubtitle": "Global ilk 200 pro player verilerine dayanıyor (global meta)",
+    "teammatesLabel": "TAKIM ARKADAŞLARI",
+    "teammatesSeeMore": "Daha fazla ({count})",
+    "teammatesSeeLess": "Daha az göster"
   },
   "picks": {
     "title": "En iyi pickler",

@@ -45,6 +45,7 @@ describe('/api/meta/pro-analysis response shape', () => {
       windowDays: 14,
       trending: { rising: [], falling: [] },
       counters: [],
+      topBrawlerTeammates: [],
       dailyTrend: null,
       proTrios: null,
       personalGap: null,
@@ -55,5 +56,7 @@ describe('/api/meta/pro-analysis response shape', () => {
     expect(freeResponse.proTrios).toBeNull()
     expect(freeResponse.personalGap).toBeNull()
     expect(freeResponse.matchupGaps).toBeNull()
+    // topBrawlerTeammates is shown to all users; not gated
+    expect(Array.isArray(freeResponse.topBrawlerTeammates)).toBe(true)
   })
 })

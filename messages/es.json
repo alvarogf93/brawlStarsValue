@@ -725,7 +725,6 @@
     "trendFalling": "Bajando",
     "trendStable": "Estable",
     "trendDelta": "{delta}% esta semana",
-    "proTriosTitle": "Mejores Composiciones (PRO)",
     "gapTitle": "Tu Brecha vs PROs",
     "gapAbove": "Superior al PRO",
     "gapOnPar": "A la Par",
@@ -749,7 +748,10 @@
     "sampleSize": "{count} batallas",
     "modeFallbackBanner": "Mostrando datos agregados del modo — este mapa tiene datos escasos.",
     "countersLabel": "Counters",
-    "topBrawlersSubtitle": "Basado en los top 200 pro players globales (meta global)"
+    "topBrawlersSubtitle": "Basado en los top 200 pro players globales (meta global)",
+    "teammatesLabel": "COMPAÑEROS",
+    "teammatesSeeMore": "Ver más ({count})",
+    "teammatesSeeLess": "Ver menos"
   },
   "picks": {
     "title": "Mejores Picks",

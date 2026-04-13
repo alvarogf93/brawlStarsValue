@@ -12,7 +12,6 @@ import { MapSelector } from '@/components/analytics/MapSelector'
 import { TopBrawlersGrid } from '@/components/analytics/TopBrawlersGrid'
 import { TrendingSection } from '@/components/analytics/TrendingSection'
 import { ProTrendChart } from '@/components/analytics/ProTrendChart'
-import { ProTrioGrid } from '@/components/analytics/ProTrioGrid'
 import { GapAnalysisCards } from '@/components/analytics/GapAnalysisCards'
 import { MatchupGapTable } from '@/components/analytics/MatchupGapTable'
 
@@ -79,6 +78,7 @@ export function MetaProTab() {
             totalBattles={data.totalProBattles}
             source={data.topBrawlersSource}
             counters={data.counters}
+            topBrawlerTeammates={data.topBrawlerTeammates}
           />
           <TrendingSection rising={data.trending.rising} falling={data.trending.falling} />
 
@@ -86,9 +86,6 @@ export function MetaProTab() {
             <div className="space-y-6">
               {data.dailyTrend && data.dailyTrend.length > 0 && (
                 <ProTrendChart dailyTrend={data.dailyTrend} topBrawlers={data.topBrawlers} />
-              )}
-              {data.proTrios && data.proTrios.length > 0 && selectedMap && (
-                <ProTrioGrid trios={data.proTrios} mapName={selectedMap} />
               )}
               {data.personalGap && data.personalGap.length > 0 && (
                 <GapAnalysisCards gaps={data.personalGap} />

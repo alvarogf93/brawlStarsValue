@@ -671,7 +671,6 @@
     "trendFalling": "하락 중",
     "trendStable": "안정적",
     "trendDelta": "이번 주 {delta}%",
-    "proTriosTitle": "최고의 팀 구성 (PRO)",
     "gapTitle": "PRO와의 격차",
     "gapAbove": "PRO 이상",
     "gapOnPar": "PRO와 동급",
@@ -695,7 +694,10 @@
     "sampleSize": "{count}전",
     "modeFallbackBanner": "모드 전체 데이터를 표시 중 — 이 맵에는 데이터가 부족합니다.",
     "countersLabel": "카운터",
-    "topBrawlersSubtitle": "글로벌 탑 200 프로 플레이어 기반 (글로벌 메타)"
+    "topBrawlersSubtitle": "글로벌 탑 200 프로 플레이어 기반 (글로벌 메타)",
+    "teammatesLabel": "팀원",
+    "teammatesSeeMore": "더 보기 ({count})",
+    "teammatesSeeLess": "접기"
   },
   "picks": {
     "title": "최고 픽",

@@ -671,7 +671,6 @@
     "trendFalling": "هابط",
     "trendStable": "مستقر",
     "trendDelta": "{delta}% هذا الأسبوع",
-    "proTriosTitle": "أفضل التشكيلات (PRO)",
     "gapTitle": "فجوتك مقابل المحترفين",
     "gapAbove": "فوق المحترف",
     "gapOnPar": "متساوٍ",
@@ -695,7 +694,10 @@
     "sampleSize": "{count} معركة",
     "modeFallbackBanner": "عرض البيانات المجمعة للوضع — هذه الخريطة لديها بيانات قليلة.",
     "countersLabel": "مضادات",
-    "topBrawlersSubtitle": "استناداً إلى أفضل 200 لاعب محترف عالمياً (الميتا العالمية)"
+    "topBrawlersSubtitle": "استناداً إلى أفضل 200 لاعب محترف عالمياً (الميتا العالمية)",
+    "teammatesLabel": "الحلفاء",
+    "teammatesSeeMore": "عرض المزيد ({count})",
+    "teammatesSeeLess": "عرض أقل"
   },
   "picks": {
     "title": "أفضل الاختيارات",

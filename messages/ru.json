@@ -671,7 +671,6 @@
     "trendFalling": "Падает",
     "trendStable": "Стабильно",
     "trendDelta": "{delta}% за эту неделю",
-    "proTriosTitle": "Лучшие командные составы (PRO)",
     "gapTitle": "Твоё отставание от PRO",
     "gapAbove": "Выше PRO",
     "gapOnPar": "На уровне",
@@ -695,7 +694,10 @@
     "sampleSize": "{count} боёв",
     "modeFallbackBanner": "Показаны агрегированные данные режима — на этой карте мало данных.",
     "countersLabel": "Контры",
-    "topBrawlersSubtitle": "На основе топ-200 мировых про-игроков (глобальная мета)"
+    "topBrawlersSubtitle": "На основе топ-200 мировых про-игроков (глобальная мета)",
+    "teammatesLabel": "СОЮЗНИКИ",
+    "teammatesSeeMore": "Показать ещё ({count})",
+    "teammatesSeeLess": "Скрыть"
   },
   "picks": {
     "title": "Лучшие пики",

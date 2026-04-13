@@ -12,6 +12,8 @@ import {
   type CounterEntry,
   type CounterMatchup,
   type DailyTrendEntry,
+  type TeammateGroupEntry,
+  type TeammateTrio,
   type ProTrioEntry,
   type GapEntry,
   type MatchupGapEntry,
@@ -365,32 +367,72 @@ export async function GET(request: Request) {
       }))
   }
 
-  // --- PREMIUM: pro trios ---
+  // --- Teammates per top brawler (shown to all users) ---
+  // For each top brawler, find which trios the pros most often formed
+  // when they picked that brawler on this map+mode. The anchor brawler
+  // is excluded from `teammates` so the UI renders just the 2 other
+  // portraits. Minimum 3 battles per trio to avoid single-sample noise.
+  const TEAMMATE_MIN_BATTLES = 3
+  const TEAMMATES_PER_BRAWLER = 3
+
+  const { data: trioRows } = await supabase
+    .from('meta_trios')
+    .select('brawler1_id, brawler2_id, brawler3_id, wins, losses, total')
+    .eq('map', map)
+    .eq('mode', mode)
+    .eq('source', 'global')
+    .gte('date', windowStart)
+    .lte('date', todayStr)
+
+  // Aggregate trios across dates by canonical 3-id key
+  const trioAgg = new Map<string, { ids: [number, number, number]; wins: number; total: number }>()
+  for (const row of trioRows ?? []) {
+    const key = `${row.brawler1_id}|${row.brawler2_id}|${row.brawler3_id}`
+    const existing = trioAgg.get(key) ?? {
+      ids: [row.brawler1_id, row.brawler2_id, row.brawler3_id] as [number, number, number],
+      wins: 0,
+      total: 0,
+    }
+    existing.wins += row.wins
+    existing.total += row.total
+    trioAgg.set(key, existing)
+  }
+
+  const topBrawlerIds = new Set(topBrawlers.map(b => b.brawlerId))
+  const teammatesByBrawler = new Map<number, TeammateTrio[]>()
+  for (const anchorId of topBrawlerIds) {
+    const candidates: TeammateTrio[] = []
+    for (const agg of trioAgg.values()) {
+      if (agg.total < TEAMMATE_MIN_BATTLES) continue
+      if (!agg.ids.includes(anchorId)) continue
+      const teammates = agg.ids
+        .filter(id => id !== anchorId)
+        .map(id => ({ id, name: getBrawlerName(brawlerNames, id) }))
+      candidates.push({
+        teammates,
+        winRate: Number(bayesianWinRate(agg.wins, agg.total).toFixed(2)),
+        total: agg.total,
+      })
+    }
+    // Sort by frequency (total) descending — most repeated pairing first
+    candidates.sort((a, b) => b.total - a.total)
+    teammatesByBrawler.set(anchorId, candidates.slice(0, TEAMMATES_PER_BRAWLER))
+  }
+
+  const topBrawlerTeammates: TeammateGroupEntry[] = topBrawlers
+    .map(b => ({
+      brawlerId: b.brawlerId,
+      trios: teammatesByBrawler.get(b.brawlerId) ?? [],
+    }))
+    .filter(entry => entry.trios.length > 0)
+
+  // --- PREMIUM: full pro trios (for TeamSynergyView cross-reference) ---
+  // Derived from the same trioAgg to avoid a second query. Sorted by WR
+  // (descending) and capped at 20 — the consumer uses this as a lookup
+  // keyed by the canonical 3-id string, not as a visual ranking, but the
+  // slice prevents over-serialisation for maps with thousands of trios.
   let proTrios: ProTrioEntry[] | null = null
   if (hasPremium) {
-    const { data: trioRows } = await supabase
-      .from('meta_trios')
-      .select('brawler1_id, brawler2_id, brawler3_id, wins, losses, total')
-      .eq('map', map)
-      .eq('mode', mode)
-      .eq('source', 'global')
-      .gte('date', windowStart)
-      .lte('date', todayStr)
-
-    // Aggregate trios across dates
-    const trioAgg = new Map<string, { ids: number[]; wins: number; total: number }>()
-    for (const row of trioRows ?? []) {
-      const key = `${row.brawler1_id}|${row.brawler2_id}|${row.brawler3_id}`
-      const existing = trioAgg.get(key) ?? {
-        ids: [row.brawler1_id, row.brawler2_id, row.brawler3_id],
-        wins: 0,
-        total: 0,
-      }
-      existing.wins += row.wins
-      existing.total += row.total
-      trioAgg.set(key, existing)
-    }
-
     proTrios = Array.from(trioAgg.values())
       .filter(t => t.total >= PRO_MIN_BATTLES_DISPLAY)
       .map(t => ({
@@ -517,6 +559,7 @@ export async function GET(request: Request) {
       falling: falling.slice(0, 3),
     },
     counters,
+    topBrawlerTeammates,
     dailyTrend,
     proTrios,
     personalGap,

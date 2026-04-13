@@ -1,11 +1,11 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
-import type { TopBrawlerEntry, CounterEntry } from '@/lib/draft/pro-analysis'
+import type { TopBrawlerEntry, CounterEntry, TeammateGroupEntry } from '@/lib/draft/pro-analysis'
 
 interface Props {
   brawlers: TopBrawlerEntry[]
@@ -26,6 +26,13 @@ interface Props {
    * Added in Sprint C — spec §5.1 Track 5.
    */
   counters?: CounterEntry[]
+  /**
+   * Optional per-brawler teammate context. Each entry is the top brawler's
+   * most-repeated trios on this map (anchor excluded from `teammates`).
+   * Default visible: top 1. Tap "Ver más" to expand to all available.
+   * Added in Sprint D — replaces the standalone ProTrioGrid.
+   */
+  topBrawlerTeammates?: TeammateGroupEntry[]
 }
 
 function TrendBadge({ delta }: { delta: number | null }) {
@@ -56,8 +63,19 @@ export function TopBrawlersGrid({
   totalBattles,
   source = 'map-mode',
   counters,
+  topBrawlerTeammates,
 }: Props) {
   const t = useTranslations('metaPro')
+  const [expandedTeammates, setExpandedTeammates] = useState<Set<number>>(new Set())
+
+  const toggleTeammatesExpanded = (brawlerId: number) => {
+    setExpandedTeammates(prev => {
+      const next = new Set(prev)
+      if (next.has(brawlerId)) next.delete(brawlerId)
+      else next.add(brawlerId)
+      return next
+    })
+  }
 
   // Build an O(1) lookup: brawlerId → CounterEntry
   const counterByBrawlerId = useMemo(() => {
@@ -67,6 +85,14 @@ export function TopBrawlersGrid({
     }
     return map
   }, [counters])
+
+  const teammatesByBrawlerId = useMemo(() => {
+    const map = new Map<number, TeammateGroupEntry>()
+    if (topBrawlerTeammates) {
+      for (const t of topBrawlerTeammates) map.set(t.brawlerId, t)
+    }
+    return map
+  }, [topBrawlerTeammates])
 
   if (brawlers.length === 0) {
     return (
@@ -173,6 +199,61 @@ export function TopBrawlersGrid({
                       </div>
                     ))}
                   </div>
+                </div>
+              )
+            })()}
+
+            {(() => {
+              const entry = teammatesByBrawlerId.get(b.brawlerId)
+              if (!entry || entry.trios.length === 0) return null
+              const isExpanded = expandedTeammates.has(b.brawlerId)
+              const visibleTrios = isExpanded ? entry.trios : entry.trios.slice(0, 1)
+              const hasMore = entry.trios.length > 1
+              return (
+                <div className="w-full mt-1 pt-2 border-t border-white/5">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase mb-1 text-center">
+                    {t('teammatesLabel')}
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    {visibleTrios.map((trio, idx) => (
+                      <div
+                        key={trio.teammates.map(tm => tm.id).join('-') + ':' + idx}
+                        className="flex items-center gap-1.5 bg-[#0D1321] rounded-md px-1.5 py-1"
+                      >
+                        <div className="flex items-center -space-x-1 flex-shrink-0">
+                          {trio.teammates.map(tm => (
+                            <BrawlImg
+                              key={tm.id}
+                              src={getBrawlerPortraitUrl(tm.id)}
+                              fallbackSrc={getBrawlerPortraitFallback(tm.id)}
+                              alt={tm.name}
+                              className="w-4 h-4 rounded-sm ring-1 ring-[#0D1321]"
+                            />
+                          ))}
+                        </div>
+                        <span className="font-['Lilita_One'] text-[10px] text-white truncate flex-1">
+                          {trio.teammates.map(tm => tm.name).join(' + ')}
+                        </span>
+                        <span className={`text-[9px] font-bold tabular-nums ${wrColor(trio.winRate)}`}>
+                          {Math.round(trio.winRate)}%
+                        </span>
+                        <span className="text-[9px] text-slate-500 tabular-nums">
+                          ({trio.total})
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {hasMore && (
+                    <button
+                      type="button"
+                      onClick={() => toggleTeammatesExpanded(b.brawlerId)}
+                      className="w-full mt-1 text-[9px] font-bold text-[#4EC0FA] hover:text-[#4EC0FA]/80 transition-colors"
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? t('teammatesSeeLess') : t('teammatesSeeMore')}
+                    >
+                      {isExpanded ? t('teammatesSeeLess') : t('teammatesSeeMore', { count: entry.trios.length - 1 })}
+                    </button>
+                  )}
                 </div>
               )
             })()}
