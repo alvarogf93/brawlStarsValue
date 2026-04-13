@@ -11,7 +11,6 @@ import { UpgradeCard } from '@/components/premium/UpgradeCard'
 import { MapSelector } from '@/components/analytics/MapSelector'
 import { TopBrawlersGrid } from '@/components/analytics/TopBrawlersGrid'
 import { TrendingSection } from '@/components/analytics/TrendingSection'
-import { CounterQuickView } from '@/components/analytics/CounterQuickView'
 import { ProTrendChart } from '@/components/analytics/ProTrendChart'
 import { ProTrioGrid } from '@/components/analytics/ProTrioGrid'
 import { GapAnalysisCards } from '@/components/analytics/GapAnalysisCards'
@@ -82,7 +81,6 @@ export function MetaProTab() {
             counters={data.counters}
           />
           <TrendingSection rising={data.trending.rising} falling={data.trending.falling} />
-          <CounterQuickView counters={data.counters} isPremium={hasPremium} />
 
           <PremiumGate>
             <div className="space-y-6">
