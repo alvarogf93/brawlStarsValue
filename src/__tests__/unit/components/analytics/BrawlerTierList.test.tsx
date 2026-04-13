@@ -1,23 +1,19 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { mockNextIntl } from '@/__tests__/helpers/mock-next-intl'
 
-vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string, params?: Record<string, string | number>) => {
-    const map: Record<string, string> = {
-      brawlerTierList: 'Tier List',
-      brawlers: 'brawlers',
-      tierListSubtitle: 'Tus brawlers agrupados por tier',
-      tierListSelectHint: 'Selecciona un brawler',
-      tierListDetailGames: `${params?.total ?? '?'} partidas (${params?.wins ?? '?'}W / ${params?.losses ?? '?'}L)`,
-      tierListDetailStarRate: `Star player: ${params?.rate ?? '?'}%`,
-      tierListDetailTrophyChange: `Trofeos: ${params?.delta ?? '?'} promedio`,
-      tierListEmptyTier: '—',
-      confidenceHigh: 'High',
-      confidenceMedium: 'Medium',
-      confidenceLow: 'Low',
-    }
-    return map[key] ?? key
-  },
+vi.mock('next-intl', () => mockNextIntl({
+  brawlerTierList: 'Tier List',
+  brawlers: 'brawlers',
+  tierListSubtitle: 'Tus brawlers agrupados por tier',
+  tierListSelectHint: 'Selecciona un brawler',
+  tierListDetailGames: '{total} partidas ({wins}W / {losses}L)',
+  tierListDetailStarRate: 'Star player: {rate}%',
+  tierListDetailTrophyChange: 'Trofeos: {delta} promedio',
+  tierListEmptyTier: '—',
+  confidenceHigh: 'High',
+  confidenceMedium: 'Medium',
+  confidenceLow: 'Low',
 }))
 
 vi.mock('@/components/ui/BrawlImg', () => ({

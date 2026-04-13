@@ -1,24 +1,20 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { mockNextIntl } from '@/__tests__/helpers/mock-next-intl'
 
-vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string, params?: Record<string, string | number>) => {
-    const map: Record<string, string> = {
-      topBrawlersTitle: 'Top Brawlers',
-      topBrawlersSubtitle: 'Based on top pros',
-      totalBattles: `${params?.count ?? '?'} battles`,
-      noDataForMap: 'No data for map',
-      sampleSize: `${params?.count ?? '?'} batallas`,
-      confidenceHigh: 'High confidence',
-      confidenceMedium: 'Medium confidence',
-      confidenceLow: 'Low confidence',
-      modeFallbackBanner: 'Mostrando datos agregados del modo',
-      teammatesLabel: 'COMPAÑEROS',
-      teammatesSeeMore: `Ver más (${params?.count ?? '?'})`,
-      teammatesSeeLess: 'Ver menos',
-    }
-    return map[key] ?? key
-  },
+vi.mock('next-intl', () => mockNextIntl({
+  topBrawlersTitle: 'Top Brawlers',
+  topBrawlersSubtitle: 'Based on top pros',
+  totalBattles: '{count} battles',
+  noDataForMap: 'No data for map',
+  sampleSize: '{count} batallas',
+  confidenceHigh: 'High confidence',
+  confidenceMedium: 'Medium confidence',
+  confidenceLow: 'Low confidence',
+  modeFallbackBanner: 'Mostrando datos agregados del modo',
+  teammatesLabel: 'COMPAÑEROS',
+  teammatesSeeMore: 'Ver más ({count})',
+  teammatesSeeLess: 'Ver menos',
 }))
 
 vi.mock('@/components/ui/BrawlImg', () => ({

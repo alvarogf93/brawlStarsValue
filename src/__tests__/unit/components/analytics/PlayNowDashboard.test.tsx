@@ -1,21 +1,17 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { mockNextIntl } from '@/__tests__/helpers/mock-next-intl'
 
-vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => {
-    const map: Record<string, string> = {
-      playNowTitle: 'Play Now',
-      playNowEmpty: 'Play more to unlock recommendations!',
-      playNowSubtitle: 'Based on your personal history',
-      playNowModeAggregateBadge: 'Mode',
-      playNowModeAggregateTooltip: 'No specific map data — showing mode aggregate',
-      ended: 'ended',
-      confidenceHigh: 'High',
-      confidenceMedium: 'Medium',
-      confidenceLow: 'Low',
-    }
-    return map[key] ?? key
-  },
+vi.mock('next-intl', () => mockNextIntl({
+  playNowTitle: 'Play Now',
+  playNowEmpty: 'Play more to unlock recommendations!',
+  playNowSubtitle: 'Based on your personal history',
+  playNowModeAggregateBadge: 'Mode',
+  playNowModeAggregateTooltip: 'No specific map data — showing mode aggregate',
+  ended: 'ended',
+  confidenceHigh: 'High',
+  confidenceMedium: 'Medium',
+  confidenceLow: 'Low',
 }))
 
 // Mock heavy children to keep tests focused on PlayNowDashboard's own markup.
