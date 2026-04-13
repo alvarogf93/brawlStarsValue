@@ -62,6 +62,59 @@ describe('computeMaxGems — gem denominators for stats completion', () => {
     expect(max.buffies).toBe(CURRENT_MAX_BUFFIES * GEM_COSTS.buffie)
     expect(max.total).toBe(max.buffies)
   })
+
+  // ── Defensive coercion against partial/stale registry payloads
+  // Regression for the "Brawlers 0% / 116,251 💎 / NaN 💎" bug where
+  // a stale localStorage cache had only some fields populated.
+
+  it('coerces undefined registry fields to 0 (no NaN propagation)', () => {
+    const max = computeMaxGems({
+      brawlerCount: undefined as unknown as number,
+      maxGadgets: undefined as unknown as number,
+      maxStarPowers: undefined as unknown as number,
+    })
+    // Every output is a finite number (zero or buffies constant)
+    expect(Number.isFinite(max.powerLevels)).toBe(true)
+    expect(Number.isFinite(max.gadgets)).toBe(true)
+    expect(Number.isFinite(max.starPowers)).toBe(true)
+    expect(Number.isFinite(max.hypercharges)).toBe(true)
+    expect(Number.isFinite(max.gears)).toBe(true)
+    expect(Number.isFinite(max.buffies)).toBe(true)
+    expect(Number.isFinite(max.total)).toBe(true)
+    // Buffies are still correct because they don't depend on registry
+    expect(max.buffies).toBe(CURRENT_MAX_BUFFIES * GEM_COSTS.buffie)
+  })
+
+  it('coerces NaN registry fields to 0', () => {
+    const max = computeMaxGems({ brawlerCount: NaN, maxGadgets: NaN, maxStarPowers: NaN })
+    expect(max.powerLevels).toBe(0)
+    expect(max.gadgets).toBe(0)
+    expect(max.starPowers).toBe(0)
+    expect(max.total).toBe(max.buffies) // only buffies survive
+  })
+
+  it('coerces a null registry to all-zero (except buffies)', () => {
+    const max = computeMaxGems(null)
+    expect(max.powerLevels).toBe(0)
+    expect(max.total).toBe(max.buffies)
+  })
+
+  it('coerces a partial registry where only brawlerCount is missing', () => {
+    const max = computeMaxGems({
+      brawlerCount: undefined as unknown as number,
+      maxGadgets: 202,
+      maxStarPowers: 202,
+    })
+    // Gadgets and SPs come from /brawlers and stay correct
+    expect(max.gadgets).toBe(202 * GEM_COSTS.gadget)
+    expect(max.starPowers).toBe(202 * GEM_COSTS.starPower)
+    // brawlerCount-derived fields fall back to 0
+    expect(max.powerLevels).toBe(0)
+    expect(max.hypercharges).toBe(0)
+    expect(max.gears).toBe(0)
+    // Total is still finite
+    expect(Number.isFinite(max.total)).toBe(true)
+  })
 })
 
 describe('computeMaxCounts — raw unlock-count denominators', () => {

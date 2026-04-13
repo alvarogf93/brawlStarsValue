@@ -30,12 +30,36 @@ interface CachedRegistry {
   data: BrawlerRegistry
 }
 
+/**
+ * Validate that a registry object has all three numeric fields as
+ * finite positive numbers. JSON serialisation silently drops
+ * `undefined` fields, so a partial cache from an older (or buggier)
+ * version of this hook may be missing fields entirely. We treat any
+ * such partial as a cache miss and re-fetch.
+ */
+function isValidRegistry(value: unknown): value is BrawlerRegistry {
+  if (!value || typeof value !== 'object') return false
+  const v = value as Partial<BrawlerRegistry>
+  return (
+    typeof v.brawlerCount === 'number' && Number.isFinite(v.brawlerCount) && v.brawlerCount > 0 &&
+    typeof v.maxGadgets === 'number' && Number.isFinite(v.maxGadgets) && v.maxGadgets > 0 &&
+    typeof v.maxStarPowers === 'number' && Number.isFinite(v.maxStarPowers) && v.maxStarPowers > 0
+  )
+}
+
 function readCache(): BrawlerRegistry | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as CachedRegistry
     if (Date.now() - parsed._ts > CACHE_TTL) return null
+    // Self-heal: if the stored shape is partial / invalid (e.g. from
+    // an older buggy version of the hook), purge it and act as a
+    // cache miss so the fallback or a fresh fetch takes over.
+    if (!isValidRegistry(parsed.data)) {
+      try { localStorage.removeItem(CACHE_KEY) } catch { /* ignore */ }
+      return null
+    }
     return parsed.data
   } catch {
     return null
@@ -43,6 +67,7 @@ function readCache(): BrawlerRegistry | null {
 }
 
 function writeCache(data: BrawlerRegistry) {
+  if (!isValidRegistry(data)) return
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ _ts: Date.now(), data }))
   } catch {
@@ -72,8 +97,11 @@ export function useBrawlerRegistry(): BrawlerRegistry {
         if (!res.ok) throw new Error(`${res.status}`)
         return res.json()
       })
-      .then((data: BrawlerRegistry) => {
-        if (typeof data.brawlerCount === 'number' && data.brawlerCount > 0) {
+      .then((data: unknown) => {
+        // Validate the FULL shape — not just brawlerCount. A partial
+        // response would cache a half-broken registry that produces
+        // NaN downstream (the bug shipped in Sprint D, fixed here).
+        if (isValidRegistry(data)) {
           setRegistry(data)
           writeCache(data)
         }

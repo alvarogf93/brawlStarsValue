@@ -48,12 +48,28 @@ export interface RegistryInput {
 }
 
 /**
+ * Defensive coercion of a (possibly stale or partial) registry to
+ * a fully numeric one. A stale localStorage cache from an older
+ * version of the hook may have any subset of fields missing — JSON
+ * silently drops `undefined` on serialise, so on read we get partial
+ * objects. Any non-finite field becomes `0` here so the math below
+ * never produces NaN. Tested explicitly in stats-maxes.test.ts.
+ */
+function coerceRegistry(registry: RegistryInput | null | undefined): RegistryInput {
+  return {
+    brawlerCount: Number.isFinite(registry?.brawlerCount) ? registry!.brawlerCount : 0,
+    maxGadgets: Number.isFinite(registry?.maxGadgets) ? registry!.maxGadgets : 0,
+    maxStarPowers: Number.isFinite(registry?.maxStarPowers) ? registry!.maxStarPowers : 0,
+  }
+}
+
+/**
  * Compute per-category MAX gem spend for a 100%-complete account.
  * Numerator (player's actual spend) is measured separately in
  * calculate.ts — this function only produces the denominators.
  */
-export function computeMaxGems(registry: RegistryInput): MaxGems {
-  const { brawlerCount, maxGadgets, maxStarPowers } = registry
+export function computeMaxGems(registry: RegistryInput | null | undefined): MaxGems {
+  const { brawlerCount, maxGadgets, maxStarPowers } = coerceRegistry(registry)
 
   // Power levels: POWER_LEVEL_GEM_COST[11] = total gem cost to take
   // a brawler from 1 → 11. Multiplied by the full roster.
@@ -71,14 +87,15 @@ export function computeMaxGems(registry: RegistryInput): MaxGems {
 }
 
 /** Same idea but for raw unlock counts (not gem-weighted). */
-export function computeMaxCounts(registry: RegistryInput): MaxCounts {
+export function computeMaxCounts(registry: RegistryInput | null | undefined): MaxCounts {
+  const { brawlerCount, maxGadgets, maxStarPowers } = coerceRegistry(registry)
   return {
-    brawlers: registry.brawlerCount,
-    gadgets: registry.maxGadgets,
-    starPowers: registry.maxStarPowers,
-    hypercharges: registry.brawlerCount * PER_BRAWLER_MAX.hypercharges,
+    brawlers: brawlerCount,
+    gadgets: maxGadgets,
+    starPowers: maxStarPowers,
+    hypercharges: brawlerCount * PER_BRAWLER_MAX.hypercharges,
     buffies: CURRENT_MAX_BUFFIES,
-    gears: registry.brawlerCount * PER_BRAWLER_MAX.gears,
+    gears: brawlerCount * PER_BRAWLER_MAX.gears,
   }
 }
 
