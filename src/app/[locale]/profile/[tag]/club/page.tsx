@@ -363,7 +363,7 @@ export default function ClubPage() {
               <span className="text-center font-['Lilita_One'] text-slate-400">#</span>
               <span className="text-left pl-1">{t('sortName')}</span>
               <span className="text-right text-[10px]">{t('sortTrophies')}</span>
-              <span className="text-right text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] pr-1">💎</span>
+              <span className="text-right leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] pr-1 inline-flex justify-end"><GemIcon className="w-4 h-4" /></span>
               <span className="text-center">{t('columnWR')}</span>
               <span className="text-right text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">⚔️</span>
               <span className="text-center text-sm leading-none drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">👑</span>

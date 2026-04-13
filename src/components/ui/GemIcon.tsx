@@ -1,43 +1,29 @@
-export function GemIcon({ className = "w-8 h-8" }: { className?: string }) {
+/**
+ * GemIcon — the canonical "currency gem" of BrawlVision.
+ *
+ * This is the green/teal star-gem the app uses to represent the
+ * unified gem-value currency (powerLevels + gadgets + SPs + HCs +
+ * gears + buffies → totalGems). It is NOT the gem-grab game-mode
+ * gem (which is purple and lives in ModeIcon for that mode).
+ *
+ * Sprint D 2026-04-13: replaced the inline SVG (a flat green
+ * diamond) with the user's custom asset stored at
+ * `public/assets/icons/gem.png` so we have a single source of truth
+ * for the currency icon across every screen + the app's brand.
+ *
+ * USE THIS COMPONENT — never the `💎` literal — anywhere a gem
+ * count is shown to a user. The only places that still keep `💎`
+ * are: CSV exports (text-only), Telegram bot messages (text-only),
+ * and the gem-grab MODE icon's emoji fallback.
+ */
+export function GemIcon({ className = 'w-8 h-8' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 100 100" className={`filter drop-shadow-[0_3px_0_rgba(18,26,47,0.8)] ${className}`}>
-      <defs>
-        <linearGradient id="gem-body" x1="0" y1="0" x2="0.3" y2="1">
-          <stop offset="0%" stopColor="#4ADE80" />
-          <stop offset="50%" stopColor="#16A34A" />
-          <stop offset="100%" stopColor="#0D6B30" />
-        </linearGradient>
-        <linearGradient id="gem-top" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#86EFAC" />
-          <stop offset="100%" stopColor="#4ADE80" />
-        </linearGradient>
-        <linearGradient id="gem-shine" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="white" stopOpacity="0.7" />
-          <stop offset="100%" stopColor="white" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-
-      {/* Outer stroke */}
-      <polygon points="50,2 98,38 50,98 2,38" fill="#121A2F" />
-
-      {/* Main body — deep green */}
-      <polygon points="50,10 90,38 50,90 10,38" fill="url(#gem-body)" />
-
-      {/* Top crown facet — lighter */}
-      <polygon points="50,10 90,38 50,38 10,38" fill="url(#gem-top)" />
-
-      {/* Center horizontal line */}
-      <line x1="10" y1="38" x2="90" y2="38" stroke="#0D6B30" strokeWidth="1.5" opacity="0.5" />
-
-      {/* Left facet — mid green */}
-      <polygon points="10,38 50,90 50,38" fill="#22C55E" opacity="0.7" />
-
-      {/* Top-left shine facet */}
-      <polygon points="50,10 30,38 50,38" fill="url(#gem-shine)" />
-
-      {/* Small white sparkle */}
-      <circle cx="35" cy="28" r="3" fill="white" opacity="0.6" />
-      <circle cx="38" cy="25" r="1.5" fill="white" opacity="0.9" />
-    </svg>
+    <img
+      src="/assets/icons/gem.png"
+      alt=""
+      aria-hidden="true"
+      className={`inline-block object-contain drop-shadow-[0_3px_0_rgba(18,26,47,0.8)] ${className}`}
+      loading="lazy"
+    />
   )
 }

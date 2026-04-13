@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { useBrawlerRegistry } from '@/hooks/useBrawlerRegistry'
 import { GemIcon } from '@/components/ui/GemIcon'
+import { BrawlIcon, type BrawlIconName } from '@/components/ui/BrawlIcon'
+import { ModeIcon } from '@/components/ui/ModeIcon'
 import { GEM_COSTS, TROPHY_ROAD_MAX } from '@/lib/constants'
 import { computeMaxGems, computeMaxCounts, completionPct, safeNumber } from '@/lib/stats-maxes'
 import { formatPlaytime } from '@/lib/utils'
@@ -104,8 +106,9 @@ export default function StatsPage() {
               <span className="font-['Lilita_One'] text-5xl text-[var(--color-brawl-gold)] drop-shadow-[0_4px_0_rgba(0,0,0,0.8)]" style={{ WebkitTextStroke: '2px #121A2F' }}>
                 {completionPercent}%
               </span>
-              <span className="font-['Inter'] text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">
-                {totalGems.toLocaleString()} / {maxGems.total.toLocaleString()} 💎
+              <span className="font-['Inter'] text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1 inline-flex items-center gap-1">
+                {totalGems.toLocaleString()} / {maxGems.total.toLocaleString()}
+                <GemIcon className="w-3 h-3" />
               </span>
             </div>
           </div>
@@ -137,8 +140,14 @@ export default function StatsPage() {
                     </div>
                   </div>
                   <div className="flex justify-between text-[9px] text-slate-500 font-['Inter'] mt-0.5 tabular-nums">
-                    <span>{v.value.toLocaleString()} 💎</span>
-                    <span>{v.max.toLocaleString()} 💎</span>
+                    <span className="inline-flex items-center gap-0.5">
+                      {v.value.toLocaleString()}
+                      <GemIcon className="w-2.5 h-2.5" />
+                    </span>
+                    <span className="inline-flex items-center gap-0.5">
+                      {v.max.toLocaleString()}
+                      <GemIcon className="w-2.5 h-2.5" />
+                    </span>
                   </div>
                 </div>
               )
@@ -187,12 +196,12 @@ export default function StatsPage() {
               <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('wins3v3')}</span>
             </div>
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#F82F41] transition-all duration-200">
-              <span className="text-4xl mb-2 filter drop-shadow-md">👤</span>
+              <ModeIcon mode="soloShowdown" size={40} className="mb-2 drop-shadow-md" />
               <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{safeNumber(st.soloVictories).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('soloWins')}</span>
             </div>
             <div className="brawl-card-dark border-[#0D1321] p-4 flex flex-col justify-center items-center hover:-translate-y-2 hover:shadow-[0_12px_20px_-8px_#10B981] transition-all duration-200">
-              <span className="text-4xl mb-2 filter drop-shadow-md">👥</span>
+              <ModeIcon mode="duoShowdown" size={40} className="mb-2 drop-shadow-md" />
               <span className="text-3xl font-['Lilita_One'] text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl">{safeNumber(st.duoVictories).toLocaleString()}</span>
               <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">{tStats('duoWins')}</span>
             </div>
@@ -213,17 +222,21 @@ export default function StatsPage() {
           <div className="brawl-card-dark p-6">
             <h3 className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-lg tracking-widest mb-4">{tStats('details')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: t('gadgets'), value: breakdown.gadgets.count, max: maxCounts.gadgets, icon: '🔧' },
-                { label: t('starPowers'), value: breakdown.starPowers.count, max: maxCounts.starPowers, icon: '⭐' },
-                { label: t('hypercharges'), value: breakdown.hypercharges.count, max: maxCounts.hypercharges, icon: '⚡' },
-                { label: t('buffies'), value: breakdown.buffies.count, max: maxCounts.buffies, icon: '💪' },
-                { label: t('gears'), value: breakdown.gears.count, max: maxCounts.gears, icon: '🔩' },
-                { label: t('prestige'), value: safeNumber(st.totalPrestigeLevel), max: null, icon: '👑' },
-                { label: t('timePlayed'), value: formatPlaytime(safeNumber(st.estimatedHoursPlayed)), max: null, icon: '⏱️' },
-              ].map((item) => (
+              {([
+                { label: t('gadgets'), value: breakdown.gadgets.count, max: maxCounts.gadgets, iconName: 'gadget' as BrawlIconName, emoji: null },
+                { label: t('starPowers'), value: breakdown.starPowers.count, max: maxCounts.starPowers, iconName: 'starpower' as BrawlIconName, emoji: null },
+                { label: t('hypercharges'), value: breakdown.hypercharges.count, max: maxCounts.hypercharges, iconName: 'hypercharge' as BrawlIconName, emoji: null },
+                { label: t('buffies'), value: breakdown.buffies.count, max: maxCounts.buffies, iconName: 'buffies' as BrawlIconName, emoji: null },
+                { label: t('gears'), value: breakdown.gears.count, max: maxCounts.gears, iconName: 'gear' as BrawlIconName, emoji: null },
+                { label: t('prestige'), value: safeNumber(st.totalPrestigeLevel), max: null, iconName: 'prestige' as BrawlIconName, emoji: null },
+                { label: t('timePlayed'), value: formatPlaytime(safeNumber(st.estimatedHoursPlayed)), max: null, iconName: null, emoji: '⏱️' },
+              ] as const).map((item) => (
                 <div key={item.label} className="bg-white/5 rounded-xl p-3 text-center">
-                  <span className="text-2xl">{item.icon}</span>
+                  {item.iconName ? (
+                    <BrawlIcon name={item.iconName} className="w-8 h-8 mx-auto" />
+                  ) : (
+                    <span className="text-2xl">{item.emoji}</span>
+                  )}
                   <p className="font-['Lilita_One'] text-2xl text-white mt-1 tabular-nums">
                     {item.value}
                     {item.max !== null && (
@@ -286,22 +299,34 @@ export default function StatsPage() {
             <span className="text-right w-24">{tStats('gems')}</span>
           </div>
 
-          {[
-            { icon: '📈', label: `${t('powerLevels')}`, qty: `${breakdown.powerLevels.count}`, gems: breakdown.powerLevels.gems, color: 'border-l-yellow-500' },
-            { icon: '🔧', label: `${t('gadgets')} (×${GEM_COSTS.gadget}💎)`, qty: `${breakdown.gadgets.count}`, gems: breakdown.gadgets.gems, color: 'border-l-green-500' },
-            { icon: '⭐', label: `${t('starPowers')} (×${GEM_COSTS.starPower}💎)`, qty: `${breakdown.starPowers.count}`, gems: breakdown.starPowers.gems, color: 'border-l-purple-500' },
-            { icon: '⚡', label: `${t('hypercharges')} (×${GEM_COSTS.hypercharge}💎)`, qty: `${breakdown.hypercharges.count}`, gems: breakdown.hypercharges.gems, color: 'border-l-red-500' },
-            { icon: '💪', label: `${t('buffies')} (×${GEM_COSTS.buffie}💎)`, qty: `${breakdown.buffies.count}`, gems: breakdown.buffies.gems, color: 'border-l-pink-500' },
-            { icon: '🔩', label: `${t('gears')} (×${GEM_COSTS.gear}💎)`, qty: `${breakdown.gears.count}`, gems: breakdown.gears.gems, color: 'border-l-gray-500' },
-          ].map((row, i) => (
+          {([
+            { iconName: null, emoji: '📈', label: t('powerLevels'), unitCost: null, qty: `${breakdown.powerLevels.count}`, gems: breakdown.powerLevels.gems, color: 'border-l-yellow-500' },
+            { iconName: 'gadget' as BrawlIconName, emoji: null, label: t('gadgets'), unitCost: GEM_COSTS.gadget, qty: `${breakdown.gadgets.count}`, gems: breakdown.gadgets.gems, color: 'border-l-green-500' },
+            { iconName: 'starpower' as BrawlIconName, emoji: null, label: t('starPowers'), unitCost: GEM_COSTS.starPower, qty: `${breakdown.starPowers.count}`, gems: breakdown.starPowers.gems, color: 'border-l-purple-500' },
+            { iconName: 'hypercharge' as BrawlIconName, emoji: null, label: t('hypercharges'), unitCost: GEM_COSTS.hypercharge, qty: `${breakdown.hypercharges.count}`, gems: breakdown.hypercharges.gems, color: 'border-l-red-500' },
+            { iconName: 'buffies' as BrawlIconName, emoji: null, label: t('buffies'), unitCost: GEM_COSTS.buffie, qty: `${breakdown.buffies.count}`, gems: breakdown.buffies.gems, color: 'border-l-pink-500' },
+            { iconName: 'gear' as BrawlIconName, emoji: null, label: t('gears'), unitCost: GEM_COSTS.gear, qty: `${breakdown.gears.count}`, gems: breakdown.gears.gems, color: 'border-l-gray-500' },
+          ] as const).map((row, i) => (
             <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-4 px-4 py-3 rounded-lg border-l-4 ${row.color} ${i % 2 === 0 ? 'bg-white/5' : 'bg-white/[0.02]'}`}>
               <span className="flex items-center gap-2 text-sm text-slate-200">
-                <span>{row.icon}</span>
+                {row.iconName ? (
+                  <BrawlIcon name={row.iconName} className="w-5 h-5" />
+                ) : (
+                  <span>{row.emoji}</span>
+                )}
                 <span>{row.label}</span>
+                {row.unitCost !== null && (
+                  <span className="text-[10px] text-slate-500 inline-flex items-center gap-0.5">
+                    (×{row.unitCost}
+                    <GemIcon className="w-2.5 h-2.5" />
+                    )
+                  </span>
+                )}
               </span>
               <span className="text-right text-sm text-slate-400 w-20">{row.qty}</span>
-              <span className="text-right text-sm font-['Lilita_One'] text-white w-24">
+              <span className="text-right text-sm font-['Lilita_One'] text-white w-24 inline-flex items-center justify-end gap-1">
                 {row.gems.toLocaleString()}
+                <GemIcon className="w-3 h-3" />
               </span>
             </div>
           ))}

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { GemScore } from '@/lib/types'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { GemIcon } from '@/components/ui/GemIcon'
+import { BrawlIcon, type BrawlIconName } from '@/components/ui/BrawlIcon'
 import { formatPlaytime } from '@/lib/utils'
 import { useSkinClassifications } from '@/hooks/useSkinClassifications'
 
@@ -21,13 +22,20 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
 
   const cosmeticsHref = `/${locale}/profile/${encodeURIComponent(tag)}/cosmetics`
 
-  const gemItems = [
-    { key: 'powerLevels', icon: '📈', label: t('powerLevels'), gems: breakdown.powerLevels.gems, detail: `${breakdown.powerLevels.count} brawlers` },
-    { key: 'gadgets', icon: '🔧', label: t('gadgets'), gems: breakdown.gadgets.gems, detail: `×${breakdown.gadgets.count}` },
-    { key: 'starPowers', icon: '⭐', label: t('starPowers'), gems: breakdown.starPowers.gems, detail: `×${breakdown.starPowers.count}` },
-    { key: 'hypercharges', icon: '⚡', label: t('hypercharges'), gems: breakdown.hypercharges.gems, detail: `×${breakdown.hypercharges.count}` },
-    { key: 'buffies', icon: '💪', label: t('buffies'), gems: breakdown.buffies.gems, detail: `×${breakdown.buffies.count}` },
-    { key: 'gears', icon: '🔩', label: t('gears'), gems: breakdown.gears.gems, detail: `×${breakdown.gears.count}` },
+  const gemItems: Array<{
+    key: string
+    iconName: BrawlIconName | null
+    emoji: string | null
+    label: string
+    gems: number
+    detail: string
+  }> = [
+    { key: 'powerLevels', iconName: null, emoji: '📈', label: t('powerLevels'), gems: breakdown.powerLevels.gems, detail: `${breakdown.powerLevels.count} brawlers` },
+    { key: 'gadgets', iconName: 'gadget', emoji: null, label: t('gadgets'), gems: breakdown.gadgets.gems, detail: `×${breakdown.gadgets.count}` },
+    { key: 'starPowers', iconName: 'starpower', emoji: null, label: t('starPowers'), gems: breakdown.starPowers.gems, detail: `×${breakdown.starPowers.count}` },
+    { key: 'hypercharges', iconName: 'hypercharge', emoji: null, label: t('hypercharges'), gems: breakdown.hypercharges.gems, detail: `×${breakdown.hypercharges.count}` },
+    { key: 'buffies', iconName: 'buffies', emoji: null, label: t('buffies'), gems: breakdown.buffies.gems, detail: `×${breakdown.buffies.count}` },
+    { key: 'gears', iconName: 'gear', emoji: null, label: t('gears'), gems: breakdown.gears.gems, detail: `×${breakdown.gears.count}` },
   ]
 
   return (
@@ -36,7 +44,11 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {gemItems.map((item, idx) => (
           <div key={item.key} className="brawl-card p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt animate-fade-in" style={{ animationDelay: `${idx * 60}ms` }}>
-            <span className="text-3xl mb-2 filter drop-shadow-md">{item.icon}</span>
+            {item.iconName ? (
+              <BrawlIcon name={item.iconName} className="w-10 h-10 mb-2" />
+            ) : (
+              <span className="text-3xl mb-2 filter drop-shadow-md">{item.emoji}</span>
+            )}
             <p className="text-[10px] text-slate-500 font-black uppercase mb-1">{item.label}</p>
             <p className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-dark)] flex items-center gap-1">
               <AnimatedCounter value={item.gems} duration={1200 + idx * 100} fromZero />
@@ -78,7 +90,7 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
           <p className="text-[10px] uppercase font-black text-slate-500">{t('trophies')}</p>
         </div>
         <div className="brawl-card p-4 text-center group">
-          <span className="text-3xl filter drop-shadow-md group-hover:scale-110 transition-transform block mb-1">👑</span>
+          <BrawlIcon name="prestige" className="w-10 h-10 mx-auto mb-1 group-hover:scale-110 transition-transform" />
           <p className="font-['Lilita_One'] text-2xl text-[var(--color-brawl-purple)]">P{stats.totalPrestigeLevel}</p>
           <p className="text-[10px] uppercase font-black text-slate-500">{t('prestige')}</p>
         </div>

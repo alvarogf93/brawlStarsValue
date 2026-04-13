@@ -176,7 +176,7 @@ function CosmeticSection({
               <span className="text-lg">{tier.icon}</span>
               <div>
                 <p className="font-['Lilita_One'] text-base text-white leading-tight">{labels[tier.key] || tier.key}</p>
-                <p className="text-[10px] text-slate-500 font-bold sm:hidden">{price} 💎</p>
+                <p className="text-[10px] text-slate-500 font-bold sm:hidden inline-flex items-center gap-0.5">{price} <GemIcon className="w-2.5 h-2.5" /></p>
               </div>
             </div>
 

@@ -20,7 +20,8 @@ import { StatsSkeleton } from '@/components/ui/Skeleton'
 interface ComparisonCategory {
   key: string
   label: string
-  icon: string
+  /** Either an emoji character or a React node (for image-based icons like GemIcon) */
+  icon: React.ReactNode
   left: number
   right: number
   format?: (v: number) => string
@@ -300,7 +301,7 @@ export default function ComparePage() {
   /* ---- Build comparison categories ---- */
   const categories: ComparisonCategory[] = opponentData
     ? [
-        { key: 'totalGems', label: t('totalGems'), icon: '💎', left: player1.totalGems, right: opponentData.totalGems },
+        { key: 'totalGems', label: t('totalGems'), icon: <GemIcon className="w-5 h-5" />, left: player1.totalGems, right: opponentData.totalGems },
         { key: 'trophies', label: t('trophies'), icon: '🏆', left: player1.stats.trophies, right: opponentData.stats.trophies },
         { key: 'highestTrophies', label: t('highestTrophies'), icon: '🥇', left: player1.stats.highestTrophies, right: opponentData.stats.highestTrophies },
         {
