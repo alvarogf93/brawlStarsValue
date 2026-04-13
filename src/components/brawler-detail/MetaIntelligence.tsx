@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { BrawlImg } from '@/components/ui/BrawlImg'
+import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import {
   getBrawlerPortraitUrl,
   getBrawlerPortraitFallback,
@@ -118,8 +119,12 @@ function MatchupList({ title, entries, playerNames }: MatchupListProps) {
               <span className="font-['Lilita_One'] text-sm text-white truncate flex-1">
                 {name}
               </span>
+              <ConfidenceBadge total={entry.totalBattles} />
               <span className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(entry.winRate)}`}>
                 {entry.winRate.toFixed(1)}%
+              </span>
+              <span className="text-[10px] text-slate-500 tabular-nums">
+                {t('sampleSize', { count: entry.totalBattles })}
               </span>
             </div>
           )
@@ -203,6 +208,11 @@ export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
                     <div className="w-full h-24 bg-[#1E293B]" />
                   )}
 
+                  {/* Confidence badge — top-right corner */}
+                  <div className="absolute top-1.5 right-1.5">
+                    <ConfidenceBadge total={map.totalBattles} />
+                  </div>
+
                   {/* Overlay data */}
                   <div className="absolute inset-0 flex flex-col justify-end p-2.5">
                     <div className="flex items-center gap-1.5 mb-1">
@@ -213,9 +223,14 @@ export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
                         {map.map}
                       </span>
                     </div>
-                    <span className={`font-['Lilita_One'] text-lg ${wrColor(map.winRate)}`}>
-                      {map.winRate.toFixed(1)}%
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className={`font-['Lilita_One'] text-lg ${wrColor(map.winRate)}`}>
+                        {map.winRate.toFixed(1)}%
+                      </span>
+                      <span className="text-[9px] text-slate-300 tabular-nums">
+                        {t('sampleSize', { count: map.totalBattles })}
+                      </span>
+                    </div>
                   </div>
                 </div>
               )
@@ -249,8 +264,12 @@ export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
                     className="w-10 h-10 rounded-lg"
                   />
                   {name && <span className="font-['Lilita_One'] text-sm text-white truncate flex-1">{name}</span>}
+                  <ConfidenceBadge total={tm.totalBattles} />
                   <span className={`font-['Lilita_One'] text-sm tabular-nums ${wrColor(tm.winRate)}`}>
                     {tm.winRate.toFixed(1)}%
+                  </span>
+                  <span className="text-[10px] text-slate-500 tabular-nums">
+                    {t('sampleSize', { count: tm.totalBattles })}
                   </span>
                 </div>
               )
