@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "DEINE MATCHUPS — Wie DU gegen jeden Gegner abschneidest",
     "playNowSubtitle": "Basierend auf deiner persönlichen Historie auf den Karten der aktuellen Rotation",
     "playNowModeAggregateBadge": "Modus",
-    "playNowModeAggregateTooltip": "Du hast diese Karte nicht gespielt — deine Modus-Aggregatdaten werden angezeigt"
+    "playNowModeAggregateTooltip": "Du hast diese Karte nicht gespielt — deine Modus-Aggregatdaten werden angezeigt",
+    "brawlers": "Brawler",
+    "tierListSubtitle": "Deine Brawler nach Tier gruppiert auf Basis deiner persönlichen Siegrate",
+    "tierListSelectHint": "Wähle einen Brawler, um Details zu sehen",
+    "tierListDetailGames": "{total} Spiele ({wins}S / {losses}N)",
+    "tierListDetailStarRate": "Star-Spieler: {rate}%",
+    "tierListDetailTrophyChange": "Trophäen: {delta} Durchschnitt",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

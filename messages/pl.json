@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "TWOJE POJEDYNKI — Jak TY radzisz sobie przeciwko każdemu",
     "playNowSubtitle": "Na podstawie twojej osobistej historii na mapach w aktualnej rotacji",
     "playNowModeAggregateBadge": "Tryb",
-    "playNowModeAggregateTooltip": "Nie grałeś konkretnie tej mapy — pokazuję twoje zbiorcze dane z trybu"
+    "playNowModeAggregateTooltip": "Nie grałeś konkretnie tej mapy — pokazuję twoje zbiorcze dane z trybu",
+    "brawlers": "brawlerów",
+    "tierListSubtitle": "Twoi brawlerzy pogrupowani według tieru na podstawie twojego osobistego współczynnika zwycięstw",
+    "tierListSelectHint": "Wybierz brawlera, aby zobaczyć szczegóły",
+    "tierListDetailGames": "{total} gier ({wins}W / {losses}P)",
+    "tierListDetailStarRate": "Gwiazda meczu: {rate}%",
+    "tierListDetailTrophyChange": "Trofea: średnio {delta}",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

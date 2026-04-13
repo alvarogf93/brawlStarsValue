@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "مواجهاتك — كيف تؤدي أنت ضد كل خصم",
     "playNowSubtitle": "استناداً إلى سجلك الشخصي على خرائط التناوب الحالي",
     "playNowModeAggregateBadge": "الوضع",
-    "playNowModeAggregateTooltip": "لم تلعب هذه الخريطة تحديداً — نعرض بياناتك المجمعة للوضع"
+    "playNowModeAggregateTooltip": "لم تلعب هذه الخريطة تحديداً — نعرض بياناتك المجمعة للوضع",
+    "brawlers": "مقاتلين",
+    "tierListSubtitle": "مقاتلوك مجمعون حسب الفئة بناءً على معدل فوزك الشخصي",
+    "tierListSelectHint": "اختر مقاتلاً لرؤية التفاصيل",
+    "tierListDetailGames": "{total} مباراة ({wins} فوز / {losses} خسارة)",
+    "tierListDetailStarRate": "نجم المباراة: {rate}%",
+    "tierListDetailTrophyChange": "الكؤوس: {delta} في المتوسط",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

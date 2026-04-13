@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "SENİN EŞLEŞMELERİN — SEN her rakibe karşı nasıl gidiyorsun",
     "playNowSubtitle": "Mevcut rotasyondaki haritalarda kendi kişisel geçmişine dayanıyor",
     "playNowModeAggregateBadge": "Mod",
-    "playNowModeAggregateTooltip": "Bu haritayı özel olarak oynamadın — mod geneli verilerini gösteriyoruz"
+    "playNowModeAggregateTooltip": "Bu haritayı özel olarak oynamadın — mod geneli verilerini gösteriyoruz",
+    "brawlers": "brawler",
+    "tierListSubtitle": "Kişisel kazanma oranına göre tier bazında gruplandırılmış brawlerların",
+    "tierListSelectHint": "Detayları görmek için bir brawler seç",
+    "tierListDetailGames": "{total} maç ({wins}G / {losses}M)",
+    "tierListDetailStarRate": "Maçın yıldızı: {rate}%",
+    "tierListDetailTrophyChange": "Kupa: ortalama {delta}",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

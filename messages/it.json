@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "I TUOI MATCHUP — Come TU vai contro ogni avversario",
     "playNowSubtitle": "Basato sulla tua storia personale sulle mappe della rotazione attuale",
     "playNowModeAggregateBadge": "Modalità",
-    "playNowModeAggregateTooltip": "Non hai giocato questa mappa nello specifico — mostro i tuoi dati aggregati della modalità"
+    "playNowModeAggregateTooltip": "Non hai giocato questa mappa nello specifico — mostro i tuoi dati aggregati della modalità",
+    "brawlers": "brawler",
+    "tierListSubtitle": "I tuoi brawler raggruppati per tier in base alla tua percentuale di vittorie personale",
+    "tierListSelectHint": "Seleziona un brawler per vedere i dettagli",
+    "tierListDetailGames": "{total} partite ({wins}V / {losses}S)",
+    "tierListDetailStarRate": "Star player: {rate}%",
+    "tierListDetailTrophyChange": "Trofei: {delta} medi",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

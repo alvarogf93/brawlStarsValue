@@ -650,7 +650,14 @@
     "matchupsTitleExplicit": "あなたのマッチアップ — 各相手にどう戦うか",
     "playNowSubtitle": "現在のローテーションマップでのあなたの個人履歴に基づいています",
     "playNowModeAggregateBadge": "モード",
-    "playNowModeAggregateTooltip": "このマップは個別にプレイしていません — モード全体の集計データを表示しています"
+    "playNowModeAggregateTooltip": "このマップは個別にプレイしていません — モード全体の集計データを表示しています",
+    "brawlers": "ブロウラー",
+    "tierListSubtitle": "個人勝率に基づきティアごとにグループ化されたブロウラー",
+    "tierListSelectHint": "ブロウラーを選択して詳細を表示",
+    "tierListDetailGames": "{total}戦 ({wins}勝 / {losses}敗)",
+    "tierListDetailStarRate": "スタープレイヤー: {rate}%",
+    "tierListDetailTrophyChange": "トロフィー: 平均 {delta}",
+    "tierListEmptyTier": "—"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
