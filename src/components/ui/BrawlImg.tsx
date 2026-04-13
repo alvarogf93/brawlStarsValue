@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface BrawlImgProps {
   src: string
@@ -17,12 +17,21 @@ interface BrawlImgProps {
  * 3. Show initials placeholder
  */
 export function BrawlImg({ src, alt, fallbackText, fallbackSrc, className = '' }: BrawlImgProps) {
-  const [currentSrc, setCurrentSrc] = useState(src)
+  const [useFallback, setUseFallback] = useState(false)
   const [failed, setFailed] = useState(false)
 
+  // Reset failure state when src prop changes so the same instance
+  // can be reused across brawlers (e.g. BrawlerTierList detail panel).
+  useEffect(() => {
+    setUseFallback(false)
+    setFailed(false)
+  }, [src])
+
+  const currentSrc = useFallback && fallbackSrc ? fallbackSrc : src
+
   const handleError = () => {
-    if (currentSrc === src && fallbackSrc) {
-      setCurrentSrc(fallbackSrc)
+    if (!useFallback && fallbackSrc) {
+      setUseFallback(true)
     } else {
       setFailed(true)
     }
