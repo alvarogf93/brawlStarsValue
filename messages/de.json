@@ -646,7 +646,8 @@
     "mapPerformance": "Leistung nach Karte",
     "brawlerTierList": "Deine Brawler-Tier-List",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "DEINE MATCHUPS — Wie DU gegen jeden Gegner abschneidest"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "Absteigend",
     "trendStable": "Stabil",
     "trendDelta": "{delta}% diese Woche",
-    "counterTitle": "Counter-Picks",
-    "counterHint": "Wenn der Gegner {name} wählt, spiele:",
     "proTriosTitle": "Beste Teamkompositionen (PRO)",
     "gapTitle": "Deine Lücke vs PROs",
     "gapAbove": "Über PRO",
@@ -682,7 +681,10 @@
     "upgradeForGap": "Upgrade auf PRO für deine Lückenanalyse",
     "noGapData": "Spiele Kämpfe auf dieser Karte, um deine Lückenanalyse zu sehen",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} Kämpfe",
+    "modeFallbackBanner": "Modus-Aggregat wird angezeigt — diese Karte hat zu wenig Daten.",
+    "countersLabel": "Konter"
   },
   "picks": {
     "title": "Beste Picks",
@@ -690,8 +692,8 @@
     "ended": "Beendet",
     "limitedData": "Begrenzte Daten",
     "noData": "Noch keine Daten",
-    "noDataContextual": "Neue Karte — Daten werden gesammelt",
-    "modeFallbackBanner": "Top-Picks für diesen Modus",
+    "noDataContextual": "Neue Karte oder kürzliche Rotation — Daten werden gesammelt.",
+    "modeFallbackBanner": "Top-Brawler aus dem allgemeinen Modus — diese Karte hat zu wenig Daten.",
     "sampleSize": "{count} Kämpfe",
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
@@ -779,6 +781,10 @@
     "colMetaWR": "Meta SR",
     "colDiff": "Diff.",
     "colOpponent": "Gegner",
-    "noPersonalData": "Spiele mehr Kämpfe mit diesem Brawler um deine persönlichen Statistiken zu sehen"
+    "noPersonalData": "Spiele mehr Kämpfe mit diesem Brawler um deine persönlichen Statistiken zu sehen",
+    "sampleSize": "{count} Kämpfe",
+    "matchupsEmptyContextual": "Keine Matchups für diesen Brawler in den letzten 90 Tagen. Das passiert oft bei neuen oder selten gespielten Brawlern.",
+    "bestMapsEmptyContextual": "Noch keine Kartendaten für diesen Brawler. Schau in 24-48h wieder vorbei.",
+    "bestTeammatesEmptyContextual": "Noch keine Teammates erfasst."
   }
 }

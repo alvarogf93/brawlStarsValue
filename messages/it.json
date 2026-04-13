@@ -646,7 +646,8 @@
     "mapPerformance": "Prestazioni per Mappa",
     "brawlerTierList": "La Tua Tier List Brawler",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "I TUOI MATCHUP — Come TU vai contro ogni avversario"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "In discesa",
     "trendStable": "Stabile",
     "trendDelta": "{delta}% questa settimana",
-    "counterTitle": "Contro-Pick",
-    "counterHint": "Se il nemico sceglie {name}, gioca:",
     "proTriosTitle": "Migliori Composizioni (PRO)",
     "gapTitle": "Il Tuo Divario vs PRO",
     "gapAbove": "Sopra il PRO",
@@ -682,7 +681,10 @@
     "upgradeForGap": "Passa a PRO per vedere la tua analisi",
     "noGapData": "Gioca partite su questa mappa per vedere la tua analisi di divario",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} battaglie",
+    "modeFallbackBanner": "Mostro dati aggregati della modalità — questa mappa ha pochi dati.",
+    "countersLabel": "Counter"
   },
   "picks": {
     "title": "Migliori Pick",
@@ -690,8 +692,8 @@
     "ended": "Terminato",
     "limitedData": "Dati limitati",
     "noData": "Nessun dato",
-    "noDataContextual": "Nuova mappa — raccolta dati in corso",
-    "modeFallbackBanner": "Top pick per questa modalità",
+    "noDataContextual": "Mappa nuova o rotazione recente — raccolta dati in corso.",
+    "modeFallbackBanner": "Mostro i top brawler della modalità generale — questa mappa ha pochi dati.",
     "sampleSize": "{count} battaglie",
     "showMore": "Mostra di più",
     "showLess": "Mostra meno",
@@ -779,6 +781,10 @@
     "colMetaWR": "Meta %V",
     "colDiff": "Diff.",
     "colOpponent": "Avversario",
-    "noPersonalData": "Gioca più partite con questo brawler per vedere le tue statistiche personali"
+    "noPersonalData": "Gioca più partite con questo brawler per vedere le tue statistiche personali",
+    "sampleSize": "{count} battaglie",
+    "matchupsEmptyContextual": "Nessun matchup registrato per questo brawler negli ultimi 90 giorni. Succede spesso con brawler appena usciti o poco giocati.",
+    "bestMapsEmptyContextual": "Nessun dato di mappe per questo brawler. Ricontrolla tra 24-48h.",
+    "bestTeammatesEmptyContextual": "Nessun compagno registrato ancora."
   }
 }

@@ -646,7 +646,8 @@
     "mapPerformance": "Результаты по картам",
     "brawlerTierList": "Твой тир-лист бойцов",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "ТВОИ МАТЧАПЫ — Как ТЫ играешь против каждого противника"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "Падает",
     "trendStable": "Стабильно",
     "trendDelta": "{delta}% за эту неделю",
-    "counterTitle": "Counter-Picks",
-    "counterHint": "Если враг пикает {name}, играй:",
     "proTriosTitle": "Лучшие командные составы (PRO)",
     "gapTitle": "Твоё отставание от PRO",
     "gapAbove": "Выше PRO",
@@ -682,7 +681,10 @@
     "upgradeForGap": "Перейди на PRO, чтобы увидеть анализ отставания",
     "noGapData": "Сыграй матчи на этой карте, чтобы увидеть анализ отставания",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} боёв",
+    "modeFallbackBanner": "Показаны агрегированные данные режима — на этой карте мало данных.",
+    "countersLabel": "Контры"
   },
   "picks": {
     "title": "Лучшие пики",
@@ -690,8 +692,8 @@
     "ended": "Завершено",
     "limitedData": "Ограниченные данные",
     "noData": "Пока нет данных",
-    "noDataContextual": "Новая карта — сбор данных",
-    "modeFallbackBanner": "Показаны топ-пики режима",
+    "noDataContextual": "Новая карта или недавняя ротация — собираем данные.",
+    "modeFallbackBanner": "Показаны лучшие бойцы режима в целом — на этой карте мало данных.",
     "sampleSize": "{count} боёв",
     "showMore": "Показать ещё",
     "showLess": "Свернуть",
@@ -779,6 +781,10 @@
     "colMetaWR": "Мета WR",
     "colDiff": "Разн.",
     "colOpponent": "Противник",
-    "noPersonalData": "Сыграй больше матчей с этим бравлером, чтобы увидеть свою статистику"
+    "noPersonalData": "Сыграй больше матчей с этим бравлером, чтобы увидеть свою статистику",
+    "sampleSize": "{count} боёв",
+    "matchupsEmptyContextual": "Нет зарегистрированных матчапов для этого бойца за последние 90 дней. Обычно это бывает с новыми или редко играемыми бойцами.",
+    "bestMapsEmptyContextual": "Пока нет данных о картах для этого бойца. Вернитесь через 24-48ч.",
+    "bestTeammatesEmptyContextual": "Пока нет зарегистрированных союзников."
   }
 }
