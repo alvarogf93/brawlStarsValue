@@ -1,10 +1,11 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, wrColor } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
-import type { TopBrawlerEntry } from '@/lib/draft/pro-analysis'
+import type { TopBrawlerEntry, CounterEntry } from '@/lib/draft/pro-analysis'
 
 interface Props {
   brawlers: TopBrawlerEntry[]
@@ -16,6 +17,15 @@ interface Props {
    * Added in Sprint C — spec §7.2.
    */
   source?: 'map-mode' | 'mode-fallback'
+  /**
+   * Optional array of counter entries keyed by brawlerId. When provided,
+   * each brawler card renders its 3 best counters inline. Free users see
+   * the 3 the API sends; premium users receive more and can tap "Ver más"
+   * (rendered in a later iteration — Sprint C ships the 3-slot version).
+   *
+   * Added in Sprint C — spec §5.1 Track 5.
+   */
+  counters?: CounterEntry[]
 }
 
 function TrendBadge({ delta }: { delta: number | null }) {
@@ -41,8 +51,22 @@ function TrendBadge({ delta }: { delta: number | null }) {
   )
 }
 
-export function TopBrawlersGrid({ brawlers, totalBattles, source = 'map-mode' }: Props) {
+export function TopBrawlersGrid({
+  brawlers,
+  totalBattles,
+  source = 'map-mode',
+  counters,
+}: Props) {
   const t = useTranslations('metaPro')
+
+  // Build an O(1) lookup: brawlerId → CounterEntry
+  const counterByBrawlerId = useMemo(() => {
+    const map = new Map<number, CounterEntry>()
+    if (counters) {
+      for (const c of counters) map.set(c.brawlerId, c)
+    }
+    return map
+  }, [counters])
 
   if (brawlers.length === 0) {
     return (
@@ -112,6 +136,41 @@ export function TopBrawlersGrid({ brawlers, totalBattles, source = 'map-mode' }:
             </p>
 
             <TrendBadge delta={b.trend7d} />
+
+            {(() => {
+              const entry = counterByBrawlerId.get(b.brawlerId)
+              if (!entry || entry.bestCounters.length === 0) return null
+              const visibleCounters = entry.bestCounters.slice(0, 3)
+              return (
+                <div className="w-full mt-1 pt-2 border-t border-white/5">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase mb-1 text-center">
+                    {t('countersLabel')}
+                  </p>
+                  <div className="flex flex-col gap-1">
+                    {visibleCounters.map((c) => (
+                      <div
+                        key={c.opponentId}
+                        className="flex items-center gap-1.5 bg-[#0D1321] rounded-md px-1.5 py-1"
+                      >
+                        <BrawlImg
+                          src={getBrawlerPortraitUrl(c.opponentId)}
+                          fallbackSrc={getBrawlerPortraitFallback(c.opponentId)}
+                          alt={c.name}
+                          className="w-4 h-4 rounded-sm flex-shrink-0"
+                        />
+                        <span className="font-['Lilita_One'] text-[10px] text-white truncate flex-1">
+                          {c.name}
+                        </span>
+                        <ConfidenceBadge total={c.total} />
+                        <span className={`text-[9px] font-bold tabular-nums ${wrColor(c.winRate)}`}>
+                          {Math.round(c.winRate)}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         ))}
       </div>
