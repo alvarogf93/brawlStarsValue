@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "브롤스타즈 전체 전투 기록 | BrawlVision",
-    "metaDescription": "슈퍼셀 API는 25개 전투만 저장합니다. BrawlVision은 10분마다 동기화하고 무제한 기록을 영구 보관합니다. 브롤러, 맵, 모드별 분석.",
+    "metaDescription": "슈퍼셀 API는 25개 전투만 저장합니다. BrawlVision은 백그라운드에서 동기화하고 무제한 기록을 영구 보관합니다. 브롤러, 맵, 모드별 분석.",
     "breadcrumbLabel": "전투 기록",
     "homeAriaLabel": "홈 페이지로 이동",
     "heroTitle": "브롤스타즈 전투 기록을 완전하게 저장하세요",
-    "heroLead": "슈퍼셀 공식 API는 마지막 25경기만 저장합니다. BrawlVision은 10분마다 동기화하며 영원히 당신의 것인 무제한 기록을 구축합니다.",
+    "heroLead": "슈퍼셀 공식 API는 마지막 25경기만 저장합니다. BrawlVision은 이를 동기화하여 영원히 당신의 것인 무제한 기록을 구축합니다.",
     "ctaPrimary": "전투 기록 저장 시작",
     "benefitsTitle": "BrawlVision이 해드리는 일",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "자동 동기화",
-        "body": "대시보드가 10분마다 갱신됩니다. 클릭 없이. 잃어버린 전투 없이."
+        "body": "BrawlVision은 백그라운드에서 기록을 동기화합니다. 수동 새로고침 없음, 추가 단계 없음."
       }
     ],
     "howTitle": "시작 방법",

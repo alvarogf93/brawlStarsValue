@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "Historique complet de Brawl Stars | BrawlVision",
-    "metaDescription": "L'API de Supercell ne garde que 25 combats. BrawlVision les synchronise toutes les 10 minutes et construit ton historique illimité. Analyses par brawler, carte et mode.",
+    "metaDescription": "L'API de Supercell ne garde que 25 combats. BrawlVision les synchronise en arrière-plan et construit ton historique illimité. Analyses par brawler, carte et mode.",
     "breadcrumbLabel": "Historique de combats",
     "homeAriaLabel": "Aller à la page d'accueil",
     "heroTitle": "Sauvegarde ton historique complet de combats Brawl Stars",
-    "heroLead": "L'API officielle de Supercell ne conserve que tes 25 derniers matchs. BrawlVision les synchronise toutes les 10 minutes et construit un historique illimité qui t'appartient pour toujours.",
+    "heroLead": "L'API officielle de Supercell ne conserve que tes 25 derniers matchs. BrawlVision les synchronise et construit un historique illimité qui t'appartient pour toujours.",
     "ctaPrimary": "Commencer à sauvegarder mes combats",
     "benefitsTitle": "Ce que BrawlVision fait pour toi",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "Synchronisation automatique",
-        "body": "Ton tableau de bord se rafraîchit toutes les 10 minutes. Sans rien faire. Sans perdre de combats."
+        "body": "BrawlVision synchronise ton historique en arrière-plan. Sans rafraîchissements manuels, sans étapes supplémentaires."
       }
     ],
     "howTitle": "Comment commencer",

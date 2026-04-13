@@ -19,11 +19,11 @@ const LOCALES = ['ar', 'de', 'en', 'es', 'fr', 'it', 'ja', 'ko', 'pl', 'pt', 'ru
 const TRANSLATIONS = {
   es: {
     metaTitle: 'Historial completo de Brawl Stars | BrawlVision',
-    metaDescription: 'La API de Supercell solo guarda 25 batallas. BrawlVision las sincroniza cada 10 minutos y construye tu historial ilimitado para siempre. Análisis por brawler, mapa y modo.',
+    metaDescription: 'La API de Supercell solo guarda 25 batallas. BrawlVision sincroniza tus partidas en segundo plano y construye tu historial ilimitado para siempre. Análisis por brawler, mapa y modo.',
     breadcrumbLabel: 'Historial de batallas',
     homeAriaLabel: 'Ir a la página principal',
     heroTitle: 'Guarda tu historial completo de batallas de Brawl Stars',
-    heroLead: 'La API oficial de Supercell solo conserva tus últimas 25 partidas. BrawlVision las sincroniza cada 10 minutos y construye un historial ilimitado que es tuyo para siempre.',
+    heroLead: 'La API oficial de Supercell solo conserva tus últimas 25 partidas. BrawlVision las sincroniza y construye un historial ilimitado que es tuyo para siempre.',
     ctaPrimary: 'Empezar a guardar mi historial',
     benefitsTitle: 'Lo que BrawlVision hace por ti',
     benefits: [
@@ -41,7 +41,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Sincronización automática',
-        body: 'Tu dashboard se actualiza cada 10 minutos. Sin tocar nada. Sin perder batallas por olvidarte de entrar.',
+        body: 'BrawlVision sincroniza tu historial en segundo plano. Sin refrescos manuales, sin pasos extra.',
       },
     ],
     howTitle: 'Cómo empezar',
@@ -71,11 +71,11 @@ const TRANSLATIONS = {
 
   en: {
     metaTitle: 'Complete Brawl Stars Battle History | BrawlVision',
-    metaDescription: 'Supercell\'s API only keeps 25 battles. BrawlVision syncs them every 10 minutes and builds your unlimited battle history forever. Per-brawler, per-map, per-mode analytics.',
+    metaDescription: 'Supercell\'s API only keeps 25 battles. BrawlVision syncs them in the background and builds your unlimited battle history forever. Per-brawler, per-map, per-mode analytics.',
     breadcrumbLabel: 'Battle history',
     homeAriaLabel: 'Go to the home page',
     heroTitle: 'Save your complete Brawl Stars battle history',
-    heroLead: 'Supercell\'s official API only keeps your last 25 matches. BrawlVision syncs them every 10 minutes and builds an unlimited history that\'s yours forever.',
+    heroLead: 'Supercell\'s official API only keeps your last 25 matches. BrawlVision syncs them and builds an unlimited history that\'s yours forever.',
     ctaPrimary: 'Start tracking my battles',
     benefitsTitle: 'What BrawlVision does for you',
     benefits: [
@@ -93,7 +93,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Automatic sync',
-        body: 'Your dashboard refreshes every 10 minutes. No manual clicks. No battles lost because you forgot to log in.',
+        body: 'BrawlVision syncs your history in the background. No manual refreshes, no extra steps.',
       },
     ],
     howTitle: 'How it works',
@@ -123,11 +123,11 @@ const TRANSLATIONS = {
 
   fr: {
     metaTitle: 'Historique complet de Brawl Stars | BrawlVision',
-    metaDescription: 'L\'API de Supercell ne garde que 25 combats. BrawlVision les synchronise toutes les 10 minutes et construit ton historique illimité. Analyses par brawler, carte et mode.',
+    metaDescription: 'L\'API de Supercell ne garde que 25 combats. BrawlVision les synchronise en arrière-plan et construit ton historique illimité. Analyses par brawler, carte et mode.',
     breadcrumbLabel: 'Historique de combats',
     homeAriaLabel: 'Aller à la page d\'accueil',
     heroTitle: 'Sauvegarde ton historique complet de combats Brawl Stars',
-    heroLead: 'L\'API officielle de Supercell ne conserve que tes 25 derniers matchs. BrawlVision les synchronise toutes les 10 minutes et construit un historique illimité qui t\'appartient pour toujours.',
+    heroLead: 'L\'API officielle de Supercell ne conserve que tes 25 derniers matchs. BrawlVision les synchronise et construit un historique illimité qui t\'appartient pour toujours.',
     ctaPrimary: 'Commencer à sauvegarder mes combats',
     benefitsTitle: 'Ce que BrawlVision fait pour toi',
     benefits: [
@@ -145,7 +145,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Synchronisation automatique',
-        body: 'Ton tableau de bord se rafraîchit toutes les 10 minutes. Sans rien faire. Sans perdre de combats.',
+        body: 'BrawlVision synchronise ton historique en arrière-plan. Sans rafraîchissements manuels, sans étapes supplémentaires.',
       },
     ],
     howTitle: 'Comment commencer',
@@ -175,11 +175,11 @@ const TRANSLATIONS = {
 
   pt: {
     metaTitle: 'Histórico completo de Brawl Stars | BrawlVision',
-    metaDescription: 'A API da Supercell só guarda 25 batalhas. BrawlVision sincroniza a cada 10 minutos e constrói seu histórico ilimitado para sempre. Análises por brawler, mapa e modo.',
+    metaDescription: 'A API da Supercell só guarda 25 batalhas. BrawlVision sincroniza em segundo plano e constrói seu histórico ilimitado para sempre. Análises por brawler, mapa e modo.',
     breadcrumbLabel: 'Histórico de batalhas',
     homeAriaLabel: 'Ir para a página inicial',
     heroTitle: 'Salve seu histórico completo de batalhas do Brawl Stars',
-    heroLead: 'A API oficial da Supercell só guarda suas últimas 25 partidas. BrawlVision sincroniza a cada 10 minutos e constrói um histórico ilimitado que é seu para sempre.',
+    heroLead: 'A API oficial da Supercell só guarda suas últimas 25 partidas. BrawlVision sincroniza e constrói um histórico ilimitado que é seu para sempre.',
     ctaPrimary: 'Começar a salvar meu histórico',
     benefitsTitle: 'O que o BrawlVision faz por você',
     benefits: [
@@ -197,7 +197,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Sincronização automática',
-        body: 'Seu dashboard atualiza a cada 10 minutos. Sem tocar em nada. Sem perder batalhas.',
+        body: 'BrawlVision sincroniza seu histórico em segundo plano. Sem atualizações manuais, sem passos extras.',
       },
     ],
     howTitle: 'Como começar',
@@ -227,11 +227,11 @@ const TRANSLATIONS = {
 
   de: {
     metaTitle: 'Vollständiger Brawl Stars Kampfverlauf | BrawlVision',
-    metaDescription: 'Supercells API speichert nur 25 Kämpfe. BrawlVision synchronisiert alle 10 Minuten und baut deinen unbegrenzten Verlauf für immer. Analysen pro Brawler, Karte und Modus.',
+    metaDescription: 'Supercells API speichert nur 25 Kämpfe. BrawlVision synchronisiert im Hintergrund und baut deinen unbegrenzten Verlauf für immer. Analysen pro Brawler, Karte und Modus.',
     breadcrumbLabel: 'Kampfverlauf',
     homeAriaLabel: 'Zur Startseite',
     heroTitle: 'Speichere deinen kompletten Brawl Stars Kampfverlauf',
-    heroLead: 'Die offizielle Supercell-API speichert nur deine letzten 25 Matches. BrawlVision synchronisiert alle 10 Minuten und baut einen unbegrenzten Verlauf, der für immer dir gehört.',
+    heroLead: 'Die offizielle Supercell-API speichert nur deine letzten 25 Matches. BrawlVision synchronisiert sie und baut einen unbegrenzten Verlauf, der für immer dir gehört.',
     ctaPrimary: 'Meine Kämpfe speichern',
     benefitsTitle: 'Was BrawlVision für dich macht',
     benefits: [
@@ -249,7 +249,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Automatische Synchronisation',
-        body: 'Dein Dashboard aktualisiert sich alle 10 Minuten. Ohne Klicks. Ohne verlorene Kämpfe.',
+        body: 'BrawlVision synchronisiert deinen Verlauf im Hintergrund. Keine manuellen Aktualisierungen, keine zusätzlichen Schritte.',
       },
     ],
     howTitle: 'So fängst du an',
@@ -279,11 +279,11 @@ const TRANSLATIONS = {
 
   it: {
     metaTitle: 'Storico completo di Brawl Stars | BrawlVision',
-    metaDescription: 'L\'API di Supercell salva solo 25 battaglie. BrawlVision sincronizza ogni 10 minuti e costruisce il tuo storico illimitato per sempre. Analisi per brawler, mappa e modalità.',
+    metaDescription: 'L\'API di Supercell salva solo 25 battaglie. BrawlVision sincronizza in background e costruisce il tuo storico illimitato per sempre. Analisi per brawler, mappa e modalità.',
     breadcrumbLabel: 'Storico battaglie',
     homeAriaLabel: 'Vai alla pagina principale',
     heroTitle: 'Salva lo storico completo delle tue battaglie di Brawl Stars',
-    heroLead: 'L\'API ufficiale di Supercell conserva solo le tue ultime 25 partite. BrawlVision le sincronizza ogni 10 minuti e costruisce uno storico illimitato che è tuo per sempre.',
+    heroLead: 'L\'API ufficiale di Supercell conserva solo le tue ultime 25 partite. BrawlVision le sincronizza e costruisce uno storico illimitato che è tuo per sempre.',
     ctaPrimary: 'Inizia a salvare le mie battaglie',
     benefitsTitle: 'Cosa fa BrawlVision per te',
     benefits: [
@@ -301,7 +301,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Sincronizzazione automatica',
-        body: 'La tua dashboard si aggiorna ogni 10 minuti. Senza toccare niente. Senza perdere battaglie.',
+        body: 'BrawlVision sincronizza il tuo storico in background. Senza aggiornamenti manuali, senza passaggi extra.',
       },
     ],
     howTitle: 'Come iniziare',
@@ -331,11 +331,11 @@ const TRANSLATIONS = {
 
   ru: {
     metaTitle: 'Полная история боёв Brawl Stars | BrawlVision',
-    metaDescription: 'API Supercell хранит только 25 боёв. BrawlVision синхронизирует каждые 10 минут и строит неограниченную историю навсегда. Аналитика по брелку, карте и режиму.',
+    metaDescription: 'API Supercell хранит только 25 боёв. BrawlVision синхронизирует их в фоне и строит неограниченную историю навсегда. Аналитика по бойцу, карте и режиму.',
     breadcrumbLabel: 'История боёв',
     homeAriaLabel: 'На главную',
     heroTitle: 'Сохрани полную историю боёв в Brawl Stars',
-    heroLead: 'Официальный API Supercell хранит только последние 25 матчей. BrawlVision синхронизирует их каждые 10 минут и строит неограниченную историю, которая твоя навсегда.',
+    heroLead: 'Официальный API Supercell хранит только последние 25 матчей. BrawlVision синхронизирует их и строит неограниченную историю, которая твоя навсегда.',
     ctaPrimary: 'Начать сохранять историю',
     benefitsTitle: 'Что BrawlVision делает для тебя',
     benefits: [
@@ -353,7 +353,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Автоматическая синхронизация',
-        body: 'Дашборд обновляется каждые 10 минут. Без кликов. Без потерянных боёв.',
+        body: 'BrawlVision синхронизирует твою историю в фоне. Без ручных обновлений, без лишних шагов.',
       },
     ],
     howTitle: 'Как начать',
@@ -383,11 +383,11 @@ const TRANSLATIONS = {
 
   tr: {
     metaTitle: 'Tam Brawl Stars Savaş Geçmişi | BrawlVision',
-    metaDescription: 'Supercell API\'si sadece 25 savaş tutar. BrawlVision 10 dakikada bir senkronize eder ve sınırsız geçmişini sonsuza kadar saklar. Brawler, harita ve mod analizleri.',
+    metaDescription: 'Supercell API\'si sadece 25 savaş tutar. BrawlVision arka planda senkronize eder ve sınırsız geçmişini sonsuza kadar saklar. Brawler, harita ve mod analizleri.',
     breadcrumbLabel: 'Savaş geçmişi',
     homeAriaLabel: 'Ana sayfaya git',
     heroTitle: 'Brawl Stars savaş geçmişini tam olarak kaydet',
-    heroLead: 'Supercell\'in resmi API\'si sadece son 25 maçını tutar. BrawlVision her 10 dakikada bir senkronize eder ve sonsuza kadar senin olan sınırsız bir geçmiş oluşturur.',
+    heroLead: 'Supercell\'in resmi API\'si sadece son 25 maçını tutar. BrawlVision onları senkronize eder ve sonsuza kadar senin olan sınırsız bir geçmiş oluşturur.',
     ctaPrimary: 'Savaşlarımı kaydetmeye başla',
     benefitsTitle: 'BrawlVision senin için ne yapar',
     benefits: [
@@ -405,7 +405,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Otomatik senkronizasyon',
-        body: 'Dashboardun her 10 dakikada bir yenilenir. Elle dokunmadan. Kayıp savaş olmadan.',
+        body: 'BrawlVision geçmişini arka planda senkronize eder. Manuel yenileme yok, ekstra adım yok.',
       },
     ],
     howTitle: 'Nasıl başlarsın',
@@ -435,11 +435,11 @@ const TRANSLATIONS = {
 
   pl: {
     metaTitle: 'Pełna historia walk Brawl Stars | BrawlVision',
-    metaDescription: 'API Supercell trzyma tylko 25 walk. BrawlVision synchronizuje co 10 minut i buduje Twoją nieograniczoną historię na zawsze. Analiza po brawlerze, mapie i trybie.',
+    metaDescription: 'API Supercell trzyma tylko 25 walk. BrawlVision synchronizuje je w tle i buduje Twoją nieograniczoną historię na zawsze. Analiza po brawlerze, mapie i trybie.',
     breadcrumbLabel: 'Historia walk',
     homeAriaLabel: 'Przejdź do strony głównej',
     heroTitle: 'Zapisz pełną historię walk w Brawl Stars',
-    heroLead: 'Oficjalne API Supercell trzyma tylko Twoje ostatnie 25 meczów. BrawlVision synchronizuje co 10 minut i buduje nieograniczoną historię, która jest Twoja na zawsze.',
+    heroLead: 'Oficjalne API Supercell trzyma tylko Twoje ostatnie 25 meczów. BrawlVision synchronizuje je i buduje nieograniczoną historię, która jest Twoja na zawsze.',
     ctaPrimary: 'Zacznij zapisywać walki',
     benefitsTitle: 'Co BrawlVision robi dla Ciebie',
     benefits: [
@@ -457,7 +457,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'Automatyczna synchronizacja',
-        body: 'Twój panel odświeża się co 10 minut. Bez klikania. Bez utraconych walk.',
+        body: 'BrawlVision synchronizuje Twoją historię w tle. Bez ręcznych odświeżeń, bez dodatkowych kroków.',
       },
     ],
     howTitle: 'Jak zacząć',
@@ -487,11 +487,11 @@ const TRANSLATIONS = {
 
   ar: {
     metaTitle: 'سجل معارك Brawl Stars الكامل | BrawlVision',
-    metaDescription: 'واجهة Supercell تحفظ 25 معركة فقط. BrawlVision يزامنها كل 10 دقائق ويبني سجلك غير المحدود إلى الأبد. تحليلات لكل بطل وخريطة ووضع.',
+    metaDescription: 'واجهة Supercell تحفظ 25 معركة فقط. BrawlVision يزامنها في الخلفية ويبني سجلك غير المحدود إلى الأبد. تحليلات لكل بطل وخريطة ووضع.',
     breadcrumbLabel: 'سجل المعارك',
     homeAriaLabel: 'العودة إلى الصفحة الرئيسية',
     heroTitle: 'احفظ سجل معارك Brawl Stars كاملاً',
-    heroLead: 'واجهة Supercell الرسمية تحفظ آخر 25 مباراة فقط. BrawlVision يزامنها كل 10 دقائق ويبني سجلاً غير محدود يبقى ملكك إلى الأبد.',
+    heroLead: 'واجهة Supercell الرسمية تحفظ آخر 25 مباراة فقط. BrawlVision يزامنها ويبني سجلاً غير محدود يبقى ملكك إلى الأبد.',
     ctaPrimary: 'ابدأ بحفظ معاركي',
     benefitsTitle: 'ماذا يفعل BrawlVision لك',
     benefits: [
@@ -509,7 +509,7 @@ const TRANSLATIONS = {
       },
       {
         title: 'مزامنة تلقائية',
-        body: 'لوحتك تتحدث كل 10 دقائق. بدون نقرات. بدون فقدان معارك.',
+        body: 'BrawlVision يزامن سجلك في الخلفية. بدون تحديثات يدوية، بدون خطوات إضافية.',
       },
     ],
     howTitle: 'كيف تبدأ',
@@ -539,11 +539,11 @@ const TRANSLATIONS = {
 
   ko: {
     metaTitle: '브롤스타즈 전체 전투 기록 | BrawlVision',
-    metaDescription: '슈퍼셀 API는 25개 전투만 저장합니다. BrawlVision은 10분마다 동기화하고 무제한 기록을 영구 보관합니다. 브롤러, 맵, 모드별 분석.',
+    metaDescription: '슈퍼셀 API는 25개 전투만 저장합니다. BrawlVision은 백그라운드에서 동기화하고 무제한 기록을 영구 보관합니다. 브롤러, 맵, 모드별 분석.',
     breadcrumbLabel: '전투 기록',
     homeAriaLabel: '홈 페이지로 이동',
     heroTitle: '브롤스타즈 전투 기록을 완전하게 저장하세요',
-    heroLead: '슈퍼셀 공식 API는 마지막 25경기만 저장합니다. BrawlVision은 10분마다 동기화하며 영원히 당신의 것인 무제한 기록을 구축합니다.',
+    heroLead: '슈퍼셀 공식 API는 마지막 25경기만 저장합니다. BrawlVision은 이를 동기화하여 영원히 당신의 것인 무제한 기록을 구축합니다.',
     ctaPrimary: '전투 기록 저장 시작',
     benefitsTitle: 'BrawlVision이 해드리는 일',
     benefits: [
@@ -561,7 +561,7 @@ const TRANSLATIONS = {
       },
       {
         title: '자동 동기화',
-        body: '대시보드가 10분마다 갱신됩니다. 클릭 없이. 잃어버린 전투 없이.',
+        body: 'BrawlVision은 백그라운드에서 기록을 동기화합니다. 수동 새로고침 없음, 추가 단계 없음.',
       },
     ],
     howTitle: '시작 방법',
@@ -591,11 +591,11 @@ const TRANSLATIONS = {
 
   ja: {
     metaTitle: 'ブロスタ完全バトル履歴 | BrawlVision',
-    metaDescription: 'Supercell APIは25戦しか保存しません。BrawlVisionは10分ごとに同期し、無制限の履歴を永久に保存します。ブロウラー・マップ・モードごとの分析。',
+    metaDescription: 'Supercell APIは25戦しか保存しません。BrawlVisionはバックグラウンドで同期し、無制限の履歴を永久に保存します。ブロウラー・マップ・モードごとの分析。',
     breadcrumbLabel: 'バトル履歴',
     homeAriaLabel: 'ホームページへ戻る',
     heroTitle: 'ブロスタのバトル履歴を完全に保存',
-    heroLead: 'Supercell公式APIは直近25試合しか保存しません。BrawlVisionは10分ごとに同期し、永久にあなたのものとなる無制限の履歴を構築します。',
+    heroLead: 'Supercell公式APIは直近25試合しか保存しません。BrawlVisionはそれらを同期し、永久にあなたのものとなる無制限の履歴を構築します。',
     ctaPrimary: 'バトル履歴を保存開始',
     benefitsTitle: 'BrawlVisionができること',
     benefits: [
@@ -613,7 +613,7 @@ const TRANSLATIONS = {
       },
       {
         title: '自動同期',
-        body: 'ダッシュボードは10分ごとに更新。クリック不要。バトルを失わない。',
+        body: 'BrawlVisionはバックグラウンドで履歴を同期します。手動更新不要、追加手順なし。',
       },
     ],
     howTitle: '始め方',
@@ -643,11 +643,11 @@ const TRANSLATIONS = {
 
   zh: {
     metaTitle: '荒野乱斗完整战斗历史 | BrawlVision',
-    metaDescription: 'Supercell API只保留25场战斗。BrawlVision每10分钟同步一次，永久构建你的无限历史。按英雄、地图、模式分析。',
+    metaDescription: 'Supercell API只保留25场战斗。BrawlVision在后台同步并永久构建你的无限历史。按英雄、地图、模式分析。',
     breadcrumbLabel: '战斗历史',
     homeAriaLabel: '返回首页',
     heroTitle: '保存你完整的荒野乱斗战斗历史',
-    heroLead: 'Supercell官方API只保留你最近25场比赛。BrawlVision每10分钟同步一次，为你构建永远属于你的无限历史。',
+    heroLead: 'Supercell官方API只保留你最近25场比赛。BrawlVision同步它们，为你构建永远属于你的无限历史。',
     ctaPrimary: '开始保存我的战斗',
     benefitsTitle: 'BrawlVision为你做什么',
     benefits: [
@@ -665,7 +665,7 @@ const TRANSLATIONS = {
       },
       {
         title: '自动同步',
-        body: '你的仪表盘每10分钟刷新。无需点击。不会丢失战斗。',
+        body: 'BrawlVision在后台同步你的历史。无需手动刷新，无需额外步骤。',
       },
     ],
     howTitle: '如何开始',

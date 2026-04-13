@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "荒野乱斗完整战斗历史 | BrawlVision",
-    "metaDescription": "Supercell API只保留25场战斗。BrawlVision每10分钟同步一次，永久构建你的无限历史。按英雄、地图、模式分析。",
+    "metaDescription": "Supercell API只保留25场战斗。BrawlVision在后台同步并永久构建你的无限历史。按英雄、地图、模式分析。",
     "breadcrumbLabel": "战斗历史",
     "homeAriaLabel": "返回首页",
     "heroTitle": "保存你完整的荒野乱斗战斗历史",
-    "heroLead": "Supercell官方API只保留你最近25场比赛。BrawlVision每10分钟同步一次，为你构建永远属于你的无限历史。",
+    "heroLead": "Supercell官方API只保留你最近25场比赛。BrawlVision同步它们，为你构建永远属于你的无限历史。",
     "ctaPrimary": "开始保存我的战斗",
     "benefitsTitle": "BrawlVision为你做什么",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "自动同步",
-        "body": "你的仪表盘每10分钟刷新。无需点击。不会丢失战斗。"
+        "body": "BrawlVision在后台同步你的历史。无需手动刷新，无需额外步骤。"
       }
     ],
     "howTitle": "如何开始",

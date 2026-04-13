@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "ブロスタ完全バトル履歴 | BrawlVision",
-    "metaDescription": "Supercell APIは25戦しか保存しません。BrawlVisionは10分ごとに同期し、無制限の履歴を永久に保存します。ブロウラー・マップ・モードごとの分析。",
+    "metaDescription": "Supercell APIは25戦しか保存しません。BrawlVisionはバックグラウンドで同期し、無制限の履歴を永久に保存します。ブロウラー・マップ・モードごとの分析。",
     "breadcrumbLabel": "バトル履歴",
     "homeAriaLabel": "ホームページへ戻る",
     "heroTitle": "ブロスタのバトル履歴を完全に保存",
-    "heroLead": "Supercell公式APIは直近25試合しか保存しません。BrawlVisionは10分ごとに同期し、永久にあなたのものとなる無制限の履歴を構築します。",
+    "heroLead": "Supercell公式APIは直近25試合しか保存しません。BrawlVisionはそれらを同期し、永久にあなたのものとなる無制限の履歴を構築します。",
     "ctaPrimary": "バトル履歴を保存開始",
     "benefitsTitle": "BrawlVisionができること",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "自動同期",
-        "body": "ダッシュボードは10分ごとに更新。クリック不要。バトルを失わない。"
+        "body": "BrawlVisionはバックグラウンドで履歴を同期します。手動更新不要、追加手順なし。"
       }
     ],
     "howTitle": "始め方",

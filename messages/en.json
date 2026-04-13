@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "Complete Brawl Stars Battle History | BrawlVision",
-    "metaDescription": "Supercell's API only keeps 25 battles. BrawlVision syncs them every 10 minutes and builds your unlimited battle history forever. Per-brawler, per-map, per-mode analytics.",
+    "metaDescription": "Supercell's API only keeps 25 battles. BrawlVision syncs them in the background and builds your unlimited battle history forever. Per-brawler, per-map, per-mode analytics.",
     "breadcrumbLabel": "Battle history",
     "homeAriaLabel": "Go to the home page",
     "heroTitle": "Save your complete Brawl Stars battle history",
-    "heroLead": "Supercell's official API only keeps your last 25 matches. BrawlVision syncs them every 10 minutes and builds an unlimited history that's yours forever.",
+    "heroLead": "Supercell's official API only keeps your last 25 matches. BrawlVision syncs them and builds an unlimited history that's yours forever.",
     "ctaPrimary": "Start tracking my battles",
     "benefitsTitle": "What BrawlVision does for you",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "Automatic sync",
-        "body": "Your dashboard refreshes every 10 minutes. No manual clicks. No battles lost because you forgot to log in."
+        "body": "BrawlVision syncs your history in the background. No manual refreshes, no extra steps."
       }
     ],
     "howTitle": "How it works",

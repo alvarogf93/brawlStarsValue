@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "Vollständiger Brawl Stars Kampfverlauf | BrawlVision",
-    "metaDescription": "Supercells API speichert nur 25 Kämpfe. BrawlVision synchronisiert alle 10 Minuten und baut deinen unbegrenzten Verlauf für immer. Analysen pro Brawler, Karte und Modus.",
+    "metaDescription": "Supercells API speichert nur 25 Kämpfe. BrawlVision synchronisiert im Hintergrund und baut deinen unbegrenzten Verlauf für immer. Analysen pro Brawler, Karte und Modus.",
     "breadcrumbLabel": "Kampfverlauf",
     "homeAriaLabel": "Zur Startseite",
     "heroTitle": "Speichere deinen kompletten Brawl Stars Kampfverlauf",
-    "heroLead": "Die offizielle Supercell-API speichert nur deine letzten 25 Matches. BrawlVision synchronisiert alle 10 Minuten und baut einen unbegrenzten Verlauf, der für immer dir gehört.",
+    "heroLead": "Die offizielle Supercell-API speichert nur deine letzten 25 Matches. BrawlVision synchronisiert sie und baut einen unbegrenzten Verlauf, der für immer dir gehört.",
     "ctaPrimary": "Meine Kämpfe speichern",
     "benefitsTitle": "Was BrawlVision für dich macht",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "Automatische Synchronisation",
-        "body": "Dein Dashboard aktualisiert sich alle 10 Minuten. Ohne Klicks. Ohne verlorene Kämpfe."
+        "body": "BrawlVision synchronisiert deinen Verlauf im Hintergrund. Keine manuellen Aktualisierungen, keine zusätzlichen Schritte."
       }
     ],
     "howTitle": "So fängst du an",

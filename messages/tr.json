@@ -809,11 +809,11 @@
   },
   "battleHistory": {
     "metaTitle": "Tam Brawl Stars Savaş Geçmişi | BrawlVision",
-    "metaDescription": "Supercell API'si sadece 25 savaş tutar. BrawlVision 10 dakikada bir senkronize eder ve sınırsız geçmişini sonsuza kadar saklar. Brawler, harita ve mod analizleri.",
+    "metaDescription": "Supercell API'si sadece 25 savaş tutar. BrawlVision arka planda senkronize eder ve sınırsız geçmişini sonsuza kadar saklar. Brawler, harita ve mod analizleri.",
     "breadcrumbLabel": "Savaş geçmişi",
     "homeAriaLabel": "Ana sayfaya git",
     "heroTitle": "Brawl Stars savaş geçmişini tam olarak kaydet",
-    "heroLead": "Supercell'in resmi API'si sadece son 25 maçını tutar. BrawlVision her 10 dakikada bir senkronize eder ve sonsuza kadar senin olan sınırsız bir geçmiş oluşturur.",
+    "heroLead": "Supercell'in resmi API'si sadece son 25 maçını tutar. BrawlVision onları senkronize eder ve sonsuza kadar senin olan sınırsız bir geçmiş oluşturur.",
     "ctaPrimary": "Savaşlarımı kaydetmeye başla",
     "benefitsTitle": "BrawlVision senin için ne yapar",
     "benefits": [
@@ -831,7 +831,7 @@
       },
       {
         "title": "Otomatik senkronizasyon",
-        "body": "Dashboardun her 10 dakikada bir yenilenir. Elle dokunmadan. Kayıp savaş olmadan."
+        "body": "BrawlVision geçmişini arka planda senkronize eder. Manuel yenileme yok, ekstra adım yok."
       }
     ],
     "howTitle": "Nasıl başlarsın",
