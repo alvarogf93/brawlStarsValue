@@ -65,12 +65,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       { cookies: { getAll: () => [], setAll: () => {} } },
     )
 
+    // Sprint D 2026-04-13: lowered from 500 to 100 to reduce sitemap
+    // noise. With 13 locales, 500 profiles produced 6,500 URLs that
+    // mostly ended up as "Discovered, currently not indexed" in
+    // Search Console because they exceeded Google's crawl budget for
+    // a site of this size. 100 × 13 = 1,300 URLs is manageable and
+    // covers the most-active players (which are the only ones likely
+    // to be searched for by tag).
     const { data: profiles } = await supabase
       .from('profiles')
       .select('player_tag')
       .not('last_sync', 'is', null)
       .order('last_sync', { ascending: false })
-      .limit(500)
+      .limit(100)
 
     if (profiles) {
       for (const { player_tag } of profiles) {
