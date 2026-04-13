@@ -2,6 +2,25 @@ import type { PlayerData } from './types'
 
 const API_BASE = process.env.BRAWLSTARS_API_URL || 'http://141.253.197.60:3001/v1'
 
+// Dev-mode guardrail: warn once at boot if BRAWLSTARS_API_URL isn't set.
+// Without it, the fallback hits the raw Oracle VPS IP, which is firewalled
+// to Vercel IPs only — from a dev machine it silently times out, breaking
+// /compare (trophy chart), /subscribe (player segment), brawler detail
+// calendar, and club trophy charts, all of which are gated on data and
+// fail invisibly. See commit 745fe80 for the hardcoded fallback rationale.
+if (
+  typeof process !== 'undefined' &&
+  process.env.NODE_ENV === 'development' &&
+  !process.env.BRAWLSTARS_API_URL
+) {
+  console.warn(
+    '[api] BRAWLSTARS_API_URL is not set — falling back to the VPS IP. ' +
+    'Features that depend on /api/battlelog (compare trophy chart, subscribe ' +
+    "page segmentation, brawler detail calendar, club trophy chart) will " +
+    'silently return empty. Set BRAWLSTARS_API_URL in .env.local — see .env.example.',
+  )
+}
+
 function encodeTag(tag: string): string {
   return encodeURIComponent(tag)
 }
