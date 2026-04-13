@@ -646,7 +646,8 @@
     "mapPerformance": "Haritaya göre performans",
     "brawlerTierList": "Senin brawler tier listen",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "SENİN EŞLEŞMELERİN — SEN her rakibe karşı nasıl gidiyorsun"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "Düşüyor",
     "trendStable": "Stabil",
     "trendDelta": "Bu hafta {delta}%",
-    "counterTitle": "Counter-Picks",
-    "counterHint": "Düşman {name} picklerse, oyna:",
     "proTriosTitle": "En iyi takım kompozisyonları (PRO)",
     "gapTitle": "PRO'lara göre farkın",
     "gapAbove": "PRO üstünde",
@@ -682,7 +681,10 @@
     "upgradeForGap": "Fark analizini görmek için PRO'ya geç",
     "noGapData": "Fark analizini görmek için bu haritada maçlar oyna",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} savaş",
+    "modeFallbackBanner": "Mod geneli veriler gösteriliyor — bu haritada yeterli veri yok.",
+    "countersLabel": "Karşı seçimler"
   },
   "picks": {
     "title": "En iyi pickler",
@@ -690,8 +692,8 @@
     "ended": "Sona erdi",
     "limitedData": "Sınırlı veri",
     "noData": "Henüz veri yok",
-    "noDataContextual": "Yeni harita — veri toplanıyor",
-    "modeFallbackBanner": "Bu modun en iyi seçimleri",
+    "noDataContextual": "Yeni harita veya yakın zamanda gelen rotasyon — veri toplanıyor.",
+    "modeFallbackBanner": "Genel mod için en iyi brawlerlar gösteriliyor — bu haritada yeterli veri yok.",
     "sampleSize": "{count} savaş",
     "showMore": "Daha fazla göster",
     "showLess": "Daha az göster",
@@ -779,6 +781,10 @@
     "colMetaWR": "Meta WR",
     "colDiff": "Fark",
     "colOpponent": "Rakip",
-    "noPersonalData": "Bu brawler ile daha fazla maç oyna, kişisel istatistiklerini gör"
+    "noPersonalData": "Bu brawler ile daha fazla maç oyna, kişisel istatistiklerini gör",
+    "sampleSize": "{count} savaş",
+    "matchupsEmptyContextual": "Bu brawler için son 90 gün içinde kayıtlı eşleşme yok. Genellikle yeni çıkan veya az oynanan brawlerlarda olur.",
+    "bestMapsEmptyContextual": "Bu brawler için henüz harita verisi yok. 24-48 saat sonra tekrar kontrol et.",
+    "bestTeammatesEmptyContextual": "Henüz kayıtlı takım arkadaşı yok."
   }
 }

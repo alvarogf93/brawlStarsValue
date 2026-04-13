@@ -646,7 +646,8 @@
     "mapPerformance": "Performance by Map",
     "brawlerTierList": "Your Brawler Tier List",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "YOUR MATCHUPS — How YOU perform against each opponent"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "Falling",
     "trendStable": "Stable",
     "trendDelta": "{delta}% this week",
-    "counterTitle": "Counter-Picks",
-    "counterHint": "If enemy picks {name}, play:",
     "proTriosTitle": "Best Team Compositions (PRO)",
     "gapTitle": "Your Gap vs PROs",
     "gapAbove": "Above PRO",
@@ -682,7 +681,10 @@
     "upgradeForGap": "Upgrade to PRO to see your gap analysis",
     "noGapData": "Play matches on this map to see your gap analysis",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} battles",
+    "modeFallbackBanner": "Showing mode-aggregate data — this map has too few battles.",
+    "countersLabel": "Counters"
   },
   "picks": {
     "title": "Best Picks",
@@ -690,8 +692,8 @@
     "ended": "Ended",
     "limitedData": "Limited data",
     "noData": "No data yet",
-    "noDataContextual": "New map — collecting data",
-    "modeFallbackBanner": "Showing top picks for this mode",
+    "noDataContextual": "New map or recent rotation — collecting data.",
+    "modeFallbackBanner": "Showing mode-aggregate top brawlers — this map has too few battles.",
     "sampleSize": "{count} battles",
     "showMore": "Show more",
     "showLess": "Show less",
@@ -779,6 +781,10 @@
     "colMetaWR": "Meta WR",
     "colDiff": "Diff",
     "colOpponent": "Opponent",
-    "noPersonalData": "Play more matches with this brawler to see your personal stats"
+    "noPersonalData": "Play more matches with this brawler to see your personal stats",
+    "sampleSize": "{count} battles",
+    "matchupsEmptyContextual": "No matchups recorded for this brawler in the last 90 days. This usually happens with newly-released or rarely-played brawlers.",
+    "bestMapsEmptyContextual": "No map data for this brawler yet. Check back in 24-48h.",
+    "bestTeammatesEmptyContextual": "No teammates recorded yet."
   }
 }

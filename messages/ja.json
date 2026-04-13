@@ -646,7 +646,8 @@
     "mapPerformance": "マップ別パフォーマンス",
     "brawlerTierList": "あなたのブロウラーティアリスト",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "あなたのマッチアップ — 各相手にどう戦うか"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "下降中",
     "trendStable": "安定",
     "trendDelta": "今週{delta}%",
-    "counterTitle": "カウンターピック",
-    "counterHint": "相手が{name}をピックしたら：",
     "proTriosTitle": "ベストチーム構成（PRO）",
     "gapTitle": "PROとのギャップ",
     "gapAbove": "PRO以上",
@@ -682,7 +681,10 @@
     "upgradeForGap": "PROにアップグレードしてギャップ分析を見ましょう",
     "noGapData": "このマップで試合をプレイしてギャップ分析を確認しましょう",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count}戦",
+    "modeFallbackBanner": "モード全体のデータを表示中 — このマップはデータが不足しています。",
+    "countersLabel": "カウンター"
   },
   "picks": {
     "title": "ベストピック",
@@ -690,9 +692,9 @@
     "ended": "終了",
     "limitedData": "データ限定",
     "noData": "まだデータなし",
-    "noDataContextual": "新マップ — データ収集中",
-    "modeFallbackBanner": "このモードのトップピックを表示",
-    "sampleSize": "{count} バトル",
+    "noDataContextual": "新しいマップまたは最近のローテーション — データ収集中。",
+    "modeFallbackBanner": "モード全体のトップブロウラーを表示中 — このマップはデータが不足しています。",
+    "sampleSize": "{count}戦",
     "showMore": "もっと見る",
     "showLess": "折りたたむ",
     "collecting": "メタデータ収集中",
@@ -779,6 +781,10 @@
     "colMetaWR": "メタWR",
     "colDiff": "差",
     "colOpponent": "相手",
-    "noPersonalData": "このブロウラーでもっと試合をして個人統計を確認しよう"
+    "noPersonalData": "このブロウラーでもっと試合をして個人統計を確認しよう",
+    "sampleSize": "{count}戦",
+    "matchupsEmptyContextual": "このブロウラーの過去90日間のマッチアップ記録がありません。新規リリースや利用率の低いブロウラーでよく起こります。",
+    "bestMapsEmptyContextual": "このブロウラーのマップデータはまだありません。24〜48時間後に再度確認してください。",
+    "bestTeammatesEmptyContextual": "味方の記録はまだありません。"
   }
 }

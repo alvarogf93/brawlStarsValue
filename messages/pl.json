@@ -646,7 +646,8 @@
     "mapPerformance": "Wyniki według map",
     "brawlerTierList": "Twoja tier lista brawlerów",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "TWOJE POJEDYNKI — Jak TY radzisz sobie przeciwko każdemu"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "Spada",
     "trendStable": "Stabilny",
     "trendDelta": "{delta}% w tym tygodniu",
-    "counterTitle": "Counter-Picks",
-    "counterHint": "Jeśli wróg pickuje {name}, graj:",
     "proTriosTitle": "Najlepsze składy drużynowe (PRO)",
     "gapTitle": "Twoja różnica vs PRO",
     "gapAbove": "Powyżej PRO",
@@ -682,7 +681,10 @@
     "upgradeForGap": "Przejdź na PRO, żeby zobaczyć analizę różnic",
     "noGapData": "Zagraj mecze na tej mapie, żeby zobaczyć analizę różnic",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} bitew",
+    "modeFallbackBanner": "Pokazuję dane zbiorcze trybu — ta mapa ma zbyt mało danych.",
+    "countersLabel": "Kontry"
   },
   "picks": {
     "title": "Najlepsze picki",
@@ -690,8 +692,8 @@
     "ended": "Zakończono",
     "limitedData": "Ograniczone dane",
     "noData": "Brak danych",
-    "noDataContextual": "Nowa mapa — zbieranie danych",
-    "modeFallbackBanner": "Top picki dla tego trybu",
+    "noDataContextual": "Nowa mapa lub niedawna rotacja — zbieram dane.",
+    "modeFallbackBanner": "Pokazuję najlepszych brawlerów trybu ogólnego — ta mapa ma zbyt mało danych.",
     "sampleSize": "{count} bitew",
     "showMore": "Pokaż więcej",
     "showLess": "Pokaż mniej",
@@ -779,6 +781,10 @@
     "colMetaWR": "Meta WR",
     "colDiff": "Różn.",
     "colOpponent": "Przeciwnik",
-    "noPersonalData": "Zagraj więcej meczów z tym brawlerem, aby zobaczyć swoje statystyki"
+    "noPersonalData": "Zagraj więcej meczów z tym brawlerem, aby zobaczyć swoje statystyki",
+    "sampleSize": "{count} bitew",
+    "matchupsEmptyContextual": "Brak zarejestrowanych pojedynków dla tego brawlera w ciągu ostatnich 90 dni. Zwykle dotyczy nowych lub rzadko granych brawlerów.",
+    "bestMapsEmptyContextual": "Brak danych o mapach dla tego brawlera. Wróć za 24-48 godzin.",
+    "bestTeammatesEmptyContextual": "Brak zarejestrowanych sojuszników."
   }
 }

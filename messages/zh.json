@@ -646,7 +646,8 @@
     "mapPerformance": "各地图表现",
     "brawlerTierList": "你的英雄梯队排名",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "你的对位 — 你对每个对手的表现"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "下降中",
     "trendStable": "稳定",
     "trendDelta": "本周{delta}%",
-    "counterTitle": "克制选择",
-    "counterHint": "如果敌方选择了{name}，推荐：",
     "proTriosTitle": "最佳阵容（PRO）",
     "gapTitle": "与PRO的差距",
     "gapAbove": "超越PRO",
@@ -682,7 +681,10 @@
     "upgradeForGap": "升级PRO查看你的差距分析",
     "noGapData": "在此地图上打几场比赛才能查看差距分析",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count}场对战",
+    "modeFallbackBanner": "显示模式汇总数据 — 此地图数据较少。",
+    "countersLabel": "克制"
   },
   "picks": {
     "title": "最佳选择",
@@ -690,9 +692,9 @@
     "ended": "已结束",
     "limitedData": "数据有限",
     "noData": "暂无数据",
-    "noDataContextual": "新地图 — 正在收集数据",
-    "modeFallbackBanner": "显示该模式的热门选择",
-    "sampleSize": "{count} 场战斗",
+    "noDataContextual": "新地图或近期轮换 — 正在收集数据。",
+    "modeFallbackBanner": "显示综合模式的顶级英雄 — 此地图数据较少。",
+    "sampleSize": "{count}场对战",
     "showMore": "查看更多",
     "showLess": "收起",
     "collecting": "正在收集元数据",
@@ -779,6 +781,10 @@
     "colMetaWR": "元数据WR",
     "colDiff": "差异",
     "colOpponent": "对手",
-    "noPersonalData": "与此角色进行更多对战以查看你的个人统计数据"
+    "noPersonalData": "与此角色进行更多对战以查看你的个人统计数据",
+    "sampleSize": "{count}场对战",
+    "matchupsEmptyContextual": "过去90天没有此英雄的对战记录。通常发生在新上线或很少使用的英雄身上。",
+    "bestMapsEmptyContextual": "此英雄暂无地图数据。请24-48小时后再来查看。",
+    "bestTeammatesEmptyContextual": "暂无队友记录。"
   }
 }

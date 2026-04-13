@@ -646,7 +646,8 @@
     "mapPerformance": "맵별 퍼포먼스",
     "brawlerTierList": "내 브롤러 티어 리스트",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "내 매치업 — 각 상대에 대해 내가 얼마나 잘 싸우는지"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "하락 중",
     "trendStable": "안정적",
     "trendDelta": "이번 주 {delta}%",
-    "counterTitle": "카운터 픽",
-    "counterHint": "상대가 {name}을(를) 픽하면:",
     "proTriosTitle": "최고의 팀 구성 (PRO)",
     "gapTitle": "PRO와의 격차",
     "gapAbove": "PRO 이상",
@@ -682,7 +681,10 @@
     "upgradeForGap": "격차 분석을 보려면 PRO로 업그레이드하세요",
     "noGapData": "이 맵에서 매치를 플레이해야 격차 분석을 볼 수 있어요",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count}전",
+    "modeFallbackBanner": "모드 전체 데이터를 표시 중 — 이 맵에는 데이터가 부족합니다.",
+    "countersLabel": "카운터"
   },
   "picks": {
     "title": "최고 픽",
@@ -690,9 +692,9 @@
     "ended": "종료됨",
     "limitedData": "제한된 데이터",
     "noData": "아직 데이터 없음",
-    "noDataContextual": "새 맵 — 데이터 수집 중",
-    "modeFallbackBanner": "이 모드의 상위 픽 표시",
-    "sampleSize": "{count} 전투",
+    "noDataContextual": "새 맵이거나 최근 로테이션 — 데이터 수집 중.",
+    "modeFallbackBanner": "전체 모드의 탑 브롤러 표시 중 — 이 맵에는 데이터가 부족합니다.",
+    "sampleSize": "{count}전",
     "showMore": "더 보기",
     "showLess": "접기",
     "collecting": "메타 데이터 수집 중",
@@ -779,6 +781,10 @@
     "colMetaWR": "메타 WR",
     "colDiff": "차이",
     "colOpponent": "상대",
-    "noPersonalData": "이 브롤러로 더 많은 경기를 하면 개인 통계를 볼 수 있습니다"
+    "noPersonalData": "이 브롤러로 더 많은 경기를 하면 개인 통계를 볼 수 있습니다",
+    "sampleSize": "{count}전",
+    "matchupsEmptyContextual": "최근 90일 동안 이 브롤러에 대한 매치업 기록이 없습니다. 신규 출시 또는 사용률이 낮은 브롤러에서 자주 발생합니다.",
+    "bestMapsEmptyContextual": "이 브롤러의 맵 데이터가 아직 없습니다. 24-48시간 후에 다시 확인하세요.",
+    "bestTeammatesEmptyContextual": "아직 등록된 팀원이 없습니다."
   }
 }

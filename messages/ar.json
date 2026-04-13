@@ -646,7 +646,8 @@
     "mapPerformance": "الأداء حسب الخريطة",
     "brawlerTierList": "قائمة تصنيف أبطالك",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "مواجهاتك — كيف تؤدي أنت ضد كل خصم"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -660,8 +661,6 @@
     "trendFalling": "هابط",
     "trendStable": "مستقر",
     "trendDelta": "{delta}% هذا الأسبوع",
-    "counterTitle": "اختيارات مضادة",
-    "counterHint": "إذا اختار العدو {name}، العب:",
     "proTriosTitle": "أفضل التشكيلات (PRO)",
     "gapTitle": "فجوتك مقابل المحترفين",
     "gapAbove": "فوق المحترف",
@@ -682,7 +681,10 @@
     "upgradeForGap": "ترقّ إلى PRO لرؤية تحليل الفجوة",
     "noGapData": "العب مباريات على هذه الخريطة لرؤية تحليل الفجوة",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} معركة",
+    "modeFallbackBanner": "عرض البيانات المجمعة للوضع — هذه الخريطة لديها بيانات قليلة.",
+    "countersLabel": "مضادات"
   },
   "picks": {
     "title": "أفضل الاختيارات",
@@ -690,8 +692,8 @@
     "ended": "انتهى",
     "limitedData": "بيانات محدودة",
     "noData": "لا توجد بيانات بعد",
-    "noDataContextual": "خريطة جديدة — جاري جمع البيانات",
-    "modeFallbackBanner": "عرض أفضل اختيارات هذا الوضع",
+    "noDataContextual": "خريطة جديدة أو تناوب حديث — جمع البيانات جارٍ.",
+    "modeFallbackBanner": "عرض أفضل المقاتلين للوضع العام — هذه الخريطة لديها بيانات قليلة.",
     "sampleSize": "{count} معركة",
     "showMore": "المزيد",
     "showLess": "أقل",
@@ -779,6 +781,10 @@
     "colMetaWR": "م.ف. الميتا",
     "colDiff": "الفرق",
     "colOpponent": "الخصم",
-    "noPersonalData": "العب المزيد من المعارك مع هذا البراولر لرؤية إحصائياتك الشخصية"
+    "noPersonalData": "العب المزيد من المعارك مع هذا البراولر لرؤية إحصائياتك الشخصية",
+    "sampleSize": "{count} معركة",
+    "matchupsEmptyContextual": "لا توجد مواجهات مسجلة لهذا المقاتل في آخر 90 يوماً. يحدث هذا عادةً مع المقاتلين الجدد أو غير الشائعين.",
+    "bestMapsEmptyContextual": "لا توجد بيانات خرائط لهذا المقاتل حتى الآن. تحقق خلال 24-48 ساعة.",
+    "bestTeammatesEmptyContextual": "لا توجد شراكات مسجلة بعد."
   }
 }

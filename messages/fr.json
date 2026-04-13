@@ -340,7 +340,11 @@
     "colMetaWR": "WR Méta",
     "colDiff": "Diff",
     "colOpponent": "Adversaire",
-    "noPersonalData": "Joue plus de matchs avec ce brawler pour voir tes stats personnelles"
+    "noPersonalData": "Joue plus de matchs avec ce brawler pour voir tes stats personnelles",
+    "sampleSize": "{count} batailles",
+    "matchupsEmptyContextual": "Aucun matchup enregistré pour ce brawler au cours des 90 derniers jours. Cela arrive pour les brawlers récents ou peu joués.",
+    "bestMapsEmptyContextual": "Pas encore de données de cartes pour ce brawler. Revenez dans 24-48h.",
+    "bestTeammatesEmptyContextual": "Aucun coéquipier enregistré pour le moment."
   },
   "stats": {
     "loading": "Chargement des statistiques...",
@@ -696,7 +700,8 @@
     "mapPerformance": "Performance par Carte",
     "brawlerTierList": "Ta Tier List de Brawlers",
     "matchupYou": "You",
-    "matchupGames": "Games"
+    "matchupGames": "Games",
+    "matchupsTitleExplicit": "TES MATCHUPS — Comment TU performes contre chaque adversaire"
   },
   "metaPro": {
     "tabMetaPro": "Méta PRO",
@@ -710,8 +715,6 @@
     "trendFalling": "En baisse",
     "trendStable": "Stable",
     "trendDelta": "{delta}% cette semaine",
-    "counterTitle": "Counter-Picks",
-    "counterHint": "Si l'ennemi prend {name}, joue :",
     "proTriosTitle": "Meilleures Compositions (PRO)",
     "gapTitle": "Ton Écart vs PROs",
     "gapAbove": "Au-dessus du PRO",
@@ -732,7 +735,10 @@
     "upgradeForGap": "Passe PRO pour voir ton analyse d'écart",
     "noGapData": "Joue des matchs sur cette carte pour voir ton analyse d'écart",
     "allModes": "All",
-    "showMore": "more maps"
+    "showMore": "more maps",
+    "sampleSize": "{count} batailles",
+    "modeFallbackBanner": "Affichage des données agrégées du mode — cette carte a peu de données.",
+    "countersLabel": "Contre-picks"
   },
   "picks": {
     "title": "Meilleurs Picks",
@@ -740,8 +746,8 @@
     "ended": "Terminé",
     "limitedData": "Données limitées",
     "noData": "Pas encore de données",
-    "noDataContextual": "Nouvelle carte — collecte des données",
-    "modeFallbackBanner": "Top picks pour ce mode",
+    "noDataContextual": "Nouvelle carte ou rotation récente — collecte des données en cours.",
+    "modeFallbackBanner": "Affichage des top brawlers du mode général — cette carte a peu de données.",
     "sampleSize": "{count} batailles",
     "showMore": "Voir plus",
     "showLess": "Voir moins",
