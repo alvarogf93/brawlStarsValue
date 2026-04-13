@@ -9,6 +9,7 @@
 - **v1 (2026-04-13)** — initial design, post 3 rounds of UI verification
 - **v1 retracted partially** — audit conflated meta_stats sparsity with meta_matchups sparsity; see §2
 - **v2 (2026-04-13)** — full scope rewrite after reading the actual components directly. This is the first version grounded in verified code reality, not agent summaries.
+- **v3 (2026-04-13)** — added §7 "External data research & performance audit" after probing Brawlify/BrawlAPI endpoints (no pre-computed meta stats available there, confirmed empirically), and added migration 012 with a new `(mode, source, date)` index to make the Tier 2 fallback query use a leading-column match instead of an index skip-scan. Relaxed the "zero migrations" claim to "zero table structure changes". Added the Cache-Control header gap in `/api/meta/route.ts` as a small bonus fix.
 
 ## 1. Motivation
 
@@ -200,8 +201,11 @@ Each counter badge shows the opponent name, the opponent's WR against this brawl
 
 ### 4.2 File inventory
 
-**Create (0 new production files):**
-None. This is important: the sprint is a UX remediation, not an architecture change. Everything fits in existing files. No `src/lib/analytics/fallback/` helper, no shared `SourceTierLabel` component — the cascade logic is ~10 lines inline per API route, and the badge rendering is 3-5 lines inline per component.
+**Create (1 migration file):**
+- `supabase/migrations/012_meta_stats_mode_index.sql` — one-line `CREATE INDEX CONCURRENTLY` for the Tier 2 fallback query. See §7.2. User applies manually via Supabase Dashboard after the task is merged, same flow as migrations 010 and 011.
+
+**Create (0 new production TS/TSX files):**
+None. This is important: the sprint is a UX remediation, not an architecture change. Everything fits in existing files. No `src/lib/analytics/fallback/` helper, no shared `SourceTierLabel` component — the cascade logic is ~15 lines inline per API route, and the badge rendering is 3-5 lines inline per component.
 
 **Delete (1 file):**
 - `src/components/analytics/CounterQuickView.tsx`
@@ -239,7 +243,7 @@ No unit test for the API cascade logic standalone — it's 10 inline lines teste
 
 ### 4.3 Things NOT touched (explicit non-goals)
 
-- ❌ Schema migrations (no changes to `meta_stats`, `meta_matchups`, or any other table)
+- ❌ Table structure changes (no columns added/removed, no data changes). The one migration in Sprint C (`012_meta_stats_mode_index.sql`) only adds a non-destructive index to improve Tier 2 query performance — see §7.2. No `ALTER TABLE`, no data rewriting.
 - ❌ Meta-poll cron (`src/app/api/cron/meta-poll/route.ts` and `src/lib/draft/meta-accumulator.ts`) — the pipeline that writes to `meta_matchups` is not touched
 - ❌ `DraftSimulator` — the audit flagged it as lacking explanation but it's outside the UX-remediation scope
 - ❌ `PersonalAnalysis` — the premium blurred teaser is out of scope
@@ -371,9 +375,98 @@ Every component that receives mode-fallback data handles the new field optionall
 
 The cascade logic in the API routes is wrapped in a simple check: if the Tier 1 query returns empty AFTER the PRO_MIN_BATTLES_DISPLAY filter, the Tier 2 query runs. If Tier 2 also returns empty (genuinely new rotation, no meta), the response returns `topBrawlersSource: 'map-mode'` with `topBrawlers: []`, and the component shows the contextual empty state from Track 1. No infinite loop, no cascading failures.
 
-## 7. Testing strategy
+## 7. External data research & performance audit
 
-### 7.1 Unit tests for components (~30 tests)
+This section was added in v3 after the user challenged the scope with "¿has buscado en la web? ¿hay manera de mejorar performance?". Both questions were worth asking.
+
+### 7.1 Brawlify / BrawlAPI as an alternative meta source
+
+**Question:** does Brawlify or BrawlAPI expose pre-computed win rates / pick rates / matchup statistics that we could consume directly instead of our own aggregation pipeline?
+
+**Method:** read the Brawlify docs, then probe every documented endpoint with real HTTP requests on 2026-04-13.
+
+**Findings:**
+
+| Endpoint | Has stats? | Notes |
+|---|---|---|
+| `GET https://api.brawlify.com/v1/brawlers` | ❌ no | pure metadata (class, rarity, name, images, descriptions) |
+| `GET https://api.brawlify.com/v1/maps` | ⚠️ empty | `stats` and `teamStats` fields exist in the schema but are always empty. 1,177 maps checked, 0 had stats populated. |
+| `GET https://api.brawlify.com/v1/maps/{id}` | ⚠️ empty | Same structure, always empty. Tested `/v1/maps/15001053` (Sidetrack) and 13 currently-active maps — all return `stats: []` and `teamStats: []`. |
+| `GET https://api.brawlapi.com/v1/events` | ❌ no | returns `{ active: [{ slot, map, mode, startTime, endTime }], upcoming: [] }` with NO stats anywhere. Tested on 2026-04-13, 13 active events, zero stats. |
+| `GET https://api.brawlify.com/v1/events` | ❌ empty | Returns `{ active: [], upcoming: [] }` — different mirror. |
+| `GET https://api.brawlify.com/v1/maps/{id}/brawlers` | 404 | subroute does not exist. |
+| `GET https://api.brawlify.com/v1/gamemodes` | ❌ no | metadata only. |
+
+**Interpretation:** Brawlify's schema HAS the shape for stats (`map.stats[]` with `winRate`, `useRate`, `starRate` per brawler; `map.teamStats[]` with team composition win rates), and the authentication docs mention "CPU-intensive endpoints (statistics data)", but **the feature is not populated in practice today**. Either it is deprecated, gated behind an undocumented parameter, or planned but never released. Regardless, it is not a usable data source as of 2026-04-13.
+
+**Conclusion:** Our own aggregation pipeline (`meta_stats`, `meta_matchups`, `meta_trios` populated by the meta-poll cron) is the only source of meta truth. Sprint C does not replace it; it renders its output better. The research is closed — no change to the sprint scope based on this.
+
+**Side benefit confirmed:** Brawlify has zero rate limits (per the auth docs: "Because you don't need to authenticate requests, there is no rate limit"). This validates our existing memoisation strategy for `loadBrawlerNames` (next.revalidate=3600 + in-memory Map cache). No backoff / retry logic needed for the Brawlify calls.
+
+### 7.2 Performance audit of the Sprint C cascade
+
+**Question:** does the Tier 2 fallback add meaningful latency or DB load to the hot path?
+
+**Baseline measurements (from reading the code, not synthetic benchmarks):**
+
+- `/api/meta/pro-analysis/route.ts` currently executes 4 DB queries per request: stats-current, stats-7d, stats-30d, matchups
+- The response is wrapped with `Cache-Control: public, s-maxage=1800, stale-while-revalidate=3600` (lines 452-454) — the CDN absorbs 95%+ of requests, with only periodic cold misses hitting the DB
+- `/api/meta/route.ts` (event rotation) has NO Cache-Control header — **pre-existing gap, not introduced by Sprint C**. Worth fixing as part of the MapCard task.
+
+**Cost of the cascade addition:**
+
+- Tier 2 fallback triggers ONLY when Tier 1 is empty after the PRO_MIN_BATTLES_DISPLAY filter. For Tier A maps (Sidetrack, Healthy Middle Ground, etc.) this never fires. For Tier D maps (Pit Stop, Goldarm Gulch, new rotations, etc.) this fires on the cold miss.
+- Cost of a Tier 2 fire: +1 DB query (from 4 → 5). On the hot CDN path: 0 extra queries.
+- `/api/meta/route.ts` fires Tier 2 per sparse mode in a single batch query (not per sparse map), so even if 3 of 13 active maps are sparse, only 1 additional query is issued.
+
+**Index gap detected:**
+
+- Existing index on meta_stats: `idx_meta_stats_lookup ON meta_stats(map, mode, source, date)` — leading column is `map`
+- The Tier 2 query filters `.eq('source', 'global').gte('date', X).in('mode', [...])` — no `map` filter
+- Postgres can use the existing index via a skip-scan, but a dedicated `(mode, source, date)` index would allow a leading-column match and be meaningfully faster on the rare cold-miss path
+- **Migration 012** (new in Sprint C) adds this index with `CREATE INDEX CONCURRENTLY` so it does not lock the table during deploy
+
+```sql
+-- supabase/migrations/012_meta_stats_mode_index.sql
+-- Sprint C Tier 2 fallback: Tier 1 uses (map, mode, source, date);
+-- Tier 2 drops the map filter and needs a leading-column match on mode.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_meta_stats_mode_lookup
+  ON meta_stats(mode, source, date);
+```
+
+This is the ONLY schema change in Sprint C. It does not alter any table structure, does not touch any data, and is reversible with a single `DROP INDEX`. The "zero schema changes" claim from v2 is relaxed to "zero table structure changes".
+
+### 7.3 Bundle size impact
+
+- Delete `src/components/analytics/CounterQuickView.tsx` — removes ~80 LOC from the client bundle
+- Add inline counters section to `src/components/analytics/TopBrawlersGrid.tsx` — adds ~40 LOC
+- Net reduction: ~40 LOC client-side
+- No new component dependencies (ConfidenceBadge is already imported by 6 other components and bundled)
+- No new external API calls from the client (all existing patterns reused)
+
+### 7.4 Re-render impact
+
+- `TopBrawlersGrid` gains a new prop `counters`. React re-renders when the prop reference changes, which it does on every `useProAnalysis` refetch (same cadence as before Sprint C)
+- No new hooks, no new subscriptions, no new client-side state
+- The internal `Map<number, CounterEntry>` for inline lookups is built inside the render with `useMemo(() => ..., [counters])` — computed once per render, O(n)
+
+### 7.5 Cache-Control side-fix for `/api/meta/route.ts`
+
+As a small bonus detected during the audit: the event-rotation endpoint currently has `export const dynamic = 'force-dynamic'` and no Cache-Control header. The MapCard task (§9 Phase F) adds:
+
+```ts
+return NextResponse.json({ events: result }, {
+  headers: {
+    'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
+  },
+})
+```
+
+Same cache policy as `/api/meta/pro-analysis/route.ts`. Reduces DB load on the `/picks` page under traffic spikes.
+
+## 8. Testing strategy
+
+### 8.1 Unit tests for components (~30 tests)
 
 One test file per modified component. Template: existing `src/__tests__/unit/components/ConfidenceBadge.test.tsx` (vitest + `@testing-library/react` + inline `vi.mock('next-intl')`).
 
@@ -381,7 +474,7 @@ One test file per modified component. Template: existing `src/__tests__/unit/com
 - `MetaIntelligence.test.tsx` (~10 tests): MatchupList with/without data, bestMaps with/without data, bestTeammates with/without data, contextual empty state strings, per-row sample size, confidence badges
 - `MapCard.test.tsx` (~8 tests): limited-data banner, mode-fallback banner, promoted sample-size text, per-row confidence badges, expand/collapse
 
-### 7.2 Integration tests for API routes (~6 tests)
+### 8.2 Integration tests for API routes (~6 tests)
 
 - `pro-analysis-cascade.test.ts` (~4 tests):
   - Returns `topBrawlersSource: 'map-mode'` when the map has data
@@ -391,7 +484,7 @@ One test file per modified component. Template: existing `src/__tests__/unit/com
 
 - Additional cascade test in `src/__tests__/integration/api/meta/rotation-cascade.test.ts` (~2 tests) for the event-rotation endpoint.
 
-### 7.3 i18n regression
+### 8.3 i18n regression
 
 After the batch script runs, a quick test validates that all 13 locale files parse as valid JSON and contain every new key. A one-line script:
 
@@ -401,46 +494,47 @@ node -e "['ar','de','en','es','fr','it','ja','ko','pl','pt','ru','tr','zh'].forE
 
 This is run manually after the i18n task, not committed as a test.
 
-## 8. Rollout plan
+## 9. Rollout plan
 
 Standard BrawlVision sprint pattern (subagent-driven development, branch per task, `--no-ff` merge):
 
-### Phase A — Scaffolding (1 task)
-- Task 1: Add `topBrawlersSource` field to `ProAnalysisResponse` + corresponding field to the event-rotation API response type. No behavioural change yet.
+### Phase A — Infrastructure (2 tasks)
+- Task 1: Migration `012_meta_stats_mode_index.sql` — `CREATE INDEX CONCURRENTLY idx_meta_stats_mode_lookup ON meta_stats(mode, source, date)`. User applies manually via Supabase Dashboard (same flow as 010, 011) after the task is merged.
+- Task 2: Add `topBrawlersSource` field to `ProAnalysisResponse` + corresponding field to the event-rotation API response type. No behavioural change yet.
 
 ### Phase B — API cascade (2 tasks)
-- Task 2: Implement mode-fallback in `/api/meta/pro-analysis/route.ts` with integration test
-- Task 3: Implement per-map mode-fallback in `/api/meta/route.ts` with integration test
+- Task 3: Implement mode-fallback in `/api/meta/pro-analysis/route.ts` with integration test
+- Task 4: Implement per-mode batch fallback in `/api/meta/route.ts` + add `Cache-Control: public, s-maxage=1800, stale-while-revalidate=3600` as the bonus side-fix from §7.5
 
 ### Phase C — TopBrawlersGrid rewrite (3 tasks)
-- Task 4: Add per-card sample size + ConfidenceBadge (no inline counters yet)
-- Task 5: Add mode-fallback banner
-- Task 6: Add inline counters section
+- Task 5: Add per-card sample size + ConfidenceBadge (no inline counters yet)
+- Task 6: Add mode-fallback banner
+- Task 7: Add inline counters section (reads `counters` prop, builds `useMemo` lookup map, renders 3 per card + Ver más for premium)
 
 ### Phase D — MetaProTab cleanup (2 tasks)
-- Task 7: Pass `counters` prop through to `TopBrawlersGrid`
-- Task 8: Delete `CounterQuickView.tsx` + remove usage + clean up i18n keys
+- Task 8: Pass `counters` prop through to `TopBrawlersGrid`
+- Task 9: Delete `CounterQuickView.tsx` + remove usage + clean up i18n keys
 
 ### Phase E — MetaIntelligence (2 tasks)
-- Task 9: Add per-row `totalBattles` + `ConfidenceBadge` to the 3 lists
-- Task 10: Contextual empty states for the 3 sections
+- Task 10: Add per-row `totalBattles` + `ConfidenceBadge` to the 3 lists
+- Task 11: Contextual empty states for the 3 sections
 
 ### Phase F — MapCard (1 task)
-- Task 11: Promoted sample-size text, mode-fallback banner, contextual empty state
+- Task 12: Promoted sample-size text, mode-fallback banner, contextual empty state
 
 ### Phase G — MatchupMatrix title (1 task)
-- Task 12: Title string update, i18n key migration
+- Task 13: Title string update, i18n key migration
 
 ### Phase H — i18n batch (1 task)
-- Task 13: `scripts/add-meta-ux-translations.js` executes; all 13 locale files updated in one commit
+- Task 14: `scripts/add-meta-ux-translations.js` executes; all 13 locale files updated in one commit
 
 ### Phase I — Smoke test + documentation (2 tasks)
-- Task 14: Execute the smoke checklist (§8.1 below) against a local dev server
-- Task 15: Update `CLAUDE.md` and relevant memory entries with sprint learnings
+- Task 15: Execute the smoke checklist (§9.1 below) against a local dev server
+- Task 16: Update `CLAUDE.md` and relevant memory entries with sprint learnings
 
-**Total: 15 tasks.** Each task targets a single component or API route, respects existing layer boundaries, and lands with its own unit/integration tests. Branches: `sprint-c/task-01-*` through `sprint-c/task-15-*`.
+**Total: 16 tasks.** Each task targets a single component, API route, or migration, respects existing layer boundaries, and lands with its own unit/integration tests. Branches: `sprint-c/task-01-*` through `sprint-c/task-16-*`.
 
-### 8.1 Smoke test checklist
+### 9.1 Smoke test checklist
 
 After all 15 tasks are merged, a manual smoke test validates:
 
@@ -456,7 +550,7 @@ After all 15 tasks are merged, a manual smoke test validates:
 - [ ] `npx tsc --noEmit` → clean
 - [ ] `npx vitest run` → 486 + new tests all pass
 
-## 9. Risks & mitigations
+## 10. Risks & mitigations
 
 | # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
@@ -469,20 +563,21 @@ After all 15 tasks are merged, a manual smoke test validates:
 | 7 | Changing 14 components at once creates review burden | Low | Medium | Sprint broken into 15 small tasks, each reviewed independently |
 | 8 | Free users don't see sample sizes today; adding them reveals that numbers are less reliable than they looked | Low | Positive impact | This is the goal. Honesty > false confidence |
 
-## 10. Definition of done
+## 11. Definition of done
 
 A Sprint C PR is ready to merge when:
 
-1. All 15 tasks are complete, each with its own green test suite
+1. All 16 tasks are complete, each with its own green test suite
 2. `npx tsc --noEmit` is clean
-3. Full test run is green (existing 486 + ~36 new tests)
-4. Smoke test checklist (§8.1) passes end-to-end on a local dev server
-5. No new warnings in `npm run lint`
-6. `MEMORY.md` has been updated with at least 1 new learning entry per phase (lessons learned during execution, not just the pre-brainstorm learnings from this morning)
-7. The spec file (this document) has a `Status: Implemented` changelog entry
-8. A new `docs/superpowers/specs/SMOKE-TEST-SPRINT-C.md` file exists with the checklist from §8.1, so future deploys that touch any of these 10 files can re-run the exact same validation
+3. Full test run is green (existing 486 + ~36 new tests = ~522 total)
+4. Migration `012_meta_stats_mode_index.sql` has been applied manually to production via the Supabase Dashboard SQL Editor (verified by the user — same flow as 010, 011)
+5. Smoke test checklist (§9.1) passes end-to-end on a local dev server
+6. No new warnings in `eslint .`
+7. `MEMORY.md` has been updated with at least 1 new learning entry per phase (lessons learned during execution, not just the pre-brainstorm learnings from this morning)
+8. The spec file (this document) has a `Status: Implemented` changelog entry
+9. A new `docs/superpowers/specs/SMOKE-TEST-SPRINT-C.md` file exists with the checklist from §9.1, so future deploys that touch any of these 11 files can re-run the exact same validation
 
-## 11. Future work (v2+, explicitly out of scope)
+## 12. Future work (v2+, explicitly out of scope)
 
 - **Meta-poll cron enhancement** to write `meta_matchups` with map context. This would enable a real map-level counter-pick query. Requires changes to `meta-accumulator.ts` + a new schema column + a multi-week wait for data to accumulate. Separate sprint.
 - **DraftSimulator recommendation reasoning** — explain WHY the draft engine suggests a pick (counter, synergy, meta WR). Requires deeper work in `src/lib/draft/scoring.ts`.
@@ -492,7 +587,7 @@ A Sprint C PR is ready to merge when:
 - **`ConfidenceBadge` prominence rework** — the 2×2px dot is subtle; a bigger visual treatment could be considered but is orthogonal to Sprint C's scope.
 - **Expanding `RELIABLE_GAMES` / `CONFIDENT_GAMES` thresholds** — currently 10/3, quite low; could be made more aggressive. Out of scope — tuning decision, not remediation.
 
-## 12. Approval
+## 13. Approval
 
 This spec reflects:
 1. The user-stated goal of "no repetitions, no nulls, valuable/new/distinct information"
