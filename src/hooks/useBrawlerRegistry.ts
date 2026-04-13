@@ -22,7 +22,12 @@ const FALLBACK: BrawlerRegistry = {
   maxStarPowers: 202,
 }
 
-const CACHE_KEY = 'brawlvalue:brawler-registry'
+// CRITICAL: this key MUST NOT collide with `src/lib/brawler-registry.ts`
+// which uses 'brawlvalue:brawler-registry' for its BrawlerEntry[] cache.
+// Sprint D 2026-04-13: a previous version of this file used the same
+// key and the shape mismatch (array vs object) crashed the brawler
+// detail page. The string `-totals` namespace is the regression lock.
+const CACHE_KEY = 'brawlvalue:brawler-registry-totals'
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24h — matches the server revalidate window
 
 interface CachedRegistry {
