@@ -91,3 +91,75 @@ describe('TopBrawlersGrid — Task 6 (mode-fallback banner)', () => {
     expect(screen.queryByText(/modeFallbackBanner/i)).toBeNull()
   })
 })
+
+describe('TopBrawlersGrid — Task 7 (inline counters)', () => {
+  const MOCK_COUNTERS = [
+    {
+      brawlerId: 1,  // CROW (first in MOCK_BRAWLERS)
+      name: 'CROW',
+      bestCounters: [
+        { opponentId: 10, name: 'DYNAMIKE', winRate: 58, total: 120 },
+        { opponentId: 11, name: 'PIPER', winRate: 56, total: 110 },
+        { opponentId: 12, name: 'COLT', winRate: 54, total: 95 },
+      ],
+      worstMatchups: [],
+    },
+    {
+      brawlerId: 2,  // BULL
+      name: 'BULL',
+      bestCounters: [
+        { opponentId: 13, name: 'LEON', winRate: 61, total: 80 },
+      ],
+      worstMatchups: [],
+    },
+    // Note: no entry for brawlerId 3 (PIPER) — component should handle gracefully
+  ]
+
+  it('renders inline counter names for brawlers that have counter data', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={MOCK_BRAWLERS}
+        totalBattles={3000}
+        counters={MOCK_COUNTERS}
+      />,
+    )
+    // CROW's counters
+    expect(screen.getByText(/DYNAMIKE/)).toBeTruthy()
+    // PIPER appears both as a brawler row AND as a counter to CROW — getAllByText to disambiguate
+    expect(screen.getAllByText(/PIPER/).length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText(/COLT/)).toBeTruthy()
+    // BULL's counter
+    expect(screen.getByText(/LEON/)).toBeTruthy()
+  })
+
+  it('does not crash when counters array is missing', () => {
+    expect(() => {
+      render(<TopBrawlersGrid brawlers={MOCK_BRAWLERS} totalBattles={3000} />)
+    }).not.toThrow()
+  })
+
+  it('does not crash when a brawler has no corresponding counter entry', () => {
+    render(
+      <TopBrawlersGrid
+        brawlers={MOCK_BRAWLERS}
+        totalBattles={3000}
+        counters={MOCK_COUNTERS}
+      />,
+    )
+    // PIPER is brawler 3 in MOCK_BRAWLERS but not in MOCK_COUNTERS — should render without error
+    expect(screen.getAllByText(/PIPER/).length).toBeGreaterThan(0)  // at least the card itself
+  })
+
+  it('shows ConfidenceBadge on each counter entry', () => {
+    const { container } = render(
+      <TopBrawlersGrid
+        brawlers={[MOCK_BRAWLERS[0]]}
+        totalBattles={3000}
+        counters={[MOCK_COUNTERS[0]]}
+      />,
+    )
+    // 1 badge for the brawler card + 3 for the counters = 4 total
+    const badges = container.querySelectorAll('[data-confidence]')
+    expect(badges.length).toBeGreaterThanOrEqual(4)
+  })
+})
