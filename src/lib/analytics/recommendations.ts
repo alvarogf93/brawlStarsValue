@@ -90,9 +90,14 @@ export function computePlayNowRecommendations(
     const topBrawlers = sorted.slice(0, 5)
 
     const recommendations: BrawlerRecommendation[] = topBrawlers.map(c => {
-      // Find best trio that CONTAINS this brawler (use global aggregates)
+      // Find best trio that CONTAINS this brawler AND was actually played on
+      // THIS map. A trio that works in mode X map Y won't necessarily work
+      // on map Z, so global/mode-level trios are misleading here.
+      // If the user has no map-specific trio data (including the Tier 2
+      // fallback path where the user hasn't played the map at all), bestTrio
+      // stays null and PlayNowDashboard hides the trio UI for that slot.
       const trioCandidates = trioSynergy
-        .filter(trio => trio.map === null && trio.brawlers.some(b => b.id === c.brawlerId) && trio.total >= MIN_GAMES)
+        .filter(trio => trio.map === map && trio.brawlers.some(b => b.id === c.brawlerId) && trio.total >= MIN_GAMES)
         .sort((a, b) => b.wilsonScore - a.wilsonScore)
 
       const bestTrio = trioCandidates[0] ?? null

@@ -74,14 +74,14 @@ describe('computePlayNowRecommendations', () => {
     expect(result[0].recommendations[0].bestTrio).toBeNull()
   })
 
-  it('returns bestTrio when trio synergy data includes the brawler', () => {
+  it('returns bestTrio when trio synergy data is map-specific for the slot', () => {
     const mapMatrix: BrawlerMapEntry[] = [
       { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
     ]
     const trioSynergy: TrioSynergy[] = [
       {
         brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
-        mode: null, map: null, topMap: null,
+        mode: 'brawlBall', map: 'Super Beach', topMap: 'Super Beach',
         wins: 6, total: 8, winRate: 75, wilsonScore: 40, confidence: 'medium' as const,
       },
     ]
@@ -90,6 +90,77 @@ describe('computePlayNowRecommendations', () => {
     expect(result[0].recommendations[0].bestTrio).not.toBeNull()
     expect(result[0].recommendations[0].bestTrio!.brawlers).toHaveLength(3)
     expect(result[0].recommendations[0].bestTrio!.winRate).toBe(75)
+  })
+
+  it('does NOT return bestTrio when trio synergy is global or for a different map', () => {
+    const mapMatrix: BrawlerMapEntry[] = [
+      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
+    ]
+    const trioSynergy: TrioSynergy[] = [
+      // Global aggregate (map === null) — must be ignored
+      {
+        brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
+        mode: null, map: null, topMap: 'Backyard Bowl',
+        wins: 6, total: 8, winRate: 75, wilsonScore: 40, confidence: 'medium' as const,
+      },
+      // Same trio but on a different map — must also be ignored
+      {
+        brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
+        mode: 'brawlBall', map: 'Backyard Bowl', topMap: 'Backyard Bowl',
+        wins: 6, total: 8, winRate: 75, wilsonScore: 40, confidence: 'medium' as const,
+      },
+    ]
+    const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
+    const result = computePlayNowRecommendations(mapMatrix, trioSynergy, events)
+    expect(result[0].recommendations[0].bestTrio).toBeNull()
+  })
+
+  it('picks the map-specific trio over a global one with higher wilson score', () => {
+    const mapMatrix: BrawlerMapEntry[] = [
+      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Super Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
+    ]
+    const trioSynergy: TrioSynergy[] = [
+      // Global SHELLY+COLT+BULL — high wilson, but not map-specific
+      {
+        brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
+        mode: null, map: null, topMap: 'Backyard Bowl',
+        wins: 20, total: 25, winRate: 80, wilsonScore: 70, confidence: 'high' as const,
+      },
+      // Map-specific SHELLY+POCO+BULL on Super Beach — lower wilson but correct map
+      {
+        brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000003, name: 'POCO' }, { id: 16000002, name: 'BULL' }],
+        mode: 'brawlBall', map: 'Super Beach', topMap: 'Super Beach',
+        wins: 4, total: 6, winRate: 66.7, wilsonScore: 30, confidence: 'medium' as const,
+      },
+    ]
+    const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
+    const result = computePlayNowRecommendations(mapMatrix, trioSynergy, events)
+    expect(result[0].recommendations[0].bestTrio).not.toBeNull()
+    // The POCO trio is selected even though the global COLT trio has a higher wilson
+    const trioNames = result[0].recommendations[0].bestTrio!.brawlers.map(b => b.name).sort()
+    expect(trioNames).toEqual(['BULL', 'POCO', 'SHELLY'])
+  })
+
+  it('sets bestTrio to null on the mode-aggregate fallback path (no map-specific trios exist)', () => {
+    const mapMatrix: BrawlerMapEntry[] = [
+      // User played SHELLY on a DIFFERENT map — fallback will fire for the rotation map
+      { brawlerId: 16000000, brawlerName: 'SHELLY', map: 'Other Beach', mode: 'brawlBall', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
+    ]
+    const trioSynergy: TrioSynergy[] = [
+      // Trio data only exists for Other Beach — NOT for Super Beach
+      {
+        brawlers: [{ id: 16000000, name: 'SHELLY' }, { id: 16000001, name: 'COLT' }, { id: 16000002, name: 'BULL' }],
+        mode: 'brawlBall', map: 'Other Beach', topMap: 'Other Beach',
+        wins: 6, total: 8, winRate: 75, wilsonScore: 40, confidence: 'medium' as const,
+      },
+    ]
+    const events = [{ startTime: '2026-04-05T10:00:00Z', endTime: '2026-04-06T10:00:00Z', event: { id: 1, mode: 'brawlBall', map: 'Super Beach' } }]
+    const result = computePlayNowRecommendations(mapMatrix, trioSynergy, events)
+    // Fallback fires — SHELLY still recommended from mode-aggregate path
+    expect(result[0].source).toBe('mode-aggregate')
+    expect(result[0].recommendations[0].brawlerName).toBe('SHELLY')
+    // But no trio is shown because there's no map-specific trio for Super Beach
+    expect(result[0].recommendations[0].bestTrio).toBeNull()
   })
 
   it('falls back to mode data when no map match', () => {
