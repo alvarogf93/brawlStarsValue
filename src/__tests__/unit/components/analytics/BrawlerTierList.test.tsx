@@ -117,6 +117,18 @@ describe('BrawlerTierList — tier grouping layout', () => {
     expect(screen.getByText(/Selecciona un brawler/)).toBeTruthy()
   })
 
+  it('switches detail panel when clicking a different tile', () => {
+    const { container } = render(<BrawlerTierList data={MOCK_DATA} />)
+    // Click Edgar (S-tier, 24 games)
+    fireEvent.click(container.querySelector('[data-brawler-id="1"]')!)
+    expect(screen.getByText(/24 partidas/)).toBeTruthy()
+    // Click Mico (A-tier, 20 games) — detail panel must now reflect Mico
+    fireEvent.click(container.querySelector('[data-brawler-id="2"]')!)
+    expect(screen.getByText(/\b20 partidas\b/)).toBeTruthy()
+    // Edgar's counts should no longer be visible in the detail panel
+    expect(screen.queryByText(/\b24 partidas\b/)).toBeNull()
+  })
+
   it('renders the tile portrait with data-testid', () => {
     const { getAllByTestId } = render(<BrawlerTierList data={MOCK_DATA} />)
     const imgs = getAllByTestId('brawl-img')

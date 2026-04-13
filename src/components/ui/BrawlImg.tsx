@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 interface BrawlImgProps {
   src: string
@@ -19,13 +19,17 @@ interface BrawlImgProps {
 export function BrawlImg({ src, alt, fallbackText, fallbackSrc, className = '' }: BrawlImgProps) {
   const [useFallback, setUseFallback] = useState(false)
   const [failed, setFailed] = useState(false)
+  const [prevSrc, setPrevSrc] = useState(src)
 
-  // Reset failure state when src prop changes so the same instance
-  // can be reused across brawlers (e.g. BrawlerTierList detail panel).
-  useEffect(() => {
+  // Reset state DURING render when the src prop changes. React handles
+  // this pattern specially — the reset is applied before the first render
+  // with the new src, so there's no transient frame with stale state.
+  // See https://react.dev/learn/you-might-not-need-an-effect#resetting-all-state-when-a-prop-changes
+  if (prevSrc !== src) {
+    setPrevSrc(src)
     setUseFallback(false)
     setFailed(false)
-  }, [src])
+  }
 
   const currentSrc = useFallback && fallbackSrc ? fallbackSrc : src
 
