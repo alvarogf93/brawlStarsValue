@@ -249,7 +249,7 @@ export function TopBrawlersGrid({
                       onClick={() => toggleTeammatesExpanded(b.brawlerId)}
                       className="w-full mt-1 text-[9px] font-bold text-[#4EC0FA] hover:text-[#4EC0FA]/80 transition-colors"
                       aria-expanded={isExpanded}
-                      aria-label={isExpanded ? t('teammatesSeeLess') : t('teammatesSeeMore')}
+                      aria-label={isExpanded ? t('teammatesSeeLess') : t('teammatesSeeMore', { count: entry.trios.length - 1 })}
                     >
                       {isExpanded ? t('teammatesSeeLess') : t('teammatesSeeMore', { count: entry.trios.length - 1 })}
                     </button>
