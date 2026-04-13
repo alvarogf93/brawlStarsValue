@@ -55,7 +55,7 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
         <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-          <span className="text-xl">⚔️</span> {t('matchupsTitle')}
+          <span className="text-xl">⚔️</span> {t('matchupsTitleExplicit')}
         </h3>
         <div className="flex flex-col items-center py-8 text-center">
           <span className="text-3xl mb-2">🎯</span>
@@ -71,7 +71,7 @@ export function MatchupMatrix({ data, proMatchups }: Props) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
-          <span className="text-xl">⚔️</span> {t('matchupsTitle')}
+          <span className="text-xl">⚔️</span> {t('matchupsTitleExplicit')}
           <InfoTooltip className="ml-1.5" text={t('tipMatchups')} />
         </h3>
 
