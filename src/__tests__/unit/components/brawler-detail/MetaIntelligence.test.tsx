@@ -13,6 +13,9 @@ vi.mock('next-intl', () => ({
       weakAgainst: 'Weak Against',
       bestTeammates: 'Best Teammates',
       insufficientData: 'Datos insuficientes',
+      matchupsEmptyContextual: 'No hay matchups registrados',
+      bestMapsEmptyContextual: 'No hay datos de mapas',
+      bestTeammatesEmptyContextual: 'No hay teammates registrados',
       rising: 'Rising',
       falling: 'Falling',
       stable: 'Stable',
@@ -98,5 +101,36 @@ describe('MetaIntelligence — Task 10 (sample size + confidence)', () => {
     const badges = container.querySelectorAll('[data-confidence]')
     // 2 strongAgainst + 1 weakAgainst + 1 bestTeammates + 2 bestMaps = 6
     expect(badges.length).toBeGreaterThanOrEqual(6)
+  })
+})
+
+describe('MetaIntelligence — Task 11 (contextual empty states)', () => {
+  const EMPTY_DATA: BrawlerMetaResponse = {
+    brawlerId: 99,
+    globalStats: { winRate: 50, pickRate: 0.5, totalBattles: 12, trend7d: 0 },
+    bestMaps: [],
+    worstMaps: [],
+    strongAgainst: [],
+    weakAgainst: [],
+    bestTeammates: [],
+  }
+
+  it('uses contextual key for empty strongAgainst', () => {
+    render(<MetaIntelligence data={EMPTY_DATA} />)
+    // Mock returns the key verbatim when missing; the component must reference
+    // the new key name, not the old generic "insufficientData".
+    expect(screen.queryAllByText(/matchupsEmptyContextual|No hay matchups/i).length).toBeGreaterThan(0)
+  })
+
+  it('uses contextual key for empty bestMaps', () => {
+    render(<MetaIntelligence data={EMPTY_DATA} />)
+    expect(screen.queryAllByText(/bestMapsEmptyContextual|No hay datos de mapas/i).length).toBeGreaterThan(0)
+  })
+
+  it('still renders the globalStats grid even when everything else is empty', () => {
+    render(<MetaIntelligence data={EMPTY_DATA} />)
+    // Win rate and pick rate labels still visible (from the globalStats grid)
+    expect(screen.getByText('Win Rate')).toBeTruthy()
+    expect(screen.getByText('Pick Rate')).toBeTruthy()
   })
 })
