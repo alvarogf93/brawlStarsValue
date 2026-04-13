@@ -36,6 +36,18 @@ function formatLabel(dateStr: string): string {
   return `${parseInt(m, 10)}/${parseInt(d, 10)}`
 }
 
+/** Longer date format for the tooltip header: "lun 13 abr" style. */
+function formatTooltipDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  if (!y || !m || !d) return dateStr
+  const date = new Date(Date.UTC(y, m - 1, d))
+  const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+  const weekdayNames = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
+  const weekday = weekdayNames[date.getUTCDay()] ?? ''
+  const month = monthNames[m - 1] ?? ''
+  return `${weekday} ${d} ${month}`
+}
+
 /** Pick ~5-7 evenly-spaced indices for X-axis labels */
 function pickLabelIndices(total: number): number[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i)
@@ -59,45 +71,87 @@ interface TooltipInfo {
   y: number
   label: string
   lines: string[]
+  /** Accent color for the top border bar — matches the hovered
+   *  point's color so the tooltip visually ties back to the chart.
+   *  Falls back to a neutral border when undefined. */
+  accentColor?: string
 }
+
+/** Tooltip dimensions — picked so the longest realistic content
+ *  ("Total: +9999" / "Day: +999") fits with breathing room. */
+const TT_WIDTH = 170
+const TT_HEADER_H = 32 // date label band
+const TT_LINE_H = 20   // each data line
+const TT_PAD_Y = 10
+const TT_MARGIN = 8    // gap from the hovered point + from chart edges
 
 function ChartTooltip({ info }: { info: TooltipInfo | null }) {
   if (!info) return null
 
-  const tooltipW = 130
-  const tooltipH = 14 + info.lines.length * 16
-  const tx = info.x + tooltipW + 10 > CHART_W ? info.x - tooltipW - 8 : info.x + 8
+  const tooltipH = TT_HEADER_H + info.lines.length * TT_LINE_H + TT_PAD_Y
+  // Horizontal placement: prefer to the right of the point, flip left
+  // if it would overflow the chart's right edge.
+  const flipLeft = info.x + TT_WIDTH + TT_MARGIN > CHART_W
+  const tx = flipLeft
+    ? clamp(info.x - TT_WIDTH - TT_MARGIN, 2, CHART_W - TT_WIDTH - 2)
+    : clamp(info.x + TT_MARGIN, 2, CHART_W - TT_WIDTH - 2)
   const ty = clamp(info.y - tooltipH / 2, 2, CHART_H - tooltipH - 2)
 
+  const accent = info.accentColor ?? 'rgba(255,255,255,0.15)'
+
+  // HTML inside foreignObject gives us real text flow, padding,
+  // flexbox and a clean accent border — way more legible than raw
+  // <text> nodes squished into a rect.
   return (
-    <g>
-      <rect
-        x={tx}
-        y={ty}
-        width={tooltipW}
-        height={tooltipH}
-        rx={6}
-        fill="#0D1321"
-        stroke="#1e293b"
-        strokeWidth={1}
-        opacity={0.95}
-      />
-      <text x={tx + 8} y={ty + 14} fontSize={10} fontWeight={700} fill="#94a3b8">
-        {info.label}
-      </text>
-      {info.lines.map((line, i) => (
-        <text
-          key={i}
-          x={tx + 8}
-          y={ty + 14 + (i + 1) * 16}
-          fontSize={11}
-          fontWeight={600}
-          fill="#e2e8f0"
+    <foreignObject x={tx} y={ty} width={TT_WIDTH} height={tooltipH}>
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          background: 'rgba(10,16,29,0.97)',
+          border: '2px solid rgba(255,255,255,0.12)',
+          borderTop: `3px solid ${accent}`,
+          borderRadius: 10,
+          padding: '8px 12px',
+          boxSizing: 'border-box',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.5)',
+          fontFamily: 'Inter, sans-serif',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: '#94a3b8',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            lineHeight: 1.4,
+            marginBottom: 4,
+          }}
         >
-          {line}
-        </text>
-      ))}
-    </g>
+          {info.label}
+        </div>
+        {info.lines.map((line, i) => (
+          <div
+            key={i}
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: '#e2e8f0',
+              lineHeight: 1.4,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {line}
+          </div>
+        ))}
+      </div>
+    </foreignObject>
   )
 }
 
@@ -253,8 +307,9 @@ function LineChart({
                 setHover({
                   x: p.x,
                   y: p.y,
-                  label: d.date,
+                  label: formatTooltipDate(d.date),
                   lines: tooltipLines(d),
+                  accentColor: colorFn(getValue(d)),
                 })
               }
               onMouseLeave={() => setHover(null)}
