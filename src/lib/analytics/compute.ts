@@ -13,6 +13,7 @@ import {
   wilsonPct, winRate, groupBy, compositeKey, parseCompositeKey,
   isWin, isLoss, avg,
 } from './stats'
+import { DRAFT_MODES } from '@/lib/draft/constants'
 
 // ── Session detection: gap > 30 min = new session ───────────────
 const SESSION_GAP_MS = 30 * 60 * 1000
@@ -280,12 +281,14 @@ function computeMatchups(battles: Battle[]): MatchupEntry[] {
 
 // ── Trio Synergy (full 3-brawler teams) ──────────────────────────
 
-// Standard competitive 3v3 modes — exclude PvE, special events, showdown
-const STANDARD_3V3_MODES = new Set([
-  'gemGrab', 'brawlBall', 'bounty', 'heist', 'hotZone',
-  'knockout', 'wipeout', 'siege', 'basketBrawl', 'volleyBrawl',
-  'paintBrawl', 'trophyThieves', 'holdTheTrophy', 'botDrop',
-])
+// Standard competitive 3v3 modes — delegates to the canonical
+// DRAFT_MODES list in src/lib/draft/constants.ts so every consumer
+// (cron, UI, team synergy, etc.) agrees on the same set. Previously
+// this was a hardcoded copy that had drifted: `brawlHockey` was
+// missing (causing Hyperspace and every other hockey map to vanish
+// from the Team Synergy filter), and legacy modes like `siege` /
+// `volleyBrawl` / `trophyThieves` / `botDrop` were still listed.
+const STANDARD_3V3_MODES: ReadonlySet<string> = new Set(DRAFT_MODES)
 
 function computeTrioSynergy(battles: Battle[]): TrioSynergy[] {
   // Accumulate global + per-map stats
