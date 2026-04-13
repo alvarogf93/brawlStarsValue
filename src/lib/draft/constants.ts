@@ -18,6 +18,48 @@ export function isDraftMode(mode: string): mode is DraftMode {
   return (DRAFT_MODES as readonly string[]).includes(mode)
 }
 
+/**
+ * Map from Supercell numeric modeId → our canonical mode string.
+ * Used by `normalizeSupercellMode` when the API reports a string
+ * of "unknown" for a mode it hasn't registered yet (most commonly
+ * the latest release — e.g. Brawl Hockey stayed `mode: "unknown"`
+ * for weeks after launch while the modeId was always 45).
+ */
+const MODE_ID_TO_KEY: Record<number, DraftMode> = {
+  45: 'brawlHockey',
+}
+
+/**
+ * Resolve a Supercell-reported mode string to our canonical key.
+ *
+ * The Supercell API reports `mode: "unknown"` for brand-new modes
+ * even though the `modeId` is correct. Without normalization, the
+ * downstream `isDraftMode("unknown")` check returns false and the
+ * battle is silently dropped — which was exactly the bug that
+ * left Brawl Hockey with zero pro battles in `meta_stats`.
+ *
+ * Pass both the string mode AND the numeric modeId and this
+ * function will resolve the canonical key, falling back to the
+ * raw string when no override is needed.
+ *
+ * Returns `null` when neither source yields a known mode so the
+ * caller can drop the battle explicitly instead of accidentally
+ * letting an "unknown" string through to `meta_stats`.
+ */
+export function normalizeSupercellMode(
+  mode: string | null | undefined,
+  modeId: number | null | undefined,
+): DraftMode | null {
+  const rawMode = mode?.trim() ?? ''
+  // Happy path: the API already reports a known draft mode name.
+  if (isDraftMode(rawMode)) return rawMode
+  // Fallback path: map via modeId when available.
+  if (typeof modeId === 'number' && modeId in MODE_ID_TO_KEY) {
+    return MODE_ID_TO_KEY[modeId]
+  }
+  return null
+}
+
 /** Bayesian prior strength — how many phantom games at 50% we add */
 export const BAYESIAN_STRENGTH = 30
 

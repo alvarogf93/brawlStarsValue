@@ -1,5 +1,6 @@
 import type { BattlelogEntry } from '@/lib/api'
 import type { BattleInsert, BrawlerJsonb, TeammateJsonb } from '@/lib/supabase/types'
+import { normalizeSupercellMode } from '@/lib/draft/constants'
 
 /**
  * Convert Supercell battleTime format "20260405T171604.000Z"
@@ -86,7 +87,16 @@ function toTeammateJsonb(player: BattlePlayer): TeammateJsonb {
  */
 export function parseBattle(entry: BattlelogEntry, playerTag: string): BattleInsert | null {
   const battle = entry.battle
-  const mode = battle.mode || entry.event.mode
+  // Normalize via helper so Supercell's "unknown" string for brand-
+  // new modes (brawlHockey → modeId 45) gets resolved to the
+  // canonical key before it lands in the battles table or flows
+  // into meta_stats via the sync cron. Falls back to the raw
+  // string when no override is needed; stays as the raw string
+  // for non-draft modes (showdown, duels, etc.) since we still
+  // store them in `battles` even though they're not in meta_stats.
+  const rawMode = battle.mode || entry.event.mode
+  const rawModeId = (entry.event as { modeId?: number }).modeId
+  const mode = normalizeSupercellMode(rawMode, rawModeId) ?? rawMode
   const map = entry.event.map || null
 
   let myPlayer: BattlePlayer | null = null

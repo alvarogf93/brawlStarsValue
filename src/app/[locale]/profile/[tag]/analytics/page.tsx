@@ -8,6 +8,7 @@ import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics'
 import { isPremium, isOnTrial } from '@/lib/premium'
 import { computePlayNowRecommendations } from '@/lib/analytics/recommendations'
 import type { PlayNowRecommendation } from '@/lib/analytics/types'
+import { normalizeSupercellMode, DRAFT_MODES } from '@/lib/draft/constants'
 import { FlaskConical, ChevronDown } from 'lucide-react'
 import { AnalyticsSkeleton } from '@/components/ui/Skeleton'
 import { useProAnalysis } from '@/hooks/useProAnalysis'
@@ -212,13 +213,14 @@ export default function AnalyticsPage() {
           events,
         )
         setPlayNow(recs)
-        // Capture first draft-mode map for PRO badge data
+        // Capture first draft-mode map for PRO badge data.
+        // Uses normalizeSupercellMode so "unknown" + modeId=45
+        // (brawlHockey) resolves correctly to the canonical key.
         if (!liveMap) {
-          const DRAFT = ['gemGrab', 'heist', 'bounty', 'brawlBall', 'hotZone', 'knockout', 'wipeout', 'brawlHockey', 'basketBrawl']
           for (const e of events) {
             const ev = e.event ?? e
-            const mode = ev.mode === 'unknown' && ev.modeId === 45 ? 'brawlHockey' : ev.mode
-            if (ev.map && mode && DRAFT.includes(mode)) {
+            const mode = normalizeSupercellMode(ev.mode, ev.modeId)
+            if (ev.map && mode && (DRAFT_MODES as readonly string[]).includes(mode)) {
               setLiveMap({ map: ev.map, mode })
               break
             }

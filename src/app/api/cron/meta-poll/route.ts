@@ -4,11 +4,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { fetchPlayerRankings, fetchBattlelog } from '@/lib/api'
 import { parseBattleTime } from '@/lib/battle-parser'
 import {
-  isDraftMode,
   META_POLL_BATCH_SIZE,
   META_POLL_DELAY_MS,
   META_POLL_MAX_DEPTH,
   META_POLL_CHUNK_SIZE,
+  normalizeSupercellMode,
 } from '@/lib/draft/constants'
 import { computeModeTarget, findUnderTargetModes, type ModeCounts } from '@/lib/draft/meta-poll-balance'
 import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
@@ -86,10 +86,17 @@ async function processPlayerChunk(
         if (battleTime > latestBattleTime) latestBattleTime = battleTime
 
         const battle = entry.battle
-        const mode = battle.mode || entry.event.mode
+        // Normalize via helper: Supercell reports `mode: "unknown"` for
+        // brand-new modes (e.g. brawlHockey) even though the modeId is
+        // correct. Without this fallback, isDraftMode("unknown") drops
+        // the battle and meta_stats never gets brawlHockey data —
+        // which is exactly why Hyperspace had zero pro stats.
+        const rawMode = battle.mode || entry.event.mode
+        const rawModeId = (entry.event as { modeId?: number }).modeId
+        const mode = normalizeSupercellMode(rawMode, rawModeId)
         const map = entry.event.map || null
 
-        if (!isDraftMode(mode)) continue
+        if (!mode) continue
         if (battle.type === 'friendly') continue
         if (battle.result !== 'victory' && battle.result !== 'defeat') continue
         if (!battle.teams || battle.teams.length !== 2) continue

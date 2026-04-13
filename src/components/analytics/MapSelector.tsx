@@ -7,7 +7,7 @@ import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
 import { Lock } from 'lucide-react'
 import { getMapImageUrl, getGameModeImageUrl } from '@/lib/utils'
-import { isDraftMode } from '@/lib/draft/constants'
+import { isDraftMode, normalizeSupercellMode } from '@/lib/draft/constants'
 import { MODE_DISPLAY_NAMES } from '@/lib/constants'
 
 interface MapSelectorProps {
@@ -40,10 +40,11 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
       .then((events: Array<{ startTime?: string; endTime?: string; event?: { id?: number; map?: string; mode?: string; modeId?: number }; map?: string; mode?: string; id?: number }>) => {
         const liveMaps = events
           .map(e => {
-            // Resolve mode: modeId 45 = brawlHockey (API reports as "unknown")
-            let mode = e.event?.mode ?? e.mode ?? ''
+            // Normalize via shared helper — handles the "unknown" +
+            // modeId=45 fallback for brand-new modes (brawlHockey).
+            const rawMode = e.event?.mode ?? e.mode ?? ''
             const modeId = (e.event as { modeId?: number } | undefined)?.modeId
-            if (mode === 'unknown' && modeId === 45) mode = 'brawlHockey'
+            const mode = normalizeSupercellMode(rawMode, modeId) ?? rawMode
 
             // Competitive events last 12h+ (24h typical). Fun/no-trophy events last 2h.
             let isCompetitive = true
