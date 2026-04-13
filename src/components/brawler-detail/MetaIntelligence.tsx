@@ -91,7 +91,7 @@ function MatchupList({ title, entries, playerNames }: MatchupListProps) {
         <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
           {title}
         </h3>
-        <p className="text-sm text-slate-500">{t('insufficientData')}</p>
+        <p className="text-sm text-slate-500">{t('matchupsEmptyContextual')}</p>
       </div>
     )
   }
@@ -185,7 +185,7 @@ export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
         </h3>
 
         {bestMaps.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('insufficientData')}</p>
+          <p className="text-sm text-slate-500">{t('bestMapsEmptyContextual')}</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {bestMaps.slice(0, 6).map(map => {
@@ -246,6 +246,9 @@ export function MetaIntelligence({ data, playerBrawlerNames }: Props) {
       </div>
 
       {/* ── Best Teammates ── */}
+      {/* bestTeammates intentionally omitted when empty — the section
+          disappears silently because the globalStats grid already
+          conveys enough context about this brawler's activity level. */}
       {bestTeammates.length > 0 && (
         <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
           <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
