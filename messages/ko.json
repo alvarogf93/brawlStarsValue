@@ -647,7 +647,10 @@
     "brawlerTierList": "내 브롤러 티어 리스트",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "내 매치업 — 각 상대에 대해 내가 얼마나 잘 싸우는지"
+    "matchupsTitleExplicit": "내 매치업 — 각 상대에 대해 내가 얼마나 잘 싸우는지",
+    "playNowSubtitle": "현재 로테이션 맵에서의 내 개인 기록 기반",
+    "playNowModeAggregateBadge": "모드",
+    "playNowModeAggregateTooltip": "이 맵을 특정하여 플레이하지 않았습니다 — 모드 전체 집계 데이터를 표시합니다"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count}전",
     "modeFallbackBanner": "모드 전체 데이터를 표시 중 — 이 맵에는 데이터가 부족합니다.",
-    "countersLabel": "카운터"
+    "countersLabel": "카운터",
+    "topBrawlersSubtitle": "글로벌 탑 200 프로 플레이어 기반 (글로벌 메타)"
   },
   "picks": {
     "title": "최고 픽",

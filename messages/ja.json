@@ -647,7 +647,10 @@
     "brawlerTierList": "あなたのブロウラーティアリスト",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "あなたのマッチアップ — 各相手にどう戦うか"
+    "matchupsTitleExplicit": "あなたのマッチアップ — 各相手にどう戦うか",
+    "playNowSubtitle": "現在のローテーションマップでのあなたの個人履歴に基づいています",
+    "playNowModeAggregateBadge": "モード",
+    "playNowModeAggregateTooltip": "このマップは個別にプレイしていません — モード全体の集計データを表示しています"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count}戦",
     "modeFallbackBanner": "モード全体のデータを表示中 — このマップはデータが不足しています。",
-    "countersLabel": "カウンター"
+    "countersLabel": "カウンター",
+    "topBrawlersSubtitle": "グローバルトップ200プロプレイヤーに基づいています（グローバルメタ）"
   },
   "picks": {
     "title": "ベストピック",

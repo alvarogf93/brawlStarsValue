@@ -647,7 +647,10 @@
     "brawlerTierList": "قائمة تصنيف أبطالك",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "مواجهاتك — كيف تؤدي أنت ضد كل خصم"
+    "matchupsTitleExplicit": "مواجهاتك — كيف تؤدي أنت ضد كل خصم",
+    "playNowSubtitle": "استناداً إلى سجلك الشخصي على خرائط التناوب الحالي",
+    "playNowModeAggregateBadge": "الوضع",
+    "playNowModeAggregateTooltip": "لم تلعب هذه الخريطة تحديداً — نعرض بياناتك المجمعة للوضع"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count} معركة",
     "modeFallbackBanner": "عرض البيانات المجمعة للوضع — هذه الخريطة لديها بيانات قليلة.",
-    "countersLabel": "مضادات"
+    "countersLabel": "مضادات",
+    "topBrawlersSubtitle": "استناداً إلى أفضل 200 لاعب محترف عالمياً (الميتا العالمية)"
   },
   "picks": {
     "title": "أفضل الاختيارات",

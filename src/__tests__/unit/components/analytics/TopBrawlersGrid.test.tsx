@@ -5,6 +5,7 @@ vi.mock('next-intl', () => ({
   useTranslations: () => (key: string, params?: Record<string, string | number>) => {
     const map: Record<string, string> = {
       topBrawlersTitle: 'Top Brawlers',
+      topBrawlersSubtitle: 'Based on top pros',
       totalBattles: `${params?.count ?? '?'} battles`,
       noDataForMap: 'No data for map',
       sampleSize: `${params?.count ?? '?'} batallas`,
@@ -59,6 +60,13 @@ describe('TopBrawlersGrid — Task 5 (sample size + confidence)', () => {
   it('renders the empty state when no brawlers', () => {
     render(<TopBrawlersGrid brawlers={[]} totalBattles={0} />)
     expect(screen.getByText('No data for map')).toBeTruthy()
+  })
+})
+
+describe('TopBrawlersGrid — Sprint D Task 2 (dataset clarity subtitle)', () => {
+  it('renders the topBrawlers subtitle in the header block', () => {
+    render(<TopBrawlersGrid brawlers={MOCK_BRAWLERS} totalBattles={3000} />)
+    expect(screen.getByText('Based on top pros')).toBeTruthy()
   })
 })
 

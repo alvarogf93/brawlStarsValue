@@ -36,9 +36,14 @@ export function PlayNowDashboard({ recommendations }: Props) {
   if (recommendations.length === 0) {
     return (
       <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-        <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-          <span className="text-xl">🎯</span> {t('playNowTitle')}
-        </h3>
+        <div className="mb-4">
+          <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
+            <span className="text-xl">🎯</span> {t('playNowTitle')}
+          </h3>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            {t('playNowSubtitle')}
+          </p>
+        </div>
         <div className="flex flex-col items-center justify-center py-10 text-center">
           <span className="text-4xl mb-3">🎮</span>
           <p className="font-['Lilita_One'] text-sm text-slate-400">
@@ -51,9 +56,14 @@ export function PlayNowDashboard({ recommendations }: Props) {
 
   return (
     <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-      <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">🎯</span> {t('playNowTitle')}
-      </h3>
+      <div className="mb-4">
+        <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
+          <span className="text-xl">🎯</span> {t('playNowTitle')}
+        </h3>
+        <p className="text-[11px] text-slate-500 mt-0.5">
+          {t('playNowSubtitle')}
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {recommendations.map(slot => {
@@ -78,7 +88,7 @@ export function PlayNowDashboard({ recommendations }: Props) {
                 {/* Gradient overlay for readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-[#0A0E1A]/70 to-transparent" />
 
-                {/* Top-left: mode + time badge */}
+                {/* Top-left: mode + time badge (+ mode-aggregate marker when applicable) */}
                 <div className="absolute top-2 left-2 flex items-center gap-1.5">
                   <span className="bg-black/50 backdrop-blur-sm rounded-lg px-2 py-0.5 border border-white/10 flex items-center">
                     <ModeIcon mode={slot.mode} size={18} />
@@ -90,6 +100,14 @@ export function PlayNowDashboard({ recommendations }: Props) {
                   }`}>
                     {timeLeft}
                   </span>
+                  {slot.source === 'mode-aggregate' && (
+                    <span
+                      className="text-[9px] font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 rounded px-1.5 py-0.5"
+                      title={t('playNowModeAggregateTooltip')}
+                    >
+                      {t('playNowModeAggregateBadge')}
+                    </span>
+                  )}
                 </div>
 
                 {/* Bottom of map area: map name + best pick hero */}
