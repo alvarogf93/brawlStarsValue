@@ -647,7 +647,10 @@
     "brawlerTierList": "Deine Brawler-Tier-List",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "DEINE MATCHUPS — Wie DU gegen jeden Gegner abschneidest"
+    "matchupsTitleExplicit": "DEINE MATCHUPS — Wie DU gegen jeden Gegner abschneidest",
+    "playNowSubtitle": "Basierend auf deiner persönlichen Historie auf den Karten der aktuellen Rotation",
+    "playNowModeAggregateBadge": "Modus",
+    "playNowModeAggregateTooltip": "Du hast diese Karte nicht gespielt — deine Modus-Aggregatdaten werden angezeigt"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count} Kämpfe",
     "modeFallbackBanner": "Modus-Aggregat wird angezeigt — diese Karte hat zu wenig Daten.",
-    "countersLabel": "Konter"
+    "countersLabel": "Konter",
+    "topBrawlersSubtitle": "Basierend auf den Top 200 globalen Pro-Spielern (globale Meta)"
   },
   "picks": {
     "title": "Beste Picks",

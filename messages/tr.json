@@ -647,7 +647,10 @@
     "brawlerTierList": "Senin brawler tier listen",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "SENİN EŞLEŞMELERİN — SEN her rakibe karşı nasıl gidiyorsun"
+    "matchupsTitleExplicit": "SENİN EŞLEŞMELERİN — SEN her rakibe karşı nasıl gidiyorsun",
+    "playNowSubtitle": "Mevcut rotasyondaki haritalarda kendi kişisel geçmişine dayanıyor",
+    "playNowModeAggregateBadge": "Mod",
+    "playNowModeAggregateTooltip": "Bu haritayı özel olarak oynamadın — mod geneli verilerini gösteriyoruz"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count} savaş",
     "modeFallbackBanner": "Mod geneli veriler gösteriliyor — bu haritada yeterli veri yok.",
-    "countersLabel": "Karşı seçimler"
+    "countersLabel": "Karşı seçimler",
+    "topBrawlersSubtitle": "Global ilk 200 pro player verilerine dayanıyor (global meta)"
   },
   "picks": {
     "title": "En iyi pickler",

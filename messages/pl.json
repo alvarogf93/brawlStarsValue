@@ -647,7 +647,10 @@
     "brawlerTierList": "Twoja tier lista brawlerów",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "TWOJE POJEDYNKI — Jak TY radzisz sobie przeciwko każdemu"
+    "matchupsTitleExplicit": "TWOJE POJEDYNKI — Jak TY radzisz sobie przeciwko każdemu",
+    "playNowSubtitle": "Na podstawie twojej osobistej historii na mapach w aktualnej rotacji",
+    "playNowModeAggregateBadge": "Tryb",
+    "playNowModeAggregateTooltip": "Nie grałeś konkretnie tej mapy — pokazuję twoje zbiorcze dane z trybu"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count} bitew",
     "modeFallbackBanner": "Pokazuję dane zbiorcze trybu — ta mapa ma zbyt mało danych.",
-    "countersLabel": "Kontry"
+    "countersLabel": "Kontry",
+    "topBrawlersSubtitle": "Na podstawie top 200 globalnych pro playerów (globalna meta)"
   },
   "picks": {
     "title": "Najlepsze picki",

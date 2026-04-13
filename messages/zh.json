@@ -647,7 +647,10 @@
     "brawlerTierList": "你的英雄梯队排名",
     "matchupYou": "You",
     "matchupGames": "Games",
-    "matchupsTitleExplicit": "你的对位 — 你对每个对手的表现"
+    "matchupsTitleExplicit": "你的对位 — 你对每个对手的表现",
+    "playNowSubtitle": "基于你在当前轮换地图上的个人战绩",
+    "playNowModeAggregateBadge": "模式",
+    "playNowModeAggregateTooltip": "你没有玩过这张具体地图 — 显示的是该模式的汇总数据"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
@@ -684,7 +687,8 @@
     "showMore": "more maps",
     "sampleSize": "{count}场对战",
     "modeFallbackBanner": "显示模式汇总数据 — 此地图数据较少。",
-    "countersLabel": "克制"
+    "countersLabel": "克制",
+    "topBrawlersSubtitle": "基于全球顶级 200 职业玩家（全球 meta）"
   },
   "picks": {
     "title": "最佳选择",

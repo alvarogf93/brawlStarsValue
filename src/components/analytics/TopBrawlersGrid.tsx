@@ -87,13 +87,18 @@ export function TopBrawlersGrid({
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
-          <span className="text-xl">{'\uD83C\uDFC6'}</span> {t('topBrawlersTitle')}
-        </h3>
-        <span className="text-[10px] text-slate-500 font-bold">
-          {t('totalBattles', { count: String(totalBattles) })}
-        </span>
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
+            <span className="text-xl">{'\uD83C\uDFC6'}</span> {t('topBrawlersTitle')}
+          </h3>
+          <span className="text-[10px] text-slate-500 font-bold">
+            {t('totalBattles', { count: String(totalBattles) })}
+          </span>
+        </div>
+        <p className="text-[11px] text-slate-500 mt-0.5">
+          {t('topBrawlersSubtitle')}
+        </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
