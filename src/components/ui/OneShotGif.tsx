@@ -26,14 +26,21 @@ interface Props {
    */
   threshold?: number
   /**
-   * Optional inline style override applied to BOTH the playing
-   * <img> and the frozen-frame <canvas>. Use this when the gif
-   * has whitespace around the subject and you need to crop/offset
-   * the visible frame consistently across both phases — without
-   * it the freeze frame would shift visually relative to the
-   * animation. Default: undefined → both elements use w-full h-full.
+   * Optional inline style applied to BOTH the playing <img> and
+   * the frozen-frame <canvas>. Use this when the gif has whitespace
+   * around the subject and you need to crop/offset the visible
+   * frame consistently across both phases — without it the freeze
+   * frame would shift visually relative to the animation. Default:
+   * undefined → both elements use w-full h-full.
    */
   mediaStyle?: React.CSSProperties
+  /**
+   * Optional partial style override applied ONLY to the frozen
+   * canvas. Merged on top of `mediaStyle`. Use when one or two
+   * properties (e.g. width) need to change between the playing
+   * and frozen phases — the rest of the geometry stays shared.
+   */
+  frozenStyleOverride?: React.CSSProperties
 }
 
 /**
@@ -60,6 +67,7 @@ export function OneShotGif({
   onStart,
   threshold = 0.3,
   mediaStyle,
+  frozenStyleOverride,
 }: Props) {
   const containerRef = useRef<HTMLSpanElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -112,6 +120,14 @@ export function OneShotGif({
     return () => clearTimeout(timer)
   }, [phase, durationMs])
 
+  // Compute the merged frozen style (mediaStyle + frozen overrides).
+  // If neither is set, the canvas falls back to `w-full h-full` via
+  // the className branch below.
+  const canvasMergedStyle: React.CSSProperties | undefined =
+    mediaStyle || frozenStyleOverride
+      ? { ...(mediaStyle ?? {}), ...(frozenStyleOverride ?? {}) }
+      : undefined
+
   // Span (not div) so the component is safe to nest inside inline
   // contexts like <p>. CSS gives it block-ish behavior internally.
   return (
@@ -131,8 +147,8 @@ export function OneShotGif({
           />
           <canvas
             ref={canvasRef}
-            className={`block ${mediaStyle ? '' : 'w-full h-full'} ${phase === 'frozen' ? '' : 'hidden'}`}
-            style={mediaStyle}
+            className={`block ${canvasMergedStyle ? '' : 'w-full h-full'} ${phase === 'frozen' ? '' : 'hidden'}`}
+            style={canvasMergedStyle}
             aria-hidden="true"
           />
         </>

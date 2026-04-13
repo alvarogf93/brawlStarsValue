@@ -216,6 +216,7 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
                 marginTop: '-75%',
                 marginLeft: '-45%',
               }}
+              frozenStyleOverride={{ width: '3rem' }}
             />
           </div>
         </div>
