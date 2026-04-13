@@ -118,4 +118,65 @@ describe('computePlayNowRecommendations', () => {
     const result = computePlayNowRecommendations(mapMatrix, [], events)
     expect(result[0].recommendations.length).toBeLessThanOrEqual(5)
   })
+
+  it('aggregates duplicates across maps when fallback kicks in', () => {
+    // User has played Najia on TWO knockout maps but NOT on Crab Claws
+    const mapMatrix: BrawlerMapEntry[] = [
+      // Najia on "Out in the Open" — 12 games, 9 wins
+      { brawlerId: 16000100, brawlerName: 'NAJIA', map: 'Out in the Open', mode: 'knockout', wins: 9, total: 12, winRate: 75, wilsonScore: 55, eventId: null, confidence: 'high' as const },
+      // Najia on "Goldarm Gulch" — 5 games, 4 wins
+      { brawlerId: 16000100, brawlerName: 'NAJIA', map: 'Goldarm Gulch', mode: 'knockout', wins: 4, total: 5, winRate: 80, wilsonScore: 45, eventId: null, confidence: 'medium' as const },
+      // Rico on "Out in the Open" — 8 games, 5 wins
+      { brawlerId: 16000101, brawlerName: 'RICO', map: 'Out in the Open', mode: 'knockout', wins: 5, total: 8, winRate: 62.5, wilsonScore: 35, eventId: null, confidence: 'medium' as const },
+    ]
+    // Event rotation is on Crab Claws — user has NO data for it, fallback fires
+    const events = [{ startTime: '2026-04-13T10:00:00Z', endTime: '2026-04-14T10:00:00Z', event: { id: 1, mode: 'knockout', map: 'Crab Claws' } }]
+
+    const result = computePlayNowRecommendations(mapMatrix, [], events)
+
+    expect(result).toHaveLength(1)
+    const recs = result[0].recommendations
+
+    // Najia should appear EXACTLY ONCE
+    const najiaEntries = recs.filter(r => r.brawlerId === 16000100)
+    expect(najiaEntries).toHaveLength(1)
+
+    // The aggregated Najia entry should have totals summed across both maps:
+    // wins: 9 + 4 = 13, total: 12 + 5 = 17
+    expect(najiaEntries[0].gamesPlayed).toBe(17)
+    // winRate is recomputed from the aggregate: 13/17 = 76.47%
+    expect(najiaEntries[0].winRate).toBeCloseTo((13 / 17) * 100, 1)
+
+    // Rico is also present, appearing exactly once
+    const ricoEntries = recs.filter(r => r.brawlerId === 16000101)
+    expect(ricoEntries).toHaveLength(1)
+    expect(ricoEntries[0].gamesPlayed).toBe(8)
+
+    // The result's source field marks this as a mode-aggregate
+    expect(result[0].source).toBe('mode-aggregate')
+  })
+
+  it('preserves map-specific data when the user has played the rotation map', () => {
+    const mapMatrix: BrawlerMapEntry[] = [
+      // User played Najia on Crab Claws directly
+      { brawlerId: 16000100, brawlerName: 'NAJIA', map: 'Crab Claws', mode: 'knockout', wins: 7, total: 10, winRate: 70, wilsonScore: 45, eventId: null, confidence: 'high' as const },
+      // User also played Najia on a DIFFERENT knockout map — this should NOT affect the Crab Claws recommendation
+      { brawlerId: 16000100, brawlerName: 'NAJIA', map: 'Out in the Open', mode: 'knockout', wins: 20, total: 50, winRate: 40, wilsonScore: 30, eventId: null, confidence: 'high' as const },
+    ]
+    const events = [{ startTime: '2026-04-13T10:00:00Z', endTime: '2026-04-14T10:00:00Z', event: { id: 1, mode: 'knockout', map: 'Crab Claws' } }]
+
+    const result = computePlayNowRecommendations(mapMatrix, [], events)
+
+    expect(result).toHaveLength(1)
+    const recs = result[0].recommendations
+
+    // Only the Crab Claws Najia entry is used (10 games, not 60)
+    const najiaEntries = recs.filter(r => r.brawlerId === 16000100)
+    expect(najiaEntries).toHaveLength(1)
+    expect(najiaEntries[0].gamesPlayed).toBe(10)
+    expect(najiaEntries[0].winRate).toBe(70)
+
+    // The result's source field marks this as map-specific
+    expect(result[0].source).toBe('map-specific')
+  })
 })

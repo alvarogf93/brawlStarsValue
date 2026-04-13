@@ -192,6 +192,16 @@ export interface PlayNowRecommendation {
   eventId: number
   slotEndTime: string
   recommendations: BrawlerRecommendation[]
+  /**
+   * Indicates which data source was used to produce `recommendations`.
+   * 'map-specific' means the user has direct history on this map.
+   * 'mode-aggregate' means the user has no map-specific data — we
+   * aggregated across all maps in the same mode so the same brawler
+   * never appears twice, and the displayed counts are mode-wide totals.
+   *
+   * Sprint D Task 1 (2026-04-13) — fix for Najia duplicate bug.
+   */
+  source: 'map-specific' | 'mode-aggregate'
 }
 
 export interface BrawlerRecommendation {

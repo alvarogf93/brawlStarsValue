@@ -2,12 +2,55 @@ import type {
   PlayNowRecommendation, BrawlerRecommendation,
   BrawlerMapEntry, TrioSynergy,
 } from './types'
-import { MIN_GAMES } from './types'
+import { MIN_GAMES, getConfidence } from './types'
+import { winRate as computeWinRateFromCounts, wilsonPct } from './stats'
 
 interface EventSlot {
   startTime: string
   endTime: string
   event: { id: number; mode: string; map: string }
+}
+
+/**
+ * Aggregate a list of (brawler, map) entries into one entry per brawler.
+ * Used by the fallback path of computePlayNowRecommendations — when the
+ * user has no history on the current rotation map, we collapse all their
+ * mode-level entries by brawlerId so the same brawler never appears
+ * twice in the top list. Recomputes winRate, wilsonScore, and confidence
+ * from the summed counts.
+ *
+ * Added in Sprint D Task 1 (2026-04-13) — fixes the Najia duplicate bug
+ * where filter(e => e.mode === mode) returned multiple rows for the same
+ * brawler (one per map they had played in that mode) and the subsequent
+ * sort/slice did not dedupe.
+ */
+function aggregateByBrawler(entries: BrawlerMapEntry[]): BrawlerMapEntry[] {
+  const byBrawler = new Map<number, { wins: number; total: number; brawlerName: string; mode: string }>()
+  for (const e of entries) {
+    const existing = byBrawler.get(e.brawlerId)
+    if (existing) {
+      existing.wins += e.wins
+      existing.total += e.total
+    } else {
+      byBrawler.set(e.brawlerId, { wins: e.wins, total: e.total, brawlerName: e.brawlerName, mode: e.mode })
+    }
+  }
+  const result: BrawlerMapEntry[] = []
+  for (const [brawlerId, agg] of byBrawler) {
+    result.push({
+      brawlerId,
+      brawlerName: agg.brawlerName,
+      map: '',  // empty marker — fallback entries are cross-map
+      mode: agg.mode,
+      eventId: null,
+      wins: agg.wins,
+      total: agg.total,
+      winRate: computeWinRateFromCounts(agg.wins, agg.total),
+      wilsonScore: wilsonPct(agg.wins, agg.total),
+      confidence: getConfidence(agg.total),
+    })
+  }
+  return result
 }
 
 /**
@@ -26,12 +69,18 @@ export function computePlayNowRecommendations(
     const map = slot.event.map
     const mode = slot.event.mode
 
-    // Find all brawlers the player has used on this map (or this mode if no map data)
+    // Tier 1: map-specific data (user has played this exact map)
     let candidates = brawlerMapMatrix.filter(e => e.map === map)
+    let source: 'map-specific' | 'mode-aggregate' = 'map-specific'
 
-    // Fallback: if no map-specific data, use mode data
+    // Tier 2 fallback: if no map-specific data, aggregate across maps in
+    // the same mode so each brawler appears exactly once with combined totals.
     if (candidates.length === 0) {
-      candidates = brawlerMapMatrix.filter(e => e.mode === mode)
+      const modeEntries = brawlerMapMatrix.filter(e => e.mode === mode)
+      if (modeEntries.length > 0) {
+        candidates = aggregateByBrawler(modeEntries)
+        source = 'mode-aggregate'
+      }
     }
 
     if (candidates.length === 0) continue
@@ -68,6 +117,7 @@ export function computePlayNowRecommendations(
       mode,
       slotEndTime: slot.endTime,
       recommendations,
+      source,
     })
   }
 
