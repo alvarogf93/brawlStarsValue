@@ -19,6 +19,7 @@ interface MetaEvent {
   endTime: string
   totalBattles: number
   topBrawlers: TopBrawler[]
+  source?: 'map-mode' | 'mode-fallback'
 }
 
 export default function ProfilePicksPage() {
@@ -66,6 +67,7 @@ export default function ProfilePicksPage() {
               endTime={event.endTime}
               totalBattles={event.totalBattles}
               topBrawlers={event.topBrawlers}
+              source={event.source}
             />
           ))}
         </div>
