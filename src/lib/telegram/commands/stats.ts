@@ -1,3 +1,4 @@
+import { getBrawlerName, loadBrawlerNames } from '@/lib/draft/brawler-names'
 import { MIN_BATTLES_FOR_RANKING } from '../constants'
 import { fmtNumber, fmtTimeAgo, sparkline, section } from '../formatters'
 import type { CommandHandler, StatsData } from '../types'
@@ -8,7 +9,10 @@ function formatSparkLine(values: number[], label: string): string {
 }
 
 export const handleStats: CommandHandler = async ({ queries }) => {
-  const s = await queries.getStats()
+  const [s, brawlerNames] = await Promise.all([
+    queries.getStats(),
+    loadBrawlerNames(),
+  ])
   const now = new Date()
   const nowLabel = now.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
 
@@ -41,7 +45,7 @@ export const handleStats: CommandHandler = async ({ queries }) => {
   ].join('\n')
 
   const topMaps = renderTop3Maps(s.top3Maps)
-  const topBrawlers = renderTop3Brawlers(s.top3Brawlers)
+  const topBrawlers = renderTop3Brawlers(s.top3Brawlers, brawlerNames)
 
   return [
     `📊 <b>BrawlVision Stats</b>`,
@@ -66,9 +70,15 @@ function renderTop3Maps(rows: StatsData['top3Maps']): string {
     .join('\n')
 }
 
-function renderTop3Brawlers(rows: StatsData['top3Brawlers']): string {
+function renderTop3Brawlers(
+  rows: StatsData['top3Brawlers'],
+  names: Map<number, string>,
+): string {
   if (rows.length === 0) return '  — sin datos'
   return rows
-    .map((r, i) => `  ${i + 1}. brawler#${r.brawlerId}  WR ${(r.winRate * 100).toFixed(1)}% (${fmtNumber(r.total)} partidas)`)
+    .map((r, i) => {
+      const name = getBrawlerName(names, r.brawlerId).padEnd(14)
+      return `  ${i + 1}. ${name} WR ${(r.winRate * 100).toFixed(1)}% (${fmtNumber(r.total)} partidas)`
+    })
     .join('\n')
 }

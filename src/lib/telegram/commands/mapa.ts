@@ -1,3 +1,4 @@
+import { getBrawlerName, loadBrawlerNames } from '@/lib/draft/brawler-names'
 import { MIN_BATTLES_FOR_RANKING } from '../constants'
 import { bar, escapeHtml, fmtNumber, fmtTimeAgo, section, sparkline } from '../formatters'
 import type { CommandHandler, MapData, MapListItem } from '../types'
@@ -29,8 +30,11 @@ export const handleMapa: CommandHandler = async ({ args, queries }) => {
     ].join('\n')
   }
 
-  const data = await queries.getMapData(match.map, match.mode)
-  return renderMapData(data)
+  const [data, brawlerNames] = await Promise.all([
+    queries.getMapData(match.map, match.mode),
+    loadBrawlerNames(),
+  ])
+  return renderMapData(data, brawlerNames)
 }
 
 function renderList(list: MapListItem[]): string {
@@ -39,27 +43,27 @@ function renderList(list: MapListItem[]): string {
   const lines = list.map((item, i) => {
     const idx = String(i + 1).padStart(2)
     const combined = `${item.mode} :: ${item.map}`.padEnd(42)
-    return `${idx}. ${combined} ${fmtNumber(item.battles).padStart(6)} battles · ${String(item.brawlerCount).padStart(2)} brawlers`
+    return `${idx}. ${combined} ${fmtNumber(item.battles).padStart(6)} batallas · ${String(item.brawlerCount).padStart(2)} brawlers`
   })
   const footer = '\nPara detalles de un mapa: /mapa &lt;nombre&gt;\nEjemplo: /mapa sidetrack'
   return [header, lines.join('\n'), footer].join('\n')
 }
 
-function renderMapData(data: MapData): string {
+function renderMapData(data: MapData, names: Map<number, string>): string {
   const now = new Date()
   const nowLabel = now.toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
 
   const density = data.brawlerCovered > 60 ? 'HIGH ✅' : data.brawlerCovered > 30 ? 'MEDIUM 🟡' : 'LOW 🔴'
 
   const cobertura = [
-    `  Battles hoy:        ${fmtNumber(data.battlesToday)}`,
-    `  Battles 7d:         ${fmtNumber(data.battlesLast7d)}`,
+    `  Batallas hoy:       ${fmtNumber(data.battlesToday)}`,
+    `  Batallas 7d:        ${fmtNumber(data.battlesLast7d)}`,
     `  Brawlers cubiertos: ${data.brawlerCovered} / ${data.brawlerTotal}`,
-    `  Pool density:       ${density}`,
+    `  Densidad del pool:  ${density}`,
   ].join('\n')
 
   const sparkBlock = [
-    '  Battles/day last 7d',
+    '  Batallas / día (7d)',
     `  ${sparkline(data.sparkline7d)}`,
   ].join('\n')
 
@@ -79,14 +83,20 @@ function renderMapData(data: MapData): string {
     )
   } else {
     const topBlock = data.topWinRates
-      .map((b, i) => `  ${i + 1}. brawler#${b.brawlerId}  ${(b.winRate * 100).toFixed(1)}%  (${fmtNumber(b.total)} battles)`)
+      .map((b, i) => {
+        const name = getBrawlerName(names, b.brawlerId).padEnd(14)
+        return `  ${i + 1}. ${name} ${(b.winRate * 100).toFixed(1)}%  (${fmtNumber(b.total)} batallas)`
+      })
       .join('\n') || '  — sin datos'
     const bottomBlock = data.bottomWinRates
-      .map((b, i) => `  ${i + 1}. brawler#${b.brawlerId}  ${(b.winRate * 100).toFixed(1)}%  (${fmtNumber(b.total)} battles)`)
+      .map((b, i) => {
+        const name = getBrawlerName(names, b.brawlerId).padEnd(14)
+        return `  ${i + 1}. ${name} ${(b.winRate * 100).toFixed(1)}%  (${fmtNumber(b.total)} batallas)`
+      })
       .join('\n') || '  — sin datos'
 
     sections.push('', section('🏆', 'TOP 5 BRAWLERS POR WIN RATE (hoy)', topBlock))
-    sections.push('', section('💀', `BOTTOM 3 (worst WR hoy, min ${MIN_BATTLES_FOR_RANKING} battles)`, bottomBlock))
+    sections.push('', section('💀', `BOTTOM 3 (peor WR hoy, min ${MIN_BATTLES_FOR_RANKING} batallas)`, bottomBlock))
   }
 
   // Same-mode comparison (always shown if present)

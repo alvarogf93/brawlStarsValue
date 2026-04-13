@@ -1,4 +1,15 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('@/lib/draft/brawler-names', () => ({
+  loadBrawlerNames: vi.fn(async () => new Map<number, string>([
+    [1, 'EDGAR'],
+    [2, 'MICO'],
+    [3, 'BUZZ'],
+  ])),
+  getBrawlerName: (names: Map<number, string>, id: number) =>
+    names.get(id) ?? `Brawler #${id}`,
+}))
+
 import { handleStats } from '@/lib/telegram/commands/stats'
 import type { Queries, StatsData } from '@/lib/telegram/types'
 

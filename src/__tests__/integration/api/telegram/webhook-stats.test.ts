@@ -18,6 +18,16 @@ vi.mock('@/lib/telegram/queries', () => ({
   },
 }))
 
+vi.mock('@/lib/draft/brawler-names', () => ({
+  loadBrawlerNames: vi.fn(async () => new Map<number, string>([
+    [1, 'EDGAR'],
+    [2, 'MICO'],
+    [3, 'BUZZ'],
+  ])),
+  getBrawlerName: (names: Map<number, string>, id: number) =>
+    names.get(id) ?? `Brawler #${id}`,
+}))
+
 import { POST } from '@/app/api/telegram/webhook/route'
 
 const SECRET = 'test-secret'

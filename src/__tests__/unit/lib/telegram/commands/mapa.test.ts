@@ -1,4 +1,20 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+vi.mock('@/lib/draft/brawler-names', () => ({
+  loadBrawlerNames: vi.fn(async () => new Map<number, string>([
+    [1, 'EDGAR'],
+    [2, 'MICO'],
+    [3, 'BUZZ'],
+    [4, 'KENJI'],
+    [5, 'LOU'],
+    [6, 'JACKY'],
+    [7, 'RICO'],
+    [8, 'EVE'],
+  ])),
+  getBrawlerName: (names: Map<number, string>, id: number) =>
+    names.get(id) ?? `Brawler #${id}`,
+}))
+
 import { handleMapa } from '@/lib/telegram/commands/mapa'
 import type { MapData, MapListItem, MapMatchResult, Queries } from '@/lib/telegram/types'
 
