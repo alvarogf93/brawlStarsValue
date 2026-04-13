@@ -75,7 +75,12 @@ export function MetaProTab() {
 
       {data && !loading && (
         <>
-          <TopBrawlersGrid brawlers={data.topBrawlers} totalBattles={data.totalProBattles} />
+          <TopBrawlersGrid
+            brawlers={data.topBrawlers}
+            totalBattles={data.totalProBattles}
+            source={data.topBrawlersSource}
+            counters={data.counters}
+          />
           <TrendingSection rising={data.trending.rising} falling={data.trending.falling} />
           <CounterQuickView counters={data.counters} isPremium={hasPremium} />
 
