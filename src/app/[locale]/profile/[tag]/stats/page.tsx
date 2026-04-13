@@ -1,10 +1,13 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { useBrawlerRegistry } from '@/hooks/useBrawlerRegistry'
 import { GemIcon } from '@/components/ui/GemIcon'
-import { GEM_COSTS } from '@/lib/constants'
+import { GEM_COSTS, TROPHY_ROAD_MAX } from '@/lib/constants'
+import { computeMaxGems, computeMaxCounts, completionPct } from '@/lib/stats-maxes'
 import { formatPlaytime } from '@/lib/utils'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
@@ -16,6 +19,10 @@ export default function StatsPage() {
   const tStats = useTranslations('stats')
   const tag = decodeURIComponent(params.tag)
   const { data, isLoading, error } = usePlayerData(tag)
+  const registry = useBrawlerRegistry()
+
+  const maxGems = useMemo(() => computeMaxGems(registry), [registry])
+  const maxCounts = useMemo(() => computeMaxCounts(registry), [registry])
 
   if (isLoading) {
     return <StatsSkeleton />
@@ -31,9 +38,15 @@ export default function StatsPage() {
 
   const bd = data.breakdown
   const st = data.stats
-  const trophyPercent = st.highestTrophies > 0
-    ? Math.min(100, Math.round((st.trophies / st.highestTrophies) * 100))
-    : 0
+  // Trophy road: player trophies / current game-wide cap (100k), NOT
+  // player's personal highest — the bar should show progress toward
+  // the absolute ceiling, not toward a moving personal best.
+  const trophyPercent = completionPct(st.trophies, TROPHY_ROAD_MAX)
+  // Main donut: overall account completion as a fraction of max possible
+  // gems across every upgrade category (powerLevels + gadgets + SPs +
+  // gears + HCs + buffies). Replaces the old "power level share of
+  // total" which always showed ~50% and meant nothing.
+  const completionPercent = completionPct(data.totalGems, maxGems.total)
 
   return (
     <div className="animate-fade-in w-full pb-10 space-y-6">
@@ -67,44 +80,53 @@ export default function StatsPage() {
             <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_4px_10px_rgba(255,201,27,0.2)]" viewBox="0 0 36 36">
               <path className="text-[#0D1321]" strokeWidth="4" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              <path className="text-[var(--color-brawl-gold)]" strokeDasharray={`${data.totalGems > 0 ? Math.min(100, Math.round((bd.powerLevels.gems / data.totalGems) * 100)) : 0}, 100`}
+              <path className="text-[var(--color-brawl-gold)]" strokeDasharray={`${completionPercent}, 100`}
                 strokeWidth="4" strokeLinecap="round" stroke="currentColor" fill="none"
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-['Lilita_One'] text-4xl text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] text-stroke-brawl" style={{ WebkitTextStroke: '2px #121A2F' }}>
-                {data.totalGems.toLocaleString()}
+              <span className="font-['Lilita_One'] text-5xl text-[var(--color-brawl-gold)] drop-shadow-[0_4px_0_rgba(0,0,0,0.8)]" style={{ WebkitTextStroke: '2px #121A2F' }}>
+                {completionPercent}%
+              </span>
+              <span className="font-['Inter'] text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">
+                {data.totalGems.toLocaleString()} / {maxGems.total.toLocaleString()} 💎
               </span>
             </div>
           </div>
 
-          {/* Gem breakdown bars */}
+          {/* Gem breakdown bars — each rellena contra su MAX de categoría */}
           <div className="w-full mt-8 space-y-3">
             {[
-              { label: t('powerLevels'), value: bd.powerLevels.gems, color: '#F59E0B' },
-              { label: t('gadgets'), value: bd.gadgets.gems, color: '#10B981' },
-              { label: t('starPowers'), value: bd.starPowers.gems, color: '#8B5CF6' },
-              { label: t('hypercharges'), value: bd.hypercharges.gems, color: '#EF4444' },
-              { label: t('buffies'), value: bd.buffies.gems, color: '#EC4899' },
-              { label: t('gears'), value: bd.gears.gems, color: '#6B7280' },
-            ].map((v) => (
-              <div key={v.label}>
-                <div className="flex justify-between text-xs font-black uppercase tracking-wider mb-1">
-                  <span className="text-slate-300">{v.label}</span>
-                  <span className="text-slate-100">{v.value.toLocaleString()} 💎</span>
-                </div>
-                {/* Segmented/Trophy-Road style mini bar */}
-                <div className="h-4 w-full bg-[#0D1321] rounded-sm overflow-hidden border-2 border-[#1E293B]">
-                  <div
-                    className="h-full rounded-sm transition-all duration-700 relative"
-                    style={{ width: `${data.totalGems > 0 ? Math.max(2, Math.round((v.value / data.totalGems) * 100)) : 0}%`, backgroundColor: v.color }}
-                  >
-                    <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_8px,rgba(0,0,0,0.3)_8px,rgba(0,0,0,0.3)_12px)]" />
-                    <div className="absolute top-0 inset-x-0 h-1/2 bg-white/20" />
+              { label: t('powerLevels'), value: bd.powerLevels.gems, max: maxGems.powerLevels, color: '#F59E0B' },
+              { label: t('gadgets'), value: bd.gadgets.gems, max: maxGems.gadgets, color: '#10B981' },
+              { label: t('starPowers'), value: bd.starPowers.gems, max: maxGems.starPowers, color: '#8B5CF6' },
+              { label: t('hypercharges'), value: bd.hypercharges.gems, max: maxGems.hypercharges, color: '#EF4444' },
+              { label: t('buffies'), value: bd.buffies.gems, max: maxGems.buffies, color: '#EC4899' },
+              { label: t('gears'), value: bd.gears.gems, max: maxGems.gears, color: '#6B7280' },
+            ].map((v) => {
+              const pct = completionPct(v.value, v.max)
+              return (
+                <div key={v.label}>
+                  <div className="flex justify-between text-xs font-black uppercase tracking-wider mb-1">
+                    <span className="text-slate-300">{v.label}</span>
+                    <span className="text-slate-100 tabular-nums">{pct}%</span>
+                  </div>
+                  <div className="h-4 w-full bg-[#0D1321] rounded-sm overflow-hidden border-2 border-[#1E293B] relative">
+                    <div
+                      className="h-full rounded-sm transition-all duration-700 relative"
+                      style={{ width: `${pct}%`, backgroundColor: v.color }}
+                    >
+                      <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_8px,rgba(0,0,0,0.3)_8px,rgba(0,0,0,0.3)_12px)]" />
+                      <div className="absolute top-0 inset-x-0 h-1/2 bg-white/20" />
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-[9px] text-slate-500 font-['Inter'] mt-0.5 tabular-nums">
+                    <span>{v.value.toLocaleString()} 💎</span>
+                    <span>{v.max.toLocaleString()} 💎</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -127,18 +149,19 @@ export default function StatsPage() {
               </span>
             </div>
 
-            {/* Segmented Progress Bar */}
+            {/* Segmented Progress Bar — normalized to TROPHY_ROAD_MAX (100k) */}
             <div className="h-12 w-full bg-[#0D1321] border-4 border-[#1E293B] p-1 relative shadow-[inset_0px_6px_6px_rgba(0,0,0,0.6)] rounded-sm">
               <div
                 className="h-full bg-gradient-to-r from-[#FFC91B] to-[#F82F41] relative overflow-hidden transition-all duration-1000 rounded-sm"
                 style={{ width: `${trophyPercent}%` }}
               >
-                {/* 3D Top bevel */}
                 <div className="absolute inset-0 top-0 h-1/2 bg-white/25" />
-                {/* Segmented black notches */}
                 <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_20px,rgba(0,0,0,0.4)_20px,rgba(0,0,0,0.4)_26px)]" />
               </div>
             </div>
+            <p className="text-[10px] text-slate-500 font-['Inter'] font-bold mt-2 tabular-nums text-right">
+              {trophyPercent}% / {TROPHY_ROAD_MAX.toLocaleString()} 🏆
+            </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
@@ -170,22 +193,27 @@ export default function StatsPage() {
             </div>
           </div>
 
-          {/* Unlock details */}
+          {/* Unlock details — muestra X / Y sobre el máximo del juego */}
           <div className="brawl-card-dark p-6">
             <h3 className="font-['Lilita_One'] text-[var(--color-brawl-gold)] text-lg tracking-widest mb-4">{tStats('details')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: t('gadgets'), value: bd.gadgets.count, icon: '🔧' },
-                { label: t('starPowers'), value: bd.starPowers.count, icon: '⭐' },
-                { label: t('hypercharges'), value: bd.hypercharges.count, icon: '⚡' },
-                { label: t('buffies'), value: bd.buffies.count, icon: '💪' },
-                { label: t('gears'), value: bd.gears.count, icon: '🔩' },
-                { label: t('prestige'), value: st.totalPrestigeLevel, icon: '👑' },
-                { label: t('timePlayed'), value: formatPlaytime(st.estimatedHoursPlayed), icon: '⏱️' },
+                { label: t('gadgets'), value: bd.gadgets.count, max: maxCounts.gadgets, icon: '🔧' },
+                { label: t('starPowers'), value: bd.starPowers.count, max: maxCounts.starPowers, icon: '⭐' },
+                { label: t('hypercharges'), value: bd.hypercharges.count, max: maxCounts.hypercharges, icon: '⚡' },
+                { label: t('buffies'), value: bd.buffies.count, max: maxCounts.buffies, icon: '💪' },
+                { label: t('gears'), value: bd.gears.count, max: maxCounts.gears, icon: '🔩' },
+                { label: t('prestige'), value: st.totalPrestigeLevel, max: null, icon: '👑' },
+                { label: t('timePlayed'), value: formatPlaytime(st.estimatedHoursPlayed), max: null, icon: '⏱️' },
               ].map((item) => (
                 <div key={item.label} className="bg-white/5 rounded-xl p-3 text-center">
                   <span className="text-2xl">{item.icon}</span>
-                  <p className="font-['Lilita_One'] text-2xl text-white mt-1">{item.value}</p>
+                  <p className="font-['Lilita_One'] text-2xl text-white mt-1 tabular-nums">
+                    {item.value}
+                    {item.max !== null && (
+                      <span className="text-sm text-slate-500"> / {item.max}</span>
+                    )}
+                  </p>
                   <p className="text-xs text-slate-400 font-bold uppercase">{item.label}</p>
                 </div>
               ))}

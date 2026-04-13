@@ -201,7 +201,8 @@
     "sortPrestige": "Prestige",
     "sortLevel": "Livello",
     "columnWR": "WR",
-    "timeTooltip": "Tempo stimato in base al tasso di vittoria attuale ({winRate}%).\n\nI giocatori con un tasso più alto hanno impiegato meno ore reali."
+    "timeTooltip": "Tempo stimato in base al tasso di vittoria attuale ({winRate}%).\n\nI giocatori con un tasso più alto hanno impiegato meno ore reali.",
+    "modeLeadersTitle": "Leader per modalità"
   },
   "compare": {
     "title": "CONFRONTA",

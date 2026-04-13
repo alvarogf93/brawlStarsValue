@@ -201,7 +201,8 @@
     "sortPrestige": "Престиж",
     "sortLevel": "Уровень",
     "columnWR": "WR",
-    "timeTooltip": "Примерное время на основе текущего Win Rate ({winRate}%).\n\nИгроки с более высоким Win Rate тратили меньше реального времени."
+    "timeTooltip": "Примерное время на основе текущего Win Rate ({winRate}%).\n\nИгроки с более высоким Win Rate тратили меньше реального времени.",
+    "modeLeadersTitle": "Лидеры по режимам"
   },
   "compare": {
     "title": "СРАВНЕНИЕ",

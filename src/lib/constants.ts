@@ -34,6 +34,37 @@ export const GEM_COSTS = {
   gear: 100,
 } as const
 
+/** Per-brawler maxes for upgrade slots that are NOT returned by the
+ *  Supercell /brawlers endpoint. Multiplied by the live brawler count
+ *  from useBrawlerRegistry() to compute completion denominators. */
+export const PER_BRAWLER_MAX = {
+  /** 6 gear slots per brawler (verified in-game as of April 2026) */
+  gears: 6,
+  /** Each brawler can have up to 1 hypercharge once released */
+  hypercharges: 1,
+} as const
+
+/**
+ * Buffies in Brawl Stars are:
+ *  - 3 "regular" slots per brawler (gadget, star power, hypercharge)
+ *  - +1 extra slot bought with Blins (currency)
+ *
+ * As of April 2026, only a subset of brawlers have any buffies
+ * released. This constant tracks the GAME-WIDE max buffies currently
+ * unlockable — bump it up when Supercell releases more.
+ *
+ * Current count (April 2026): 12 brawlers have buffies released,
+ * giving us 12 × 3 = 36 regular-slot buffies in the wild. The +1
+ * Blins buffy type is NOT yet tracked in the data pipeline (the
+ * `BrawlerStat.buffies` shape only has gadget/SP/HC), so it is
+ * excluded from this max until the model is extended.
+ */
+export const CURRENT_MAX_BUFFIES = 36
+
+/** Trophy road cap — the highest trophy total a player can reach
+ *  on the current season. Used to normalize the trophy road bar. */
+export const TROPHY_ROAD_MAX = 100_000
+
 /**
  * Skin gem prices by rarity tier.
  * Users classify their own skins — the API doesn't expose skin rarity.

@@ -3,6 +3,8 @@
 import { useState, useMemo, useId } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronDown } from 'lucide-react'
+import { getGameModeImageUrl } from '@/lib/utils'
+import { MODE_DISPLAY_NAMES } from '@/lib/constants'
 import type { MemberTrophyChange, BattlePoint } from '@/hooks/useClubTrophyChanges'
 
 interface ClubTrophyChartProps {
@@ -27,12 +29,6 @@ const RESULT_BORDER: Record<string, string> = {
   draw: '#facc15',
 }
 
-const MODE_ICONS: Record<string, string> = {
-  brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀',
-  heist: '🔒', bounty: '⭐', siege: '🤖', hotZone: '🔥',
-  knockout: '🥊', wipeout: '💥', payload: '🚚', paintBrawl: '🎨',
-  trophyThieves: '🏆', duels: '⚔️', ranked: '🏅',
-}
 
 const PAD_X = 48
 const PAD_TOP = 24
@@ -261,7 +257,8 @@ export function ClubTrophyChart({ members, playerTag, progress, isLoading }: Clu
                 const tx = flipped ? hoveredPt.x - tw - 12 : hoveredPt.x + 12
                 const ty = Math.max(4, hoveredPt.y - th - 10)
                 const sign = hoveredPt.bp.change >= 0 ? '+' : ''
-                const modeIcon = MODE_ICONS[hoveredPt.bp.mode] || '🎮'
+                const modeIconUrl = getGameModeImageUrl(hoveredPt.bp.mode)
+                const modeLabel = MODE_DISPLAY_NAMES[hoveredPt.bp.mode] ?? hoveredPt.bp.mode
                 const resultColor = RESULT_BORDER[hoveredPt.bp.result] ?? '#facc15'
 
                 return (
@@ -272,8 +269,11 @@ export function ClubTrophyChart({ members, playerTag, progress, isLoading }: Clu
                         <p style={{ margin: 0, fontFamily: "'Lilita One'", fontSize: 11, color: hoveredLine.color, lineHeight: 1.2 }}>
                           {hoveredLine.name}
                         </p>
-                        <p style={{ margin: '3px 0 0', fontFamily: "'Lilita One'", fontSize: 12, color: '#FFC91B', lineHeight: 1.2 }}>
-                          {modeIcon} {hoveredPt.bp.mode.toUpperCase()}
+                        <p style={{ margin: '3px 0 0', fontFamily: "'Lilita One'", fontSize: 12, color: '#FFC91B', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {modeIconUrl && (
+                            <img src={modeIconUrl} alt="" width={14} height={14} style={{ verticalAlign: 'middle' }} />
+                          )}
+                          {modeLabel.toUpperCase()}
                         </p>
                         <p style={{ margin: '2px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#94a3b8', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {hoveredPt.bp.map}

@@ -9,12 +9,15 @@ import { useClub } from '@/hooks/useClub'
 import { useClubEnriched, type EnrichedMember } from '@/hooks/useClubEnriched'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { GemIcon } from '@/components/ui/GemIcon'
+import { ModeIcon } from '@/components/ui/ModeIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { ClubTrophyChart } from '@/components/club/ClubTrophyChart'
 import { useClubTrophyChanges } from '@/hooks/useClubTrophyChanges'
-import { formatPlaytime } from '@/lib/utils'
+import { computeClubModeLeaders } from '@/lib/club-mode-leaders'
+import { formatPlaytime, getClubBadgeUrl } from '@/lib/utils'
+import { MODE_DISPLAY_NAMES } from '@/lib/constants'
 import { ClubSkeleton } from '@/components/ui/Skeleton'
-import { Crown, Shield, Star, Users, Trophy, Lock, Unlock, Mail, TrendingUp, TrendingDown, BarChart3, UserCheck, ChevronDown, Gem, Swords, Clock } from 'lucide-react'
+import { Crown, Shield, Star, Users, Trophy, Lock, Unlock, Mail, TrendingUp, BarChart3, ChevronDown, Gem, Swords, Clock } from 'lucide-react'
 
 /* ── Sort options ─────────────────────────────────────────── */
 
@@ -97,6 +100,10 @@ export default function ClubPage() {
 
   const sorted = useMemo(() => sortMembers(enrichedMembers, sortBy), [enrichedMembers, sortBy])
 
+  // Derive the top 6 most-played modes and their leaders from the
+  // already-fetched battlelogs (no extra network calls).
+  const modeLeaders = useMemo(() => computeClubModeLeaders(trophyChanges, 6), [trophyChanges])
+
   const playerNormalized = `#${tag.replace('#', '').toUpperCase()}`
   const playerIndex = sorted.findIndex(m => m.tag.toUpperCase() === playerNormalized)
   const playerRank = playerIndex >= 0 ? playerIndex + 1 : null
@@ -123,9 +130,9 @@ export default function ClubPage() {
   }
 
   const highestMember = sorted[0]
-  const lowestMember = sorted[sorted.length - 1]
   const avgTrophies = Math.round(sorted.reduce((s, m) => s + m.trophies, 0) / sorted.length)
-  const trophySpread = highestMember && lowestMember ? highestMember.trophies - lowestMember.trophies : 0
+
+  const clubBadgeId = (club as { badgeId?: number | null }).badgeId ?? null
 
   const typeCfg = TYPE_CONFIG[club.type] ?? TYPE_CONFIG.closed
   const TypeIcon = typeCfg.icon
@@ -137,8 +144,27 @@ export default function ClubPage() {
       <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#6C3CE0] to-[#121A2F] relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[var(--color-brawl-gold)] border-4 border-[#121A2F] rounded-2xl flex items-center justify-center transform rotate-6 shadow-[0_4px_0_0_#121A2F] shrink-0">
-              <Shield size={28} className="text-[#121A2F]" />
+            <div className="w-16 h-16 bg-[var(--color-brawl-gold)] border-4 border-[#121A2F] rounded-2xl flex items-center justify-center transform rotate-6 shadow-[0_4px_0_0_#121A2F] shrink-0 overflow-hidden">
+              {clubBadgeId ? (
+                <img
+                  src={getClubBadgeUrl(clubBadgeId)}
+                  alt={club.name}
+                  className="w-12 h-12 object-contain drop-shadow-md"
+                  onError={(e) => {
+                    // Fallback to the shield icon if the badge image fails
+                    const parent = (e.target as HTMLImageElement).parentElement
+                    if (parent) {
+                      parent.innerHTML = ''
+                      const fallback = document.createElement('div')
+                      fallback.className = 'text-[#121A2F] text-3xl'
+                      fallback.textContent = '🛡️'
+                      parent.appendChild(fallback)
+                    }
+                  }}
+                />
+              ) : (
+                <Shield size={28} className="text-[#121A2F]" />
+              )}
             </div>
             <div>
               <h1 className="text-3xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl">{club.name}</h1>
@@ -189,8 +215,8 @@ export default function ClubPage() {
         </div>
       )}
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Stats Grid — average + top trophy holder */}
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-3">
         <div className="brawl-card-dark p-4 text-center">
           <BarChart3 size={20} className="text-[#4EC0FA] mx-auto mb-1" />
           <p className="font-['Lilita_One'] text-xl text-white"><AnimatedCounter value={avgTrophies} /></p>
@@ -201,17 +227,53 @@ export default function ClubPage() {
           <p className="font-['Lilita_One'] text-xl text-white"><AnimatedCounter value={highestMember?.trophies ?? 0} /></p>
           <p className="text-[10px] uppercase font-bold text-slate-500 truncate">{highestMember?.name ?? '-'}</p>
         </div>
-        <div className="brawl-card-dark p-4 text-center">
-          <TrendingDown size={20} className="text-red-400 mx-auto mb-1" />
-          <p className="font-['Lilita_One'] text-xl text-white"><AnimatedCounter value={lowestMember?.trophies ?? 0} /></p>
-          <p className="text-[10px] uppercase font-bold text-slate-500 truncate">{lowestMember?.name ?? '-'}</p>
-        </div>
-        <div className="brawl-card-dark p-4 text-center">
-          <UserCheck size={20} className="text-[var(--color-brawl-gold)] mx-auto mb-1" />
-          <p className="font-['Lilita_One'] text-xl text-white"><AnimatedCounter value={trophySpread} /></p>
-          <p className="text-[10px] uppercase font-bold text-slate-500">{t('trophySpread')}</p>
-        </div>
       </div>
+
+      {/* Club leaders per game mode — picks the 6 most-played modes
+          across the club's last ~25 battles per member and shows the
+          top-performing member in each. Replaces the old "worst player"
+          and "trophy spread" cards (Sprint D). */}
+      {modeLeaders.length > 0 && (
+        <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
+          <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
+            <Crown size={20} className="text-[var(--color-brawl-gold)]" />
+            {t('modeLeadersTitle')}
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {modeLeaders.map((entry) => {
+              const modeName = MODE_DISPLAY_NAMES[entry.mode] ?? entry.mode
+              return (
+                <div
+                  key={entry.mode}
+                  className="brawl-row rounded-xl p-3 flex flex-col items-center gap-1.5 relative overflow-hidden"
+                >
+                  <ModeIcon mode={entry.mode} size={32} className="drop-shadow-md" />
+                  <p className="font-['Lilita_One'] text-[11px] text-slate-400 uppercase tracking-wider">
+                    {modeName}
+                  </p>
+                  {entry.leader ? (
+                    <>
+                      <p className="font-['Lilita_One'] text-sm text-[#FFC91B] truncate max-w-full">
+                        {entry.leader.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500 tabular-nums">
+                        {entry.leader.wins}W / {entry.leader.total}g · {Math.round(entry.leader.winRate)}% WR
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-['Lilita_One'] text-sm text-slate-600">—</p>
+                      <p className="text-[10px] text-slate-600 tabular-nums">
+                        {entry.totalBattles}g
+                      </p>
+                    </>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Club Trophy Changes Chart */}
       <ClubTrophyChart

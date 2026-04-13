@@ -201,7 +201,8 @@
     "sortPrestige": "Prestij",
     "sortLevel": "Seviye",
     "columnWR": "WR",
-    "timeTooltip": "Mevcut Win Rate'e ({winRate}%) dayalı tahmini süre.\n\nDaha yüksek Win Rate'e sahip oyuncular daha az gerçek saat harcadı."
+    "timeTooltip": "Mevcut Win Rate'e ({winRate}%) dayalı tahmini süre.\n\nDaha yüksek Win Rate'e sahip oyuncular daha az gerçek saat harcadı.",
+    "modeLeadersTitle": "Mod liderleri"
   },
   "compare": {
     "title": "KARŞILAŞTIRMA",

@@ -7,20 +7,19 @@ import { useBattlelog } from '@/hooks/useBattlelog'
 import { TrophyChart } from '@/components/battles/TrophyChart'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { BrawlImg } from '@/components/ui/BrawlImg'
+import { ModeIcon } from '@/components/ui/ModeIcon'
 import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getMapImageUrl } from '@/lib/utils'
+import { MODE_DISPLAY_NAMES } from '@/lib/constants'
 import { ChevronDown } from 'lucide-react'
 import type { Profile } from '@/lib/supabase/types'
 import type { BattlelogEntry } from '@/lib/api'
 import { BattlesSkeleton } from '@/components/ui/Skeleton'
 
-const MODE_ICONS: Record<string, string> = {
-  brawlBall: '⚽', gemGrab: '💎', showdown: '💀', duoShowdown: '💀',
-  heist: '🔒', bounty: '⭐', siege: '🤖', hotZone: '🔥',
-  knockout: '🥊', wipeout: '💥', payload: '🚚', paintBrawl: '🎨',
-  trophyThieves: '🏆', duels: '⚔️', ranked: '🏅',
+function modeDisplayName(mode: string): string {
+  return MODE_DISPLAY_NAMES[mode] ?? mode
 }
 
 function formatBattleTime(iso: string): string {
@@ -94,8 +93,11 @@ export default function BattlesPage() {
           </p>
           <p className="text-[10px] uppercase font-bold text-slate-500">{t('record')}</p>
         </div>
-        <div className="brawl-card p-4 text-center">
-          <p className="font-['Lilita_One'] text-xl text-[var(--color-brawl-dark)]">{data.mostPlayedMode}</p>
+        <div className="brawl-card p-4 text-center flex flex-col items-center justify-center gap-1">
+          <ModeIcon mode={data.mostPlayedMode} size={36} className="drop-shadow-md" />
+          <p className="font-['Lilita_One'] text-sm text-[var(--color-brawl-dark)] truncate max-w-full">
+            {modeDisplayName(data.mostPlayedMode)}
+          </p>
           <p className="text-[10px] uppercase font-bold text-slate-500">{t('favMode')}</p>
         </div>
         <div className="brawl-card p-4 text-center">
@@ -137,11 +139,10 @@ export default function BattlesPage() {
           </h3>
           <div className="space-y-2.5">
             {data.modeWinRates.map(m => {
-              const icon = MODE_ICONS[m.mode] || '🎮'
               return (
                 <div key={m.mode} className="flex items-center gap-3">
-                  <span className="text-lg w-7 text-center">{icon}</span>
-                  <span className="font-['Lilita_One'] text-sm text-slate-300 w-28 truncate">{m.mode}</span>
+                  <ModeIcon mode={m.mode} size={24} className="shrink-0" />
+                  <span className="font-['Lilita_One'] text-sm text-slate-300 w-28 truncate">{modeDisplayName(m.mode)}</span>
                   <div className="flex-1 h-5 bg-[#0D1321] rounded-full overflow-hidden relative">
                     <div
                       className="h-full rounded-full relative overflow-hidden transition-all duration-700"
@@ -294,7 +295,6 @@ function BattleList({ battles, playerTag, resultText }: {
       {battles.map((battle, i) => {
         const result = battle.battle.result
         const mode = battle.battle.mode || battle.event.mode
-        const icon = MODE_ICONS[mode] || '🎮'
         const isOpen = expanded === i
         const teams = battle.battle.teams || []
         const starTag = battle.battle.starPlayer?.tag
@@ -309,15 +309,15 @@ function BattleList({ battles, playerTag, resultText }: {
               style={{ borderLeft: `4px solid ${colors.accent}` }}
             >
               {/* Mode icon */}
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-2xl"
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${colors.accent}20` }}>
-                {icon}
+                <ModeIcon mode={mode} size={28} />
               </div>
 
               {/* Mode + Map + Time */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-['Lilita_One'] text-sm text-white uppercase">{mode}</span>
+                  <span className="font-['Lilita_One'] text-sm text-white uppercase">{modeDisplayName(mode)}</span>
                   {battle.event.map && (
                     <span className="text-[10px] text-[#FFC91B] font-['Inter'] font-semibold truncate hidden sm:inline">
                       {battle.event.map}

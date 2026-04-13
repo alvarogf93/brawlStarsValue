@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useId } from 'react'
 import { useTranslations } from 'next-intl'
+import { getGameModeImageUrl } from '@/lib/utils'
+import { MODE_DISPLAY_NAMES } from '@/lib/constants'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -181,8 +183,12 @@ function Tooltip({
             boxSizing: 'border-box',
           }}
         >
-          <p style={{ margin: 0, fontFamily: "'Lilita One', sans-serif", fontSize: 12, color: '#FFC91B', lineHeight: 1.2 }}>
-            {mode.toUpperCase()}
+          <p style={{ margin: 0, fontFamily: "'Lilita One', sans-serif", fontSize: 12, color: '#FFC91B', lineHeight: 1.2, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {(() => {
+              const url = getGameModeImageUrl(mode)
+              return url ? <img src={url} alt="" width={14} height={14} style={{ verticalAlign: 'middle' }} /> : null
+            })()}
+            {(MODE_DISPLAY_NAMES[mode] ?? mode).toUpperCase()}
           </p>
           <p style={{ margin: '2px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 10, color: '#94a3b8', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {map}

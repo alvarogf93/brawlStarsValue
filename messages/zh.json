@@ -201,7 +201,8 @@
     "sortPrestige": "大师",
     "sortLevel": "等级",
     "columnWR": "WR",
-    "timeTooltip": "基于当前Win Rate（{winRate}%）的估计时间。\n\nWin Rate越高的玩家所需实际时间越少。"
+    "timeTooltip": "基于当前Win Rate（{winRate}%）的估计时间。\n\nWin Rate越高的玩家所需实际时间越少。",
+    "modeLeadersTitle": "模式领袖"
   },
   "compare": {
     "title": "比较",

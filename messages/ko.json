@@ -201,7 +201,8 @@
     "sortPrestige": "프레스티지",
     "sortLevel": "레벨",
     "columnWR": "WR",
-    "timeTooltip": "현재 Win Rate ({winRate}%) 기준 예상 시간이에요.\n\nWin Rate가 높은 플레이어일수록 실제 플레이 시간이 짧아요."
+    "timeTooltip": "현재 Win Rate ({winRate}%) 기준 예상 시간이에요.\n\nWin Rate가 높은 플레이어일수록 실제 플레이 시간이 짧아요.",
+    "modeLeadersTitle": "모드별 리더"
   },
   "compare": {
     "title": "비교",

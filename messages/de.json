@@ -201,7 +201,8 @@
     "sortPrestige": "Prestige",
     "sortLevel": "Level",
     "columnWR": "WR",
-    "timeTooltip": "Geschätzte Zeit basierend auf der aktuellen Gewinnrate ({winRate}%).\n\nSpieler mit höherer Gewinnrate benötigten weniger echte Stunden."
+    "timeTooltip": "Geschätzte Zeit basierend auf der aktuellen Gewinnrate ({winRate}%).\n\nSpieler mit höherer Gewinnrate benötigten weniger echte Stunden.",
+    "modeLeadersTitle": "Modus-Anführer"
   },
   "compare": {
     "title": "VERGLEICHEN",

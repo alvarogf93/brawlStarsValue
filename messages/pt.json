@@ -201,7 +201,8 @@
     "sortPrestige": "Prestige",
     "sortLevel": "Nível",
     "columnWR": "WR",
-    "timeTooltip": "Tempo estimado com base no Win Rate atual ({winRate}%).\n\nJogadores com maior win rate precisaram de menos horas reais."
+    "timeTooltip": "Tempo estimado com base no Win Rate atual ({winRate}%).\n\nJogadores com maior win rate precisaram de menos horas reais.",
+    "modeLeadersTitle": "Líderes por modo"
   },
   "compare": {
     "title": "COMPARAR",

@@ -201,7 +201,8 @@
     "sortPrestige": "Prestiż",
     "sortLevel": "Poziom",
     "columnWR": "WR",
-    "timeTooltip": "Szacowany czas na podstawie bieżącego Win Rate ({winRate}%).\n\nGracze z wyższym Win Rate potrzebowali mniej realnego czasu."
+    "timeTooltip": "Szacowany czas na podstawie bieżącego Win Rate ({winRate}%).\n\nGracze z wyższym Win Rate potrzebowali mniej realnego czasu.",
+    "modeLeadersTitle": "Liderzy trybu"
   },
   "compare": {
     "title": "PORÓWNANIE",

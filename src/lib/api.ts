@@ -156,3 +156,30 @@ export interface EventSlot {
 export function fetchEventRotation(): Promise<EventSlot[]> {
   return apiFetch('/events/rotation', 300)
 }
+
+// ── Brawlers (game-wide registry) ───────────────────────────────
+
+export interface GameBrawler {
+  id: number
+  name: string
+  starPowers: Array<{ id: number; name: string }>
+  gadgets: Array<{ id: number; name: string }>
+}
+
+export interface BrawlersResponse {
+  items: GameBrawler[]
+  paging: { cursors: { before?: string; after?: string } }
+}
+
+/**
+ * Fetch the game-wide brawler registry (all brawlers, not per-player).
+ * Used to compute "max possible" denominators for completion charts.
+ * Long revalidate (24h) because the roster only changes monthly.
+ *
+ * Note: the Supercell API `/brawlers` endpoint does NOT include
+ * hypercharges, gears or buffies — those totals must be derived via
+ * constants and multiplied by the brawler count.
+ */
+export function fetchBrawlers(): Promise<BrawlersResponse> {
+  return apiFetch('/brawlers', 86_400)
+}

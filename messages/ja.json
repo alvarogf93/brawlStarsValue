@@ -201,7 +201,8 @@
     "sortPrestige": "プレステージ",
     "sortLevel": "レベル",
     "columnWR": "WR",
-    "timeTooltip": "現在のWin Rate（{winRate}%）に基づく推定時間です。\n\nWin Rateが高いプレイヤーほど実際のプレイ時間は短くなります。"
+    "timeTooltip": "現在のWin Rate（{winRate}%）に基づく推定時間です。\n\nWin Rateが高いプレイヤーほど実際のプレイ時間は短くなります。",
+    "modeLeadersTitle": "モードリーダー"
   },
   "compare": {
     "title": "比較",
