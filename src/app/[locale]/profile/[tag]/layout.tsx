@@ -47,6 +47,18 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   return {
     title: titleBase,
     description: descBase,
+    // All player profile pages (root and every sub-route under
+    // /profile/[tag]) are noindex. Indexing player-specific pages
+    // produces ~13 near-identical locale duplicates per player,
+    // each of which is thin content (just aggregated stats), so
+    // they hurt Google's view of the site more than they help:
+    //   - Crawl budget wasted on low-value pages
+    //   - Risk of "thin content" flags
+    //   - Real valuable pages (brawler details, picks, leaderboard)
+    //     compete with them for crawl priority
+    // Users can still share direct links and the pages work
+    // perfectly — they just don't show in Google results.
+    robots: { index: false, follow: true },
     alternates: {
       canonical: `${BASE_URL}/${locale}/profile/${encodedTag}`,
       languages,

@@ -13,6 +13,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: 'Privacy Policy',
     description: 'BrawlVision privacy policy. Learn how we collect, use, and protect your Brawl Stars data, GDPR rights, and cookie usage.',
+    // Legal pages are noindex to avoid 13 locale duplicates competing
+    // with real content in Google. Still crawlable (follow: true) so
+    // link equity from footer links flows correctly.
+    robots: { index: false, follow: true },
     alternates: {
       canonical: `${BASE_URL}/${locale}/privacy`,
       languages,
