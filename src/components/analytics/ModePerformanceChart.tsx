@@ -2,24 +2,11 @@
 
 import { useTranslations } from 'next-intl'
 import { getGameModeImageUrl, wrColor } from '@/lib/utils'
+import { MODE_DISPLAY_NAMES } from '@/lib/constants'
 import type { ModePerformance } from '@/lib/analytics/types'
 
 interface Props {
   data: ModePerformance[]
-}
-
-// Friendly names for modes
-const MODE_NAMES: Record<string, string> = {
-  gemGrab: 'Gem Grab',
-  heist: 'Heist',
-  bounty: 'Bounty',
-  brawlBall: 'Brawl Ball',
-  hotZone: 'Hot Zone',
-  knockout: 'Knockout',
-  wipeout: 'Wipeout',
-  brawlHockey: 'Brawl Hockey',
-  soloShowdown: 'Solo Showdown',
-  duoShowdown: 'Duo Showdown',
 }
 
 export function ModePerformanceChart({ data }: Props) {
@@ -50,7 +37,7 @@ export function ModePerformanceChart({ data }: Props) {
               {/* Mode name + games */}
               <div className="w-24 flex-shrink-0">
                 <p className="font-['Lilita_One'] text-xs text-white truncate">
-                  {MODE_NAMES[m.mode] || m.mode}
+                  {MODE_DISPLAY_NAMES[m.mode] ?? m.mode}
                 </p>
                 <p className="font-['Lilita_One'] text-[10px] text-slate-500">
                   {m.total} games
