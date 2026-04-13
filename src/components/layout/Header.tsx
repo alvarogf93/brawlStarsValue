@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -39,6 +39,20 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
 
   const [syncing, setSyncing] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
+
+  // Ticker to force re-render once per minute so the "last sync"
+  // label advances with the wall clock even when the DB hasn't
+  // changed. Without this, formatTimeAgo is only recomputed when
+  // something else causes a render, and the label visually freezes
+  // at whatever value it had on mount (e.g. "1h 42m") until the
+  // user hits F5. `AuthProvider` polls the DB every 5 min for real
+  // updates; this ticker handles the in-between seconds.
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    if (!profile?.last_sync) return
+    const interval = setInterval(() => setTick(t => t + 1), 60_000)
+    return () => clearInterval(interval)
+  }, [profile?.last_sync])
 
   const hasPremium = !loading && user && profile && isPremium(profile)
 
