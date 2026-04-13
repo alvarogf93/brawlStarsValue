@@ -26,13 +26,14 @@ interface Props {
    */
   threshold?: number
   /**
-   * Optional inline style override for the frozen-frame canvas.
-   * Useful when the canvas needs to be sized/positioned differently
-   * from the playing <img> — e.g. when the gif has whitespace
-   * around the subject and you want to crop/offset the static
-   * frame to match the rest of the layout.
+   * Optional inline style override applied to BOTH the playing
+   * <img> and the frozen-frame <canvas>. Use this when the gif
+   * has whitespace around the subject and you need to crop/offset
+   * the visible frame consistently across both phases — without
+   * it the freeze frame would shift visually relative to the
+   * animation. Default: undefined → both elements use w-full h-full.
    */
-  canvasStyle?: React.CSSProperties
+  mediaStyle?: React.CSSProperties
 }
 
 /**
@@ -58,7 +59,7 @@ export function OneShotGif({
   durationMs = 6000,
   onStart,
   threshold = 0.3,
-  canvasStyle,
+  mediaStyle,
 }: Props) {
   const containerRef = useRef<HTMLSpanElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
@@ -122,15 +123,16 @@ export function OneShotGif({
             src={src}
             alt={alt}
             crossOrigin="anonymous"
-            className={`block w-full h-full object-contain ${phase === 'frozen' ? 'hidden' : ''}`}
+            className={`block ${mediaStyle ? '' : 'w-full h-full'} object-contain ${phase === 'frozen' ? 'hidden' : ''}`}
+            style={mediaStyle}
             // Avoid the browser's lazy-load delay — we want the gif
             // available the instant we enter the viewport.
             loading="eager"
           />
           <canvas
             ref={canvasRef}
-            className={`block ${canvasStyle ? '' : 'w-full h-full'} ${phase === 'frozen' ? '' : 'hidden'}`}
-            style={canvasStyle}
+            className={`block ${mediaStyle ? '' : 'w-full h-full'} ${phase === 'frozen' ? '' : 'hidden'}`}
+            style={mediaStyle}
             aria-hidden="true"
           />
         </>

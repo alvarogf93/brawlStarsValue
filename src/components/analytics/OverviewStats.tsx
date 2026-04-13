@@ -210,7 +210,7 @@ export function OverviewStats({ overview, proAvgWR }: Props) {
               className="w-12 h-12"
               durationMs={6000}
               onStart={handleAmberStart}
-              canvasStyle={{
+              mediaStyle={{
                 width: '4rem',
                 height: '5rem',
                 marginTop: '-75%',
