@@ -22,6 +22,7 @@ interface MetaEvent {
   endTime: string
   totalBattles: number
   topBrawlers: TopBrawler[]
+  source?: 'map-mode' | 'mode-fallback'
 }
 
 interface Props {
@@ -71,6 +72,7 @@ export function PicksContent({ events, locale }: Props) {
                   endTime={event.endTime}
                   totalBattles={event.totalBattles}
                   topBrawlers={event.topBrawlers}
+                  source={event.source}
                 />
               ))}
             </div>

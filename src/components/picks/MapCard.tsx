@@ -34,9 +34,15 @@ interface Props {
   endTime: string
   totalBattles: number
   topBrawlers: TopBrawler[]
+  /**
+   * Which aggregation tier produced `topBrawlers`. Optional for
+   * backwards compat — defaults to 'map-mode'. Mode-fallback renders
+   * an amber banner explaining the substitution. Added in Sprint C.
+   */
+  source?: 'map-mode' | 'mode-fallback'
 }
 
-export function MapCard({ mode, map, eventId, endTime, totalBattles, topBrawlers }: Props) {
+export function MapCard({ mode, map, eventId, endTime, totalBattles, topBrawlers, source = 'map-mode' }: Props) {
   const t = useTranslations('picks')
   const [expanded, setExpanded] = useState(false)
   const [, setTick] = useState(0)
@@ -89,16 +95,31 @@ export function MapCard({ mode, map, eventId, endTime, totalBattles, topBrawlers
         {/* Map name */}
         <div className="absolute bottom-2 left-3 right-3">
           <p className="font-['Lilita_One'] text-lg text-white text-stroke-brawl leading-tight">{map}</p>
-          {isLimited && (
-            <p className="text-[9px] text-amber-400/80 mt-0.5">{t('limitedData')}</p>
-          )}
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="text-[10px] text-slate-300 tabular-nums">
+              {t('sampleSize', { count: totalBattles })}
+            </span>
+            {isLimited && (
+              <span className="text-[9px] text-amber-400/80">{t('limitedData')}</span>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Mode-fallback banner (Sprint C) */}
+      {source === 'mode-fallback' && (
+        <div className="px-3 py-1.5 bg-amber-400/10 border-t border-amber-400/20">
+          <p className="text-[10px] text-amber-300">
+            <span className="mr-1">⚠️</span>
+            {t('modeFallbackBanner')}
+          </p>
+        </div>
+      )}
 
       {/* Brawler rankings */}
       <div className="p-3 space-y-1">
         {visible.length === 0 ? (
-          <p className="text-center text-sm text-slate-500 py-4">{t('noData')}</p>
+          <p className="text-center text-sm text-slate-500 py-4">{t('noDataContextual')}</p>
         ) : (
           visible.map((b, i) => (
             <div key={b.brawlerId} className="flex items-center gap-2 brawl-row rounded-lg px-2.5 py-1.5">
