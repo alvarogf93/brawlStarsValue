@@ -8,9 +8,9 @@ Copia y pega esto como primer mensaje:
 
 Soy el desarrollador de BrawlVision (brawlvision.com), una plataforma de analítica avanzada de Brawl Stars.
 
-### Estado actual del proyecto (2026-04-09):
+### Estado actual del proyecto (2026-04-14, tras Sprint F+):
 
-**Producción estable** — 302 tests, 29 archivos de test, código auditado.
+**Producción estable** — 703 tests en 71 archivos, typecheck limpio, código auditado.
 
 #### Funcionalidades implementadas:
 
@@ -38,13 +38,17 @@ Soy el desarrollador de BrawlVision (brawlvision.com), una plataforma de analít
 - Referrals: +3 días por referral (ambos), máximo 5, collision-safe
 - Security: migration 007 protege campos trial/referral de modificación por API
 
-**4. Infraestructura de datos PRO:**
-- Cron: poll top 100 global, extrae stats + matchups + tríos, deduplicación por cursor
-- Tables: meta_stats (881+ rows), meta_matchups (7779+ rows), meta_trios (157+ rows)
-- Retención infinita, filtro por ventana temporal en UI (7/14/30/90 días)
+**4. Infraestructura de datos PRO (Sprint F+ 2026-04-14):**
+- Cron meta-poll cada 30 min desde VPS Oracle crontab → fetchea 11 country rankings (~2,100 pro players únicos), carga rotación live, procesa hasta 1,000 players por run
+- **Algoritmo Sprint F**: sampler probabilístico `p = min(1, (minLive+1)/(current+1))` — sin target, sin floor, sin ratio. Atenúa maps oversampleados, garantiza rate=1 para el más escaso. Ver `docs/crons/README.md` sección Sprint F.
+- Migration 017 corrigió bug de unidades (preload dividía `SUM(total)/6` → batallas reales, no brawler-rows)
+- Pool separado del UI: `META_POLL_PRELOAD_DAYS = 28` (cron) vs `META_ROLLING_DAYS = 14` (UI)
+- Hot retention: **90 días** en `meta_stats`. Migrations 018+019 introducen `meta_stats_archive` con agregación semanal y pg_cron lunes 04:00 UTC (pendiente backfill manual para activar). Ver `docs/crons/archive-runbook.md`.
+- Tables: `meta_stats`, `meta_matchups`, `meta_trios`, `meta_poll_cursors`, `meta_stats_archive`, `cron_heartbeats`
+- Defensive error-checks en TODAS las escrituras críticas de Supabase (cron sync + meta-poll) — Supabase JS no throws, `.error` debe destructurarse y lanzarse. Regla codebase-wide desde 2026-04-14. Ver `docs/crons/README.md` Issue 7.
 - Bayesian WR en todas las tasas mostradas
 - modeId 45 → brawlHockey (API devuelve "unknown")
-- basketBrawl añadido a DRAFT_MODES
+- `DRAFT_MODES` = 9 modos 3v3: gemGrab, heist, bounty, brawlBall, hotZone, knockout, wipeout, brawlHockey, basketBrawl
 - Filtro de mapas: isDraftMode + duración >= 12h (excluye Beach Ball sin trofeos)
 
 **5. Calidad visual:**

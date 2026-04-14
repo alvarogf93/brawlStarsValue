@@ -4,9 +4,14 @@
 - Dominio verificado
 - Sitemap: `https://www.brawlvision.com/sitemap.xml`
 
-## Cron meta-poll ✅ COMPLETADO
-- Oracle VPS crontab configurado (cada 30 min)
-- Datos fluyendo: 31 mapas, 121+ stats, 1047+ matchups
+## Cron meta-poll ✅ COMPLETADO + Sprint F refactor
+- Oracle VPS crontab cada 30 min → `https://brawlvision.com/api/cron/meta-poll` (apex, NO www — canonical flip 2026-04-14 requiere apex)
+- Sprint E (2026-04-14): multi-country pool (~2,100 únicos), preload cumulativo, self-healing cleanup de stragglers
+- Sprint F (2026-04-14): sampler probabilístico, sin target/ratio, unidades coherentes (migration 017)
+- Defensive error-checks en todas las escrituras críticas de Supabase
+- Observabilidad: `cron_heartbeats` table + staleness alerting via healthchecks.io (pending setup)
+- Archive tier: `meta_stats_archive` + pg_cron semanal (pending backfill manual antes de activar)
+- Ver `docs/crons/README.md` y `docs/17-meta-data-infrastructure.md` para detalles
 
 ## Validación IDs BrawlAPI vs Supercell ✅ COMPLETADO
 - 96 brawlers con ID idéntico
