@@ -112,25 +112,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: string, session: { user: User | null } | null) => {
+      async (_event: string, session: { user: User | null } | null) => {
+        // No post-sign-in redirect here on purpose. The landing page's
+        // `InputForm` reactively redirects authenticated users to their
+        // profile via `useAuth()` (see commit 5b951b0 + 4cda0c2). Any
+        // non-landing page doesn't need to move the user elsewhere —
+        // they end up where the OAuth callback's `next` parameter sent
+        // them. The previous implementation of this block used
+        // `window.location.href = ...` (a hard navigation) and a
+        // regex-based `isLanding` check that was fragile: a stale or
+        // edge-case `pathname` reading could accidentally force a
+        // navigation off of perfectly-valid destination pages
+        // (e.g. /profile/<tag>/brawlers after a header-initiated login).
+        // Centralising the landing-only redirect in `InputForm` removed
+        // the regex coupling and the hard-nav, so this listener now
+        // only updates state — route changes live in the consumers.
         const u = session?.user ?? null
         setUser(u)
         if (u) {
           await fetchProfile(u.id)
-
-          // After sign-in, if user has a profile and we're on landing, redirect to their profile
-          if (event === 'SIGNED_IN') {
-            const { data: prof } = await supabase.from('profiles').select('player_tag').eq('id', u.id).single()
-            if (prof?.player_tag) {
-              const path = window.location.pathname
-              const isLanding = path === '/' || /^\/[a-z]{2}\/?$/.test(path) || /^\/api\/auth\/callback/.test(path)
-              if (isLanding) {
-                const locale = window.location.pathname.split('/')[1] || 'es'
-                window.location.href = `/${locale}/profile/${encodeURIComponent(prof.player_tag)}`
-                return
-              }
-            }
-          }
         } else {
           setProfile(null)
           setNeedsTag(false)
