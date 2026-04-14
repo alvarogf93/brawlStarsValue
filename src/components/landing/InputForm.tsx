@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import { STORAGE_KEYS } from '@/lib/storage'
+import { useAuth } from '@/hooks/useAuth'
 
 export function InputForm() {
   const t = useTranslations('landing')
   const locale = useLocale()
   const router = useRouter()
+  const { profile, loading: authLoading } = useAuth()
 
   const [tag, setTag] = useState('#')
   const [error, setError] = useState(false)
@@ -23,15 +25,40 @@ export function InputForm() {
     setError(false)
   }
 
-  // Auto-redirect if user already saved
+  // Auto-redirect for a KNOWN user. Two trigger paths, re-evaluated on
+  // every render so no race condition:
+  //
+  //   1. Authenticated via Google OAuth → `profile.player_tag` becomes
+  //      truthy once AuthProvider finishes resolving the session. This
+  //      is the critical path after the `/api/auth/callback` redirect
+  //      bounces the user to the landing — the callback has set the
+  //      cookie but the client-side profile fetch is still in flight,
+  //      so on the first render `profile` is null and localStorage
+  //      is empty (fresh browser / post-canonical-flip). Without this
+  //      reactive hook the user got stuck on the landing until they
+  //      manually refreshed, which forced the cookie-backed session
+  //      to resolve synchronously.
+  //
+  //   2. Unauthenticated but with a remembered tag → `STORAGE_KEYS.USER`
+  //      is in localStorage from a prior session, covering the
+  //      "I've been here before without signing in" case.
+  //
+  // Path 1 is preferred when both are available because `profile.player_tag`
+  // is the source of truth (matches the logged-in user); localStorage
+  // might be stale from a prior account.
   useEffect(() => {
+    if (authLoading) return // don't bounce until AuthProvider resolves
+    if (profile?.player_tag) {
+      router.replace(`/${locale}/profile/${encodeURIComponent(profile.player_tag)}`)
+      return
+    }
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.USER)
       if (saved) {
         router.replace(`/${locale}/profile/${encodeURIComponent(saved)}`)
       }
     } catch { /* ignore */ }
-  }, [locale, router])
+  }, [authLoading, profile?.player_tag, locale, router])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
