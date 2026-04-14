@@ -410,6 +410,71 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlBall']).toBeUndefined()
   })
 
+  it('calls cleanup_map_mode_strays when the preload shows a stale mode for a live map', async () => {
+    // Preload claims Hyperspace has rows under brawlBall (the old
+    // mis-classification bug). Rotation says Hyperspace is currently
+    // live under brawlHockey. The cron MUST detect this at runtime
+    // and call cleanup_map_mode_strays to merge the stale rows.
+    rpcResponses.sum_meta_stats_by_map_mode = [
+      { map: 'Hyperspace', mode: 'brawlBall', total: 596 },
+      { map: 'Hyperspace', mode: 'brawlHockey', total: 5 },
+    ]
+    setGlobalRanking([playerTag(1)])
+    addBattle(playerTag(1), { mode: 'brawlHockey', modeId: 45, map: 'Hyperspace', result: 'victory' })
+    rotationFixture = [
+      { map: 'Hyperspace', mode: 'brawlHockey', modeId: 45 },
+    ]
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    // The cleanup RPC was called with the right shape
+    const cleanupCall = rpcCalls.find(c => c.fn === 'cleanup_map_mode_strays')
+    expect(cleanupCall).toBeDefined()
+    expect(cleanupCall?.payload).toEqual({
+      p_map: 'Hyperspace',
+      p_wrong_mode: 'brawlBall',
+      p_canonical_mode: 'brawlHockey',
+      p_source: 'global',
+    })
+    // The response body exposes the merged straggler for observability
+    expect(body.adaptive.stragglersMerged).toHaveLength(1)
+    expect(body.adaptive.stragglersMerged[0]).toMatchObject({
+      map: 'Hyperspace',
+      wrongMode: 'brawlBall',
+      canonicalMode: 'brawlHockey',
+    })
+    // After cleanup, the in-memory state reflects the merged count
+    // (596 + 5 = 601 battles under brawlHockey, no more brawlBall row)
+    expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlHockey']).toBeGreaterThanOrEqual(601)
+    expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlBall']).toBeUndefined()
+  })
+
+  it('does NOT call cleanup when every preloaded map matches the live rotation', async () => {
+    rpcResponses.sum_meta_stats_by_map_mode = [
+      { map: 'Sunny Soccer', mode: 'brawlBall', total: 400 },
+      { map: 'Hyperspace', mode: 'brawlHockey', total: 100 },
+    ]
+    setGlobalRanking([playerTag(1)])
+    addBattle(playerTag(1), { mode: 'brawlBall', map: 'Sunny Soccer', result: 'victory' })
+    rotationFixture = [
+      { map: 'Sunny Soccer', mode: 'brawlBall' },
+      { map: 'Hyperspace', mode: 'brawlHockey', modeId: 45 },
+    ]
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    const cleanupCall = rpcCalls.find(c => c.fn === 'cleanup_map_mode_strays')
+    expect(cleanupCall).toBeUndefined()
+    expect(body.adaptive.stragglersMerged).toEqual([])
+  })
+
   it('calls the three bulk upsert RPCs when data is accumulated', async () => {
     setGlobalRanking([playerTag(1), playerTag(2)])
     for (const tag of [playerTag(1), playerTag(2)]) {

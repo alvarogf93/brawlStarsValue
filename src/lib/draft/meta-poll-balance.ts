@@ -91,3 +91,73 @@ export function findUnderTargetMapModes(
   }
   return under
 }
+
+/** A single (map, mode) mis-classification detected at the start of
+ *  the meta-poll run. The cleanup helper merges `wrongMode` rows into
+ *  `canonicalMode` rows for the given `map`. */
+export interface MapModeStraggler {
+  map: string
+  /** Mode currently in the stale rows (e.g. 'brawlBall' for a hockey map). */
+  wrongMode: string
+  /** Canonical mode determined by the live rotation (e.g. 'brawlHockey'). */
+  canonicalMode: string
+}
+
+/**
+ * Find maps whose historical `meta_stats` rows are split across multiple
+ * modes when the live rotation knows the ONE canonical mode for that map.
+ *
+ * Why this helper exists: Brawl Stars maps are 1:1 with their mode — a
+ * map is always one mode in the game. But the Supercell API occasionally
+ * ships battles with a stale `mode` string while the `modeId` is correct,
+ * and the old `normalizeSupercellMode` (pre-2026-04-14) trusted the string
+ * first. Result: Hyperspace (a brawlHockey map, modeId 45) shipped with
+ * `mode: "brawlBall"` and ~600 rows landed under `brawlBall::Hyperspace`
+ * instead of `brawlHockey::Hyperspace`. Same thing later with Tip Toe.
+ *
+ * The fix flip to `modeId`-priority stops NEW mis-classifications, but
+ * existing stale rows don't self-heal — each time a new hockey map rotates
+ * in we have to manually backfill. This helper closes that loop: on every
+ * cron run, before processing players, we scan the preloaded counts for
+ * any (map, mode) pair whose map is currently LIVE under a DIFFERENT mode
+ * according to `liveKeys`. Those are definite stale rows and safe to merge.
+ *
+ * This helper is a PURE FUNCTION — the cleanup side-effects live in the
+ * cron route so they can be mocked in integration tests.
+ */
+export function findMapModeStragglers(
+  counts: MapModeCounts,
+  liveKeys: Set<string>,
+): MapModeStraggler[] {
+  // Build canonicalByMap from the live rotation: each live map has
+  // exactly one canonical mode (the one currently in rotation).
+  const canonicalByMap = new Map<string, string>()
+  for (const key of liveKeys) {
+    const pipeIdx = key.indexOf('|')
+    if (pipeIdx <= 0) continue
+    const map = key.slice(0, pipeIdx)
+    const mode = key.slice(pipeIdx + 1)
+    canonicalByMap.set(map, mode)
+  }
+
+  const stragglers: MapModeStraggler[] = []
+  const seen = new Set<string>() // dedup (map, wrongMode) pairs
+  for (const key of Object.keys(counts)) {
+    const pipeIdx = key.indexOf('|')
+    if (pipeIdx <= 0) continue
+    const map = key.slice(0, pipeIdx)
+    const mode = key.slice(pipeIdx + 1)
+    const canonical = canonicalByMap.get(map)
+    // Only flag maps that are CURRENTLY live under a different mode.
+    // Out-of-rotation maps (not in liveKeys) are left alone — they
+    // decay out of the 14-day window naturally, and we can't determine
+    // their canonical mode without running a separate rotation query.
+    if (canonical && canonical !== mode && (counts[key] ?? 0) > 0) {
+      const dedupKey = `${map}|${mode}`
+      if (seen.has(dedupKey)) continue
+      seen.add(dedupKey)
+      stragglers.push({ map, wrongMode: mode, canonicalMode: canonical })
+    }
+  }
+  return stragglers
+}

@@ -1,7 +1,13 @@
 # Cron Infrastructure — BrawlVision
 
-> **Última actualización**: 2026-04-12 (post-audit de meta coverage)
+> **Última actualización**: 2026-04-14 (Sprint E — meta-poll overhaul + secret hygiene)
 > **Estado**: documentado con datos reales de producción. Hay drift entre el código del repo y el estado real de los crons en producción — ver [Known Issues](#known-issues-y-drift-detectado).
+>
+> **Cambios recientes destacados**:
+> - 2026-04-14: meta-poll algoritmo reescrito — ahora fetchea 11 country rankings (~2,100 unique) y balancea per-(map, mode) contra el estado cumulativo de 14 días via la RPC `sum_meta_stats_by_map_mode`. Ver la sección **`/api/cron/meta-poll`** para la descripción completa.
+> - 2026-04-14: VPS crontab movido al dominio ápex (`brawlvision.com`) tras flip del canonical en Vercel. `www.` ahora 307-redirige, y `curl -s` no sigue redirects, lo que dejó ambos crons muertos durante horas hasta el fix. Ver Issue 6.
+> - 2026-04-14: `CRON_SECRET` movido de inline en el crontab a `/home/ubuntu/.brawlvision-env` (chmod 600), sourced en cada línea. Resuelve el Issue 5.
+> - 2026-04-14: `normalizeSupercellMode` ahora prioriza `modeId` sobre el string `mode`, corrigiendo el caso de Hyperspace (modeId 45 = brawlHockey) que llegaba mis-clasificado como brawlBall.
 
 ---
 
@@ -43,9 +49,9 @@ BrawlVision corre **6 cron jobs** distribuidos en **3 infraestructuras distintas
 └─────────────────────────────────────────────────────────────────┘
          ▲                                              ▲
          │                                              │
-         │ fetchBattlelog(player)                       │ fetchPlayerRankings('global', 200)
+         │ fetchBattlelog(player)                       │ fetchPlayerRankings(country, 200) × 11
          │                                              │ fetchBattlelog(each top player)
-         │                                              │
+         │                                              │ fetchEventRotation() → live keys
 ┌────────┴────────────┐                      ┌─────────┴─────────────┐
 │  /api/cron/sync     │                      │  /api/cron/meta-poll  │
 │  (syncBattles loop) │                      │  (fetch + aggregate)  │
@@ -283,16 +289,31 @@ Luego:
 2. Guardar y salir
 3. Crontab se activa automáticamente — no hace falta reiniciar ningún servicio
 
-### Contenido actual del crontab del `ubuntu` (ofuscado)
+### Contenido actual del crontab del `ubuntu`
 
 ```
-*/20 * * * * curl -s -H "Authorization: Bearer <CRON_SECRET>" https://www.brawlvision.com/api/cron/sync > /dev/null 2>&1
+# Sync loop: drains sync_queue and fetches premium users' battlelogs.
+# Runs every 20 min. Auth via secret sourced from ~/.brawlvision-env.
+*/20 * * * * . /home/ubuntu/.brawlvision-env && curl -s -H "Authorization: Bearer $CRON_SECRET" https://brawlvision.com/api/cron/sync > /dev/null 2>&1
 
-# Meta polling - every 30 min (50 players per batch)
-*/30 * * * * curl -s -H "Authorization: Bearer <CRON_SECRET>" https://www.brawlvision.com/api/cron/meta-poll >> /tmp/meta-poll.log 2>&1
+# Meta polling — every 30 min. 600 players from 11 country rankings
+# (~2,100 unique after dedup), per-(map,mode) cumulative balance via
+# the sum_meta_stats_by_map_mode preload RPC. Auth via secret sourced
+# from ~/.brawlvision-env.
+*/30 * * * * . /home/ubuntu/.brawlvision-env && curl -s -H "Authorization: Bearer $CRON_SECRET" https://brawlvision.com/api/cron/meta-poll >> /tmp/meta-poll.log 2>&1
 ```
 
-> **Nota del comentario "50 players per batch"**: el comentario está **desactualizado**. El commit `561364f` subió el pool a 200 top players. El comentario del crontab nunca se actualizó. Está pendiente de corrección.
+The secret lives in `/home/ubuntu/.brawlvision-env` (chmod 600, owner
+`ubuntu:ubuntu`):
+
+```
+export CRON_SECRET="<64 hex chars>"
+```
+
+Cada línea del cron hace `.` (source) de ese archivo antes de
+ejecutar `curl`, exponiendo `$CRON_SECRET` como variable de shell
+en la misma invocación. Este patrón fue introducido el 2026-04-14
+para resolver [Issue 5](#issue-5-resuelto-cron_secret-en-texto-plano-en-el-crontab-del-vps).
 
 ### Inventario de los 2 jobs
 
@@ -304,19 +325,57 @@ Luego:
 - **Qué hace**: procesa la `sync_queue` de Supabase, llamando a `syncBattles(player_tag)` para cada job pending. Cada `syncBattles` fetchea el battlelog (últimas 25 batallas), las parsea, y hace upsert en `battles` con dedup por `(player_tag, battle_time)`.
 - **⚠️ Redundancia**: Vercel Cron también llama a este mismo endpoint diariamente (ver Tier 1). El VPS lo hace 72 veces al día y Vercel 1 vez. Los dos son idempotentes (ON CONFLICT DO NOTHING), así que no causa corrupción de datos, pero es ruido innecesario.
 
-#### 3. `/api/cron/meta-poll`
+#### 3. `/api/cron/meta-poll` (reescrito en Sprint E, 2026-04-14)
 
 - **Schedule**: `*/30 * * * *` (cada 30 min, 48 invocaciones/día)
-- **Target**: `GET https://www.brawlvision.com/api/cron/meta-poll`
+- **Target**: `GET https://brawlvision.com/api/cron/meta-poll` (ápex, NO `www.` — ver Issue 6)
 - **Código del endpoint**: `src/app/api/cron/meta-poll/route.ts`
-- **Qué hace**:
-  1. `fetchPlayerRankings('global', 200)` — top 200 global players de Supercell
-  2. Por cada jugador: `fetchBattlelog(tag)` + filtrar batallas posteriores al cursor + filtrar modos draft + filtrar 3v3 con teams completos
-  3. Agregar en `meta_stats` (brawler+map+mode+date), `meta_matchups` (brawler vs brawler), `meta_trios` (team comps)
-  4. Upsert en `meta_poll_cursors` para dedup en el próximo ciclo
-- **Throttle**: delay `META_POLL_DELAY_MS` entre cada player (~200ms probable) para no saturar el proxy
-- **Duración estimada**: no medida directamente porque no hay log de start/end del endpoint. Con 200 players × ~200ms delay + ~200ms request time ≈ **80 segundos** en el mejor caso. Cabe sobradamente en los 5 min de `maxDuration`.
-- **Output visible en `/tmp/meta-poll.log`** — cada invocación añade el JSON de respuesta del endpoint (`{processed, skipped, errors, battlesProcessed, statKeys, matchupKeys, trioKeys}`)
+- **Auth**: `Authorization: Bearer $CRON_SECRET`, sourced desde `/home/ubuntu/.brawlvision-env`
+- **Qué hace** (nuevo algoritmo "cumulative per-(map, mode) balance"):
+  1. **Fetch candidate pool en paralelo** — `fetchPlayerRankings(country, 200)` para las 11 regiones de `META_POLL_RANKING_COUNTRIES` (`global`, `US`, `BR`, `MX`, `DE`, `FR`, `ES`, `JP`, `KR`, `TR`, `RU`) vía `Promise.allSettled`. La API de Supercell cappea cada respuesta a **200 items** independientemente del `limit` solicitado (probado empíricamente), así que necesitamos múltiples regiones para escapar del cap. Cross-country overlap es ~4%, así que 11 regiones entregan **~2,100 jugadores únicos**.
+  2. **Fetch live rotation** — `fetchEventRotation()` para conocer los `(map, mode)` actualmente en rotación. Solo esos pares son targets del balance — un mapa out-of-rotation no puede recibir batallas nuevas por mucho que procesemos jugadores.
+  3. **Preload cumulativo** — llamar a la RPC `sum_meta_stats_by_map_mode(p_since, p_source='global')` para obtener los totales cumulativos de los últimos 14 días agrupados por `(map, mode)`. Estos totales seeden el mapa `battlesByMapMode` en memoria antes de procesar jugadores, dándole al algoritmo visibilidad cumulativa en vez de solo deltas per-run (ver [Sprint E overhaul](#sprint-e-overhaul) abajo).
+  4. **Process players loop** — iterar el pool dedupeado hasta `META_POLL_MAX_DEPTH` (600) o hasta que `underTarget` esté vacío. Antes de cada jugador:
+     - Recalcular `target = max(META_POLL_MIN_TARGET, META_POLL_TARGET_RATIO × max(counts sobre liveKeys))`.
+     - Recalcular `underTarget = { liveKeys cuya count < target }`.
+     - Si `underTarget` está vacío → **early exit** (balanceado).
+     - Si no → filtrar las batallas del jugador aceptando solo las cuya `(map, mode)` está en `underTarget`.
+  5. **Cursor dedup** — `meta_poll_cursors` avanza para **cada batalla vista** (incluso las rechazadas) para que el próximo run no las re-examine.
+  6. **Bulk upsert** — `bulk_upsert_meta_stats`, `bulk_upsert_meta_matchups`, `bulk_upsert_meta_trios` (cada uno es una sola llamada RPC con un array JSONB).
+- **Throttle**: `META_POLL_DELAY_MS` (100ms) entre llamadas API para no saturar el proxy.
+- **Duración medida**: **~240 segundos** con el budget completo de 600 jugadores. Dentro del `maxDuration = 300` con margen.
+- **Output visible en `/tmp/meta-poll.log`** — cada invocación añade el JSON de respuesta del endpoint con la forma:
+  ```json
+  {
+    "processed": 599,
+    "skipped": 0,
+    "errors": 1,
+    "battlesProcessed": 571,
+    "statKeys": 78,
+    "matchupKeys": 1084,
+    "trioKeys": 275,
+    "adaptive": {
+      "poolSize": 2093,
+      "playersPolled": 600,
+      "liveKeyCount": 7,
+      "earlyExit": false,
+      "finalCountsByMapMode": { ... }
+    }
+  }
+  ```
+  El `finalCountsByMapMode` es el estado **cumulativo** (preload + deltas de este run), no solo las adiciones de este run.
+
+##### Sprint E overhaul
+
+El algoritmo anterior balanceaba "per-run deltas": `battlesByMode` se reseteaba en cada invocación y el `target = 0.6 × max` se computaba contra counts del run actual, sin visibilidad del estado cumulativo. Producción auditada el 2026-04-14 mostró **brawlBall con 7,000 vs brawlHockey con 0** — el algoritmo no podía ver la asimetría cumulativa y por tanto nunca podía corregirla. Además `META_POLL_MAX_DEPTH = 600` era ficción porque la API de Supercell tiene un cap duro de 200 items por ranking call y el código nunca hacía top-up real (el loop de top-up se salía inmediatamente con `allPlayerTags.length === 200`).
+
+El overhaul cierra los tres agujeros:
+
+1. Pool multi-región → escape del cap de 200.
+2. Preload cumulativo → el target refleja realidad cumulativa, no deltas.
+3. Filtro per-(map, mode) aplicado al base batch → el cron rechaza inmediatamente batallas en maps saturados (ej: Sneaky Fields con 8,672 cumulativo). El budget se gasta en maps que la rotación actual necesita cubrir.
+
+**Auto-healing**: la ventana rodante de 14 días hace el trabajo sucio. Mapas out-of-rotation (como Sneaky Fields al final de su rotación) decaen naturalmente porque no reciben batallas nuevas, mientras que los live maps bajo target crecen hasta el target. Después de ~14 días el sistema converge a una distribución donde cada live map tiene ~60% del max de los live maps.
 
 ### Ventajas del VPS cron
 
@@ -329,7 +388,7 @@ Luego:
 - **No observable desde Vercel** — si el VPS falla, los monitors de Vercel no lo detectan
 - **Vive fuera del repo** — el código del crontab no está versionado, un cambio manual se pierde si el VPS se re-instala
 - **Single point of failure** — si el Oracle VPS cae, todo el meta-poll y el sync-loop caen sin aviso
-- **Secret en texto plano** en el crontab — cualquier persona con acceso SSH ve el `CRON_SECRET`
+- ~~**Secret en texto plano** en el crontab — cualquier persona con acceso SSH ve el `CRON_SECRET`~~ → **Resuelto 2026-04-14**: secret ahora en `/home/ubuntu/.brawlvision-env` chmod 600, sourced en cada línea del cron. Ya no aparece en `crontab -l`, `ps auxf`, ni en el CMD log de cron en `/var/log/syslog`
 
 ---
 
@@ -339,11 +398,11 @@ Luego:
 
 El mismo valor en **tres sitios**:
 
-1. **Vercel Dashboard** → Project Settings → Environment Variables → `CRON_SECRET` (production scope)
-2. **`.env.local`** del desarrollador local (para tests y scripts standalone)
-3. **VPS crontab** — inline en el header `Authorization: Bearer <secret>` de cada línea
+1. **Vercel Dashboard** → Project Settings → Environment Variables → `CRON_SECRET` (production scope). El route handler valida contra `process.env.CRON_SECRET`.
+2. **`.env.local`** del desarrollador local (para tests y scripts standalone).
+3. **VPS** — `/home/ubuntu/.brawlvision-env`, formato `export CRON_SECRET="<hex>"`, chmod 600, owner `ubuntu:ubuntu`. Cada línea del crontab hace `. /home/ubuntu/.brawlvision-env && curl ...` para exponer `$CRON_SECRET` justo antes del `curl`. Antes del 2026-04-14 el secret vivía inline en el crontab — ver Issue 5.
 
-> **⚠️ Importante**: el `.env.local` del repo está en `.gitignore` (línea `.env*`). **Nunca commitear** un `.env.local` que contenga este secret.
+> **⚠️ Importante**: el `.env.local` del repo está en `.gitignore` (línea `.env*`). **Nunca commitear** un `.env.local` que contenga este secret. El archivo `.brawlvision-env` en el VPS es un sibling del `.env.local` — vive solo en el home del usuario `ubuntu`, no en el repo.
 
 ### Cuándo rotar
 
@@ -376,25 +435,31 @@ Te da 64 caracteres hex aleatorios. Cópialo al portapapeles. **No pegarlo en ni
 
 > **⚠️ Ventana de falla**: durante esos 2 minutos el VPS sigue llamando con el secret viejo, que devolverá 401. Los jobs fallarán durante ese intervalo. En la práctica no es grave porque el sync es idempotente y el meta-poll también. Si te preocupa, puedes hacer el paso 3 ANTES del paso 2, pero entonces el VPS mandará el secret nuevo a un endpoint que aún valida el viejo y también fallará durante ~2 min. Da igual en qué orden, hay una ventana pequeña de failures.
 
-**Paso 3 — Actualizar el VPS**:
+**Paso 3 — Actualizar el VPS** (ahora trivial gracias a `.brawlvision-env`):
 
 ```bash
 ssh -i "<path-to-ssh-key>" ubuntu@141.253.197.60
-crontab -e
-# en el editor, reemplazar las dos ocurrencias de "Bearer <viejo>" por "Bearer <nuevo>"
-# guardar y salir
+# Editar la única línea del archivo del env — no hace falta tocar el crontab.
+nano /home/ubuntu/.brawlvision-env
+# Cambiar el valor dentro de export CRON_SECRET="..."
+# Guardar y salir. El próximo run del cron (en ≤ 20 min) ya usa el nuevo.
 ```
 
-Alternativa sin abrir editor (más segura, evita pasar el secret por el shell prompt):
+Alternativa sin abrir editor (pasa el secret vía stdin):
 
 ```bash
 ssh -i "<key>" ubuntu@141.253.197.60 << 'EOF'
 NEW_SECRET="<pegar-nuevo-aqui>"
-crontab -l | sed "s|Bearer [a-f0-9]\\{64\\}|Bearer $NEW_SECRET|g" | crontab -
+printf 'export CRON_SECRET="%s"\n' "$NEW_SECRET" > /home/ubuntu/.brawlvision-env
+chmod 600 /home/ubuntu/.brawlvision-env
 unset NEW_SECRET
-crontab -l | grep Bearer  # verificar (verás el nuevo secret en plano)
+# Verificar (si ves un valor, es correcto — cerrá el terminal rápido):
+. /home/ubuntu/.brawlvision-env && echo "length=${#CRON_SECRET}"
 EOF
 ```
+
+No hace falta `crontab -e` — las líneas del crontab ya referencian
+`$CRON_SECRET` vía source, así que basta con cambiar el archivo.
 
 **Paso 4 — Actualizar `.env.local`** del desarrollador:
 
@@ -483,7 +548,7 @@ Checklist:
 - Single point of failure (si el VPS Oracle cae, el meta-poll deja de correr sin aviso)
 - El schedule vive solo en el crontab del VPS — si el VPS se re-instala, hay que recordar recrear los jobs a mano
 - El futuro comando `/cron` del bot de Telegram **no puede ver el estado** del meta-poll (solo ve `pg_cron`)
-- Secret en texto plano en el crontab (ver Issue 5)
+- ~~Secret en texto plano en el crontab (ver Issue 5)~~ → Resuelto 2026-04-14
 
 **Opciones para mejorar — ordenadas por esfuerzo creciente**:
 
@@ -547,33 +612,46 @@ cleanup-anonymous-visits  0 3 * * *       active=true
 
 Alternativa más pragmática: **editar `002_pg_cron_scheduler.sql`** para que refleje el estado real, pero esto rompe el historial inmutable de migraciones y es mala práctica. Mejor migración nueva.
 
-### Issue 4: Comentario obsoleto en el crontab del VPS
+### Issue 4 (RESUELTO): Comentario obsoleto en el crontab del VPS
 
-**Problema**: la línea del meta-poll tiene el comentario `# Meta polling - every 30 min (50 players per batch)`, pero el pool real es de 200 players (commit `561364f`).
+**Problema**: la línea del meta-poll tenía el comentario `# Meta polling - every 30 min (50 players per batch)`, pero el pool real subió a 200 (commit `561364f`) y luego al algoritmo cumulative de 600 players multi-país (Sprint E, 2026-04-14).
 
-**Impacto**: documentación engañosa. Alguien leyendo el crontab asumirá que el pool es de 50 y puede tomar malas decisiones.
+**Fix aplicado**: crontab actualizado el 2026-04-14 al comentario actual que describe la arquitectura Sprint E con 600 players + 11 country rankings + per-(map, mode) cumulative balance.
 
-**Recomendación**: actualizar el comentario la próxima vez que editemos el crontab (probablemente durante la rotación de secret o la migración a Vercel Cron).
+### Issue 5 (RESUELTO): `CRON_SECRET` en texto plano en el crontab del VPS
 
-### Issue 5: `CRON_SECRET` en texto plano en el crontab del VPS
+**Problema**: el crontab contenía `Bearer <secret>` en texto plano. Cualquier persona con acceso SSH (o con capacidad de leer `/var/log/syslog`) podía leer el secret porque `cron` loguea cada `CMD` completo antes de ejecutarlo.
 
-**Problema**: el crontab contiene `Bearer <secret>` en texto plano. Cualquier persona con acceso SSH (o con capacidad de leer `/var/log/syslog`) puede leer el secret.
+**Impacto**: si el VPS era comprometido a cualquier nivel de privilegio que permitiera leer syslog o el home del usuario `ubuntu`, el secret se filtraba.
 
-**Impacto**: si el VPS es comprometido a cualquier nivel de privilegio que permita leer syslog o el home del usuario `ubuntu`, el secret se filtra.
+**Fix aplicado 2026-04-14**:
 
-**Mitigación parcial**: poner el secret en un archivo separado con permisos `600` y cargarlo en el cron:
+1. El secret vive en `/home/ubuntu/.brawlvision-env` como `export CRON_SECRET="<hex>"`, chmod 600, owner `ubuntu:ubuntu`.
+2. Cada línea del crontab source el archivo antes de llamar a curl:
+   ```
+   */20 * * * * . /home/ubuntu/.brawlvision-env && curl -s -H "Authorization: Bearer $CRON_SECRET" https://brawlvision.com/api/cron/sync > /dev/null 2>&1
+   ```
+3. Cron loguea la línea **sin expandir las variables**, así que `/var/log/syslog` ve `$CRON_SECRET` literal, no el valor real.
 
-```
-# En /home/ubuntu/.brawlvision-env (chmod 600, owner ubuntu:ubuntu)
-CRON_SECRET=<secret-aqui>
+**Threat model después del fix**:
 
-# En crontab:
-*/30 * * * * . /home/ubuntu/.brawlvision-env && curl -s -H "Authorization: Bearer $CRON_SECRET" https://www.brawlvision.com/api/cron/meta-poll >> /tmp/meta-poll.log 2>&1
-```
+- ✅ `crontab -l` ya no muestra el secret
+- ✅ `/var/log/syslog` ya no captura el secret en las entradas `CMD` de cron
+- ✅ `ps auxf` ya no lo muestra fuera de la ventana brevísima de ejecución del curl (antes aparecía en cada línea del crontab)
+- ⚠️ Durante el <1s de ejecución del curl, el valor expandido sí aparece en `ps auxf` del proceso curl activo. Mitigación futura: `curl -H @/path/to/header-file` que lee la cabecera de un archivo en lugar del argv. Fuera de scope por ahora.
+- ⚠️ Un atacante con acceso al home del usuario `ubuntu` puede leer `.brawlvision-env`. Sin cambio respecto al estado anterior — es inherente a almacenar secrets en un sistema de archivos accesible.
 
-Esto saca el secret de `cron.log` y de los procesos visibles en `ps`, aunque no cambia nada para un atacante con acceso al home del usuario.
+**Mitigación total**: migrar el cron fuera del VPS a Vercel Cron (secret en env vars cifradas) o a `pg_cron` + `pg_net` (secret en setting de DB cifrado). Eso resolvería Issue 2 y Issue 5 al mismo tiempo, pero solo tiene sentido tras un upgrade a Vercel Pro o un sprint dedicado a `pg_cron + pg_net`.
 
-**Mitigación total**: migrar el cron fuera del VPS a Vercel Cron (donde el secret vive en env vars cifradas) o a `pg_cron` + `pg_net` (donde el secret vive en un setting de database cifrado). Esto resuelve el Issue 2 y el Issue 5 al mismo tiempo.
+### Issue 6 (RESUELTO): 307-redirect del canonical flip rompió los crons del VPS
+
+**Problema**: el 2026-04-14 se flipeó la dirección canonical en Vercel Project → Domains — antes `brawlvision.com` (ápex) 307-redirigía a `www.`, ahora es al revés. El crontab del VPS estaba hardcoded a `https://www.brawlvision.com/...`. `curl -s` sin `-L` **no sigue redirects**, así que cada invocación recibía el 307 y descartaba la respuesta. Ambos crons (`sync` y `meta-poll`) quedaron muertos durante horas.
+
+El mismo bug afectó en paralelo al webhook del bot de Telegram (también hardcoded a www) — fue el primer síntoma que nos hizo investigar. Una vez arreglado el bot, apareció como "sospechoso" en el audit del meta-poll (cursors viejos, `pending_updates: 3`).
+
+**Fix aplicado 2026-04-14**: crontab del VPS apuntando al ápex `https://brawlvision.com/...`. Al tocarlo, también se actualizó el comentario obsoleto (Issue 4) y se movió el secret fuera del inline (Issue 5). Una sola intervención resolvió tres issues.
+
+**Prevención futura**: nunca apuntar un cliente HTTP que no siga redirects (como `curl -s`) a un dominio que esté detrás de un 307 redirect. O siempre usar el ápex canonical, o añadir `-L` al curl. El mantenimiento del doc `docs/local/vps-access.md` explícitamente lo nota en su sección "Canonical flip gotcha".
 
 ---
 

@@ -13,6 +13,7 @@ import {
 import {
   computeMapModeTarget,
   findUnderTargetMapModes,
+  findMapModeStragglers,
   mapModeKey,
   type MapModeCounts,
 } from '@/lib/draft/meta-poll-balance'
@@ -257,6 +258,41 @@ async function runBalancedPoll(supabase: SupabaseClient) {
       ? liveKeys
       : new Set(Object.keys(battlesByMapMode))
 
+  // 1b. Self-healing cleanup of mis-classified (map, mode) rows.
+  //     See findMapModeStragglers docstring — this handles the Supercell
+  //     API quirk where hockey maps ship with `mode: "brawlBall"`. Runs
+  //     BEFORE the player-processing loop so the target calculation below
+  //     sees the canonical state, not the mis-classified snapshot.
+  const stragglers = findMapModeStragglers(battlesByMapMode, effectiveLiveKeys)
+  const stragglersMerged: Array<{ map: string; wrongMode: string; canonicalMode: string; mergedRows: number | null }> = []
+  for (const s of stragglers) {
+    try {
+      const { data: merged } = await supabase.rpc('cleanup_map_mode_strays', {
+        p_map: s.map,
+        p_wrong_mode: s.wrongMode,
+        p_canonical_mode: s.canonicalMode,
+        p_source: 'global',
+      })
+      // Mirror the change in the in-memory preload so target + underTarget
+      // computations below see the post-cleanup state. The wrong-mode count
+      // is absorbed into the canonical-mode count (both sum; we don't know
+      // the exact per-date/per-brawler split, but the total is correct).
+      const wrongKey = mapModeKey(s.map, s.wrongMode)
+      const canonicalKey = mapModeKey(s.map, s.canonicalMode)
+      const wrongCount = battlesByMapMode[wrongKey] ?? 0
+      battlesByMapMode[canonicalKey] = (battlesByMapMode[canonicalKey] ?? 0) + wrongCount
+      delete battlesByMapMode[wrongKey]
+      stragglersMerged.push({
+        map: s.map, wrongMode: s.wrongMode, canonicalMode: s.canonicalMode,
+        mergedRows: typeof merged === 'number' ? merged : null,
+      })
+    } catch (err) {
+      // Cleanup is best-effort — a failed RPC (e.g. function not yet
+      // applied in prod) must NOT abort the main cron run. Log and skip.
+      console.error('[meta-poll] cleanup_map_mode_strays failed', { straggler: s, err })
+    }
+  }
+
   // 2. Load cursors for the capped candidate list (one query)
   const cappedTags = allPlayerTags.slice(0, META_POLL_MAX_DEPTH)
   const { data: cursors } = await supabase
@@ -320,6 +356,7 @@ async function runBalancedPoll(supabase: SupabaseClient) {
     playersPolled,
     liveKeyCount: effectiveLiveKeys.size,
     earlyExit,
+    stragglersMerged,
     finalCountsByMapMode: { ...battlesByMapMode },
   }
 }
@@ -413,6 +450,11 @@ export async function GET(request: Request) {
         playersPolled: result.playersPolled,
         liveKeyCount: result.liveKeyCount,
         earlyExit: result.earlyExit,
+        // Self-healing cleanup: any (map, mode) mis-classifications that
+        // were detected and merged at the start of this run. Should be
+        // empty in steady state; non-empty means a new rotation just
+        // exposed a straggler (e.g. Tip Toe brawlBall → brawlHockey).
+        stragglersMerged: result.stragglersMerged,
         // NOTE: this field is the CUMULATIVE state including the preload,
         // so its numbers reflect the 14-day running totals, not just this run.
         finalCountsByMapMode: result.finalCountsByMapMode,

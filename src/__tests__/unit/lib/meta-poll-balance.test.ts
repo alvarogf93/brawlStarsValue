@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   computeMapModeTarget,
   findUnderTargetMapModes,
+  findMapModeStragglers,
   mapModeKey,
   type MapModeCounts,
 } from '@/lib/draft/meta-poll-balance'
@@ -169,5 +170,97 @@ describe('findUnderTargetMapModes — the accept filter', () => {
     expect(under.has('Sneaky Fields|brawlBall')).toBe(false)
     expect(under.has('Crab Claws|knockout')).toBe(true)
     expect(under.has('Hyperspace|brawlHockey')).toBe(true)
+  })
+})
+
+describe('findMapModeStragglers — self-healing mis-classification detector', () => {
+  it('returns empty when every map in counts is under its canonical mode', () => {
+    const counts: MapModeCounts = {
+      'Sunny Soccer|brawlBall': 400,
+      'Tip Toe|brawlHockey': 300,
+      'Picturesque|gemGrab': 200,
+    }
+    const liveKeys = new Set(Object.keys(counts))
+    expect(findMapModeStragglers(counts, liveKeys)).toEqual([])
+  })
+
+  it('flags a map that has rows in a wrong mode while being live under a different canonical mode', () => {
+    // The exact Hyperspace pattern: rows under brawlBall while the
+    // live rotation has Hyperspace under brawlHockey.
+    const counts: MapModeCounts = {
+      'Hyperspace|brawlBall': 596,    // mis-classified
+      'Hyperspace|brawlHockey': 5,    // new correct rows
+    }
+    const liveKeys = new Set(['Hyperspace|brawlHockey'])
+    const stragglers = findMapModeStragglers(counts, liveKeys)
+    expect(stragglers).toHaveLength(1)
+    expect(stragglers[0]).toEqual({
+      map: 'Hyperspace',
+      wrongMode: 'brawlBall',
+      canonicalMode: 'brawlHockey',
+    })
+  })
+
+  it('IGNORES maps whose rows are NOT currently in the live rotation (can\'t determine canonical)', () => {
+    // Historical Sneaky Fields data under brawlBall — Sneaky Fields is
+    // NOT currently live (rotated out), so we don't know if it should
+    // stay brawlBall (true) or be hockey (false). Leave it alone; the
+    // 14-day decay will handle it.
+    const counts: MapModeCounts = {
+      'Sneaky Fields|brawlBall': 8672,
+      'Tip Toe|brawlHockey': 5,
+    }
+    const liveKeys = new Set(['Tip Toe|brawlHockey']) // Sneaky Fields not live
+    const stragglers = findMapModeStragglers(counts, liveKeys)
+    expect(stragglers).toEqual([])
+  })
+
+  it('flags multiple maps independently in a single call', () => {
+    // Two maps mis-classified simultaneously — both hockey, both live.
+    const counts: MapModeCounts = {
+      'Hyperspace|brawlBall': 596,
+      'Tip Toe|brawlBall': 291,
+      'Sunny Soccer|brawlBall': 400, // correctly brawlBall (live under brawlBall)
+    }
+    const liveKeys = new Set([
+      'Hyperspace|brawlHockey',
+      'Tip Toe|brawlHockey',
+      'Sunny Soccer|brawlBall',
+    ])
+    const stragglers = findMapModeStragglers(counts, liveKeys)
+    expect(stragglers).toHaveLength(2)
+    const maps = stragglers.map(s => s.map).sort()
+    expect(maps).toEqual(['Hyperspace', 'Tip Toe'])
+    for (const s of stragglers) {
+      expect(s.wrongMode).toBe('brawlBall')
+      expect(s.canonicalMode).toBe('brawlHockey')
+    }
+  })
+
+  it('does not flag a (map, mode) key with zero count — nothing to clean', () => {
+    const counts: MapModeCounts = {
+      'Hyperspace|brawlBall': 0,       // empty, shouldn't be flagged
+      'Hyperspace|brawlHockey': 100,
+    }
+    const liveKeys = new Set(['Hyperspace|brawlHockey'])
+    const stragglers = findMapModeStragglers(counts, liveKeys)
+    expect(stragglers).toEqual([])
+  })
+
+  it('handles map names containing the pipe separator gracefully (split uses FIRST pipe)', () => {
+    // Defensive: if a map name ever had a literal "|" in it, the split
+    // on indexOf('|') takes the first pipe so map = everything before,
+    // mode = everything after. Brawl Stars doesn't use pipes in map
+    // names, but this guards against future Supercell weirdness.
+    const counts: MapModeCounts = {
+      'Weird|Name|brawlBall': 50,
+    }
+    const liveKeys = new Set(['Weird|Name|brawlHockey'])
+    const stragglers = findMapModeStragglers(counts, liveKeys)
+    // split at first pipe: map='Weird', mode='Name|brawlBall'
+    // canonicalByMap.get('Weird') === 'Name|brawlHockey'
+    // mode !== canonical → flagged
+    expect(stragglers).toHaveLength(1)
+    expect(stragglers[0].map).toBe('Weird')
   })
 })

@@ -132,9 +132,28 @@ export const META_POLL_MAX_DEPTH = 600
  *  battles of the top live map. */
 export const META_POLL_TARGET_RATIO = 0.6
 
-/** Absolute floor for the target so the algorithm still does something when
- *  every live pair is undersampled (e.g. fresh rolling-window after a reset). */
-export const META_POLL_MIN_TARGET = 50
+/**
+ * Absolute floor for the per-(map, mode) target. The floor is calibrated
+ * against the UI's `PRO_MIN_BATTLES_DISPLAY = 20` threshold — each live
+ * map needs enough total battles that the UI can display a meaningful
+ * top-N brawler list WITHOUT falling back to mode-aggregate.
+ *
+ * Math: pro battles are heavily skewed — the top 10 brawlers absorb
+ * ~75% of picks. For the 10th-most-played brawler to clear 20 battles,
+ * that brawler needs to represent ~4% of the map's total, so the map
+ * needs roughly 500 battles to reliably show a top-10 list. With 500
+ * as the floor and `META_POLL_TARGET_RATIO = 0.6`, the effective target
+ * grows to `max(500, 0.6 × max(live))` and scales naturally once the
+ * most-sampled live pair exceeds 833 battles.
+ *
+ * Previously this was 50, which produced the "datos escasos" anti-
+ * pattern: Sunny Soccer could stabilize at 400 battles (above the old
+ * floor) while the UI still showed mode-aggregate because only 9/30
+ * brawlers had ≥20 battles on that specific map. Sprint E audit caught
+ * this and raised the floor to 500 so the cron keeps feeding under-
+ * represented live maps until they support per-brawler display.
+ */
+export const META_POLL_MIN_TARGET = 500
 
 /** Delay between API calls in ms (throttle) */
 export const META_POLL_DELAY_MS = 100
