@@ -6,16 +6,17 @@ import { parseBattleTime } from '@/lib/battle-parser'
 import {
   META_POLL_DELAY_MS,
   META_POLL_MAX_DEPTH,
+  META_POLL_PRELOAD_DAYS,
   META_POLL_RANKING_COUNTRIES,
-  META_ROLLING_DAYS,
   normalizeSupercellMode,
 } from '@/lib/draft/constants'
 import {
-  computeMapModeTarget,
-  findUnderTargetMapModes,
+  computeAcceptRate,
+  computeMinLive,
   findMapModeStragglers,
   mapModeKey,
   type MapModeCounts,
+  type RandomFn,
 } from '@/lib/draft/meta-poll-balance'
 import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
 import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
@@ -25,7 +26,7 @@ import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
  * aggregate their recent battles into `meta_stats` / `meta_matchups`
  * / `meta_trios`.
  *
- * Strategy — cumulative per-(map, mode) balance (Sprint E, 2026-04-14):
+ * Strategy — probabilistic weighted sampling (Sprint F, 2026-04-14):
  *
  *   1. Fetch candidate pool by merging `/rankings/{country}/players`
  *      across a fixed list of countries (`META_POLL_RANKING_COUNTRIES`).
@@ -33,36 +34,44 @@ import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
  *      global call is wildly insufficient. 11 country rankings yield
  *      ~2,100 unique players with minimal overlap.
  *   2. Fetch the Supercell events rotation to determine the set of
- *      currently-live `(map, mode)` pairs. Only these pairs are the
- *      targets of balancing — out-of-rotation maps can't receive new
- *      battles regardless of who we poll.
- *   3. Preload the last 14 days of `meta_stats` grouped by `(map, mode)`
- *      into the in-memory `battlesByMapMode` map. This gives the
- *      balancing algorithm **cumulative** visibility instead of the
- *      old per-run delta-only view. The previous implementation was
- *      fundamentally broken because it computed the target against
- *      this-run counts only — a mode with 100× imbalance on disk
- *      would be "balanced" per-run while the cumulative ratio kept
- *      growing indefinitely.
+ *      currently-live `(map, mode)` pairs. Out-of-rotation maps are
+ *      never accepted — they can't receive new battles regardless of
+ *      who we poll.
+ *   3. Preload `meta_stats` over `META_POLL_PRELOAD_DAYS` (28 days)
+ *      grouped by `(map, mode)` via the `sum_meta_stats_by_map_mode`
+ *      RPC. The RPC divides by 6 so the preload is in **real battles**,
+ *      not brawler-rows — matching the `+1 per battle` increment that
+ *      runs during the player loop. Units are coherent end to end.
+ *      (Preload window is intentionally longer than the UI's 14-day
+ *      rolling window so maps with slow rotation cadences have memory
+ *      of ≥2-3 appearances when deciding priority.)
  *   4. Loop through the candidate pool up to `META_POLL_MAX_DEPTH`
- *      players. For each player, fetch their battlelog and filter
- *      incoming battles against the dynamic underTarget set (which
- *      is recomputed after each player so the filter adapts as the
- *      run progresses). Battles on over-target `(map, mode)` pairs
- *      are discarded; battles on under-target pairs are accumulated.
- *   5. Early-exit if every live `(map, mode)` pair reaches target
- *      before the depth cap.
- *   6. Bulk upsert meta_stats / meta_matchups / meta_trios in three
+ *      players. For each player, rebuild a probabilistic sampler
+ *      `p = min(1, (minLive + 1) / (current + 1))` and evaluate it
+ *      per incoming battle. Scarce live maps (count close to `minLive`)
+ *      accept at rate ≈ 1; oversampled live maps (count >> minLive)
+ *      accept at rate proportional to their inverse oversupply. No
+ *      map is ever dropped from acceptance — the ratio self-balances
+ *      as the gap closes. No floor, no ceiling, no target.
+ *   5. Bulk upsert meta_stats / meta_matchups / meta_trios in three
  *      single RPC calls.
  *
- * Cursors (`meta_poll_cursors`) advance for every battle the player
- * has — including the ones we discard — so the next cron run does
- * not re-examine them.
+ * Cursors (`meta_poll_cursors`) advance to `max(battle_time)` of every
+ * player's processed battlelog — including battles the sampler chose
+ * to discard — so the next cron run does not re-examine them. A
+ * discarded battle is *not* a data loss: the DB rows already written
+ * for that (map, mode) are untouched. Discarding is a conscious
+ * budget reallocation from oversampled maps toward under-sampled
+ * ones within the same finite wall-clock of one run.
+ *
+ * There is no "early exit" state anymore — every live map always has
+ * rate > 0, so the loop only terminates by depleting the pool or by
+ * tripping the soft wall-clock budget.
  *
  * Runs every 30 min from the Oracle VPS crontab (see `docs/crons/README.md`).
  * Protected by CRON_SECRET.
  */
-export const maxDuration = 300
+export const maxDuration = 600
 
 interface ProcessOnePlayerResult {
   processed: boolean
@@ -77,7 +86,7 @@ async function processOnePlayer(
   acc: MetaAccumulators,
   battlesByMapMode: MapModeCounts,
   cursorUpdates: Array<{ player_tag: string; last_battle_time: string }>,
-  acceptKey: (key: string) => boolean,
+  sampler: (key: string) => boolean,
 ): Promise<ProcessOnePlayerResult> {
   try {
     const response = await fetchBattlelog(tag)
@@ -117,13 +126,13 @@ async function processOnePlayer(
       if (!battle.teams || battle.teams.length !== 2) continue
       if (battle.teams[0].length !== 3 || battle.teams[1].length !== 3) continue
 
-      // Per-(map, mode) balance gate: drop battles whose key is not
-      // currently under-target. The base batch uses the same filter as
-      // everything else — there is no unrestricted "collect everything"
-      // phase, because that was exactly what floded brawlBall in the
-      // old implementation.
+      // Probabilistic sampler gate: every live (map, mode) pair has a
+      // per-battle accept rate proportional to its inverse oversupply
+      // relative to the least-sampled live pair at this moment. See
+      // computeAcceptRate in @/lib/draft/meta-poll-balance for the
+      // exact formula. Out-of-rotation keys always return false.
       const key = mapModeKey(map, mode)
-      if (!acceptKey(key)) continue
+      if (!sampler(key)) continue
 
       let myBrawlerId: number | null = null
       let opponentBrawlerIds: number[] = []
@@ -246,7 +255,11 @@ async function fetchLiveMapModeKeys(): Promise<Set<string>> {
 async function preloadCumulativeCounts(
   supabase: SupabaseClient,
 ): Promise<MapModeCounts> {
-  const since = new Date(Date.now() - META_ROLLING_DAYS * 86400_000)
+  // Preload window is deliberately longer than the UI's rolling
+  // window (META_ROLLING_DAYS = 14). The cron uses 28 days so maps
+  // with slow rotation cadences have memory of ≥2-3 appearances
+  // when deciding priority. The UI stays at 14 for recency.
+  const since = new Date(Date.now() - META_POLL_PRELOAD_DAYS * 86400_000)
     .toISOString()
     .slice(0, 10)
   const { data, error } = await supabase.rpc('sum_meta_stats_by_map_mode', {
@@ -255,13 +268,19 @@ async function preloadCumulativeCounts(
   })
   if (error || !data) return {}
   const counts: MapModeCounts = {}
+  // Units: migration 017 divides by 6 inside the RPC, so `total`
+  // here is in real battles (matching the `+1 per battle` increment
+  // later in processOnePlayer). Do NOT re-divide.
   for (const row of data as Array<{ map: string; mode: string; total: number | string }>) {
     counts[mapModeKey(row.map, row.mode)] = Number(row.total)
   }
   return counts
 }
 
-async function runBalancedPoll(supabase: SupabaseClient) {
+async function runBalancedPoll(
+  supabase: SupabaseClient,
+  rng: RandomFn = Math.random,
+) {
   const runStartedAt = Date.now()
 
   // 1. Fetch candidate pool + rotation keys + cumulative counts in parallel
@@ -275,12 +294,13 @@ async function runBalancedPoll(supabase: SupabaseClient) {
 
   // `rotationKeys` is the authoritative live-rotation set (possibly empty
   // if Supercell's events endpoint is down). `effectiveLiveKeys` is what
-  // the balance filter uses — same as rotationKeys when the fetch worked,
-  // else fall back to "every key in the preload" so the filter still makes
-  // progress. The straggler detector MUST only consider rotationKeys (not
-  // the fallback) because a fallback that contains both `Hyperspace|brawlBall`
-  // AND `Hyperspace|brawlHockey` would non-deterministically pick one of
-  // them as "canonical" and merge in the wrong direction.
+  // the sampler uses — same as rotationKeys when the fetch worked, else
+  // fall back to "every key in the preload" so the sampler still has a
+  // denominator to compute `minLive` against. The straggler detector
+  // MUST only consider rotationKeys (not the fallback) because a fallback
+  // containing both `Hyperspace|brawlBall` AND `Hyperspace|brawlHockey`
+  // would non-deterministically pick one as canonical and merge in the
+  // wrong direction.
   const effectiveLiveKeys =
     rotationKeys.size > 0
       ? rotationKeys
@@ -349,44 +369,47 @@ async function runBalancedPoll(supabase: SupabaseClient) {
   let errors = 0
   let battlesKept = 0
   let playersPolled = 0
-  let earlyExit = false
   let timeBudgetExit = false
 
-  // Soft wall-clock guard. Vercel's hard `maxDuration = 300` would return
+  // Soft wall-clock guard. Vercel's hard `maxDuration = 600` would return
   // a 504 and lose the batch of battles already accumulated in `acc`. By
-  // bailing voluntarily at 270s we still have ~30s to run the 4 bulk
+  // bailing voluntarily at 540s we still have ~60s to run the 4 bulk
   // upserts and flush the cursor updates before Vercel kills the function.
   // The `timeBudgetExit` flag is surfaced in the response body so it's
   // obvious from the JSON log when we hit this path.
-  const WALL_CLOCK_BUDGET_MS = 270_000
+  const WALL_CLOCK_BUDGET_MS = 540_000
 
-  // 4. Process players in order, filtering by dynamic underTarget
+  // Track the starting minLive so diagnostics can report convergence
+  // (how much the gap closed within this single run).
+  const initialMinLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)
+
+  // 4. Process players in order with a per-player probabilistic sampler
   for (const tag of cappedTags) {
     if (Date.now() - runStartedAt > WALL_CLOCK_BUDGET_MS) {
       timeBudgetExit = true
       break
     }
 
-    // Recompute target + underTarget per-player so the filter adapts
-    // as battlesByMapMode grows within the run. Cheap (O(liveKeys)).
+    // Rebuild the sampler per player so `minLive` reflects any counts
+    // that grew during earlier players in this run. The formula is:
     //
-    // Note on granularity: once we commit to processing a player we
-    // accept ALL of their under-target battles, even if the first few
-    // push one of the live (map,mode) pairs above target. This is
-    // deliberate — partially accepting a player's battlelog makes the
-    // cursor semantics ambiguous. Over-accumulation by one player's
-    // worth of battles is a rounding error vs. the 500+ target floor.
-    const target = computeMapModeTarget(battlesByMapMode, effectiveLiveKeys)
-    const underTarget = findUnderTargetMapModes(battlesByMapMode, effectiveLiveKeys, target)
-
-    if (underTarget.size === 0) {
-      earlyExit = true
-      break
+    //   p(accept) = min(1, (minLive + 1) / (current + 1))
+    //
+    // which is purely monotonic in both arguments — as the gap
+    // closes, all rates rise toward 1 and the sampler stops filtering.
+    // There is no "early exit" because every live pair always has
+    // a non-zero rate (Laplacian smoothing), so we only terminate
+    // by pool exhaustion or wall-clock budget.
+    const minLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)
+    const sampler = (key: string): boolean => {
+      if (!effectiveLiveKeys.has(key)) return false
+      const current = battlesByMapMode[key] ?? 0
+      const rate = computeAcceptRate(current, minLive)
+      return rng() < rate
     }
 
-    const acceptKey = (key: string) => underTarget.has(key)
     const result = await processOnePlayer(
-      tag, cursorMap, acc, battlesByMapMode, cursorUpdates, acceptKey,
+      tag, cursorMap, acc, battlesByMapMode, cursorUpdates, sampler,
     )
 
     if (result.processed) processed++
@@ -396,14 +419,16 @@ async function runBalancedPoll(supabase: SupabaseClient) {
     playersPolled++
 
     // Rate-limit throttle between Supercell API calls — NOT a poll.
-    // Total bounded runtime: META_POLL_MAX_DEPTH (600) × (~150ms fetch
-    // + META_POLL_DELAY_MS) ≈ 150s worst-case, inside maxDuration=300.
+    // Total bounded runtime: META_POLL_MAX_DEPTH (1500) × (~150ms fetch
+    // + META_POLL_DELAY_MS) ≈ 375s worst-case, inside maxDuration=600.
     // Deliberately stays in a regular Vercel Function (not Workflow)
     // because the work finishes in a single invocation — Workflow's
     // durable-step model is for multi-minute-to-hour jobs that need
     // crash-safe resume, which this does not.
     await new Promise(r => setTimeout(r, META_POLL_DELAY_MS))
   }
+
+  const finalMinLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)
 
   return {
     acc, cursorUpdates,
@@ -413,8 +438,9 @@ async function runBalancedPoll(supabase: SupabaseClient) {
     playersPolled,
     liveKeyCount: effectiveLiveKeys.size,
     rotationAvailable: rotationKeys.size > 0,
-    earlyExit,
     timeBudgetExit,
+    initialMinLive,
+    finalMinLive,
     stragglersMerged,
     finalCountsByMapMode: { ...battlesByMapMode },
   }
@@ -508,7 +534,8 @@ export async function GET(request: Request) {
       playersPolled: result.playersPolled,
       liveKeyCount: result.liveKeyCount,
       stragglersMerged: result.stragglersMerged.length,
-      earlyExit: result.earlyExit,
+      initialMinLive: result.initialMinLive,
+      finalMinLive: result.finalMinLive,
       timeBudgetExit: result.timeBudgetExit,
       rotationAvailable: result.rotationAvailable,
     })
@@ -531,21 +558,29 @@ export async function GET(request: Request) {
         playersPolled: result.playersPolled,
         liveKeyCount: result.liveKeyCount,
         // True when `fetchEventRotation` returned live pairs. False
-        // means we fell back to "any key in the preload" for the balance
-        // filter and DID NOT run the straggler cleanup (the fallback can
-        // non-deterministically pick the wrong canonical mode).
+        // means we fell back to "any key in the preload" for the sampler
+        // denominator and DID NOT run the straggler cleanup (the fallback
+        // can non-deterministically pick the wrong canonical mode).
         rotationAvailable: result.rotationAvailable,
-        earlyExit: result.earlyExit,
-        // True when the soft wall-clock budget (270s) tripped before
-        // maxDuration (300s). Distinct from `earlyExit` (balanced).
+        // True when the soft wall-clock budget (540s) tripped before
+        // maxDuration (600s). With the probabilistic sampler there is
+        // no "early exit" by balance — only by pool exhaustion or this.
         timeBudgetExit: result.timeBudgetExit,
+        // Sampler convergence: `minLive` is the count of the sparsest
+        // live (map, mode) pair. If final > initial, the run successfully
+        // raised the floor; if equal, the sparsest pair had no supply
+        // in this run's battlelogs (real meta-pro supply limitation,
+        // not an algorithm failure).
+        initialMinLive: result.initialMinLive,
+        finalMinLive: result.finalMinLive,
         // Self-healing cleanup: any (map, mode) mis-classifications that
         // were detected and merged at the start of this run. Should be
         // empty in steady state; non-empty means a new rotation just
         // exposed a straggler (e.g. Tip Toe brawlBall → brawlHockey).
         stragglersMerged: result.stragglersMerged,
         // NOTE: this field is the CUMULATIVE state including the preload,
-        // so its numbers reflect the 14-day running totals, not just this run.
+        // so its numbers reflect the 28-day running totals in REAL battles
+        // (migration 017 divides by 6 in the RPC), not just this run.
         finalCountsByMapMode: result.finalCountsByMapMode,
       },
     })

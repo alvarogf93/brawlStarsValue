@@ -83,8 +83,23 @@ export function normalizeSupercellMode(
 /** Bayesian prior strength — how many phantom games at 50% we add */
 export const BAYESIAN_STRENGTH = 30
 
-/** Days of rolling window for meta queries */
+/** Days of rolling window for meta queries in the UI (/api/meta,
+ *  /api/meta/pro-analysis). The cron preload uses a LONGER window
+ *  (`META_POLL_PRELOAD_DAYS`) so maps with slow rotation cadences
+ *  have memory of ≥2-3 appearances when the sampler decides
+ *  priority. Kept at 14 here so the UI still reflects "recent"
+ *  meta, post-balance-patch. */
 export const META_ROLLING_DAYS = 14
+
+/** Days of rolling window for the meta-poll cron's in-memory
+ *  preload (`sum_meta_stats_by_map_mode` RPC). Must be ≥
+ *  `META_ROLLING_DAYS` so the sampler sees the same history the
+ *  UI will later read, plus extra memory for slowly-rotating
+ *  maps. 28 days covers ≥2 full cycles of Brawl Stars' 24h
+ *  rotation for every event slot. Do NOT raise this past ~60
+ *  without extending the `(date, source)` index coverage on
+ *  `meta_stats` — the RPC does a range scan per call. */
+export const META_POLL_PRELOAD_DAYS = 28
 
 /**
  * Country codes whose `/rankings/{code}/players` endpoint is polled
@@ -118,53 +133,19 @@ export const META_POLL_RANKING_COUNTRIES = [
 ] as const
 
 /** Hard cap on total players polled per cron run.
- *  Must stay well below `maxDuration=300s` accounting for throttle + network + bulk upserts.
- *  At ~150-300ms per player, 600 ≈ 90-180s → safe margin for DB writes.
- *  The pool (~2,100 unique from 11 country rankings) is much larger than
- *  this cap, so balance-filtering has real budget to spend. */
-export const META_POLL_MAX_DEPTH = 600
-
-/** Fraction of the best-covered LIVE (map, mode) pair that under-sampled
- *  live pairs must reach. 0.6 = each live map ends with ≥ 60% of the
- *  battles of the top live map. */
-export const META_POLL_TARGET_RATIO = 0.6
-
-/**
- * Absolute floor for the per-(map, mode) target. The floor is calibrated
- * against the UI's `PRO_MIN_BATTLES_DISPLAY = 20` threshold — each live
- * map needs enough total battles that the UI can display a meaningful
- * top-N brawler list WITHOUT falling back to mode-aggregate.
  *
- * Calibration math (approximate — pro pick distributions are
- * heavy-tailed and shift with every balance patch, so this is a
- * best-effort starting point):
+ *  Sprint F raised this from 600 to 1500 so the cron can spend budget
+ *  on a larger slice of the ~2,100-unique candidate pool. The
+ *  probabilistic sampler attenuates oversampled maps automatically,
+ *  so more players = more chances to find someone playing a scarce
+ *  map, without flooding the popular ones.
  *
- *   - Top 5 pro brawlers typically absorb ~50-60% of picks on a
- *     given map, with a sharp drop-off after the top 5.
- *   - The 10th-most-played brawler sits around 3-5% of the map's
- *     total picks.
- *   - For that 10th brawler to clear 20 battles, the map's total
- *     should be ~400-600 battles. 500 is a pragmatic midpoint.
- *
- * With the ratio `META_POLL_TARGET_RATIO = 0.6`, the effective
- * target is `max(500, 0.6 × max(live))` — the floor dominates in
- * the early-rotation / low-sample regime, and the ratio takes over
- * once the best-covered live pair exceeds ~833 battles.
- *
- * Tuning signals to watch: if the UI starts firing the "datos
- * escasos → mode-fallback" banner on live maps despite the cron
- * saying they're balanced, the distribution has sharpened further
- * than the 500-floor assumes — bump this to 700-800. Conversely,
- * if the cron's `timeBudgetExit` fires consistently because it
- * can't hit 500 on rare modes within the budget, lower it.
- *
- * Previously this was 50, which produced the "datos escasos" anti-
- * pattern: Sunny Soccer stabilized at 400 battles (above the old
- * floor) while the UI still showed mode-aggregate because only 9/30
- * brawlers had ≥20 battles on that specific map. Sprint E audit
- * caught this and raised the floor.
+ *  Timing envelope: 1500 × (~150ms Supercell fetch + 100ms throttle)
+ *  ≈ 375s worst case, inside `maxDuration=600`. The soft wall-clock
+ *  guard in the route trips at 540s — leaving ~60s for bulk upserts
+ *  + cursor flush before Vercel's hard kill.
  */
-export const META_POLL_MIN_TARGET = 500
+export const META_POLL_MAX_DEPTH = 1500
 
 /** Delay between API calls in ms (throttle) */
 export const META_POLL_DELAY_MS = 100

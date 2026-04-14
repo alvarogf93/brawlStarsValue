@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
-  computeMapModeTarget,
-  findUnderTargetMapModes,
+  computeAcceptRate,
+  computeMinLive,
+  createSeededRng,
   findMapModeStragglers,
   mapModeKey,
   type MapModeCounts,
@@ -14,162 +15,197 @@ describe('mapModeKey', () => {
   })
 })
 
-describe('computeMapModeTarget — cumulative per-(map, mode) balancing', () => {
-  it('returns the min-target floor when every live pair is at zero', () => {
-    const counts: MapModeCounts = {}
-    const live = new Set([
-      mapModeKey('Sneaky Fields', 'brawlBall'),
-      mapModeKey('Hyperspace', 'brawlHockey'),
-    ])
-    // 0.6 * 0 = 0 → min-target wins
-    expect(computeMapModeTarget(counts, live, 0.6, 50)).toBe(50)
+describe('computeMinLive — lower bound over the live rotation', () => {
+  it('returns 0 when liveKeys is empty', () => {
+    expect(computeMinLive({}, new Set())).toBe(0)
   })
 
-  it('returns ratio * max(live counts) when above the floor', () => {
+  it('returns 0 when a live key is missing from counts (treated as zero)', () => {
+    const counts: MapModeCounts = { 'Sneaky Fields|brawlBall': 1500 }
+    const live = new Set(['Sneaky Fields|brawlBall', 'Hyperspace|brawlHockey'])
+    // Hyperspace is implicitly 0 → minLive = 0
+    expect(computeMinLive(counts, live)).toBe(0)
+  })
+
+  it('ignores non-live keys even when they are smaller than every live one', () => {
+    // Out-of-rotation map with a tiny count must NOT pull minLive down.
     const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 3000,
-      'Hyperspace|brawlHockey': 200,
+      'Expired Map|brawlBall': 3,       // NOT live — ignore
+      'Sneaky Fields|brawlBall': 1500,
+      'Sunny Soccer|brawlBall': 83,
     }
-    const live = new Set([
-      'Sneaky Fields|brawlBall',
-      'Hyperspace|brawlHockey',
-    ])
-    // max = 3000, target = 3000 × 0.6 = 1800
-    expect(computeMapModeTarget(counts, live, 0.6, 50)).toBe(1800)
+    const live = new Set(['Sneaky Fields|brawlBall', 'Sunny Soccer|brawlBall'])
+    expect(computeMinLive(counts, live)).toBe(83)
   })
 
-  it('IGNORES out-of-rotation pairs when computing the max', () => {
-    // Out-of-rotation maps may still have huge historical counts in
-    // the 14-day window — they must NOT pull the target upward,
-    // because the cron cannot refresh them (pros don't play them).
+  it('returns the min when all live keys are populated', () => {
     const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 7000,      // out-of-rotation leftover
-      'Crab Claws|knockout': 300,           // currently live
-      'Hyperspace|brawlHockey': 50,          // currently live
-    }
-    const live = new Set([
-      'Crab Claws|knockout',
-      'Hyperspace|brawlHockey',
-    ])
-    // max over LIVE only = 300 (not 7000)
-    // target = max(50, 300 × 0.6) = 180
-    expect(computeMapModeTarget(counts, live, 0.6, 50)).toBe(180)
-  })
-
-  it('returns the min-target when max * ratio is below the floor', () => {
-    const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 60,
-      'Hyperspace|brawlHockey': 40,
-    }
-    const live = new Set([
-      'Sneaky Fields|brawlBall',
-      'Hyperspace|brawlHockey',
-    ])
-    // max = 60, target = 60 × 0.6 = 36 → below floor 50 → floor wins
-    expect(computeMapModeTarget(counts, live, 0.6, 50)).toBe(50)
-  })
-
-  it('treats missing keys as zero', () => {
-    const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 500,
-      // Hyperspace intentionally missing
-    }
-    const live = new Set([
-      'Sneaky Fields|brawlBall',
-      'Hyperspace|brawlHockey', // 0
-    ])
-    // max = 500, target = 300
-    expect(computeMapModeTarget(counts, live, 0.6, 50)).toBe(300)
-  })
-
-  it('handles the Sprint E realistic scenario', () => {
-    // Real production data shape as of 2026-04-14 (before fix):
-    // brawlBall dominates, hockey at 0, niche modes way under.
-    const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 1511,
-      'Crab Claws|knockout': 399,
-      'Choral Chambers|bounty': 323,
-      'Triple-Double|basketBrawl': 266,
-      'Tax Evasion|hotZone': 125,
-      'Hyperspace|brawlHockey': 0,
+      'Sneaky Fields|brawlBall': 1500,
+      'Sunny Soccer|brawlBall': 83,
+      'Crab Claws|knockout': 400,
     }
     const live = new Set(Object.keys(counts))
-    // target = 1511 × 0.6 = 906.6 → floor to 906
-    expect(computeMapModeTarget(counts, live, 0.6, 50)).toBe(906)
+    expect(computeMinLive(counts, live)).toBe(83)
   })
 })
 
-describe('findUnderTargetMapModes — the accept filter', () => {
-  it('returns every live key when counts are empty', () => {
-    const counts: MapModeCounts = {}
-    const live = new Set([
-      'Sneaky Fields|brawlBall',
-      'Crab Claws|knockout',
-      'Hyperspace|brawlHockey',
-    ])
-    const under = findUnderTargetMapModes(counts, live, 50)
-    expect(under.size).toBe(3)
-    expect(under).toEqual(live)
+describe('computeAcceptRate — probabilistic sampler formula', () => {
+  it('returns 1 when current ≤ minLive (the sparsest is always fully accepted)', () => {
+    // (minLive + 1) / (current + 1) = 84/84 = 1
+    expect(computeAcceptRate(83, 83)).toBe(1)
+    // (minLive + 1) / (current + 1) = 84/51 > 1 → clamped
+    expect(computeAcceptRate(50, 83)).toBe(1)
   })
 
-  it('returns an empty set when every live pair is at or above target', () => {
-    const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 200,
-      'Crab Claws|knockout': 200,
-      'Hyperspace|brawlHockey': 200,
+  it('attenuates proportionally to inverse oversupply', () => {
+    // current = 10 × minLive → rate ≈ 0.1
+    // (83+1)/(830+1) = 84/831 ≈ 0.1011
+    const rate = computeAcceptRate(830, 83)
+    expect(rate).toBeGreaterThan(0.10)
+    expect(rate).toBeLessThan(0.11)
+  })
+
+  it('never returns exactly 0 — even an extremely oversampled map gets some chance', () => {
+    // Sneaky Fields at 1500 vs minLive = 1 → (2)/(1501) ≈ 0.0013
+    const rate = computeAcceptRate(1500, 1)
+    expect(rate).toBeGreaterThan(0)
+    expect(rate).toBeLessThan(0.01)
+  })
+
+  it('handles minLive = 0 (new rotation) via Laplacian smoothing', () => {
+    // current = 0, minLive = 0 → (1)/(1) = 1 (new map accepts itself fully)
+    expect(computeAcceptRate(0, 0)).toBe(1)
+    // current = 100, minLive = 0 → (1)/(101) ≈ 0.0099 (attenuated but non-zero)
+    const rate = computeAcceptRate(100, 0)
+    expect(rate).toBeGreaterThan(0)
+    expect(rate).toBeLessThan(0.01)
+  })
+
+  it('clamps negative inputs to zero (defensive against bad counts)', () => {
+    // A count of -5 should behave like 0 — no NaN, no negative probability.
+    const rate = computeAcceptRate(-5, 10)
+    expect(rate).toBe(1) // (11)/(1) = 11 → clamped to 1
+  })
+
+  it('is monotonic in both arguments', () => {
+    // As current rises, rate should only go down (or stay equal).
+    let prev = computeAcceptRate(10, 50)
+    for (const c of [20, 50, 100, 500, 1000]) {
+      const next = computeAcceptRate(c, 50)
+      expect(next).toBeLessThanOrEqual(prev)
+      prev = next
     }
-    const live = new Set(Object.keys(counts))
-    const under = findUnderTargetMapModes(counts, live, 150)
-    expect(under.size).toBe(0)
-  })
-
-  it('treats equal-to-target as NOT under (strict less-than)', () => {
-    const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 200,      // strictly above
-      'Crab Claws|knockout': 180,           // equal — NOT under
-      'Hyperspace|brawlHockey': 179,        // strictly below
+    // As minLive rises, rate should only go up (or stay equal).
+    prev = computeAcceptRate(1000, 10)
+    for (const m of [20, 50, 100, 500, 1000]) {
+      const next = computeAcceptRate(1000, m)
+      expect(next).toBeGreaterThanOrEqual(prev)
+      prev = next
     }
-    const live = new Set(Object.keys(counts))
-    const under = findUnderTargetMapModes(counts, live, 180)
-    expect(under.has('Hyperspace|brawlHockey')).toBe(true)
-    expect(under.has('Crab Claws|knockout')).toBe(false)
-    expect(under.has('Sneaky Fields|brawlBall')).toBe(false)
   })
+})
 
-  it('NEVER includes a key that is not in liveKeys, even if it is below target', () => {
-    const counts: MapModeCounts = {
-      'Expired Map|brawlBall': 10,        // NOT live
-      'Sneaky Fields|brawlBall': 500,     // live
-      'Hyperspace|brawlHockey': 5,        // live, under
+describe('createSeededRng — deterministic PRNG for tests', () => {
+  it('produces the same sequence for the same seed', () => {
+    const a = createSeededRng(42)
+    const b = createSeededRng(42)
+    for (let i = 0; i < 10; i++) {
+      expect(a()).toBe(b())
     }
-    const live = new Set([
-      'Sneaky Fields|brawlBall',
-      'Hyperspace|brawlHockey',
-    ])
-    const under = findUnderTargetMapModes(counts, live, 100)
-    expect(under.has('Expired Map|brawlBall')).toBe(false)
-    expect(under.has('Hyperspace|brawlHockey')).toBe(true)
-    expect(under.has('Sneaky Fields|brawlBall')).toBe(false) // over target
-    expect(under.size).toBe(1)
   })
 
-  it('correctly identifies the Sprint E under-target set', () => {
+  it('produces different sequences for different seeds', () => {
+    const a = createSeededRng(1)
+    const b = createSeededRng(2)
+    const aSeq = Array.from({ length: 5 }, () => a())
+    const bSeq = Array.from({ length: 5 }, () => b())
+    expect(aSeq).not.toEqual(bSeq)
+  })
+
+  it('returns values strictly in [0, 1)', () => {
+    const rng = createSeededRng(12345)
+    for (let i = 0; i < 1000; i++) {
+      const v = rng()
+      expect(v).toBeGreaterThanOrEqual(0)
+      expect(v).toBeLessThan(1)
+    }
+  })
+
+  it('coerces seed 0 to a non-zero state (otherwise xorshift degenerates)', () => {
+    const rng = createSeededRng(0)
+    const first = rng()
+    expect(first).toBeGreaterThan(0)
+    // Subsequent draws should also be varied, not all zero.
+    const next = rng()
+    expect(next).not.toBe(first)
+  })
+})
+
+describe('sampler convergence — simulated run with fixed seed', () => {
+  it('closes the gap between a popular and a scarce map over many trials', () => {
+    // Simulation: start with 1500/83 (Sneaky Fields / Sunny Soccer),
+    // draw 10,000 incoming battles where 85% are Sneaky Fields and 15%
+    // are Sunny Soccer (realistic supply ratio). Apply the sampler and
+    // track how the counts evolve. Expectation: the gap ratio should
+    // close meaningfully — NOT because Sneaky Fields loses data from
+    // the DB, but because the sampler stops accepting most of its
+    // inbound and the budget flows to Sunny Soccer instead.
     const counts: MapModeCounts = {
-      'Sneaky Fields|brawlBall': 1511,
-      'Crab Claws|knockout': 399,
-      'Choral Chambers|bounty': 323,
-      'Triple-Double|basketBrawl': 266,
-      'Tax Evasion|hotZone': 125,
+      'Sneaky Fields|brawlBall': 1500,
+      'Sunny Soccer|brawlBall': 83,
+    }
+    const liveKeys = new Set(Object.keys(counts))
+    const rng = createSeededRng(1337)
+
+    for (let i = 0; i < 10000; i++) {
+      const key = rng() < 0.85 ? 'Sneaky Fields|brawlBall' : 'Sunny Soccer|brawlBall'
+      const minLive = computeMinLive(counts, liveKeys)
+      const current = counts[key]
+      const rate = computeAcceptRate(current, minLive)
+      if (rng() < rate) {
+        counts[key] += 1
+      }
+    }
+
+    // The initial ratio was 1500/83 ≈ 18.07. After 10k weighted trials
+    // with the sampler, the ratio should be meaningfully smaller.
+    const finalRatio = counts['Sneaky Fields|brawlBall'] / counts['Sunny Soccer|brawlBall']
+    const initialRatio = 1500 / 83
+    expect(finalRatio).toBeLessThan(initialRatio)
+
+    // Sunny Soccer grows (the scarce one receives disproportionate
+    // acceptance) while Sneaky Fields barely moves — but NEITHER
+    // decreases. No data loss in the container.
+    expect(counts['Sunny Soccer|brawlBall']).toBeGreaterThan(83)
+    expect(counts['Sneaky Fields|brawlBall']).toBeGreaterThanOrEqual(1500)
+  })
+
+  it('accepts brand-new zero-count rotations at a high rate on their first exposure', () => {
+    // Hyperspace enters rotation fresh at 0. Other maps are at 100-500.
+    // The Laplacian smoothing makes the new map's rate = 1 while it's
+    // at 0, so every single incoming Hyperspace battle gets accepted.
+    const counts: MapModeCounts = {
+      'Sneaky Fields|brawlBall': 500,
+      'Sunny Soccer|brawlBall': 100,
       'Hyperspace|brawlHockey': 0,
     }
-    const live = new Set(Object.keys(counts))
-    const target = computeMapModeTarget(counts, live, 0.6, 50) // 906
-    const under = findUnderTargetMapModes(counts, live, target)
-    // Under 906: everything except Sneaky Fields
-    expect(under.size).toBe(5)
-    expect(under.has('Sneaky Fields|brawlBall')).toBe(false)
-    expect(under.has('Crab Claws|knockout')).toBe(true)
-    expect(under.has('Hyperspace|brawlHockey')).toBe(true)
+    const liveKeys = new Set(Object.keys(counts))
+    const rng = createSeededRng(2026)
+
+    let hyperspaceAccepted = 0
+    for (let i = 0; i < 50; i++) {
+      const minLive = computeMinLive(counts, liveKeys)
+      const current = counts['Hyperspace|brawlHockey']
+      const rate = computeAcceptRate(current, minLive)
+      if (rng() < rate) {
+        counts['Hyperspace|brawlHockey'] += 1
+        hyperspaceAccepted++
+      }
+    }
+    // With minLive=0 and current starting at 0, rate = 1 for the first
+    // battle. As current grows, the rate decays slowly because minLive
+    // is still 0 — but we should accept most of the first batch.
+    expect(hyperspaceAccepted).toBeGreaterThan(20)
   })
 })
 
@@ -205,7 +241,7 @@ describe('findMapModeStragglers — self-healing mis-classification detector', (
     // Historical Sneaky Fields data under brawlBall — Sneaky Fields is
     // NOT currently live (rotated out), so we don't know if it should
     // stay brawlBall (true) or be hockey (false). Leave it alone; the
-    // 14-day decay will handle it.
+    // rolling decay will handle it.
     const counts: MapModeCounts = {
       'Sneaky Fields|brawlBall': 8672,
       'Tip Toe|brawlHockey': 5,

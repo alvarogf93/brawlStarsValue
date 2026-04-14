@@ -22,8 +22,7 @@ vi.mock('@/lib/draft/constants', async () => {
     ...actual,
     META_POLL_DELAY_MS: 0,
     META_POLL_MAX_DEPTH: 30,
-    META_POLL_MIN_TARGET: 5,
-    // META_POLL_TARGET_RATIO stays at 0.6
+    // META_POLL_PRELOAD_DAYS kept from real value (28)
     // META_POLL_RANKING_COUNTRIES kept from real list so mock covers them all
   }
 })
@@ -193,7 +192,20 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  // Restore any vi.spyOn on globals (Math.random, etc.) so the next
+  // test starts from a clean slate. Without this, a rng mock in one
+  // test would leak into the next test's sampler and produce ghost
+  // failures.
+  vi.restoreAllMocks()
 })
+
+/** Install a deterministic Math.random that always returns the same
+ *  value. Use `value = 0` to make every sampler call ACCEPT (because
+ *  `rng() < rate` is always true for any rate > 0), or `value = 0.999`
+ *  to make every sampler call REJECT except when rate = 1 exactly. */
+function mockRandom(value: number) {
+  vi.spyOn(Math, 'random').mockReturnValue(value)
+}
 
 // ── Tests ───────────────────────────────────────────────────────
 
@@ -206,12 +218,14 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(res2.status).toBe(401)
   })
 
-  it('processes every player when all live pairs start at zero', async () => {
+  it('accepts every battle when rng ≤ every sampler rate (rng=0 forces accept)', async () => {
     // 5 players in global, each plays 1 brawlBall battle on Sneaky Fields.
-    // Rotation: Sneaky Fields brawlBall + Hyperspace brawlHockey (so the
-    // filter knows both are valid live targets).
-    // Target = max(5, 0 × 0.6) = 5. Sneaky Fields stays under-target
-    // until it hits 5.
+    // Rotation: Sneaky Fields brawlBall + Hyperspace brawlHockey.
+    // With a pinned rng of 0, every `rng() < rate` check passes (for any
+    // rate > 0), so the sampler accepts everything under the Sprint F
+    // probabilistic model. This locks in the "rate > 0 ⇒ acceptable"
+    // invariant that replaces the old binary under-target filter.
+    mockRandom(0)
     setGlobalRanking([playerTag(1), playerTag(2), playerTag(3), playerTag(4), playerTag(5)])
     for (let i = 1; i <= 5; i++) {
       addBattle(playerTag(i), { mode: 'brawlBall', map: 'Sneaky Fields', result: 'victory' })
@@ -231,13 +245,18 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(body.adaptive.finalCountsByMapMode['Sneaky Fields|brawlBall']).toBe(5)
     // Hyperspace stays at 0 because no player played it, but it WAS live
     expect(body.adaptive.liveKeyCount).toBe(2)
+    // All 5 players polled (no early exit in the probabilistic model)
+    expect(body.adaptive.playersPolled).toBe(5)
   })
 
-  it('drops battles on over-target live pairs (the cumulative preload wins)', async () => {
-    // Preload says Sneaky Fields brawlBall already has 1000 battles
-    // cumulative. Target = max(5, 1000 × 0.6) = 600. Sneaky Fields is
-    // OVER target immediately and stays that way for the whole run.
-    // Players trying to deposit brawlBall battles get them REJECTED.
+  it('attenuates oversampled maps via low accept rate (rate ≈ 0.001 against rng=0.5)', async () => {
+    // Preload says Sneaky Fields has 1000 cumulative battles and Hyperspace
+    // has 0. For any sampler call on Sneaky Fields, minLive=0 (Hyperspace)
+    // and rate = (0+1)/(1000+1) ≈ 0.001. With the rng pinned to 0.5, the
+    // check `rng() < rate` is false → every Sneaky Fields battle is
+    // attenuated away, same net effect as the old "over-target drop" path
+    // but without a hard gate.
+    mockRandom(0.5)
     rpcResponses.sum_meta_stats_by_map_mode = [
       { map: 'Sneaky Fields', mode: 'brawlBall', total: 1000 },
       { map: 'Hyperspace', mode: 'brawlHockey', total: 0 },
@@ -257,16 +276,22 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    // Every brawlBall battle was rejected — 0 kept this run
+    // Every brawlBall battle was attenuated — 0 kept this run
     expect(body.battlesProcessed).toBe(0)
-    // Cumulative total stays at 1000 (preload) — no this-run additions
+    // Cumulative total stays at 1000 (preload) — no this-run additions,
+    // no deletions either (attenuation is a write-side decision).
     expect(body.adaptive.finalCountsByMapMode['Sneaky Fields|brawlBall']).toBe(1000)
+    // All 3 players still polled — no early-exit by saturation
+    expect(body.adaptive.playersPolled).toBe(3)
   })
 
-  it('KEEPS battles on under-target live pairs even when other pairs are saturated', async () => {
-    // Mixed scenario: Sneaky Fields is over target, Hyperspace is under.
-    // Players 1-3 play brawlBall only → rejected.
-    // Players 4-6 play brawlHockey → kept.
+  it('always accepts the scarcest live map (rate = 1) even when another is oversampled', async () => {
+    // Mixed scenario: Sneaky Fields has 1000 preloaded, Hyperspace is 0.
+    // Under the sampler: Hyperspace rate = (0+1)/(0+1) = 1.0 exactly,
+    // so `rng() < 1` is true for any rng < 1 — always accepts. Sneaky
+    // Fields rate = 1/1001 ≈ 0.001, so with rng=0.5 the check fails
+    // and its battles are attenuated.
+    mockRandom(0.5)
     rpcResponses.sum_meta_stats_by_map_mode = [
       { map: 'Sneaky Fields', mode: 'brawlBall', total: 1000 },
     ]
@@ -288,19 +313,19 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    // Only the 3 Hyperspace battles survived the filter
+    // All 3 Hyperspace battles pass (rate = 1 for the scarce live map)
     expect(body.battlesProcessed).toBe(3)
     expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlHockey']).toBe(3)
     // brawlBall cumulative stays at the preload value, untouched
     expect(body.adaptive.finalCountsByMapMode['Sneaky Fields|brawlBall']).toBe(1000)
   })
 
-  it('early-exits once every live pair reaches target', async () => {
-    // Target floor is 5. 10 players, each plays 1 Sneaky Fields brawlBall
-    // battle. As soon as Sneaky Fields hits 5, it stops being under-target.
-    // Other live pairs are also at 0 → still under target → loop continues.
-    // But if the ONLY live pair is Sneaky Fields and it hits 5, underTarget
-    // becomes empty → early exit.
+  it('processes the entire pool — no early-exit in the probabilistic model', async () => {
+    // Sprint F model has no "target reached → stop" short-circuit. When
+    // the only live pair is Sneaky Fields and its count grows, the rate
+    // stays 1 (minLive rises with it, so numerator == denominator). All
+    // 10 players are polled, all 10 battles accepted with rng=0.
+    mockRandom(0)
     setGlobalRanking(Array.from({ length: 10 }, (_, i) => playerTag(i + 1)))
     for (let i = 1; i <= 10; i++) {
       addBattle(playerTag(i), { mode: 'brawlBall', map: 'Sneaky Fields', result: 'victory' })
@@ -313,18 +338,23 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     const body = await res.json()
 
     expect(res.status).toBe(200)
-    expect(body.battlesProcessed).toBe(5)
-    expect(body.adaptive.finalCountsByMapMode['Sneaky Fields|brawlBall']).toBe(5)
-    expect(body.adaptive.earlyExit).toBe(true)
-    // Only 5 players were polled before the loop bailed
-    expect(body.adaptive.playersPolled).toBe(5)
+    // Every incoming battle accepted
+    expect(body.battlesProcessed).toBe(10)
+    expect(body.adaptive.finalCountsByMapMode['Sneaky Fields|brawlBall']).toBe(10)
+    // All 10 players polled — the loop only stops by pool exhaustion
+    // or wall-clock budget, never by "all pairs balanced"
+    expect(body.adaptive.playersPolled).toBe(10)
+    // finalMinLive reflects the raised floor after this run
+    expect(body.adaptive.finalMinLive).toBe(10)
   })
 
-  it('stops at META_POLL_MAX_DEPTH even when pairs remain under-target', async () => {
-    // 40 players all playing Hyperspace brawlHockey. Target stays at
-    // min-floor 5. Hyperspace grows by 1 per player. It hits 5 after
-    // 5 players (early exit). If we make the target unreachable by
-    // seeding high, the cap should apply.
+  it('stops at META_POLL_MAX_DEPTH (pool cap), not before', async () => {
+    // 40 players all playing Hyperspace brawlHockey. Preloaded Sneaky
+    // Fields at 10000 is oversampled but Hyperspace stays the min
+    // (rate=1 always), so every incoming hockey battle is accepted.
+    // The ONLY stop condition (short of wall-clock) is the depth cap
+    // at META_POLL_MAX_DEPTH=30 in the shrunken test constants.
+    mockRandom(0)
     rpcResponses.sum_meta_stats_by_map_mode = [
       { map: 'Sneaky Fields', mode: 'brawlBall', total: 10000 },
     ]
@@ -347,7 +377,8 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(body.adaptive.playersPolled).toBe(30)
     // Every processed player contributed 1 hockey battle → 30 kept
     expect(body.battlesProcessed).toBe(30)
-    expect(body.adaptive.earlyExit).toBe(false)
+    // Timebudget did NOT fire — we stopped at depth, not at wall-clock
+    expect(body.adaptive.timeBudgetExit).toBe(false)
   })
 
   it('respects cursors: battles before the cursor are skipped', async () => {
