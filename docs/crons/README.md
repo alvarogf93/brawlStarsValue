@@ -1,10 +1,13 @@
 # Cron Infrastructure — BrawlVision
 
-> **Última actualización**: 2026-04-14 (Sprint F — probabilistic sampling + unit fix + rotation model)
+> **Última actualización**: 2026-04-14 (Sprint F+ — probabilistic sampling + unit fix + rotation model + silent-failure fix + archive tier)
 > **Estado**: documentado con datos reales de producción. Hay drift entre el código del repo y el estado real de los crons en producción — ver [Known Issues](#known-issues-y-drift-detectado).
 >
 > **Cambios recientes destacados**:
-> - 2026-04-14 **(Sprint F)**: meta-poll pasa del gate binario `target + ratio` a un **sampler probabilístico inverso** que nunca excluye ningún map live. Todas las constantes `META_POLL_TARGET_RATIO` y `META_POLL_MIN_TARGET` eliminadas; el sampler no tiene parámetros tunables. Migration 017 corrige el bug de unidades del preload (`SUM(total)/6` → batallas reales en lugar de brawler-rows). Ventana de preload del cron separada de la UI (`META_POLL_PRELOAD_DAYS = 28` vs `META_ROLLING_DAYS = 14`). Pool máximo ampliado a 1500 jugadores, `maxDuration` subido a 600s. Ver la nueva sección **Sprint F — probabilistic sampling** abajo.
+> - 2026-04-14 **(defensive error-check + diagnostic-script bug fix)**: durante la aplicación del archive tier surgió una **falsa alarma** sobre un supuesto silent failure del meta-poll (el script de diagnóstico mostraba solo datos del 08-09 y el cron "debería" tener más). **Resultó ser un bug del propio script**: `meta-stats-health-check.js` hacía `SELECT date, source FROM meta_stats ORDER BY date ASC` sin `.range()`, y PostgREST cappea a 1000 filas por defecto. Las 1000 filas más viejas eran exactamente los días 08-09, así que las fechas más nuevas (10, 11, 12, 13, 14) caían fuera del cap y parecían no existir. Los datos de producción **siempre estuvieron bien**. Fix del script: paginar via `.range()` hasta recibir una página vacía. Oportunísticamente, aprovechando la investigación, se añadió **defensive error-check** en los 3 `supabase.rpc('bulk_upsert_meta_*', ...)` del route handler (commit `dc19059`): el cliente Supabase JS no throws en errores PostgREST — devuelve `{ data, error }` — así que destructurar `error` y lanzar si es no-null convierte un hipotético fallo futuro en un 500 observable en lugar de un phantom success. No era un bug en producción, pero es una buena práctica defensiva. Ver Issue 7 abajo para el post-mortem completo.
+> - 2026-04-14 **(archive tier)**: nueva tabla `meta_stats_archive` con granularidad semanal para preservar histórico más allá de la ventana caliente de 90 días. Atómica (CTE INSERT + DELETE), idempotente (`ON CONFLICT DO UPDATE`), programada por pg_cron los lunes 04:00 UTC. Ver migrations 018 y 019, y el runbook detallado en [`archive-runbook.md`](archive-runbook.md).
+> - 2026-04-14 **(Sprint F Hobby fallback)**: el diseño inicial de Sprint F apuntaba a `maxDuration=600 + META_POLL_MAX_DEPTH=1500` (plan Pro). Vercel rechazó el build con `"Builder returned invalid maxDuration value for Serverless Function api/cron/meta-poll. Serverless Functions must have a maxDuration between 1 and 300 for plan hobby."`. Fallback al triplete acoplado Hobby: `maxDuration=300 + META_POLL_MAX_DEPTH=1000 + WALL_CLOCK_BUDGET_MS=270_000`. Los tres valores están documentados inline como un triplete que debe moverse junto — si alguna vez se upgrade a Pro, subir los tres a 600/1500/540_000.
+> - 2026-04-14 **(Sprint F)**: meta-poll pasa del gate binario `target + ratio` a un **sampler probabilístico inverso** que nunca excluye ningún map live. Todas las constantes `META_POLL_TARGET_RATIO` y `META_POLL_MIN_TARGET` eliminadas; el sampler no tiene parámetros tunables. Migration 017 corrige el bug de unidades del preload (`SUM(total)/6` → batallas reales en lugar de brawler-rows). Ventana de preload del cron separada de la UI (`META_POLL_PRELOAD_DAYS = 28` vs `META_ROLLING_DAYS = 14`). Ver la nueva sección **Sprint F — probabilistic sampling** abajo.
 > - 2026-04-14 (Sprint E): meta-poll algoritmo reescrito — ahora fetchea 11 country rankings (~2,100 unique) y balancea per-(map, mode) contra el estado cumulativo de 14 días via la RPC `sum_meta_stats_by_map_mode`. **Superseded por Sprint F** ese mismo día — el gate binario de Sprint E introdujo un feedback loop que Sprint F eliminó.
 > - 2026-04-14: VPS crontab movido al dominio ápex (`brawlvision.com`) tras flip del canonical en Vercel. `www.` ahora 307-redirige, y `curl -s` no sigue redirects, lo que dejó ambos crons muertos durante horas hasta el fix. Ver Issue 6.
 > - 2026-04-14: `CRON_SECRET` movido de inline en el crontab a `/home/ubuntu/.brawlvision-env` (chmod 600), sourced en cada línea. Resuelve el Issue 5.
@@ -710,6 +713,126 @@ El mismo bug afectó en paralelo al webhook del bot de Telegram (también hardco
 
 **Prevención futura**: nunca apuntar un cliente HTTP que no siga redirects (como `curl -s`) a un dominio que esté detrás de un 307 redirect. O siempre usar el ápex canonical, o añadir `-L` al curl. El mantenimiento del doc `docs/local/vps-access.md` explícitamente lo nota en su sección "Canonical flip gotcha".
 
+### Issue 7 (RESUELTO — falsa alarma): post-mortem del "silent failure" del meta-poll
+
+**Contexto**: el 2026-04-14, mientras se aplicaba el archive tier (migration 018), un health-check inicial de `meta_stats` via `scripts/dev-local/meta-stats-health-check.js` reportó:
+
+```
+Total rows: 5357 (5335 global + 22 users)
+
+Date distribution:
+  2026-04-08  global   396
+  2026-04-08  users    3
+  2026-04-09  global   597
+  2026-04-09  users    4
+```
+
+Solo dos fechas de datos. Ninguna fila de los días 10, 11, 12, 13, 14. El usuario confirmó que la UI de Meta PRO llevaba más de dos días live en producción, así que las ausencias eran sospechosas. El `cron_heartbeats` de meta-poll mostraba un success reciente (15:31 UTC) con `battlesProcessed: 619`, pero **ninguna fila nueva aparecía en la distribución por fecha**. A primera vista parecía un silent failure de los bulk upserts.
+
+**Investigación**:
+
+1. Ejecuté una **probe directa** del RPC `bulk_upsert_meta_stats` con una fila de prueba (`source='probe'`, `brawler_id=99999999`) usando las mismas credenciales que el cron: la fila se escribió y leyó perfectamente. El RPC no estaba roto.
+2. Busqué en el código del route handler y encontré que los tres `await supabase.rpc('bulk_upsert_meta_*', ...)` NO destructuraban `.error` del resultado. Hipotéticamente, un RPC que falle silenciosamente habría escapado al heartbeat sin ser detectado. Sospechoso, pero no probado como causa.
+3. Apliqué un fix defensivo (commit `dc19059`) que destructura `error` de cada rpc() y lanza si no es null — la mejora es correcta independientemente de si era el bug real.
+4. Esperé al siguiente run del cron (16:04 UTC) y volví a correr el script.
+5. El `row count` global había subido de 5,335 → 5,416 (+81 filas nuevas), pero **la distribución por fecha seguía mostrando solo 08-09**.
+
+**Causa raíz del falso positivo**: el script `meta-stats-health-check.js` paso 2 hacía:
+
+```js
+const { data: allDates } = await admin
+  .from('meta_stats')
+  .select('date, source')
+  .order('date', { ascending: true })  // ← sin .range()
+```
+
+**PostgREST cappea `SELECT` a 1000 filas por defecto**. Las 1000 filas más viejas de `meta_stats` sumaban exactamente 396 + 3 + 597 + 4 = 1000 — los días 08 y 09 completos. Las filas de los días 10, 11, 12, 13, 14 caían *fuera del cap* y el script las omitía silenciosamente.
+
+**Verificación empírica**: un segundo script (`scripts/dev-local/check-today-rows.js`) con `.eq('date', d)` filtrando por cada fecha específicamente (sin depender del order + cap) reveló la distribución real:
+
+```
+2026-04-14 (global):  704 rows   ← hoy, en curso
+2026-04-13 (global): 1034 rows
+2026-04-12 (global): 1065 rows
+2026-04-11 (global):  818 rows
+2026-04-10 (global):  710 rows
+2026-04-09 (global):  689 rows
+2026-04-08 (global):  396 rows
+```
+
+**Ningún día perdido**. El cron había estado escribiendo bien todo el tiempo. **Los datos de producción nunca se rompieron**. La alarma fue 100% un bug del script de diagnóstico mío.
+
+**Fix del script**: paginar via `.range(offset, offset + PAGE_SIZE - 1)` hasta recibir una página vacía. Ahora el paso 2 ve todas las fechas sin importar cuántas filas tenga la tabla.
+
+**Mejora defensiva conservada** (commit `dc19059`): aunque el error-check de los bulk upserts no arregló ningún bug real, la práctica es correcta y se mantiene. El cliente Supabase JS NO throws en errores PostgREST — devuelve `{ data, error }` — así que destructurar `error` y lanzar si no es null convierte un fallo hipotético futuro (timeout, constraint violation, payload demasiado grande) en un 500 observable con `cron_heartbeats` saltado, en lugar de un phantom success silencioso.
+
+**Lecciones aprendidas**:
+
+1. **PostgREST default cap de 1000 es trampa común**. Cualquier script que itere "todo" una tabla de más de 1000 filas necesita paginación explícita. Documentado ahora en el playbook de debugging.
+2. **Verificar hipótesis de silent-failure con queries alternativas** antes de llamar "bug en producción". Un script que reporta ausencia de datos puede estar mal; una probe de escritura directa + filtro por fecha específica confirma o refuta rápido.
+3. **Fixes defensivos son buenos aunque no sean el bug del día**. El error-check de Supabase RPC se queda como regla general del codebase — ver la sección de prevención abajo.
+4. **Heartbeats son una señal, no una verdad absoluta**. Un heartbeat "success" con un dato derivado (`battlesProcessed`) no garantiza que la escritura resultante esté físicamente en la tabla — hay que cruzar con el estado real cuando las cosas parecen raras.
+
+**Regla general para el codebase (mantenida del fix defensivo)**:
+
+Cualquier `await supabase.rpc(...)` o `await supabase.from(...).upsert(...)` que sea parte de una escritura crítica **DEBE** destructurar `error` y hacer uno de estos:
+- Lanzar una Error si la escritura debe ser atómica con el resto del handler.
+- Loggear + continuar si la escritura es "best effort" (ej. analytics no críticas).
+- **Nunca** ignorar el error silenciosamente. No hay tercera opción.
+
+Esto NO aplica a lecturas (`await supabase.from(...).select(...)`) donde un error simplemente devuelve `data: null` y el siguiente `if (!data) return fallback` lo maneja. Pero para cualquier **escritura**, chequear `error` es obligatorio.
+
+**Tests**: los 15 tests de integración de `meta-poll-adaptive.test.ts` siguen pasando — el happy path no se toca. Se debería añadir en una iteración futura un test específico que mockee el RPC para devolver `{ error: ... }` y verifique que el handler lanza + salta el heartbeat, como cobertura del camino defensivo.
+
+---
+
+## Playbook de debugging — scripts de diagnóstico
+
+Los siguientes scripts viven en `scripts/dev-local/` (gitignored outputs pero code committed) y son **read-only salvo cleanup explícito**. Requieren `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` y Node.js. Uso:
+
+### `meta-stats-health-check.js`
+
+Reporte end-to-end del estado de `meta_stats` y los crons. Imprime:
+
+1. Row counts totales + desglose por source (global/users).
+2. Distribución completa de fechas (cuántas filas por cada `(date, source)`).
+3. Estadísticas de la columna `total` (avg, median, min, max, sum/6).
+4. Backfill preview para el cutoff de 90 días.
+5. `cron_heartbeats` — último success de cada cron con su `last_summary` completo.
+6. `battles` table (output del cron sync) — total, oldest, newest.
+
+```bash
+node scripts/dev-local/meta-stats-health-check.js
+```
+
+**Cuándo usarlo**: cuando sospeches que un cron no está escribiendo, cuando el Meta PRO del frontend parezca desactualizado, cuando investigues cualquier discrepancia entre "el cron reporta success" y "los datos no están".
+
+### `probe-bulk-upsert.js`
+
+Escribe una fila de prueba vía `bulk_upsert_meta_stats` con `source='probe'` + `brawler_id=99999999` (IDs imposibles, no colisiona con data real), la lee de vuelta para confirmar, y la borra. Valida el camino crítico escritura→lectura del RPC independientemente del cron.
+
+```bash
+node scripts/dev-local/probe-bulk-upsert.js
+```
+
+**Cuándo usarlo**: si `meta-stats-health-check` muestra heartbeat exitoso pero sin filas nuevas, este script confirma si el RPC en sí funciona. Si funciona aquí pero falla desde el cron, el problema está en el payload grande (too big, constraint violation en una fila específica, etc.) — no en el RPC ni en la conexión.
+
+**Limpieza**: si el script crashea antes del delete final, hay una fila residual. Borrar manualmente en SQL Editor:
+
+```sql
+DELETE FROM meta_stats WHERE source = 'probe';
+```
+
+### `meta-poll-diagnostic.js`
+
+El script original del Sprint E/F — imprime el ranking top-30 de `(map, mode)` pairs con counts + distribución per-mode (max, median, min, ratio). Útil para ver de un vistazo si el sampler de Sprint F está convergiendo (los ratios min/max deberían subir hacia 1.0 con el tiempo) o si hay asimetría patológica.
+
+```bash
+node scripts/dev-local/meta-poll-diagnostic.js
+```
+
+**Cuándo usarlo**: cuando quieras validar la salud del algoritmo de balancing, especialmente después de cambios en el sampler o en el pool ampliado. Ejecutar una vez al día te muestra la evolución de `minLive` y `maxLive` por modo.
+
 ---
 
 ## Observability — `cron_heartbeats` table
@@ -729,7 +852,7 @@ cron_heartbeats (
 
 **Job names activos**:
 
-- `meta-poll` — actualizado al final de `src/app/api/cron/meta-poll/route.ts`. `last_summary` contiene `{ battlesProcessed, poolSize, playersPolled, liveKeyCount, stragglersMerged, earlyExit, timeBudgetExit, rotationAvailable }`.
+- `meta-poll` — actualizado al final de `src/app/api/cron/meta-poll/route.ts`. `last_summary` contiene `{ battlesProcessed, poolSize, playersPolled, liveKeyCount, stragglersMerged, initialMinLive, finalMinLive, timeBudgetExit, rotationAvailable }`. **Nota Sprint F**: el campo `earlyExit` desapareció del summary — en el sampler probabilístico nunca hay "todos balanceados → exit", solo pool-exhaustion o wall-clock-exit. Un heartbeat con `earlyExit` en el summary significa que el cron está corriendo código pre-Sprint F (últimos deploy exitoso <`46a14eb`). Si ves ese campo, verifica el estado del deploy en Vercel Dashboard.
 - `sync` — actualizado al final de `src/app/api/cron/sync/route.ts`. `last_summary` contiene `{ processed, errors }` o `{ processed: 0, reason: 'no users to sync' }` en el no-op path (que también cuenta como éxito — la query corrió, nada que hacer).
 
 **Consulta "is it stale?"** — ejecutar manualmente en SQL Editor o desde un script:

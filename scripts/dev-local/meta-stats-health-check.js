@@ -58,20 +58,36 @@ function header(s) {
   }
 
   // 2. Date distribution — how many rows per date?
+  //
+  // IMPORTANT: PostgREST caps `SELECT` responses at 1000 rows by default.
+  // A naive `.select('date, source').order(...)` on a table with >1000
+  // rows gives a false-negative — you see only the oldest 1000 entries
+  // and every newer date appears missing. We discovered this bug the
+  // hard way while investigating a phantom "cron is silently broken"
+  // incident on 2026-04-14. Fix: paginate via `.range()` until all rows
+  // are retrieved. The batches are ordered consistently so the final
+  // grouping is correct.
   header('2. Date distribution (rows per date, oldest → newest)')
-  const { data: allDates } = await admin
-    .from('meta_stats')
-    .select('date, source')
-    .order('date', { ascending: true })
-
-  if (!allDates || allDates.length === 0) {
-    console.log('  (no rows)')
-  } else {
-    const byDate = {}
-    for (const r of allDates) {
+  const PAGE_SIZE = 1000
+  let offset = 0
+  const byDate = {}
+  for (;;) {
+    const { data: page } = await admin
+      .from('meta_stats')
+      .select('date, source')
+      .order('date', { ascending: true })
+      .range(offset, offset + PAGE_SIZE - 1)
+    if (!page || page.length === 0) break
+    for (const r of page) {
       const key = `${r.date}|${r.source}`
       byDate[key] = (byDate[key] ?? 0) + 1
     }
+    if (page.length < PAGE_SIZE) break
+    offset += PAGE_SIZE
+  }
+  if (Object.keys(byDate).length === 0) {
+    console.log('  (no rows)')
+  } else {
     const sorted = Object.keys(byDate).sort()
     for (const key of sorted) {
       const [date, source] = key.split('|')
