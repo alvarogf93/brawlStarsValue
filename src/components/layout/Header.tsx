@@ -33,6 +33,33 @@ function formatTimeAgo(iso: string): string {
   return `${hours}h ${mins % 60}m`
 }
 
+/** Sweep app-owned localStorage keys in one pass. Used by both
+ *  `handleSync` (preserve the player tag + skins cache) and
+ *  `handleLogout` (full wipe including Supabase `sb-*` session
+ *  keys). Iterates in reverse so `removeItem` index shifts don't
+ *  skip entries. Swallows errors — Safari private mode throws on
+ *  `length` access. */
+function clearAppStorage(opts: {
+  keep?: string[]
+  keepPrefixes?: string[]
+  includeSupabase?: boolean
+} = {}): void {
+  const keep = opts.keep ?? []
+  const keepPrefixes = opts.keepPrefixes ?? []
+  const includeSupabase = opts.includeSupabase ?? false
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i)
+      if (key === null) continue
+      const isSbKey = includeSupabase && key.startsWith('sb-')
+      if (!isSbKey && !isAppStorageKey(key)) continue
+      if (keep.includes(key)) continue
+      if (keepPrefixes.some(p => key.startsWith(p))) continue
+      localStorage.removeItem(key)
+    }
+  } catch { /* ignore */ }
+}
+
 interface HeaderProps {
   playerTag?: string
   onMenuToggle?: () => void
@@ -71,16 +98,10 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       } catch { /* ignore */ }
     }
 
-    try {
-      const keysToKeep: string[] = [STORAGE_KEYS.USER]
-      const keysToKeepPrefixes = [`${STORAGE_PREFIX}skins:`]
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const key = localStorage.key(i)
-        if (isAppStorageKey(key) && !keysToKeep.includes(key) && !keysToKeepPrefixes.some(p => key.startsWith(p))) {
-          localStorage.removeItem(key)
-        }
-      }
-    } catch { /* ignore */ }
+    clearAppStorage({
+      keep: [STORAGE_KEYS.USER],
+      keepPrefixes: [`${STORAGE_PREFIX}skins:`],
+    })
     window.location.reload()
   }
 
@@ -94,20 +115,7 @@ export function Header({ playerTag, onMenuToggle }: HeaderProps) {
       }
     } catch { /* ignore lock errors */ }
 
-    try {
-      const keysToRemove: string[] = []
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key === null) continue
-        // startsWith('sb-') first so the `isAppStorageKey` type
-        // predicate doesn't over-narrow `key` to `never` via the
-        // `||` short-circuit.
-        if (key.startsWith('sb-') || isAppStorageKey(key)) {
-          keysToRemove.push(key)
-        }
-      }
-      keysToRemove.forEach(k => localStorage.removeItem(k))
-    } catch { /* ignore */ }
+    clearAppStorage({ includeSupabase: true })
 
     try {
       document.cookie.split(';').forEach(c => {

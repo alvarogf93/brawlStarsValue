@@ -83,9 +83,6 @@ export function normalizeSupercellMode(
 /** Bayesian prior strength — how many phantom games at 50% we add */
 export const BAYESIAN_STRENGTH = 30
 
-/** Minimum battles for meta data to be considered useful */
-export const META_MIN_BATTLES = 30
-
 /** Days of rolling window for meta queries */
 export const META_ROLLING_DAYS = 14
 
