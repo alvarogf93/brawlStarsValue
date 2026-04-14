@@ -74,7 +74,8 @@
     "explorePicksDesc": "ローテーション中の各マップに最適なピック",
     "exploreBrawlersTitle": "ブロウラー統計",
     "exploreBrawlersDesc": "カウンター、ベストマップ、マッチアップ",
-    "battleHistoryLink": "無制限の履歴"
+    "battleHistoryLink": "無制限の履歴",
+    "loadingDashboard": "ダッシュボードを読み込み中..."
   },
   "nav": {
     "overview": "概要",

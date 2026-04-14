@@ -74,7 +74,8 @@
     "explorePicksDesc": "Os melhores picks para cada mapa em rotação",
     "exploreBrawlersTitle": "Stats dos Brawlers",
     "exploreBrawlersDesc": "Counters, melhores mapas e matchups",
-    "battleHistoryLink": "Histórico ilimitado"
+    "battleHistoryLink": "Histórico ilimitado",
+    "loadingDashboard": "Carregando seu painel..."
   },
   "nav": {
     "overview": "Visão Geral",

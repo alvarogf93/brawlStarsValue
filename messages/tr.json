@@ -74,7 +74,8 @@
     "explorePicksDesc": "Rotasyondaki her harita için en iyi pickler",
     "exploreBrawlersTitle": "Brawler İstatistikleri",
     "exploreBrawlersDesc": "Counterlar, en iyi haritalar ve matchup'lar",
-    "battleHistoryLink": "Sınırsız geçmiş"
+    "battleHistoryLink": "Sınırsız geçmiş",
+    "loadingDashboard": "Panelin yükleniyor..."
   },
   "nav": {
     "overview": "Genel bakış",

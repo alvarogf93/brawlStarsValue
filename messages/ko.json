@@ -74,7 +74,8 @@
     "explorePicksDesc": "로테이션 맵별 최고의 픽",
     "exploreBrawlersTitle": "브롤러 통계",
     "exploreBrawlersDesc": "카운터, 최고의 맵, 매치업",
-    "battleHistoryLink": "무제한 기록"
+    "battleHistoryLink": "무제한 기록",
+    "loadingDashboard": "대시보드 불러오는 중..."
   },
   "nav": {
     "overview": "개요",

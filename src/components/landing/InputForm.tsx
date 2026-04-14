@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
+import { Loader2 } from 'lucide-react'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import { STORAGE_KEYS } from '@/lib/storage'
 import { useAuth } from '@/hooks/useAuth'
@@ -16,6 +17,12 @@ export function InputForm() {
   const [tag, setTag] = useState('#')
   const [error, setError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  // Shows a loading card instead of the form when we're either:
+  //   (a) pre-emptively expecting a session (Supabase cookie present),
+  //   (b) mid-redirect after AuthProvider resolved a profile/tag.
+  // Starts false so SSR + first client render match (no hydration
+  // warnings); the preemptive effect below sets it on mount.
+  const [showRedirectLoading, setShowRedirectLoading] = useState(false)
 
   /** Keep # prefix fixed, strip duplicates, uppercase */
   const handleTagChange = (raw: string) => {
@@ -24,6 +31,21 @@ export function InputForm() {
     setTag('#' + stripped)
     setError(false)
   }
+
+  // Pre-emptive loading signal: on mount, check for a Supabase auth
+  // cookie. If one is present, we are almost certainly about to
+  // redirect once AuthProvider resolves — flip `showRedirectLoading`
+  // immediately to avoid flashing the form. If the cookie turns out
+  // to be stale (expired, no matching profile), the main redirect
+  // effect below will clear it once AuthProvider confirms `user=null`.
+  //
+  // SSR-safe because the state starts false and this effect only runs
+  // on the client after hydration, so no hydration mismatch.
+  useEffect(() => {
+    if (typeof document !== 'undefined' && document.cookie.includes('sb-')) {
+      setShowRedirectLoading(true)
+    }
+  }, [])
 
   // Auto-redirect for a KNOWN user. Two trigger paths, re-evaluated on
   // every render so no race condition:
@@ -48,17 +70,44 @@ export function InputForm() {
   // might be stale from a prior account.
   useEffect(() => {
     if (authLoading) return // don't bounce until AuthProvider resolves
+
     if (profile?.player_tag) {
+      setShowRedirectLoading(true)
       router.replace(`/${locale}/profile/${encodeURIComponent(profile.player_tag)}`)
       return
     }
+
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.USER)
       if (saved) {
+        setShowRedirectLoading(true)
         router.replace(`/${locale}/profile/${encodeURIComponent(saved)}`)
+        return
       }
     } catch { /* ignore */ }
+
+    // Reached here = no profile, no saved tag. Clear any pre-emptive
+    // loading (e.g. a stale Supabase cookie that didn't resolve to a
+    // real user) so the form renders.
+    setShowRedirectLoading(false)
   }, [authLoading, profile?.player_tag, locale, router])
+
+  // Loading card rendered in place of the form when we're redirecting
+  // or about to. Same min-height as the form to avoid layout shift.
+  if (showRedirectLoading) {
+    return (
+      <div
+        className="flex flex-col items-center justify-center gap-4 py-10 min-h-[180px]"
+        role="status"
+        aria-live="polite"
+      >
+        <Loader2 className="w-10 h-10 animate-spin text-[var(--color-brawl-dark)]" />
+        <p className="font-['Lilita_One'] text-[var(--color-brawl-dark)] text-lg">
+          {t('loadingDashboard')}
+        </p>
+      </div>
+    )
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

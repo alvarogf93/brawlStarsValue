@@ -74,7 +74,8 @@
     "explorePicksDesc": "Die besten Picks für jede Karte in Rotation",
     "exploreBrawlersTitle": "Brawler-Statistiken",
     "exploreBrawlersDesc": "Counter, beste Karten und Matchups",
-    "battleHistoryLink": "Unbegrenzter Verlauf"
+    "battleHistoryLink": "Unbegrenzter Verlauf",
+    "loadingDashboard": "Dein Dashboard wird geladen..."
   },
   "nav": {
     "overview": "Übersicht",

@@ -12,6 +12,7 @@ vi.mock('next-intl', () => {
     cta: 'Calcular',
     calculating: 'Calculando…',
     invalidTag: 'Tag inválido',
+    loadingDashboard: 'Cargando tu panel...',
   }
   return {
     useTranslations: () => (key: string) => dict[key] ?? key,
@@ -20,10 +21,20 @@ vi.mock('next-intl', () => {
 })
 
 // ── next/navigation router mock ─────────────────────────────────
-const routerReplace = vi.fn()
-const routerPush = vi.fn()
+// `vi.hoisted` + a stable router object is critical: if `useRouter`
+// returned a fresh object literal on each call, the `router` reference
+// in `useEffect([..., router])` would change every render, causing the
+// effect (and therefore `router.replace`) to fire multiple times. Real
+// Next.js returns a stable reference; the test mock must too.
+const routerMocks = vi.hoisted(() => {
+  const replace = vi.fn()
+  const push = vi.fn()
+  return { replace, push, routerObj: { replace, push } }
+})
+const routerReplace = routerMocks.replace
+const routerPush = routerMocks.push
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: routerReplace, push: routerPush }),
+  useRouter: () => routerMocks.routerObj,
 }))
 
 // ── useAuth mock (dynamic state set per-test) ───────────────────
@@ -48,12 +59,21 @@ const mockStorage = {
 }
 Object.defineProperty(window, 'localStorage', { value: mockStorage, writable: true })
 
+// ── document.cookie scratchpad for pre-emptive auth detection ──
+let mockCookieString = ''
+Object.defineProperty(document, 'cookie', {
+  get: () => mockCookieString,
+  set: (v: string) => { mockCookieString = v },
+  configurable: true,
+})
+
 import { InputForm } from '@/components/landing/InputForm'
 
 beforeEach(() => {
   routerReplace.mockClear()
   routerPush.mockClear()
   storageBacking.clear()
+  mockCookieString = ''
   currentAuth = { profile: null, loading: false }
 })
 
@@ -129,5 +149,49 @@ describe('InputForm — post-OAuth redirect behaviour', () => {
     rerender(<InputForm />)
     expect(routerReplace).toHaveBeenCalledTimes(1)
     expect(routerReplace).toHaveBeenCalledWith('/es/profile/%23LATE_RESOLVE')
+  })
+})
+
+describe('InputForm — loading card UX', () => {
+  it('shows the loading card immediately on mount if a Supabase cookie is present', () => {
+    // Pre-emptive: we DON\'T wait for AuthProvider to resolve. The
+    // mere presence of an `sb-*` cookie is enough evidence that a
+    // redirect is imminent, so we hide the form at once.
+    mockCookieString = 'sb-access-token=abc123; other=x'
+    currentAuth = { profile: null, loading: true }
+    const { getByRole, queryByRole } = render(<InputForm />)
+    expect(getByRole('status')).toBeTruthy() // loading card
+    expect(queryByRole('search')).toBeNull() // form not rendered
+  })
+
+  it('shows the loading card when redirecting after profile resolves', () => {
+    currentAuth = { profile: { player_tag: '#ABC123' }, loading: false }
+    const { getByRole, queryByRole } = render(<InputForm />)
+    expect(getByRole('status')).toBeTruthy()
+    expect(queryByRole('search')).toBeNull()
+  })
+
+  it('does NOT show the loading card when there is no cookie and no profile', () => {
+    currentAuth = { profile: null, loading: false }
+    const { getByRole, queryByRole } = render(<InputForm />)
+    expect(getByRole('search')).toBeTruthy() // form visible
+    expect(queryByRole('status')).toBeNull() // no loading card
+  })
+
+  it('clears the pre-emptive loading card when the Supabase cookie turns out to be stale', () => {
+    // User had an expired cookie. Pre-emptive effect shows loading.
+    // Then AuthProvider resolves with user=null. The main effect
+    // re-runs, finds no profile and no localStorage, and resets
+    // `showRedirectLoading` to false → form re-appears.
+    mockCookieString = 'sb-access-token=expired'
+    currentAuth = { profile: null, loading: true }
+    const { rerender, getByRole, queryByRole } = render(<InputForm />)
+    expect(getByRole('status')).toBeTruthy() // loading initially
+
+    // AuthProvider resolves with no user
+    currentAuth = { profile: null, loading: false }
+    rerender(<InputForm />)
+    expect(getByRole('search')).toBeTruthy() // form now visible
+    expect(queryByRole('status')).toBeNull()
   })
 })

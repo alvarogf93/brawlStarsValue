@@ -74,7 +74,8 @@
     "explorePicksDesc": "Лучшие пики для каждой карты в ротации",
     "exploreBrawlersTitle": "Статистика бравлеров",
     "exploreBrawlersDesc": "Контрпики, лучшие карты и матчапы",
-    "battleHistoryLink": "Безлимитная история"
+    "battleHistoryLink": "Безлимитная история",
+    "loadingDashboard": "Загружаем твою панель..."
   },
   "nav": {
     "overview": "Обзор",

@@ -74,7 +74,8 @@
     "explorePicksDesc": "Najlepsze picki na każdą mapę w rotacji",
     "exploreBrawlersTitle": "Statystyki Brawlerów",
     "exploreBrawlersDesc": "Kontrpicki, najlepsze mapy i matchupy",
-    "battleHistoryLink": "Pełna historia"
+    "battleHistoryLink": "Pełna historia",
+    "loadingDashboard": "Ładowanie panelu..."
   },
   "nav": {
     "overview": "Przegląd",

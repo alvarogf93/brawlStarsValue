@@ -74,7 +74,8 @@
     "explorePicksDesc": "أفضل الاختيارات لكل خريطة في التناوب",
     "exploreBrawlersTitle": "إحصائيات البراولرز",
     "exploreBrawlersDesc": "كاونترات وأفضل الخرائط والمواجهات",
-    "battleHistoryLink": "سجل غير محدود"
+    "battleHistoryLink": "سجل غير محدود",
+    "loadingDashboard": "جاري تحميل لوحتك..."
   },
   "nav": {
     "overview": "نظرة عامة",

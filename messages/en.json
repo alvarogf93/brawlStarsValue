@@ -74,7 +74,8 @@
     "explorePicksDesc": "Best picks for each map in rotation",
     "exploreBrawlersTitle": "Brawler Stats",
     "exploreBrawlersDesc": "Counters, best maps and matchups",
-    "battleHistoryLink": "Unlimited history"
+    "battleHistoryLink": "Unlimited history",
+    "loadingDashboard": "Loading your dashboard..."
   },
   "nav": {
     "overview": "Overview",

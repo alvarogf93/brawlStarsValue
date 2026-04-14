@@ -74,7 +74,8 @@
     "explorePicksDesc": "当前轮换地图的最佳选择",
     "exploreBrawlersTitle": "角色统计",
     "exploreBrawlersDesc": "克制关系、最佳地图和对战数据",
-    "battleHistoryLink": "无限历史"
+    "battleHistoryLink": "无限历史",
+    "loadingDashboard": "正在加载你的面板..."
   },
   "nav": {
     "overview": "概览",

@@ -74,7 +74,8 @@
     "exploreBrawlersTitle": "Stats des Brawlers",
     "exploreBrawlersDesc": "Contres, meilleures cartes et matchups",
     "trialBannerFreeTitle": "Gratuit avec ton #tag",
-    "battleHistoryLink": "Historique illimité"
+    "battleHistoryLink": "Historique illimité",
+    "loadingDashboard": "Chargement de ton tableau de bord..."
   },
   "nav": {
     "overview": "Aperçu",
