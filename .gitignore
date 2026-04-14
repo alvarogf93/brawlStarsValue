@@ -54,6 +54,10 @@ supabase/.temp/
 # local operational notes (SSH key paths, secrets references, etc.)
 /docs/local/
 
+# local profile snapshots from scripts/dev-local/profile-snapshot.js
+# (contain PII — player tags, subscription ids, referral codes)
+/.profile-snapshot-*.json
+
 # local tooling configs (agents, skills, tool preferences)
 /.agents
 /.claude
