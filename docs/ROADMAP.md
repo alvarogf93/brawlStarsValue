@@ -1,7 +1,7 @@
 # BrawlVision — Roadmap
 
-> Estado actual: MVP completo con draft competitivo, meta data en tiempo real, y analíticas premium.
-> Última actualización: 2026-04-08
+> Estado actual: MVP completo con draft competitivo, meta data en tiempo real, analíticas premium, monetización activa y observabilidad de crons.
+> Última actualización: 2026-04-14 (Sprint F+)
 
 ---
 
@@ -11,12 +11,13 @@
 - Calculadora de valor de cuenta (gemas)
 - 27+ métricas de analíticas avanzadas (premium)
 - Draft competitivo 1-2-2-1 con recomendaciones en tiempo real
-- Meta data global (cron polling top 200 jugadores cada 30 min)
+- **Meta PRO** infraestructura (Sprint F, 2026-04-14): cron meta-poll cada 30 min con sampler probabilístico, pool multi-country de ~2,100 jugadores únicos, procesa hasta 1,000 por run, preload de 28 días, ventana UI de 14 días, hot retention de 90 días + archive tier semanal, defensive error-checks en todas las escrituras
 - Página pública de mejores picks por mapa (SSR + ISR)
 - Indicadores de confianza estadística en toda la app
-- Sistema de pagos PayPal (mensual/trimestral/anual)
+- Sistema de pagos PayPal (mensual/trimestral/anual) **+ Trial automático 3 días + Sistema de Referidos** (Fase B ya implementada)
 - 13 idiomas, SEO completo, Google Search Console
-- Notificaciones Telegram para admin
+- Notificaciones Telegram para admin + Bot comandos `/stats /mapa /batallas /cron /premium /help`
+- Observabilidad: `cron_heartbeats` table para detección de staleness de crons
 
 ---
 
@@ -37,12 +38,12 @@
 
 **Objetivo**: Más usuarios premium, más ingresos.
 
-| Feature | Descripción | Esfuerzo |
-|---------|-------------|----------|
-| **Trial gratuito 3 días** | Dar acceso premium temporal tras registro. El usuario ve lo que pierde al acabar. | Bajo |
-| **Referidos** | "Invita a un amigo y ambos ganáis 1 semana premium gratis." Código de referido en el perfil. | Medio |
-| **Freemium mejorado** | Mostrar las analíticas premium con blur/lock, no ocultas. El usuario VE lo que no puede tocar. Genera FOMO. | Bajo |
-| **Tier Pro** | Segundo nivel premium con: API access, exportar datos CSV, prioridad en sync, badge exclusivo en perfil. | Alto |
+| Feature | Descripción | Esfuerzo | Estado |
+|---------|-------------|----------|--------|
+| **Trial gratuito 3 días** | Dar acceso premium temporal tras registro. El usuario ve lo que pierde al acabar. | Bajo | ✅ Completado (`trial_ends_at` en profiles, auto-activado en `AuthProvider.linkTag`) |
+| **Referidos** | "Invita a un amigo y ambos ganáis premium gratis." Código de referido en el perfil. | Medio | ✅ Completado (RPC `apply_referral`, +3 días por referral hasta 5, collision-safe en migration 007) |
+| **Freemium mejorado** | Mostrar las analíticas premium con blur/lock, no ocultas. El usuario VE lo que no puede tocar. Genera FOMO. | Bajo | 🔲 Pendiente |
+| **Tier Pro** | Segundo nivel premium con: API access, exportar datos CSV, prioridad en sync, badge exclusivo en perfil. | Alto | 🔲 Pendiente |
 
 ### Fase C — Draft & competitivo (Alto impacto, esfuerzo alto)
 
@@ -65,7 +66,7 @@
 | **Tracking de Star Powers/Gadgets** | Separar win rates por SP/Gadget equipado. Requiere extraer de battlelog (datos están, falta agregar). | Alto |
 | **Meta por rango de copas** | Win rates filtrados por tier de copas (0-500, 500-1000, 1000+). Diferentes metas para diferentes niveles. | Medio |
 | **Detección de balance patches** | Cuando los win rates cambian bruscamente, notificar: "Nuevo parche detectado. El meta está cambiando." | Medio |
-| **Polling de más jugadores** | Escalar de 50 a 200+ por batch. Requiere optimizar el cron (chunked processing) o múltiples invocaciones. | Medio |
+| ~~**Polling de más jugadores**~~ | ~~Escalar de 50 a 200+ por batch~~ ✅ Ya resuelto en Sprint E/F: pool multi-country de 2,100 únicos, procesa hasta 1,000 players por run (1,500 en plan Pro) con sampler probabilístico. Ver `docs/crons/README.md`. | — |
 
 ### Fase E — Plataforma y escala (Impacto medio-alto, esfuerzo alto)
 
