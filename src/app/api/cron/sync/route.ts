@@ -4,6 +4,7 @@ import { fetchBattlelog } from '@/lib/api'
 import { parseBattlelog } from '@/lib/battle-parser'
 import { isDraftMode } from '@/lib/draft/constants'
 import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
+import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
 
 const BATCH_SIZE = 10
 const SYNC_INTERVAL_MS = 20 * 60 * 1000 // 20 minutes
@@ -26,6 +27,8 @@ export async function GET(request: Request) {
     { cookies: { getAll: () => [], setAll: () => {} } }
   )
 
+  const handlerStartedAt = Date.now()
+
   // Find premium users who need syncing (include last_sync for cursor-based meta dedup)
   const cutoff = new Date(Date.now() - SYNC_INTERVAL_MS).toISOString()
   const { data: profiles, error: queryErr } = await supabase
@@ -36,6 +39,17 @@ export async function GET(request: Request) {
     .limit(BATCH_SIZE)
 
   if (queryErr || !profiles?.length) {
+    // "no users to sync" is a SUCCESSFUL no-op — the cron ran, the
+    // query succeeded (or was empty), nothing needed doing. Write
+    // the heartbeat so staleness alarms don't fire during quiet
+    // periods. A DB query error is NOT a success — skip the heartbeat
+    // in that case so the staleness watchdog can catch it.
+    if (!queryErr) {
+      await writeCronHeartbeat(supabase, CRON_JOB_NAMES.SYNC, handlerStartedAt, {
+        processed: 0,
+        reason: 'no users to sync',
+      })
+    }
     return NextResponse.json({ processed: 0, reason: queryErr?.message || 'no users to sync' })
   }
 
@@ -108,6 +122,32 @@ export async function GET(request: Request) {
     // Rate limit: 200ms between API calls
     await new Promise(r => setTimeout(r, 200))
   }
+
+  // Success heartbeat — written after the whole batch finishes.
+  // Partial success (some users errored) still counts as a
+  // successful RUN because the cron itself did its job end-to-end.
+  //
+  // IMPORTANT: this write assumes nothing throws between the end of
+  // the for-loop and this line. Today the only work between them is
+  // the `errorCount` filter (a pure array op) and the helper call
+  // itself (which never throws — it's best-effort). If a future
+  // refactor adds exception-raising work after the loop, the
+  // heartbeat could be skipped on a successful batch, causing
+  // false "stale" alarms in the v2 watchdog. Keep the post-loop
+  // section exception-free.
+  //
+  // `degraded` is a soft signal for the v2 alerting layer: a run
+  // where >50% of users errored is technically "successful" (the
+  // cron ran) but is effectively broken — Supercell rate-limited,
+  // proxy flaky, one user's tag is invalid and poisoning retries,
+  // etc. The watchdog should treat this separately from staleness.
+  const errorCount = results.filter(r => 'error' in r).length
+  const degraded = results.length > 0 && errorCount * 2 > results.length
+  await writeCronHeartbeat(supabase, CRON_JOB_NAMES.SYNC, handlerStartedAt, {
+    processed: results.length,
+    errors: errorCount,
+    degraded,
+  })
 
   return NextResponse.json({ processed: results.length, results })
 }

@@ -655,6 +655,53 @@ El mismo bug afectó en paralelo al webhook del bot de Telegram (también hardco
 
 ---
 
+## Observability — `cron_heartbeats` table
+
+Tabla nueva (migration `016_cron_heartbeats.sql`) que resuelve parcialmente el Issue 2 — "meta-poll vive fuera del repo, zero observabilidad". Los crons HTTP del VPS (`/api/cron/sync`, `/api/cron/meta-poll`) escriben una fila en `cron_heartbeats` al final de cada run exitoso. Si el VPS muere o un run empieza a fallar a mitad, la fila deja de actualizarse — staleness visible a consulta directa, sin SSH ni `/tmp/meta-poll.log`.
+
+**Schema**:
+
+```sql
+cron_heartbeats (
+  job_name TEXT PRIMARY KEY,
+  last_success_at TIMESTAMPTZ NOT NULL,
+  last_duration_ms INT NOT NULL,
+  last_summary JSONB
+)
+```
+
+**Job names activos**:
+
+- `meta-poll` — actualizado al final de `src/app/api/cron/meta-poll/route.ts`. `last_summary` contiene `{ battlesProcessed, poolSize, playersPolled, liveKeyCount, stragglersMerged, earlyExit, timeBudgetExit, rotationAvailable }`.
+- `sync` — actualizado al final de `src/app/api/cron/sync/route.ts`. `last_summary` contiene `{ processed, errors }` o `{ processed: 0, reason: 'no users to sync' }` en el no-op path (que también cuenta como éxito — la query corrió, nada que hacer).
+
+**Consulta "is it stale?"** — ejecutar manualmente en SQL Editor o desde un script:
+
+```sql
+-- All heartbeats + staleness
+SELECT
+  job_name,
+  last_success_at,
+  EXTRACT(EPOCH FROM (NOW() - last_success_at))::INT AS seconds_ago,
+  last_duration_ms,
+  last_summary
+FROM cron_heartbeats
+ORDER BY last_success_at;
+```
+
+**Expected staleness thresholds** (2× the cron interval, give or take):
+
+- `meta-poll`: fila debería tener < 60 min de antigüedad. Si > 90 min → sospechoso. Si > 3h → cron muerto.
+- `sync`: fila debería tener < 40 min de antigüedad. Si > 60 min → sospechoso. Si > 2h → cron muerto.
+
+**Qué NO hace v1**:
+
+- No alerta proactivamente. Es solo una fuente de verdad consultable. La v2 de este feature (futuro sprint) será un `pg_cron` que cada 10 min revise `cron_heartbeats`, detecte staleness, y dispare una notificación al bot de Telegram vía la infra ya existente. Cuando se añada, el schema de esta tabla no necesita cambios.
+- No registra runs fallidos. El heartbeat es write-on-success — la ausencia es la señal. Es intencional: si registramos también los fallos, la tabla crece y pierde su propiedad clave ("una fila por job, la más reciente gana").
+- No aparece en la observabilidad nativa de Vercel. Ese sigue siendo el gap del Issue 2.
+
+---
+
 ## Historial de auditorías
 
 - [2026-04-12 — Meta coverage audit](../superpowers/specs/2026-04-12-meta-coverage-audit.md) — audit completo del meta-poll con datos reales de producción (battles per map, cursor distribution, source breakdown). Las conclusiones de ese audit informan la mayoría del contenido de este documento.

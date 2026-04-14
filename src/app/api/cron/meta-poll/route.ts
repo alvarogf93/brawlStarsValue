@@ -18,6 +18,7 @@ import {
   type MapModeCounts,
 } from '@/lib/draft/meta-poll-balance'
 import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
+import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
 
 /**
  * Cron: Poll top pro players from multiple country rankings and
@@ -431,6 +432,8 @@ export async function GET(request: Request) {
     { cookies: { getAll: () => [], setAll: () => {} } },
   )
 
+  const handlerStartedAt = Date.now()
+
   try {
     const result = await runBalancedPoll(supabase)
     const today = new Date().toISOString().slice(0, 10)
@@ -494,6 +497,21 @@ export async function GET(request: Request) {
         onConflict: 'player_tag',
       })
     }
+
+    // Success heartbeat — written AFTER all side-effects commit so a
+    // mid-run crash does NOT leave a stale "last_success_at" in the
+    // healthcheck table. Best-effort: a failed heartbeat write logs
+    // but doesn't fail the cron.
+    await writeCronHeartbeat(supabase, CRON_JOB_NAMES.META_POLL, handlerStartedAt, {
+      battlesProcessed: result.battlesKept,
+      poolSize: result.poolSize,
+      playersPolled: result.playersPolled,
+      liveKeyCount: result.liveKeyCount,
+      stragglersMerged: result.stragglersMerged.length,
+      earlyExit: result.earlyExit,
+      timeBudgetExit: result.timeBudgetExit,
+      rotationAvailable: result.rotationAvailable,
+    })
 
     return NextResponse.json({
       processed: result.processed,

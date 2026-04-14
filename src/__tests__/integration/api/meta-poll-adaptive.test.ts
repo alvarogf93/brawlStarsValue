@@ -33,18 +33,26 @@ type QueuedResponse = { data: unknown; error?: unknown }
 const queueByTable: Record<string, QueuedResponse[]> = {}
 const rpcCalls: Array<{ fn: string; payload: unknown }> = []
 const rpcResponses: Record<string, unknown> = {}
+// Per-table capture of `.upsert()` arguments so integration tests can
+// assert on the row/options shape, not just that the call happened.
+const upsertCalls: Record<string, Array<{ row: unknown; options: unknown }>> = {}
 
 function enqueue(table: string, response: QueuedResponse) {
   if (!queueByTable[table]) queueByTable[table] = []
   queueByTable[table].push(response)
 }
 
-function makeBuilder(response: QueuedResponse) {
-  const methods = [
-    'select', 'eq', 'gte', 'lte', 'lt', 'gt', 'in', 'order', 'limit', 'single', 'maybeSingle', 'upsert',
+function makeBuilder(response: QueuedResponse, table: string) {
+  const readMethods = [
+    'select', 'eq', 'gte', 'lte', 'lt', 'gt', 'in', 'order', 'limit', 'single', 'maybeSingle',
   ]
   const builder: Record<string, unknown> = {}
-  for (const m of methods) builder[m] = () => builder
+  for (const m of readMethods) builder[m] = () => builder
+  builder.upsert = (row: unknown, options: unknown) => {
+    if (!upsertCalls[table]) upsertCalls[table] = []
+    upsertCalls[table].push({ row, options })
+    return builder
+  }
   builder.then = (resolve: (v: QueuedResponse) => unknown) => resolve(response)
   return builder
 }
@@ -52,9 +60,9 @@ function makeBuilder(response: QueuedResponse) {
 const fromMock = vi.fn((table: string) => {
   const queue = queueByTable[table]
   if (!queue || queue.length === 0) {
-    return makeBuilder({ data: [] })
+    return makeBuilder({ data: [] }, table)
   }
-  return makeBuilder(queue.shift()!)
+  return makeBuilder(queue.shift()!, table)
 })
 
 const rpcMock = vi.fn(async (fn: string, payload: unknown) => {
@@ -175,6 +183,7 @@ beforeEach(() => {
   for (const k of Object.keys(battlelogByTag)) delete battlelogByTag[k]
   for (const k of Object.keys(rankingByCountry)) delete rankingByCountry[k]
   for (const k of Object.keys(rpcResponses)) delete rpcResponses[k]
+  for (const k of Object.keys(upsertCalls)) delete upsertCalls[k]
   rotationFixture = []
   rpcCalls.length = 0
   battleSeq = 0
@@ -549,5 +558,36 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(fns).toContain('bulk_upsert_meta_stats')
     expect(fns).toContain('bulk_upsert_meta_matchups')
     expect(fns).toContain('bulk_upsert_meta_trios')
+  })
+
+  it('writes a success heartbeat to cron_heartbeats at the end of the run', async () => {
+    // Regression lock: the heartbeat must be written after all other
+    // side-effects complete. Asserts on the upsert payload shape, not
+    // just "the call happened" — catches both a deleted call AND a
+    // call with the wrong job_name / wrong date field / missing summary.
+    setGlobalRanking([playerTag(1)])
+    addBattle(playerTag(1), { mode: 'brawlBall', map: 'Sneaky Fields', result: 'victory' })
+    rotationFixture = [{ map: 'Sneaky Fields', mode: 'brawlBall' }]
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    expect(res.status).toBe(200)
+
+    const heartbeatCalls = upsertCalls['cron_heartbeats'] ?? []
+    expect(heartbeatCalls).toHaveLength(1)
+    const { row, options } = heartbeatCalls[0]
+    const typedRow = row as Record<string, unknown>
+    expect(typedRow.job_name).toBe('meta-poll')
+    expect(typeof typedRow.last_duration_ms).toBe('number')
+    // last_success_at must parse back to a valid Date
+    expect(Number.isFinite(new Date(typedRow.last_success_at as string).getTime())).toBe(true)
+    // Summary should carry the run diagnostics
+    const summary = typedRow.last_summary as Record<string, unknown>
+    expect(summary).toHaveProperty('battlesProcessed')
+    expect(summary).toHaveProperty('poolSize')
+    expect(summary).toHaveProperty('rotationAvailable')
+    // And the upsert uses the right conflict key
+    expect(options).toEqual({ onConflict: 'job_name' })
   })
 })
