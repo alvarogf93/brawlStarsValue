@@ -1,10 +1,11 @@
 # Cron Infrastructure — BrawlVision
 
-> **Última actualización**: 2026-04-14 (Sprint E — meta-poll overhaul + secret hygiene)
+> **Última actualización**: 2026-04-14 (Sprint F — probabilistic sampling + unit fix + rotation model)
 > **Estado**: documentado con datos reales de producción. Hay drift entre el código del repo y el estado real de los crons en producción — ver [Known Issues](#known-issues-y-drift-detectado).
 >
 > **Cambios recientes destacados**:
-> - 2026-04-14: meta-poll algoritmo reescrito — ahora fetchea 11 country rankings (~2,100 unique) y balancea per-(map, mode) contra el estado cumulativo de 14 días via la RPC `sum_meta_stats_by_map_mode`. Ver la sección **`/api/cron/meta-poll`** para la descripción completa.
+> - 2026-04-14 **(Sprint F)**: meta-poll pasa del gate binario `target + ratio` a un **sampler probabilístico inverso** que nunca excluye ningún map live. Todas las constantes `META_POLL_TARGET_RATIO` y `META_POLL_MIN_TARGET` eliminadas; el sampler no tiene parámetros tunables. Migration 017 corrige el bug de unidades del preload (`SUM(total)/6` → batallas reales en lugar de brawler-rows). Ventana de preload del cron separada de la UI (`META_POLL_PRELOAD_DAYS = 28` vs `META_ROLLING_DAYS = 14`). Pool máximo ampliado a 1500 jugadores, `maxDuration` subido a 600s. Ver la nueva sección **Sprint F — probabilistic sampling** abajo.
+> - 2026-04-14 (Sprint E): meta-poll algoritmo reescrito — ahora fetchea 11 country rankings (~2,100 unique) y balancea per-(map, mode) contra el estado cumulativo de 14 días via la RPC `sum_meta_stats_by_map_mode`. **Superseded por Sprint F** ese mismo día — el gate binario de Sprint E introdujo un feedback loop que Sprint F eliminó.
 > - 2026-04-14: VPS crontab movido al dominio ápex (`brawlvision.com`) tras flip del canonical en Vercel. `www.` ahora 307-redirige, y `curl -s` no sigue redirects, lo que dejó ambos crons muertos durante horas hasta el fix. Ver Issue 6.
 > - 2026-04-14: `CRON_SECRET` movido de inline en el crontab a `/home/ubuntu/.brawlvision-env` (chmod 600), sourced en cada línea. Resuelve el Issue 5.
 > - 2026-04-14: `normalizeSupercellMode` ahora prioriza `modeId` sobre el string `mode`, corrigiendo el caso de Hyperspace (modeId 45 = brawlHockey) que llegaba mis-clasificado como brawlBall.
@@ -325,57 +326,112 @@ para resolver [Issue 5](#issue-5-resuelto-cron_secret-en-texto-plano-en-el-cront
 - **Qué hace**: procesa la `sync_queue` de Supabase, llamando a `syncBattles(player_tag)` para cada job pending. Cada `syncBattles` fetchea el battlelog (últimas 25 batallas), las parsea, y hace upsert en `battles` con dedup por `(player_tag, battle_time)`.
 - **⚠️ Redundancia**: Vercel Cron también llama a este mismo endpoint diariamente (ver Tier 1). El VPS lo hace 72 veces al día y Vercel 1 vez. Los dos son idempotentes (ON CONFLICT DO NOTHING), así que no causa corrupción de datos, pero es ruido innecesario.
 
-#### 3. `/api/cron/meta-poll` (reescrito en Sprint E, 2026-04-14)
+#### 3. `/api/cron/meta-poll` (Sprint F, 2026-04-14)
 
 - **Schedule**: `*/30 * * * *` (cada 30 min, 48 invocaciones/día)
 - **Target**: `GET https://brawlvision.com/api/cron/meta-poll` (ápex, NO `www.` — ver Issue 6)
 - **Código del endpoint**: `src/app/api/cron/meta-poll/route.ts`
+- **Lógica pura testada**: `src/lib/draft/meta-poll-balance.ts` (`computeMinLive`, `computeAcceptRate`, `createSeededRng`, `findMapModeStragglers`)
 - **Auth**: `Authorization: Bearer $CRON_SECRET`, sourced desde `/home/ubuntu/.brawlvision-env`
-- **Qué hace** (nuevo algoritmo "cumulative per-(map, mode) balance"):
+- **Qué hace** (Sprint F algoritmo "probabilistic weighted sampling"):
   1. **Fetch candidate pool en paralelo** — `fetchPlayerRankings(country, 200)` para las 11 regiones de `META_POLL_RANKING_COUNTRIES` (`global`, `US`, `BR`, `MX`, `DE`, `FR`, `ES`, `JP`, `KR`, `TR`, `RU`) vía `Promise.allSettled`. La API de Supercell cappea cada respuesta a **200 items** independientemente del `limit` solicitado (probado empíricamente), así que necesitamos múltiples regiones para escapar del cap. Cross-country overlap es ~4%, así que 11 regiones entregan **~2,100 jugadores únicos**.
-  2. **Fetch live rotation** — `fetchEventRotation()` para conocer los `(map, mode)` actualmente en rotación. Solo esos pares son targets del balance — un mapa out-of-rotation no puede recibir batallas nuevas por mucho que procesemos jugadores.
-  3. **Preload cumulativo** — llamar a la RPC `sum_meta_stats_by_map_mode(p_since, p_source='global')` para obtener los totales cumulativos de los últimos 14 días agrupados por `(map, mode)`. Estos totales seeden el mapa `battlesByMapMode` en memoria antes de procesar jugadores, dándole al algoritmo visibilidad cumulativa en vez de solo deltas per-run (ver [Sprint E overhaul](#sprint-e-overhaul) abajo).
-  4. **Process players loop** — iterar el pool dedupeado hasta `META_POLL_MAX_DEPTH` (600) o hasta que `underTarget` esté vacío. Antes de cada jugador:
-     - Recalcular `target = max(META_POLL_MIN_TARGET, META_POLL_TARGET_RATIO × max(counts sobre liveKeys))`.
-     - Recalcular `underTarget = { liveKeys cuya count < target }`.
-     - Si `underTarget` está vacío → **early exit** (balanceado).
-     - Si no → filtrar las batallas del jugador aceptando solo las cuya `(map, mode)` está en `underTarget`.
-  5. **Cursor dedup** — `meta_poll_cursors` avanza para **cada batalla vista** (incluso las rechazadas) para que el próximo run no las re-examine.
-  6. **Bulk upsert** — `bulk_upsert_meta_stats`, `bulk_upsert_meta_matchups`, `bulk_upsert_meta_trios` (cada uno es una sola llamada RPC con un array JSONB).
-- **Throttle**: `META_POLL_DELAY_MS` (100ms) entre llamadas API para no saturar el proxy.
-- **Duración medida**: **~240 segundos** con el budget completo de 600 jugadores. Dentro del `maxDuration = 300` con margen.
+  2. **Fetch live rotation** — `fetchEventRotation()` para conocer los `(map, mode)` actualmente en rotación. Los mapas out-of-rotation no son targets del sampler — no pueden recibir batallas nuevas porque no hay event slot activo alimentándolos.
+  3. **Preload cumulativo** — RPC `sum_meta_stats_by_map_mode(p_since, p_source='global')` con `p_since = NOW() - META_POLL_PRELOAD_DAYS` (**28 días**, más largo que la ventana de UI de 14 días — ver invariante #4 abajo). Desde migration 017 la RPC devuelve `ROUND(SUM(total) / 6)`, o sea **batallas reales**, no brawler-rows. Los counts seeden el mapa `battlesByMapMode` in-memory en la misma unidad que el `+1 per battle` incremental que ocurre durante el loop.
+  4. **Straggler cleanup** — `findMapModeStragglers` + RPC `cleanup_map_mode_strays` mergean filas mis-clasificadas (ej. Hyperspace bajo brawlBall cuando el live rotation dice brawlHockey). Solo corre cuando la rotación fue fetcheada con éxito; si el endpoint de eventos está caído, salta para no adivinar canonical.
+  5. **Process players loop** — itera el pool dedupeado hasta `META_POLL_MAX_DEPTH` (**1500**) o hasta que el soft wall-clock budget (`540_000ms`) se agote. **Por cada jugador** reconstruye un sampler probabilístico:
+
+     ```
+     minLive = min(battlesByMapMode[k] for k in liveKeys)
+     p(accept, key) = min(1, (minLive + 1) / (current[key] + 1))
+     ```
+
+     Cada batalla entrante pasa por `rng() < p(accept, key)`. Propiedades clave del sampler:
+     - El par live más escaso siempre tiene rate **1.0** (acepta todo).
+     - Los pares live oversampleados se atenúan proporcional a su oversupply inverso. **Nunca llegan a 0** — Laplacian smoothing (+1 en numerador y denominador) garantiza rate > 0 incluso contra un outlier extremo.
+     - Mapas fuera de rotación (no en `liveKeys`) siempre retornan `false`.
+     - Sin constantes tunables. Sin floor, ceiling, ratio, target. Convergencia monotónica: a medida que `minLive` sube, todas las rates suben hacia 1 y el sampler auto-desactiva su efecto filtrante.
+     - **No hay early-exit**. El loop solo termina por pool exhaustion o wall-clock budget. Todo live map siempre tiene rate > 0, así que todos siguen recolectando.
+  6. **Cursor dedup** — `meta_poll_cursors` avanza a `max(battle_time)` del battlelog procesado **independientemente** de si cada batalla pasó el sampler. Una batalla "rechazada" no es un missing duplicate ni un delete de DB — es simplemente una captura skippeada en favor del budget para maps escasos. Ver invariante #1 abajo.
+  7. **Bulk upsert** — `bulk_upsert_meta_stats`, `bulk_upsert_meta_matchups`, `bulk_upsert_meta_trios` (cada uno es una sola llamada RPC con un array JSONB).
+  8. **Heartbeat** — `writeCronHeartbeat(..., { initialMinLive, finalMinLive, ... })` al final de todo. La convergencia se observa comparando ambos valores: `finalMinLive > initialMinLive` significa que el run logró subir el piso de los escasos; `finalMinLive == initialMinLive` indica que el par más escaso no tuvo supply en este batch (limitación real del meta pro, no del algoritmo).
+- **Throttle**: `META_POLL_DELAY_MS` (100ms) entre llamadas API para no saturar el proxy. NO es polling — es rate-limiting de la API de Supercell. El cron es un único invocation bounded por pool size + throttle.
+- **Duración envelope**: 1500 jugadores × (~150ms Supercell fetch + 100ms throttle) ≈ **375s worst-case**, dentro del `maxDuration = 600` con margen. Soft wall-clock guard sale graceful a 540s, dejando ~60s para los bulk upserts + cursor flush antes del hard kill de Vercel.
 - **Output visible en `/tmp/meta-poll.log`** — cada invocación añade el JSON de respuesta del endpoint con la forma:
   ```json
   {
-    "processed": 599,
+    "processed": 1499,
     "skipped": 0,
     "errors": 1,
-    "battlesProcessed": 571,
-    "statKeys": 78,
-    "matchupKeys": 1084,
-    "trioKeys": 275,
+    "battlesProcessed": 847,
+    "statKeys": 142,
+    "matchupKeys": 2156,
+    "trioKeys": 389,
     "adaptive": {
       "poolSize": 2093,
-      "playersPolled": 600,
+      "playersPolled": 1500,
       "liveKeyCount": 7,
-      "earlyExit": false,
+      "rotationAvailable": true,
+      "timeBudgetExit": false,
+      "initialMinLive": 83,
+      "finalMinLive": 97,
+      "stragglersMerged": [],
       "finalCountsByMapMode": { ... }
     }
   }
   ```
-  El `finalCountsByMapMode` es el estado **cumulativo** (preload + deltas de este run), no solo las adiciones de este run.
+  El `finalCountsByMapMode` es el estado **cumulativo** de 28 días en batallas reales (preload + acceptaciones del run).
 
-##### Sprint E overhaul
+##### Sprint F — probabilistic weighted sampling overhaul
 
-El algoritmo anterior balanceaba "per-run deltas": `battlesByMode` se reseteaba en cada invocación y el `target = 0.6 × max` se computaba contra counts del run actual, sin visibilidad del estado cumulativo. Producción auditada el 2026-04-14 mostró **brawlBall con 7,000 vs brawlHockey con 0** — el algoritmo no podía ver la asimetría cumulativa y por tanto nunca podía corregirla. Además `META_POLL_MAX_DEPTH = 600` era ficción porque la API de Supercell tiene un cap duro de 200 items por ranking call y el código nunca hacía top-up real (el loop de top-up se salía inmediatamente con `allPlayerTags.length === 200`).
+**Problema que Sprint E no resolvía**: Sprint E introdujo el preload cumulativo y el gate `target = max(floor, ratio × max(live))`. Corregía el problema de invisibilidad cumulativa pero creaba un **loop de retroalimentación positiva**:
 
-El overhaul cierra los tres agujeros:
+1. Los pros juegan mucho más los maps populares del meta (Sneaky Fields, Sidetrack) → esos maps crecen rápido.
+2. `max(live)` sube con ellos.
+3. El target `0.6 × max` sube proporcionalmente, haciendo que los maps escasos necesiten más batallas absolutas para salir de `underTarget`.
+4. Los maps escasos tienen supply real limitado en los battlelogs de los 600 top players, así que no pueden correr detrás del target.
+5. El gap nunca se cierra.
 
-1. Pool multi-región → escape del cap de 200.
-2. Preload cumulativo → el target refleja realidad cumulativa, no deltas.
-3. Filtro per-(map, mode) aplicado al base batch → el cron rechaza inmediatamente batallas en maps saturados (ej: Sneaky Fields con 8,672 cumulativo). El budget se gasta en maps que la rotación actual necesita cubrir.
+Auditoría del 2026-04-14: el target calculado para brawlBall era **5,203 brawler-rows** (Sneaky Fields a 8,672 × 0.6), mientras que Sunny Soccer tenía **500 brawler-rows ≈ 83 batallas reales**. Imposible de alcanzar dentro de la ventana de 14 días.
 
-**Auto-healing**: la ventana rodante de 14 días hace el trabajo sucio. Mapas out-of-rotation (como Sneaky Fields al final de su rotación) decaen naturalmente porque no reciben batallas nuevas, mientras que los live maps bajo target crecen hasta el target. Después de ~14 días el sistema converge a una distribución donde cada live map tiene ~60% del max de los live maps.
+Peor aún: había un **bug de unidades silencioso**. El RPC de Sprint E (`sum_meta_stats_by_map_mode` original) devolvía `SUM(total)` = brawler-rows (cada batalla 3v3 genera 6 rows). Pero el loop incrementaba in-memory con `+1 per real battle`. Preload y loop hablaban unidades diferentes — el preload siempre dominaba porque era ~6× más grande, y el sampler efectivamente comparaba manzanas con peras.
+
+Sprint F resuelve los dos problemas de raíz:
+
+1. **Migration 017** — el RPC ahora devuelve `ROUND(SUM(total) / 6)`. Unidades coherentes end-to-end. Bug silencioso eliminado. Ver `supabase/migrations/017_sum_meta_stats_battles_unit_fix.sql`.
+2. **Sampler probabilístico en lugar de gate binario** — la fórmula `(minLive + 1) / (current + 1)` atenúa sin excluir, elimina el feedback loop (minLive no tiene forma de escalarse con el máximo), y converge asintóticamente sin necesidad de target explícito.
+3. **Pool ampliado** — `META_POLL_MAX_DEPTH: 600 → 1500`. El pool tiene ~2,100 únicos; sólo procesábamos el 28%. Más jugadores = más chances de encontrar a alguien que juegue los maps escasos.
+4. **Ventana de preload separada** — `META_POLL_PRELOAD_DAYS = 28` (cron) vs `META_ROLLING_DAYS = 14` (UI). El cron necesita memoria más larga para priorizar bien maps con rotación lenta; la UI mantiene recency para reflejar el meta post-balance-patches.
+5. **`maxDuration: 300 → 600`** para dar margen a 1500 jugadores. Requiere plan Pro de Vercel (si el plan Hobby rechaza, bajar a 300 y `META_POLL_MAX_DEPTH` a 1000).
+
+##### Modelo de rotación de Brawl Stars y por qué importa
+
+El algoritmo está diseñado alrededor del modelo de rotación específico de Brawl Stars. Documentado aquí para que futuros refactors no rompan invariantes implícitos.
+
+**Cómo funciona la rotación** (según observación empírica + Brawl Stars public docs):
+
+- Una **temporada** dura ~2 meses. Cada temporada Brawl Stars publica un **pool finito de maps por modo** (típicamente 5-15 maps por modo competitivo).
+- Cada modo tiene uno o más **slots simultáneos** en el carrusel de eventos. Modos populares como brawlBall tienen 2-3 slots en cualquier momento; modos más nicho (heist, hotZone) tienen 1.
+- Cada **~24 horas** cada slot rota a un map distinto del pool de su modo. Dentro de una temporada un mismo map **aparece varias veces**, con cadencia promedio `(días de temporada × slots de su modo) / (tamaño del pool)`.
+- Al final de temporada algunos maps se retiran y entran nuevos con el siguiente "Brawl Pass".
+- **Supply asimétrico**: los pros NO juegan uniformemente. Maps "competitivos" (Sneaky Fields, Sidetrack) reciben 10-20× más batallas de top players que maps "casuales" (Sunny Soccer, Beach Ball). Esto es distribución del meta real, NO mala suerte ni bug — pro players conocen qué mapas son favorables y los juegan más.
+
+**Implicaciones para el meta-poll**:
+
+- **Convergencia asintótica, no instantánea**. Un map con rotación cada 5 días tiene 2-3 apariciones dentro de la ventana de 28 días del preload. Si cada aparición captura 100-200 batallas, el map acumula 300-500 en la ventana. Si rota cada 7 días, 150-250 dentro de la ventana — a veces necesita 3-4 rotaciones para estabilizarse.
+- **Memoria es crítica**. Un map que rotó hace 16 días (fuera de la ventana de UI pero dentro de la del cron) aún debe contribuir a la decisión del sampler, o el algoritmo lo trata como "nuevo" cada vez que vuelve a rotación y desperdicia budget re-priorizándolo.
+- **El sampler debe tolerar supply no-convergente**. Si un map genuinamente no tiene supply real (los pros no lo juegan), el sampler no puede forzarlo a alcanzar ningún target. Lo que el sampler garantiza es que ese map **recibe TODO lo que aparece** (rate = 1 por ser el más escaso), y lo que no puede garantizar es que aparezca algo.
+
+##### Invariantes de preservación de datos
+
+Estos son invariantes que cualquier refactor futuro del meta-poll **debe mantener**:
+
+1. **Cero DELETE de `meta_stats`, `meta_matchups`, `meta_trios`**. El sampler probabilístico puede *rechazar capturas* (no escribir a DB una batalla entrante del API) pero **nunca** borra filas existentes. "Rechazar captura" es una decisión de budget al momento de ver la batalla en el battlelog del jugador, no una mutación de la base de datos.
+2. **Cero DECREMENTO de counts**. Nadie resta de los contadores de `meta_stats`. La ventana rodante (14 o 28 días) caduca datos viejos por fecha de la batalla al leer, no al escribir. Las filas viejas siguen físicamente en la tabla hasta que un proceso de archive explícito las mueva (ver task `meta_stats_archive` abajo).
+3. **El cursor avanza siempre a `max(battle_time)`** del battlelog procesado, independientemente del sampler. Una batalla rechazada por el sampler NO vuelve a ser candidata en el siguiente run — se pierde del API pero NO de la DB (porque nunca llegó a la DB). Esto previene duplicados y garantiza progreso del loop.
+4. **Ventana de preload del cron ≥ ventana de UI**. `META_POLL_PRELOAD_DAYS ≥ META_ROLLING_DAYS` por construcción. El cron debe ver al menos lo que la UI ve (más, idealmente) para que sus decisiones de priorización sean compatibles con lo que el usuario final verá.
+5. **Units coherentes**. `battlesByMapMode` se maneja siempre en batallas reales (no brawler-rows). El RPC `sum_meta_stats_by_map_mode` debe dividir por 6 (o por `brawlers_per_battle` si algún día el modelo cambia). El incremento in-memory es `+1 por batalla real`. Nunca mezclar unidades.
+6. **Cleanup es merge, nunca delete neto**. `findMapModeStragglers` + `cleanup_map_mode_strays` mergean filas mis-clasificadas (wrong mode → canonical mode). El total de filas antes y después del merge es conservado; solo cambia cómo se indexan. El RPC usa `DELETE ... RETURNING` + `INSERT ... ON CONFLICT DO UPDATE` atómico para que no haya ventana de inconsistencia.
+7. **Scope exacto**: el meta-poll ingesta **solo modos 3v3 competitivos** — los 9 valores de `DRAFT_MODES` en `src/lib/draft/constants.ts`. Showdown (todas las variantes), boss fight, big game, y duels están excluidos upstream en `normalizeSupercellMode`, así que nunca llegan a `meta_stats`. El divisor `/6` de la RPC depende de este scope — si algún día se añade un modo no-3v3, hay que generalizar a `/ brawlers_per_battle`.
 
 ### Ventajas del VPS cron
 
@@ -774,5 +830,17 @@ Parcialmente. Hay mejoras posibles **sin consolidar** los 3 tiers, y otras que *
 5. Migrar `/api/cron/meta-poll` del VPS a `pg_cron` con `net.http_post`. Más complejo pero deja el cron observable desde el bot Telegram sin coste extra.
 
 La **recomendación inmediata** son los pasos 1, 2, 3 (todos sin coste ni upgrade). El paso 4 solo tiene sentido si ya se upgrade a Pro por otros motivos. El paso 5 es un sprint dedicado si se valora mucho la observabilidad centralizada de los crons HTTP.
+
+### Archivo a largo plazo de `meta_stats` (roadmap)
+
+Sprint F estableció el invariante "nunca borrar datos", pero la ventana rodante de 14/28 días significa que las lecturas **ignoran** filas viejas aunque físicamente siguen en la tabla. Con el tiempo, `meta_stats` acumula muchas filas que ninguna query lee, lo cual crecerá sin límite y eventualmente degradará índices.
+
+La propuesta (task formal pendiente) es una tabla `meta_stats_archive` con granularidad más gruesa (agregados semanales o mensuales por `map + mode + brawler_id`) poblada por un cron semanal que copia las filas de `meta_stats` que están a punto de salir de la ventana caliente, y un segundo paso que las borra de `meta_stats` **solo después** de haberse copiado con éxito. De esa manera:
+
+- La tabla caliente (`meta_stats`) se mantiene acotada a ~30-60 días.
+- La tabla histórica (`meta_stats_archive`) preserva toda la historia con granularidad semanal — datos de temporadas pasadas siguen disponibles para analytics cross-season, comparativas pre/post balance patch, etc.
+- Nunca se pierde un dato: antes de borrar en `meta_stats`, hay que haber escrito en `meta_stats_archive`. Transacción atómica.
+
+**Estado**: diseño pendiente (no urgente — `meta_stats` actual son ~80k filas, margen de sobra antes de que importe). Ver task superpowers para el spec completo cuando se priorice.
 
 Referencia: [audit de 2026-04-12](../superpowers/specs/2026-04-12-meta-coverage-audit.md).
