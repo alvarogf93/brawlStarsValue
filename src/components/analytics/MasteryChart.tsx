@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useId } from 'react'
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
@@ -29,7 +29,7 @@ interface Props {
 
 /* ─────────────────────── constants ─────────────────────── */
 
-const PAD = { top: 10, right: 20, bottom: 30, left: 40 } as const
+const PAD = { top: 20, right: 30, bottom: 30, left: 40 } as const
 const CHART_W = 600
 const CHART_H = 200
 const INNER_W = CHART_W - PAD.left - PAD.right
@@ -77,41 +77,68 @@ interface TooltipInfo {
 function ChartTooltip({ info }: { info: TooltipInfo | null }) {
   if (!info) return null
 
-  const tooltipW = 150
-  const tooltipH = 14 + info.lines.length * 16
+  const tooltipW = 160
+  const tooltipH = 32 + info.lines.length * 20 + 10
   const tx =
-    info.x + tooltipW + 10 > CHART_W ? info.x - tooltipW - 8 : info.x + 8
+    info.x + tooltipW + 12 > CHART_W ? info.x - tooltipW - 12 : info.x + 12
   const ty = clamp(info.y - tooltipH / 2, 2, CHART_H - tooltipH - 2)
 
   return (
-    <g>
-      <rect
-        x={tx}
-        y={ty}
-        width={tooltipW}
-        height={tooltipH}
-        rx={6}
-        fill="#0D1321"
-        stroke="#1e293b"
-        strokeWidth={1}
-        opacity={0.95}
-      />
-      <text x={tx + 8} y={ty + 14} fontSize={10} fontWeight={700} fill="#94a3b8">
-        {info.label}
-      </text>
-      {info.lines.map((line, i) => (
-        <text
-          key={i}
-          x={tx + 8}
-          y={ty + 14 + (i + 1) * 16}
-          fontSize={11}
-          fontWeight={600}
-          fill="#e2e8f0"
+    <foreignObject x={tx} y={ty} width={tooltipW} height={tooltipH} style={{ pointerEvents: 'none' }}>
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          background: 'rgba(10,16,29,0.95)',
+          backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderLeft: `4px solid ${CYAN}`,
+          borderRadius: 8,
+          padding: '8px 12px',
+          boxSizing: 'border-box',
+          boxShadow: `0 8px 24px rgba(0,0,0,0.8), 0 0 10px ${CYAN}40`,
+          fontFamily: 'Inter, sans-serif',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 9,
+            fontWeight: 800,
+            color: '#94a3b8',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            lineHeight: 1.4,
+            marginBottom: 2,
+          }}
         >
-          {line}
-        </text>
-      ))}
-    </g>
+          {info.label}
+        </div>
+        {info.lines.map((line, i) => {
+          const isHighlight = i === 0
+          return (
+            <div
+              key={i}
+              style={{
+                fontSize: isHighlight ? 14 : 11,
+                fontWeight: isHighlight ? 800 : 600,
+                color: isHighlight ? CYAN : '#e2e8f0',
+                fontFamily: isHighlight ? '"Lilita One", sans-serif' : 'inherit',
+                letterSpacing: isHighlight ? '0.05em' : 'normal',
+                lineHeight: 1.4,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {line}
+            </div>
+          )
+        })}
+      </div>
+    </foreignObject>
   )
 }
 
@@ -131,35 +158,44 @@ function BrawlerSelector({
   return (
     <div
       ref={scrollRef}
-      className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+      className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-thin scrollbar-thumb-[#4EC0FA]/50 scrollbar-track-black/20"
     >
       {brawlers.map((b) => (
         <button
           key={b.brawlerId}
           onClick={() => onSelect(b.brawlerId)}
-          className={`flex-shrink-0 rounded-lg p-0.5 transition-all ${
+          className={`relative flex-shrink-0 p-0.5 transition-all overflow-hidden cursor-pointer ${
             selectedId === b.brawlerId
-              ? 'ring-2 ring-[#FFC91B] bg-[#FFC91B]/10'
-              : 'ring-1 ring-white/5 hover:ring-white/20'
+              ? 'scale-105 shadow-[0_0_15px_rgba(78,192,250,0.4)] z-10'
+              : 'scale-95 opacity-60 hover:opacity-100 hover:scale-100'
           }`}
+          style={{ clipPath: 'polygon(15% 0, 100% 0, 85% 100%, 0 100%)' }}
           title={b.brawlerName}
         >
-          <BrawlImg
-            src={getBrawlerPortraitUrl(b.brawlerId)}
-            fallbackSrc={getBrawlerPortraitFallback(b.brawlerId)}
-            alt={b.brawlerName}
-            className="w-10 h-10 rounded-md"
-          />
+          {selectedId === b.brawlerId && (
+            <div className="absolute inset-0 bg-[#4EC0FA] z-0" />
+          )}
+          <div className="relative bg-[#0A0E1A] p-[2px] z-10 w-full h-full" style={{ clipPath: 'polygon(15% 0, 100% 0, 85% 100%, 0 100%)' }}>
+            <BrawlImg
+              src={getBrawlerPortraitUrl(b.brawlerId)}
+              fallbackSrc={getBrawlerPortraitFallback(b.brawlerId)}
+              alt={b.brawlerName}
+              className="w-12 h-10 object-cover"
+              style={{ clipPath: 'polygon(15% 0, 100% 0, 85% 100%, 0 100%)' }}
+            />
+          </div>
         </button>
       ))}
     </div>
   )
 }
 
-/* ─────────────────────── SVG line chart ─────────────────────── */
+/* ─────────────────────── SVG area chart ─────────────────────── */
 
-function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
+function MasteryAreaChart({ points }: { points: MasteryPoint[] }) {
   const [hover, setHover] = useState<TooltipInfo | null>(null)
+  const gradientId = useId()
+  const glowId = useId()
 
   const labelIndices = useMemo(
     () => pickLabelIndices(points.length),
@@ -179,6 +215,15 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
     y: toY(cumulativeWR(p)),
   }))
 
+  let areaPathStr = ''
+  if (chartPoints.length > 0) {
+    areaPathStr = `M ${chartPoints[0].x},${CHART_H - PAD.bottom}`
+    chartPoints.forEach(p => {
+      areaPathStr += ` L ${p.x},${p.y}`
+    })
+    areaPathStr += ` L ${chartPoints[chartPoints.length - 1].x},${CHART_H - PAD.bottom} Z`
+  }
+
   const polylineStr = chartPoints.map((p) => `${p.x},${p.y}`).join(' ')
 
   return (
@@ -187,6 +232,17 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
       className="w-full h-auto"
       preserveAspectRatio="xMidYMid meet"
     >
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={CYAN} stopOpacity={0.4} />
+          <stop offset="100%" stopColor={CYAN} stopOpacity={0.0} />
+        </linearGradient>
+        <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+
       {/* Y-axis grid + labels */}
       {yTicks.map((tick) => {
         const y = toY(tick)
@@ -195,17 +251,20 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
             <line
               x1={PAD.left}
               y1={y}
-              x2={CHART_W - PAD.right}
+              x2={CHART_W - PAD.right + 10}
               y2={y}
-              stroke="#1e293b"
-              strokeWidth={0.5}
+              stroke="#ffffff"
+              strokeOpacity={0.05}
+              strokeWidth={1}
             />
             <text
-              x={PAD.left - 6}
+              x={PAD.left - 8}
               y={y + 3}
               textAnchor="end"
-              fontSize={9}
+              fontSize={10}
+              fontFamily='"Lilita One", sans-serif'
               fill="#64748b"
+              className="drop-shadow-md"
             >
               {tick}%
             </text>
@@ -217,22 +276,32 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
       <line
         x1={PAD.left}
         y1={toY(50)}
-        x2={CHART_W - PAD.right}
+        x2={CHART_W - PAD.right + 10}
         y2={toY(50)}
-        stroke="#64748b"
-        strokeWidth={1}
-        strokeDasharray="6 4"
-        opacity={0.6}
+        stroke="#FFC91B"
+        strokeWidth={1.5}
+        strokeDasharray="4 4"
+        opacity={0.3}
       />
+
+      {/* Glowing Area Fill */}
+      {chartPoints.length > 1 && (
+        <path
+          d={areaPathStr}
+          fill={`url(#${gradientId})`}
+        />
+      )}
 
       {/* X-axis labels */}
       {labelIndices.map((idx) => (
         <text
           key={idx}
           x={toX(idx)}
-          y={CHART_H - 4}
+          y={CHART_H - 10}
           textAnchor="middle"
           fontSize={9}
+          fontWeight={800}
+          letterSpacing={1}
           fill="#64748b"
         >
           {formatLabel(points[idx].date)}
@@ -244,16 +313,27 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
         if (i === 0) return null
         const prev = chartPoints[i - 1]
         return (
-          <line
-            key={i}
-            x1={prev.x}
-            y1={prev.y}
-            x2={seg.x}
-            y2={seg.y}
-            stroke={CYAN}
-            strokeWidth={2.5}
-            strokeLinecap="round"
-          />
+          <g key={i}>
+            <line
+              x1={prev.x}
+              y1={prev.y}
+              x2={seg.x}
+              y2={seg.y}
+              stroke="#0A0E1A"
+              strokeWidth={5}
+              strokeLinecap="round"
+            />
+            <line
+              x1={prev.x}
+              y1={prev.y}
+              x2={seg.x}
+              y2={seg.y}
+              stroke={CYAN}
+              strokeWidth={3}
+              strokeLinecap="round"
+              filter={`url(#${glowId})`}
+            />
+          </g>
         )
       })}
 
@@ -262,29 +342,31 @@ function MasteryLineChart({ points }: { points: MasteryPoint[] }) {
         points={polylineStr}
         fill="none"
         stroke="transparent"
-        strokeWidth={20}
+        strokeWidth={30}
       />
 
       {/* Data point dots */}
       {chartPoints.map((cp, i) => {
         const p = points[i]
         const wr = cumulativeWR(p)
+        const isHovered = hover?.x === cp.x && hover?.y === cp.y
         return (
-          <g key={i}>
-            <circle cx={cp.x} cy={cp.y} r={6} fill={CYAN} opacity={0.15} />
+          <g key={i} style={{ transition: 'all 0.2s ease-in-out' }}>
+            <circle cx={cp.x} cy={cp.y} r={isHovered ? 12 : 8} fill={CYAN} opacity={isHovered ? 0.3 : 0.15} style={{ transition: 'all 0.2s ease-in-out' }} />
             <circle
               cx={cp.x}
               cy={cp.y}
-              r={3.5}
+              r={isHovered ? 6 : 4}
               fill={CYAN}
               stroke="#0D1321"
-              strokeWidth={1.5}
+              strokeWidth={isHovered ? 2 : 1.5}
+              style={{ transition: 'all 0.2s ease-in-out' }}
             />
             {/* Hit area */}
             <circle
               cx={cp.x}
               cy={cp.y}
-              r={14}
+              r={20}
               fill="transparent"
               className="cursor-pointer"
               onMouseEnter={() =>
@@ -321,21 +403,22 @@ function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typ
   const totalGames = last.cumulativeTotal
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
       {/* Total Games */}
-      <div className="brawl-row rounded-xl p-3 text-center">
-        <p className="font-['Lilita_One'] text-xl tabular-nums text-white">
+      <div className="bg-[#0A0E1A] rounded-xl p-3 text-center border border-white/5 relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-1 h-full bg-[#4EC0FA]" />
+        <p className="font-['Lilita_One'] text-xl tabular-nums text-white drop-shadow-md relative z-10">
           {totalGames}
         </p>
-        <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
+        <p className="text-[9px] font-black uppercase tracking-widest text-[#4EC0FA] mt-1 relative z-10">
           {t('totalGames')}
         </p>
       </div>
 
       {/* Current WR */}
-      <div className="brawl-row rounded-xl p-3 text-center">
+      <div className="bg-[#0A0E1A] rounded-xl p-3 text-center border border-white/5 relative overflow-hidden">
         <p
-          className={`font-['Lilita_One'] text-xl tabular-nums ${
+          className={`font-['Lilita_One'] text-xl tabular-nums drop-shadow-[0_0_8px_currentColor] relative z-10 ${
             currentWR >= 60
               ? 'text-green-400'
               : currentWR >= 45
@@ -345,32 +428,32 @@ function SummaryStats({ points, t }: { points: MasteryPoint[]; t: ReturnType<typ
         >
           {currentWR.toFixed(1)}%
         </p>
-        <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
+        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1 relative z-10">
           {t('currentWR')}
         </p>
       </div>
 
       {/* First WR */}
-      <div className="brawl-row rounded-xl p-3 text-center">
-        <p className="font-['Lilita_One'] text-xl tabular-nums text-slate-300">
+      <div className="bg-[#0A0E1A] rounded-xl p-3 text-center border border-white/5 relative overflow-hidden opacity-80">
+        <p className="font-['Lilita_One'] text-xl tabular-nums text-slate-400 relative z-10">
           {firstWR.toFixed(1)}%
         </p>
-        <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
+        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1 relative z-10">
           {t('firstWR')}
         </p>
       </div>
 
       {/* Delta */}
-      <div className="brawl-row rounded-xl p-3 text-center">
+      <div className="bg-[#0A0E1A] rounded-xl p-3 text-center border border-white/5 relative overflow-hidden">
         <p
-          className={`font-['Lilita_One'] text-xl tabular-nums ${
+          className={`font-['Lilita_One'] text-xl tabular-nums drop-shadow-[0_0_8px_currentColor] relative z-10 ${
             delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-slate-400'
           }`}
         >
           {delta > 0 ? '↑' : delta < 0 ? '↓' : '→'}{' '}
           {Math.abs(delta).toFixed(1)}%
         </p>
-        <p className="text-[10px] uppercase font-bold text-slate-500 mt-0.5">
+        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mt-1 relative z-10">
           {t('wrChange')}
         </p>
       </div>
@@ -388,12 +471,11 @@ export function MasteryChart({ data }: Props) {
 
   if (data.length === 0) {
     return (
-      <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
-        <h3 className="font-['Lilita_One'] text-lg text-white mb-3 flex items-center gap-2">
-          <span className="text-xl">📈</span> {t('masteryTitle')}
-          <InfoTooltip className="ml-1.5" text={t('tipMastery')} />
+      <div className="relative overflow-hidden bg-[#090E17]/80 backdrop-blur-md rounded-xl p-5 md:p-6 border-b-[4px] border-[#06090E] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_8px_16px_rgba(0,0,0,0.6)]">
+        <h3 className="font-['Lilita_One'] text-lg text-white mb-3 flex items-center gap-2 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+          <span className="text-xl drop-shadow-md">📈</span> {t('masteryTitle')}
         </h3>
-        <p className="text-slate-500 text-sm text-center py-6">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center py-6">
           {t('masteryEmpty')}
         </p>
       </div>
@@ -404,36 +486,45 @@ export function MasteryChart({ data }: Props) {
   const hasEnoughPoints = selected.points.length >= 2
 
   return (
-    <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
+    <div className="relative overflow-hidden bg-[#090E17]/80 backdrop-blur-md rounded-xl p-5 md:p-6 border-b-[4px] border-[#06090E] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_8px_16px_rgba(0,0,0,0.6)]">
+      {/* Background visual texture */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[linear-gradient(rgba(78,192,250,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(78,192,250,0.2)_1px,transparent_1px)] bg-[length:40px_40px] pointer-events-none" />
+
       {/* Header */}
-      <h3 className="font-['Lilita_One'] text-lg text-white mb-4 flex items-center gap-2">
-        <span className="text-xl">📈</span> {t('masteryTitle')}
-        <InfoTooltip className="ml-1.5" text={t('tipMastery')} />
+      <h3 className="font-['Lilita_One'] text-lg text-white mb-5 flex items-center gap-2 relative z-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+        <span className="text-xl drop-shadow-[0_0_8px_rgba(78,192,250,0.8)]">🏆</span> {t('masteryTitle')}
+        <InfoTooltip className="ml-1.5 opacity-70 hover:opacity-100" text={t('tipMastery')} />
       </h3>
 
-      {/* Brawler selector */}
-      <BrawlerSelector
-        brawlers={data}
-        selectedId={selected.brawlerId}
-        onSelect={setSelectedId}
-      />
+      <div className="relative z-10">
+        {/* Brawler selector (Roster style) */}
+        <BrawlerSelector
+          brawlers={data}
+          selectedId={selected.brawlerId}
+          onSelect={setSelectedId}
+        />
 
-      {/* Selected brawler name */}
-      <p className="font-['Lilita_One'] text-sm text-[#FFC91B] mt-3 mb-2">
-        {selected.brawlerName}
-      </p>
+        <div className="flex items-center gap-2 mb-4 mt-2">
+          <span className="w-1.5 h-6 bg-[#FFC91B] rounded-sm drop-shadow-[0_0_5px_rgba(255,201,27,0.8)]" />
+          <p className="font-['Lilita_One'] text-lg text-[#FFC91B] tracking-wide drop-shadow-md">
+            {selected.brawlerName}
+          </p>
+        </div>
 
-      {/* Chart or fallback */}
-      {hasEnoughPoints ? (
-        <>
-          <MasteryLineChart points={selected.points} />
-          <SummaryStats points={selected.points} t={t} />
-        </>
-      ) : (
-        <p className="text-slate-500 text-sm text-center py-8">
-          {t('masteryEmpty')}
-        </p>
-      )}
+        {/* Chart or fallback */}
+        {hasEnoughPoints ? (
+          <div className="bg-[#0A0E1A] p-4 rounded-xl border border-white/5 shadow-inner">
+            <MasteryAreaChart points={selected.points} />
+            <SummaryStats points={selected.points} t={t} />
+          </div>
+        ) : (
+          <div className="bg-[#0A0E1A] p-8 rounded-xl border border-white/5 shadow-inner flex justify-center">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">
+              {t('masteryEmpty')}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

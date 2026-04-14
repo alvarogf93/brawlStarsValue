@@ -274,16 +274,20 @@ export default function AnalyticsPage() {
         </div>
       )}
       {/* Header */}
-      <div className="brawl-card p-6 md:p-8 bg-gradient-to-r from-[#FFC91B] to-[#121A2F]">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-[#121A2F] border-4 border-[#FFC91B] rounded-2xl flex items-center justify-center transform rotate-3 shadow-[0_4px_0_0_#121A2F]">
-            <FlaskConical className="w-8 h-8 text-[#FFC91B]" />
+      <div className="relative overflow-hidden brawl-card p-6 md:p-8 bg-[#090E17] border-b-[6px] border-[#06090e]">
+        {/* Sci-fi background patterns */}
+        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#FFC91B] via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(45deg,#fff_25%,transparent_25%,transparent_50%,#fff_50%,#fff_75%,transparent_75%,transparent_100%)] bg-[length:40px_40px] pointer-events-none" />
+        
+        <div className="relative z-10 flex items-center gap-5">
+          <div className="relative w-16 h-16 bg-[#121A2F] border-2 border-[#FFC91B]/50 rounded-xl flex items-center justify-center transform rotate-3 shadow-[0_0_20px_rgba(255,201,27,0.3)] backdrop-blur-md">
+            <FlaskConical className="w-8 h-8 text-[#FFC91B] drop-shadow-[0_0_8px_rgba(255,201,27,0.8)]" />
           </div>
           <div>
-            <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg]">
+            <h1 className="text-4xl md:text-5xl font-['Lilita_One'] tracking-wide text-white text-stroke-brawl transform rotate-[-1deg] drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
               {t('title')}
             </h1>
-            <p className="font-['Inter'] font-semibold text-[#FFC91B]">
+            <p className="font-['Inter'] font-bold text-[#FFC91B] uppercase tracking-widest text-xs mt-1">
               {t('totalBattles', { count: String(analytics.overview.totalBattles) })}
             </p>
           </div>
@@ -298,30 +302,32 @@ export default function AnalyticsPage() {
       <div className="md:hidden relative">
         <button
           onClick={() => setTabMenuOpen(!tabMenuOpen)}
-          className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-['Lilita_One'] text-sm bg-[#FFC91B]/20 text-[#FFC91B] border-2 border-[#FFC91B]/40 shadow-[0_0_12px_rgba(255,201,27,0.15)]"
+          style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
+          className="w-full relative flex items-center justify-between px-5 py-4 font-['Lilita_One'] text-sm bg-[#121A2F]/90 text-white border-t border-x border-white/10 border-b-[3px] border-b-[#FFC91B] shadow-[0_0_20px_rgba(255,201,27,0.1)] backdrop-blur-md"
         >
-          <span className="flex items-center gap-2">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#FFC91B]/10 to-transparent opacity-50 pointer-events-none" />
+          <span className="relative z-10 flex items-center gap-2 drop-shadow-[0_0_8px_rgba(255,201,27,0.5)]">
             {TAB_IMAGE_ICONS[activeTab] ? (
-              <img src={TAB_IMAGE_ICONS[activeTab]} alt="" className="w-5 h-5" width={20} height={20} />
+              <img src={TAB_IMAGE_ICONS[activeTab]} alt="" className="w-5 h-5 drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]" width={20} height={20} />
             ) : (
               <span>{TAB_ICONS[activeTab]}</span>
             )}
             {ta(TAB_KEYS[activeTab])}
           </span>
-          <ChevronDown className={`w-4 h-4 transition-transform ${tabMenuOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`relative z-10 w-5 h-5 text-[#FFC91B] transition-transform duration-300 ${tabMenuOpen ? 'rotate-180' : ''}`} />
         </button>
         {tabMenuOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-[#0F172A] border-2 border-[#1E293B] rounded-xl overflow-hidden shadow-xl">
+          <div className="absolute top-full left-0 right-0 mt-2 z-30 bg-[#090E17]/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
             {TAB_IDS.filter(id => id !== activeTab).map(id => (
               <button
                 key={id}
                 onClick={() => { setActiveTab(id); setTabMenuOpen(false) }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-['Lilita_One'] text-slate-300 hover:bg-white/5 hover:text-[#FFC91B] transition-colors border-b border-[#1E293B] last:border-b-0"
+                className="w-full flex items-center gap-3 px-5 py-4 text-sm font-['Lilita_One'] text-slate-300 hover:bg-[#121A2F] hover:text-white transition-colors border-b border-[#1E293B] last:border-b-0"
               >
                 {TAB_IMAGE_ICONS[id] ? (
-                  <img src={TAB_IMAGE_ICONS[id]} alt="" className="w-5 h-5" width={20} height={20} />
+                  <img src={TAB_IMAGE_ICONS[id]} alt="" className="w-5 h-5 opacity-70" width={20} height={20} />
                 ) : (
-                  <span>{TAB_ICONS[id]}</span>
+                  <span className="opacity-70">{TAB_ICONS[id]}</span>
                 )}
                 {ta(TAB_KEYS[id])}
               </button>
@@ -331,23 +337,31 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Desktop: horizontal tabs */}
-      <div className="hidden md:flex gap-1.5 pb-1">
+      <div className="hidden md:flex gap-2 pb-1 overflow-x-auto cyber-scrollbar">
         {TAB_IDS.map(id => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-['Lilita_One'] text-sm whitespace-nowrap transition-all border-2 ${
+            className={`group relative flex items-center gap-2 px-5 py-3 font-['Lilita_One'] text-sm whitespace-nowrap transition-all duration-300 overflow-hidden ${
               activeTab === id
-                ? 'bg-[#FFC91B]/20 text-[#FFC91B] border-[#FFC91B]/40 shadow-[0_0_12px_rgba(255,201,27,0.15)]'
-                : 'bg-[#0F172A] text-slate-400 border-[#1E293B] hover:bg-[#1E293B] hover:text-white'
+                ? 'bg-[#121A2F]/80 text-white shadow-[0_0_15px_rgba(255,201,27,0.15)] border-t border-x border-white/5 border-b-[3px] border-b-[#FFC91B]'
+                : 'bg-[#090E17]/60 text-slate-400 border-t border-x border-transparent border-b-[3px] border-b-[#1E293B] hover:bg-[#121A2F] hover:text-slate-200 hover:border-b-[#FFC91B]/50'
             }`}
+            style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
           >
-            {TAB_IMAGE_ICONS[id] ? (
-              <img src={TAB_IMAGE_ICONS[id]} alt="" className="w-5 h-5" width={20} height={20} />
-            ) : (
-              <span>{TAB_ICONS[id]}</span>
+            {/* Active Glow Background */}
+            {activeTab === id && (
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_var(--tw-gradient-stops))] from-[#FFC91B]/20 to-transparent opacity-50" />
             )}
-            <span>{ta(TAB_KEYS[id])}</span>
+            
+            <div className="relative z-10 flex items-center gap-1.5">
+              {TAB_IMAGE_ICONS[id] ? (
+                <img src={TAB_IMAGE_ICONS[id]} alt="" className={`w-5 h-5 transition-transform duration-300 ${activeTab === id ? 'scale-110 drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]' : 'opacity-70 group-hover:opacity-100'}`} width={20} height={20} />
+              ) : (
+                <span className={activeTab === id ? 'drop-shadow-[0_0_5px_rgba(255,201,27,0.8)]' : 'opacity-70 group-hover:opacity-100'}>{TAB_ICONS[id]}</span>
+              )}
+              <span className={activeTab === id ? 'drop-shadow-[0_0_8px_rgba(255,201,27,0.5)]' : ''}>{ta(TAB_KEYS[id])}</span>
+            </div>
           </button>
         ))}
       </div>
