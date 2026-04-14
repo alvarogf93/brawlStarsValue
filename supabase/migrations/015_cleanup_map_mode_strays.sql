@@ -41,12 +41,28 @@ DECLARE
   stats_merged INT := 0;
 BEGIN
   -- ── 1. meta_stats: merge wrong-mode rows into canonical-mode rows ──
+  --
+  -- Uses the DELETE ... RETURNING → INSERT ... ON CONFLICT pattern.
+  -- DELETE runs first and atomically captures the set of wrong-mode
+  -- rows; the CTE then feeds them into the INSERT with the canonical
+  -- mode, merging via ON CONFLICT DO UPDATE. Any concurrent writer
+  -- that tries to insert new wrong-mode rows between the DELETE's
+  -- snapshot and the INSERT's commit is either serialized (they land
+  -- AFTER this statement and survive to the next cron run) or caught
+  -- inside the same transaction and rolled back on conflict. This is
+  -- meaningfully safer than the INSERT-then-DELETE pattern, which had
+  -- a window where a concurrently-inserted row could be deleted
+  -- without being merged.
+  WITH deleted_strays AS (
+    DELETE FROM meta_stats
+    WHERE map = p_map
+      AND mode = p_wrong_mode
+      AND source = p_source
+    RETURNING brawler_id, source, date, wins, losses, total
+  )
   INSERT INTO meta_stats (brawler_id, map, mode, source, date, wins, losses, total)
-  SELECT brawler_id, map, p_canonical_mode, source, date, wins, losses, total
-  FROM meta_stats
-  WHERE map = p_map
-    AND mode = p_wrong_mode
-    AND source = p_source
+  SELECT brawler_id, p_map, p_canonical_mode, source, date, wins, losses, total
+  FROM deleted_strays
   ON CONFLICT (brawler_id, map, mode, source, date)
   DO UPDATE SET
     wins = meta_stats.wins + EXCLUDED.wins,
@@ -55,32 +71,26 @@ BEGIN
 
   GET DIAGNOSTICS stats_merged = ROW_COUNT;
 
-  DELETE FROM meta_stats
-  WHERE map = p_map
-    AND mode = p_wrong_mode
-    AND source = p_source;
-
-  -- ── 2. meta_trios: same merge pattern ──
+  -- ── 2. meta_trios: same DELETE-RETURNING-INSERT pattern ──
+  WITH deleted_trio_strays AS (
+    DELETE FROM meta_trios
+    WHERE map = p_map
+      AND mode = p_wrong_mode
+      AND source = p_source
+    RETURNING brawler1_id, brawler2_id, brawler3_id, source, date, wins, losses, total
+  )
   INSERT INTO meta_trios (
     brawler1_id, brawler2_id, brawler3_id,
     map, mode, source, date, wins, losses, total
   )
   SELECT brawler1_id, brawler2_id, brawler3_id,
-         map, p_canonical_mode, source, date, wins, losses, total
-  FROM meta_trios
-  WHERE map = p_map
-    AND mode = p_wrong_mode
-    AND source = p_source
+         p_map, p_canonical_mode, source, date, wins, losses, total
+  FROM deleted_trio_strays
   ON CONFLICT (brawler1_id, brawler2_id, brawler3_id, map, mode, source, date)
   DO UPDATE SET
     wins = meta_trios.wins + EXCLUDED.wins,
     losses = meta_trios.losses + EXCLUDED.losses,
     total = meta_trios.total + EXCLUDED.total;
-
-  DELETE FROM meta_trios
-  WHERE map = p_map
-    AND mode = p_wrong_mode
-    AND source = p_source;
 
   -- ── 3. battles: simple UPDATE (no PK conflict — battles PK is on id) ──
   -- The `source` filter does not apply here because battles is the raw

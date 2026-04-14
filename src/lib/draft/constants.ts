@@ -138,20 +138,34 @@ export const META_POLL_TARGET_RATIO = 0.6
  * map needs enough total battles that the UI can display a meaningful
  * top-N brawler list WITHOUT falling back to mode-aggregate.
  *
- * Math: pro battles are heavily skewed — the top 10 brawlers absorb
- * ~75% of picks. For the 10th-most-played brawler to clear 20 battles,
- * that brawler needs to represent ~4% of the map's total, so the map
- * needs roughly 500 battles to reliably show a top-10 list. With 500
- * as the floor and `META_POLL_TARGET_RATIO = 0.6`, the effective target
- * grows to `max(500, 0.6 × max(live))` and scales naturally once the
- * most-sampled live pair exceeds 833 battles.
+ * Calibration math (approximate — pro pick distributions are
+ * heavy-tailed and shift with every balance patch, so this is a
+ * best-effort starting point):
+ *
+ *   - Top 5 pro brawlers typically absorb ~50-60% of picks on a
+ *     given map, with a sharp drop-off after the top 5.
+ *   - The 10th-most-played brawler sits around 3-5% of the map's
+ *     total picks.
+ *   - For that 10th brawler to clear 20 battles, the map's total
+ *     should be ~400-600 battles. 500 is a pragmatic midpoint.
+ *
+ * With the ratio `META_POLL_TARGET_RATIO = 0.6`, the effective
+ * target is `max(500, 0.6 × max(live))` — the floor dominates in
+ * the early-rotation / low-sample regime, and the ratio takes over
+ * once the best-covered live pair exceeds ~833 battles.
+ *
+ * Tuning signals to watch: if the UI starts firing the "datos
+ * escasos → mode-fallback" banner on live maps despite the cron
+ * saying they're balanced, the distribution has sharpened further
+ * than the 500-floor assumes — bump this to 700-800. Conversely,
+ * if the cron's `timeBudgetExit` fires consistently because it
+ * can't hit 500 on rare modes within the budget, lower it.
  *
  * Previously this was 50, which produced the "datos escasos" anti-
- * pattern: Sunny Soccer could stabilize at 400 battles (above the old
+ * pattern: Sunny Soccer stabilized at 400 battles (above the old
  * floor) while the UI still showed mode-aggregate because only 9/30
- * brawlers had ≥20 battles on that specific map. Sprint E audit caught
- * this and raised the floor to 500 so the cron keeps feeding under-
- * represented live maps until they support per-brawler display.
+ * brawlers had ≥20 battles on that specific map. Sprint E audit
+ * caught this and raised the floor.
  */
 export const META_POLL_MIN_TARGET = 500
 

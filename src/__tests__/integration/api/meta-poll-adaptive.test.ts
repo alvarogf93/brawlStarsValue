@@ -453,6 +453,61 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlBall']).toBeUndefined()
   })
 
+  it('DOES NOT call cleanup when the events rotation fetch fails', async () => {
+    // Safety: the `effectiveLiveKeys` fallback (when rotationKeys is
+    // empty) contains every preloaded key. If findMapModeStragglers
+    // ran against that fallback, it could non-deterministically flag
+    // Hyperspace|brawlBall OR Hyperspace|brawlHockey as the "wrong"
+    // side depending on insertion order, and merge in the wrong
+    // direction. The cron route must short-circuit straggler cleanup
+    // when rotationKeys is empty.
+    rpcResponses.sum_meta_stats_by_map_mode = [
+      { map: 'Hyperspace', mode: 'brawlBall', total: 596 },
+      { map: 'Hyperspace', mode: 'brawlHockey', total: 5 },
+    ]
+    setGlobalRanking([playerTag(1)])
+    addBattle(playerTag(1), { mode: 'brawlBall', map: 'Some Map', result: 'victory' })
+    rotationFixture = [] // rotation empty → cron must fall back + skip cleanup
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    // rotationAvailable must be false — surfaces the failure in the log
+    expect(body.adaptive.rotationAvailable).toBe(false)
+    // Cleanup MUST NOT have been called — the mis-classified rows
+    // stay mis-classified until the rotation endpoint is healthy again
+    expect(rpcCalls.find(c => c.fn === 'cleanup_map_mode_strays')).toBeUndefined()
+    expect(body.adaptive.stragglersMerged).toEqual([])
+    // Both rows still visible in the in-memory state
+    expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlBall']).toBe(596)
+    expect(body.adaptive.finalCountsByMapMode['Hyperspace|brawlHockey']).toBe(5)
+  })
+
+  it('exposes poolByCountry diagnostics in the response', async () => {
+    rankingByCountry.global = [playerTag(1), playerTag(2)]
+    rankingByCountry.US = [playerTag(3)] // 1 new unique
+    rankingByCountry.BR = [playerTag(2)] // duplicate of global — 0 new unique
+    for (let i = 1; i <= 3; i++) {
+      addBattle(playerTag(i), { mode: 'brawlBall', map: 'Sneaky Fields', result: 'victory' })
+    }
+    rotationFixture = [{ map: 'Sneaky Fields', mode: 'brawlBall' }]
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    expect(body.adaptive.poolByCountry).toEqual(
+      expect.objectContaining({
+        global: 2,
+        US: 1,
+        BR: 0, // dedup collapsed it
+      }),
+    )
+  })
+
   it('does NOT call cleanup when every preloaded map matches the live rotation', async () => {
     rpcResponses.sum_meta_stats_by_map_mode = [
       { map: 'Sunny Soccer', mode: 'brawlBall', total: 400 },

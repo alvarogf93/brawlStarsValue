@@ -184,7 +184,16 @@ async function processOnePlayer(
   }
 }
 
-async function fetchCandidatePool(): Promise<string[]> {
+interface CandidatePool {
+  tags: string[]
+  /** Per-country diagnostics: how many unique tags each ranking
+   *  contributed AFTER dedup. A country returning 0 here means its
+   *  ranking endpoint rejected — surfaced in the response body so
+   *  silent regional outages are visible in the cron JSON log. */
+  perCountry: Record<string, number>
+}
+
+async function fetchCandidatePool(): Promise<CandidatePool> {
   // Fetch all rankings in parallel — each call is ~200-400ms and
   // they're independent. Total wall clock ≈ slowest single call.
   const results = await Promise.allSettled(
@@ -192,16 +201,26 @@ async function fetchCandidatePool(): Promise<string[]> {
   )
   const seen = new Set<string>()
   const ordered: string[] = []
-  for (const r of results) {
-    if (r.status !== 'fulfilled') continue
+  const perCountry: Record<string, number> = {}
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i]
+    const country = META_POLL_RANKING_COUNTRIES[i]
+    if (r.status !== 'fulfilled') {
+      console.warn(`[meta-poll] ranking fetch rejected for ${country}:`, r.reason)
+      perCountry[country] = 0
+      continue
+    }
+    let added = 0
     for (const p of r.value.items ?? []) {
       if (!seen.has(p.tag)) {
         seen.add(p.tag)
         ordered.push(p.tag)
+        added++
       }
     }
+    perCountry[country] = added
   }
-  return ordered
+  return { tags: ordered, perCountry }
 }
 
 async function fetchLiveMapModeKeys(): Promise<Set<string>> {
@@ -242,29 +261,44 @@ async function preloadCumulativeCounts(
 }
 
 async function runBalancedPoll(supabase: SupabaseClient) {
-  // 1. Fetch candidate pool + live keys + cumulative counts in parallel
-  const [allPlayerTags, liveKeys, battlesByMapMode] = await Promise.all([
+  const runStartedAt = Date.now()
+
+  // 1. Fetch candidate pool + rotation keys + cumulative counts in parallel
+  const [poolResult, rotationKeys, battlesByMapMode] = await Promise.all([
     fetchCandidatePool(),
     fetchLiveMapModeKeys(),
     preloadCumulativeCounts(supabase),
   ])
+  const allPlayerTags = poolResult.tags
+  const poolByCountry = poolResult.perCountry
 
-  // Merge liveKeys with any cumulative keys we've seen before so the
-  // filter doesn't drop all battles when the rotation fetch fails.
-  // Pre-existing keys are treated as "live" fallback only when liveKeys
-  // is empty — otherwise we strictly respect the rotation.
+  // `rotationKeys` is the authoritative live-rotation set (possibly empty
+  // if Supercell's events endpoint is down). `effectiveLiveKeys` is what
+  // the balance filter uses — same as rotationKeys when the fetch worked,
+  // else fall back to "every key in the preload" so the filter still makes
+  // progress. The straggler detector MUST only consider rotationKeys (not
+  // the fallback) because a fallback that contains both `Hyperspace|brawlBall`
+  // AND `Hyperspace|brawlHockey` would non-deterministically pick one of
+  // them as "canonical" and merge in the wrong direction.
   const effectiveLiveKeys =
-    liveKeys.size > 0
-      ? liveKeys
+    rotationKeys.size > 0
+      ? rotationKeys
       : new Set(Object.keys(battlesByMapMode))
 
   // 1b. Self-healing cleanup of mis-classified (map, mode) rows.
+  //     Only runs when we have a TRUE rotation from the events endpoint.
   //     See findMapModeStragglers docstring — this handles the Supercell
   //     API quirk where hockey maps ship with `mode: "brawlBall"`. Runs
   //     BEFORE the player-processing loop so the target calculation below
   //     sees the canonical state, not the mis-classified snapshot.
-  const stragglers = findMapModeStragglers(battlesByMapMode, effectiveLiveKeys)
+  //     We rely on `cleanup_map_mode_strays` being all-or-nothing on the
+  //     DB side (the RPC runs in a single transaction with a CTE DELETE-
+  //     RETURNING pattern). If the whole RPC throws, the catch below
+  //     leaves the in-memory preload untouched and the next run retries.
   const stragglersMerged: Array<{ map: string; wrongMode: string; canonicalMode: string; mergedRows: number | null }> = []
+  const stragglers = rotationKeys.size > 0
+    ? findMapModeStragglers(battlesByMapMode, rotationKeys)
+    : []
   for (const s of stragglers) {
     try {
       const { data: merged } = await supabase.rpc('cleanup_map_mode_strays', {
@@ -315,11 +349,32 @@ async function runBalancedPoll(supabase: SupabaseClient) {
   let battlesKept = 0
   let playersPolled = 0
   let earlyExit = false
+  let timeBudgetExit = false
+
+  // Soft wall-clock guard. Vercel's hard `maxDuration = 300` would return
+  // a 504 and lose the batch of battles already accumulated in `acc`. By
+  // bailing voluntarily at 270s we still have ~30s to run the 4 bulk
+  // upserts and flush the cursor updates before Vercel kills the function.
+  // The `timeBudgetExit` flag is surfaced in the response body so it's
+  // obvious from the JSON log when we hit this path.
+  const WALL_CLOCK_BUDGET_MS = 270_000
 
   // 4. Process players in order, filtering by dynamic underTarget
   for (const tag of cappedTags) {
+    if (Date.now() - runStartedAt > WALL_CLOCK_BUDGET_MS) {
+      timeBudgetExit = true
+      break
+    }
+
     // Recompute target + underTarget per-player so the filter adapts
     // as battlesByMapMode grows within the run. Cheap (O(liveKeys)).
+    //
+    // Note on granularity: once we commit to processing a player we
+    // accept ALL of their under-target battles, even if the first few
+    // push one of the live (map,mode) pairs above target. This is
+    // deliberate — partially accepting a player's battlelog makes the
+    // cursor semantics ambiguous. Over-accumulation by one player's
+    // worth of battles is a rounding error vs. the 500+ target floor.
     const target = computeMapModeTarget(battlesByMapMode, effectiveLiveKeys)
     const underTarget = findUnderTargetMapModes(battlesByMapMode, effectiveLiveKeys, target)
 
@@ -353,9 +408,12 @@ async function runBalancedPoll(supabase: SupabaseClient) {
     acc, cursorUpdates,
     processed, skipped, errors, battlesKept,
     poolSize: allPlayerTags.length,
+    poolByCountry,
     playersPolled,
     liveKeyCount: effectiveLiveKeys.size,
+    rotationAvailable: rotationKeys.size > 0,
     earlyExit,
+    timeBudgetExit,
     stragglersMerged,
     finalCountsByMapMode: { ...battlesByMapMode },
   }
@@ -447,9 +505,22 @@ export async function GET(request: Request) {
       trioKeys: result.acc.trios.size,
       adaptive: {
         poolSize: result.poolSize,
+        // Per-country breakdown of the dedupe pool. A country reporting
+        // 0 means its rankings endpoint rejected or returned nothing —
+        // useful for diagnosing regional Supercell outages without
+        // needing Vercel function logs.
+        poolByCountry: result.poolByCountry,
         playersPolled: result.playersPolled,
         liveKeyCount: result.liveKeyCount,
+        // True when `fetchEventRotation` returned live pairs. False
+        // means we fell back to "any key in the preload" for the balance
+        // filter and DID NOT run the straggler cleanup (the fallback can
+        // non-deterministically pick the wrong canonical mode).
+        rotationAvailable: result.rotationAvailable,
         earlyExit: result.earlyExit,
+        // True when the soft wall-clock budget (270s) tripped before
+        // maxDuration (300s). Distinct from `earlyExit` (balanced).
+        timeBudgetExit: result.timeBudgetExit,
         // Self-healing cleanup: any (map, mode) mis-classifications that
         // were detected and merged at the start of this run. Should be
         // empty in steady state; non-empty means a new rotation just
