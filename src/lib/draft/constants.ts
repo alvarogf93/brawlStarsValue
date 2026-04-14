@@ -42,15 +42,23 @@ const MODE_ID_TO_KEY: Record<number, DraftMode> = {
 /**
  * Resolve a Supercell-reported mode string to our canonical key.
  *
- * The Supercell API reports `mode: "unknown"` for brand-new modes
- * even though the `modeId` is correct. Without normalization, the
- * downstream `isDraftMode("unknown")` check returns false and the
- * battle is silently dropped — which was exactly the bug that
- * left Brawl Hockey with zero pro battles in `meta_stats`.
+ * modeId is the authoritative source of truth when it maps to a
+ * known draft mode. The `mode` string is only trusted when the
+ * modeId is absent or unmapped. Two bugs motivated this ordering:
  *
- * Pass both the string mode AND the numeric modeId and this
- * function will resolve the canonical key, falling back to the
- * raw string when no override is needed.
+ *   1. brand-new modes were reported with `mode: "unknown"` even
+ *      though the modeId was correct (this was the first symptom,
+ *      fixed in commit ce047f5 for Brawl Hockey).
+ *
+ *   2. Hyperspace — a Brawl Hockey map — shipped with
+ *      `mode: "brawlBall"` + `modeId: 45`. Because the original
+ *      implementation checked `isDraftMode(rawMode)` FIRST and
+ *      returned early on any valid draft mode string, every
+ *      Hyperspace battle was stored as `brawlBall::Hyperspace`
+ *      in `meta_stats`. 369 rows were mis-classified before this
+ *      fix and `brawlHockey` had 0 rows in the entire history
+ *      of the table. Flipping the priority so modeId wins over
+ *      the string eliminates this class of bug going forward.
  *
  * Returns `null` when neither source yields a known mode so the
  * caller can drop the battle explicitly instead of accidentally
@@ -60,13 +68,15 @@ export function normalizeSupercellMode(
   mode: string | null | undefined,
   modeId: number | null | undefined,
 ): DraftMode | null {
-  const rawMode = mode?.trim() ?? ''
-  // Happy path: the API already reports a known draft mode name.
-  if (isDraftMode(rawMode)) return rawMode
-  // Fallback path: map via modeId when available.
+  // Authoritative path: trust the numeric modeId when it maps to
+  // a known draft mode. Wins over a conflicting `mode` string.
   if (typeof modeId === 'number' && modeId in MODE_ID_TO_KEY) {
     return MODE_ID_TO_KEY[modeId]
   }
+  // Fallback path: use the mode string when modeId is absent or
+  // not in our known-mappings table.
+  const rawMode = mode?.trim() ?? ''
+  if (isDraftMode(rawMode)) return rawMode
   return null
 }
 
@@ -79,23 +89,51 @@ export const META_MIN_BATTLES = 30
 /** Days of rolling window for meta queries */
 export const META_ROLLING_DAYS = 14
 
-/** Base batch — the first chunk processed every cron run (unrestricted, all modes kept) */
-export const META_POLL_BATCH_SIZE = 200
+/**
+ * Country codes whose `/rankings/{code}/players` endpoint is polled
+ * in addition to `global` to expand the candidate player pool.
+ *
+ * The Supercell API hard-caps every `/rankings/.../players` response
+ * at **200 items** regardless of the requested `limit` — probed
+ * empirically on 2026-04-14 against the proxy. A single global call
+ * therefore delivers at most 200 players, which is wildly insufficient
+ * for the per-(map, mode) balancing because 200 top global players
+ * play 60-80% brawlBall and ~0% Brawl Hockey.
+ *
+ * The fix is to pull from multiple country rankings. Cross-country
+ * overlap is tiny: in a 16-country probe, 3,076 unique players came
+ * back (≈96% unique — only 4% of players showed up in two countries).
+ * Each country contributes roughly 185-200 fresh players.
+ *
+ * The 11 entries below give us ~2,100 unique candidates per run. The
+ * cron then processes up to `META_POLL_MAX_DEPTH` of them, filtered
+ * dynamically against the per-(map, mode) target so budget is spent
+ * on under-sampled maps first.
+ *
+ * Why these 11: `global` for the absolute top, then the top-10 by
+ * Brawl Stars player base roughly. Order matters — the first entries
+ * are processed first so `global` stays the primary signal. Feel
+ * free to add/reorder if a specific region proves more diverse in
+ * niche modes.
+ */
+export const META_POLL_RANKING_COUNTRIES = [
+  'global', 'US', 'BR', 'MX', 'DE', 'FR', 'ES', 'JP', 'KR', 'TR', 'RU',
+] as const
 
-/** Hard cap on total players polled per cron run (base + all top-up chunks).
+/** Hard cap on total players polled per cron run.
  *  Must stay well below `maxDuration=300s` accounting for throttle + network + bulk upserts.
- *  At ~300ms per player, 600 ≈ 180s → safe margin for DB writes. */
+ *  At ~150-300ms per player, 600 ≈ 90-180s → safe margin for DB writes.
+ *  The pool (~2,100 unique from 11 country rankings) is much larger than
+ *  this cap, so balance-filtering has real budget to spend. */
 export const META_POLL_MAX_DEPTH = 600
 
-/** Players fetched per top-up iteration after the base batch. */
-export const META_POLL_CHUNK_SIZE = 100
-
-/** Fraction of the best-covered mode that under-sampled modes must reach.
- *  0.6 = each mode must end with ≥ 60% of the battles of the top mode. */
+/** Fraction of the best-covered LIVE (map, mode) pair that under-sampled
+ *  live pairs must reach. 0.6 = each live map ends with ≥ 60% of the
+ *  battles of the top live map. */
 export const META_POLL_TARGET_RATIO = 0.6
 
 /** Absolute floor for the target so the algorithm still does something when
- *  the best mode is itself undersampled (e.g. very quiet day). */
+ *  every live pair is undersampled (e.g. fresh rolling-window after a reset). */
 export const META_POLL_MIN_TARGET = 50
 
 /** Delay between API calls in ms (throttle) */

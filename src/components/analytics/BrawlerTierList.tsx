@@ -26,12 +26,42 @@ type TierKey = 'S' | 'A' | 'B' | 'C' | 'D'
 
 const TIER_ORDER: readonly TierKey[] = ['S', 'A', 'B', 'C', 'D'] as const
 
-const TIER_META: Record<TierKey, { label: string; color: string; bgColor: string; borderColor: string }> = {
-  S: { label: 'S', color: 'text-[#FFC91B]',  bgColor: 'bg-[#FFC91B]/15',  borderColor: 'border-[#FFC91B]/30' },
-  A: { label: 'A', color: 'text-green-400',  bgColor: 'bg-green-400/15',  borderColor: 'border-green-400/30' },
-  B: { label: 'B', color: 'text-[#4EC0FA]',  bgColor: 'bg-[#4EC0FA]/15',  borderColor: 'border-[#4EC0FA]/30' },
-  C: { label: 'C', color: 'text-orange-400', bgColor: 'bg-orange-400/15', borderColor: 'border-orange-400/30' },
-  D: { label: 'D', color: 'text-red-400',    bgColor: 'bg-red-400/15',    borderColor: 'border-red-400/30' },
+const TIER_META: Record<TierKey, { label: string; color: string; bgStyle: string; borderColor: string; shadow: string; }> = {
+  S: { 
+    label: 'S', 
+    color: 'text-[#FFC91B] drop-shadow-[0_0_8px_#FFC91B]', 
+    bgStyle: 'bg-gradient-to-b from-[#4A3B00] to-[#1A1500]', 
+    borderColor: 'border-b-[#FFC91B]', 
+    shadow: 'shadow-[inset_0_1px_1px_rgba(255,201,27,0.4),0_0_15px_rgba(255,201,27,0.3)]' 
+  },
+  A: { 
+    label: 'A', 
+    color: 'text-green-400 drop-shadow-[0_0_8px_#4ADE80]', 
+    bgStyle: 'bg-gradient-to-b from-[#0F3A20] to-[#051A0E]', 
+    borderColor: 'border-b-[#4ade80]', 
+    shadow: 'shadow-[inset_0_1px_1px_rgba(74,222,128,0.4),0_0_15px_rgba(74,222,128,0.2)]' 
+  },
+  B: { 
+    label: 'B', 
+    color: 'text-[#4EC0FA] drop-shadow-[0_0_8px_#4EC0FA]', 
+    bgStyle: 'bg-gradient-to-b from-[#0E2E4A] to-[#041220]', 
+    borderColor: 'border-b-[#4EC0FA]', 
+    shadow: 'shadow-[inset_0_1px_1px_rgba(78,192,250,0.4),0_0_15px_rgba(78,192,250,0.2)]' 
+  },
+  C: { 
+    label: 'C', 
+    color: 'text-orange-400 drop-shadow-[0_0_8px_#FB923C]', 
+    bgStyle: 'bg-gradient-to-b from-[#4A2609] to-[#201004]', 
+    borderColor: 'border-b-orange-400', 
+    shadow: 'shadow-[inset_0_1px_1px_rgba(251,146,60,0.4),0_0_10px_rgba(251,146,60,0.2)]' 
+  },
+  D: { 
+    label: 'D', 
+    color: 'text-red-500 drop-shadow-[0_0_8px_#EF4444]', 
+    bgStyle: 'bg-gradient-to-b from-[#4A0E0E] to-[#200404]', 
+    borderColor: 'border-b-red-600', 
+    shadow: 'shadow-[inset_0_1px_1px_rgba(239,68,68,0.4),0_0_10px_rgba(239,68,68,0.2)]' 
+  },
 }
 
 function tierOf(winRate: number): TierKey {
@@ -74,20 +104,21 @@ export function BrawlerTierList({ data }: Props) {
   }
 
   return (
-    <div className="brawl-card-dark p-5 md:p-6 border-[#090E17]">
+    <div className="relative overflow-hidden bg-[#090E17]/80 backdrop-blur-md rounded-xl p-5 md:p-6 border-b-[4px] border-[#06090E] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_8px_16px_rgba(0,0,0,0.6)]">
+
       {/* Header */}
-      <div className="mb-4">
-        <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2">
-          <span className="text-xl">{'\uD83C\uDFC5'}</span> {t('brawlerTierList')}
-          <span className="text-xs text-slate-500 font-normal ml-auto">
+      <div className="mb-5 relative z-10">
+        <h3 className="font-['Lilita_One'] text-lg text-white flex items-center gap-2 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+          <span className="text-xl drop-shadow-md">{'\uD83C\uDFC5'}</span> {t('brawlerTierList')}
+          <span className="text-[10px] text-white/50 tracking-widest uppercase font-bold ml-auto bg-black/40 px-2 py-1 rounded-md border border-white/5">
             {totalCount} {t('brawlers')}
           </span>
         </h3>
-        <p className="text-[11px] text-slate-500 mt-0.5">{t('tierListSubtitle')}</p>
+        <p className="text-[11px] text-slate-400 mt-1">{t('tierListSubtitle')}</p>
       </div>
 
       {/* Tier rows */}
-      <div className="space-y-2">
+      <div className="space-y-3 relative z-10">
         {TIER_ORDER.map(tier => {
           const brawlers = byTier[tier]
           const meta = TIER_META[tier]
@@ -97,19 +128,20 @@ export function BrawlerTierList({ data }: Props) {
               data-tier={tier}
               className="flex items-stretch gap-2"
             >
-              {/* Tier badge (left) */}
+              {/* Tier badge (left 3D Stamp) */}
               <div
-                className={`flex-shrink-0 w-12 rounded-lg border ${meta.borderColor} ${meta.bgColor} flex items-center justify-center`}
+                className={`relative flex-shrink-0 w-14 rounded-lg border-t border-x border-white/10 border-b-[4px] ${meta.borderColor} ${meta.bgStyle} ${meta.shadow} overflow-hidden group flex items-center justify-center`}
               >
-                <span className={`font-['Lilita_One'] text-2xl ${meta.color}`}>
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className={`relative font-['Lilita_One'] text-[32px] ${meta.color} transform group-hover:scale-110 transition-transform duration-300`}>
                   {meta.label}
                 </span>
               </div>
 
               {/* Brawler tiles (horizontal, wrap) */}
-              <div className="flex-1 min-h-[52px] flex flex-wrap gap-1.5 items-center rounded-lg bg-white/[0.02] p-1.5">
+              <div className="flex-1 min-h-[56px] flex flex-wrap gap-2 items-center rounded-lg bg-black/40 border border-white/5 p-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.5)]">
                 {brawlers.length === 0 ? (
-                  <span className="text-xs text-slate-700 px-2">{t('tierListEmptyTier')}</span>
+                  <span className="text-[11px] uppercase tracking-widest text-slate-600 px-3 font-bold">{t('tierListEmptyTier')}</span>
                 ) : (
                   brawlers.map(b => {
                     const isSelected = selectedId === b.id
@@ -119,10 +151,10 @@ export function BrawlerTierList({ data }: Props) {
                         type="button"
                         data-brawler-id={b.id}
                         onClick={() => handleToggle(b.id)}
-                        className={`relative w-11 h-11 rounded-md overflow-hidden transition-all ${
+                        className={`group relative w-12 h-12 rounded-lg overflow-hidden transition-all duration-300 transform ${
                           isSelected
-                            ? 'ring-2 ring-[#FFC91B] scale-105'
-                            : 'ring-1 ring-white/10 hover:ring-white/30'
+                            ? 'ring-2 ring-[#FFC91B] scale-110 shadow-[0_0_15px_rgba(255,201,27,0.4)] z-10'
+                            : 'ring-1 ring-white/10 hover:ring-white/40 hover:scale-105 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]'
                         }`}
                         aria-label={`${b.name} — ${b.winRate.toFixed(1)}% win rate`}
                         aria-pressed={isSelected}
@@ -131,17 +163,17 @@ export function BrawlerTierList({ data }: Props) {
                           src={getBrawlerPortraitUrl(b.id)}
                           fallbackSrc={getBrawlerPortraitFallback(b.id)}
                           alt={b.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
-                        {/* Visually hidden brawler name — accessible to SR + present in textContent for tests */}
+                        {/* Visually hidden brawler name */}
                         <span className="sr-only">{b.name}</span>
-                        {/* Confidence dot in top-right */}
-                        <div className="absolute top-0.5 right-0.5">
+                        {/* Confidence dot */}
+                        <div className="absolute top-1 right-1 drop-shadow-md">
                           <ConfidenceBadge total={b.total} />
                         </div>
                         {/* WR overlay on bottom */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-center">
-                          <span className={`text-[9px] font-['Lilita_One'] tabular-nums ${wrColor(b.winRate)}`}>
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 pb-0.5 pt-2 via-black/60 to-transparent text-center">
+                          <span className={`text-[9.5px] font-black tracking-wide ${wrColor(b.winRate)}`}>
                             {b.winRate.toFixed(0)}%
                           </span>
                         </div>
@@ -155,51 +187,67 @@ export function BrawlerTierList({ data }: Props) {
         })}
       </div>
 
-      {/* Detail panel */}
-      <div className="mt-4 pt-4 border-t border-white/5">
+      {/* Detail panel (Cyber Console Info box) */}
+      <div className="mt-5 pt-5 border-t border-white/5 relative z-10">
         {selected ? (
-          <div className="brawl-row rounded-xl p-4 flex items-center gap-4">
+          <div className="relative overflow-hidden bg-gradient-to-r from-[#121A2F]/80 to-[#0A0E1A]/80 border border-white/10 rounded-xl p-4 flex items-center gap-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSJ0cmFuc3BhcmVudCI+PC9yZWN0Pgo8cGF0aCBkPSJNMCAwTDAgNCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] pointer-events-none" />
+            
             <BrawlImg
               src={getBrawlerPortraitUrl(selected.id)}
               fallbackSrc={getBrawlerPortraitFallback(selected.id)}
               alt={selected.name}
-              className="w-14 h-14 rounded-lg ring-2 ring-[#FFC91B]/50 flex-shrink-0"
+              className="w-16 h-16 rounded-lg border-2 border-[#FFC91B] flex-shrink-0 shadow-[0_0_15px_rgba(255,201,27,0.3)] relative z-10"
+              style={{ clipPath: 'polygon(15% 0, 100% 0, 100% 85%, 85% 100%, 0 100%, 0 15%)' }}
             />
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 relative z-10">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-['Lilita_One'] text-base text-white truncate">{selected.name}</h4>
-                <ConfidenceBadge total={selected.total} />
+                <h4 className="font-['Lilita_One'] text-lg text-white truncate drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  {selected.name}
+                </h4>
+                <ConfidenceBadge total={selected.total} className="ml-1" />
               </div>
-              <p className={`font-['Lilita_One'] text-xl tabular-nums ${wrColor(selected.winRate)}`}>
+              <p className={`font-['Lilita_One'] text-2xl tabular-nums tracking-wide drop-shadow-md ${wrColor(selected.winRate)}`}>
                 {selected.winRate.toFixed(1)}%
               </p>
-              <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 flex-wrap">
-                <span>
-                  {t('tierListDetailGames', {
-                    total: selected.total,
-                    wins: selected.wins,
-                    losses: selected.losses,
-                  })}
+              <div className="flex items-center gap-3 text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-2 flex-wrap bg-black/40 inline-flex px-2 py-1.5 rounded-md border border-white/5">
+                {/* Sample size — non-negotiable: every WR needs its N.
+                    Uses the `advancedAnalytics.gamesCount` i18n key
+                    ("{count} partidas" / "{count} games" / …) so all
+                    13 locales render natively instead of a cryptic "G". */}
+                <span className="text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.4)] normal-case tracking-normal font-bold">
+                  {t('gamesCount', { count: selected.total })}
                 </span>
+                <span className="w-1 h-1 rounded-full bg-slate-600" />
                 <span>
-                  {t('tierListDetailStarRate', { rate: selected.starPlayerRate.toFixed(1) })}
+                  <span className="text-green-400">{selected.wins}W</span>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-red-400">{selected.losses}L</span>
                 </span>
-                <span className={
+                <span className="w-1 h-1 rounded-full bg-slate-600" />
+                <span className="flex items-center gap-1">
+                  <span className="text-[#FFC91B]">⭐</span> {selected.starPlayerRate.toFixed(1)}%
+                </span>
+                <span className="w-1 h-1 rounded-full bg-slate-600" />
+                <span className={`flex items-center ${
                   selected.avgTrophyChange > 0 ? 'text-green-400'
                     : selected.avgTrophyChange < 0 ? 'text-red-400'
                     : 'text-slate-500'
-                }>
-                  {t('tierListDetailTrophyChange', {
-                    delta: (selected.avgTrophyChange > 0 ? '+' : '') + selected.avgTrophyChange.toFixed(0),
-                  })}
+                }`}>
+                  {selected.avgTrophyChange > 0 ? '🏆 +' : selected.avgTrophyChange < 0 ? '🏆 ' : '🏆 '} {selected.avgTrophyChange.toFixed(0)}
                 </span>
               </div>
             </div>
+            {/* Ambient detail glow */}
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-32 h-32 bg-[#FFC91B]/10 rounded-full blur-3xl pointer-events-none" />
           </div>
         ) : (
-          <p className="text-center text-sm text-slate-500 py-2">
-            {t('tierListSelectHint')}
-          </p>
+          <div className="relative overflow-hidden bg-black/30 border border-dashed border-white/10 rounded-xl p-8 flex items-center justify-center">
+            <p className="text-center text-[11px] uppercase tracking-widest font-bold text-slate-500 relative z-10 flex flex-col items-center gap-2">
+              <span className="text-2xl grayscale opacity-40">🎯</span>
+              {t('tierListSelectHint')}
+            </p>
+          </div>
         )}
       </div>
     </div>

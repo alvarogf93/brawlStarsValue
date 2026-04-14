@@ -7,10 +7,10 @@ vi.mock('next-intl', () => mockNextIntl({
   brawlers: 'brawlers',
   tierListSubtitle: 'Tus brawlers agrupados por tier',
   tierListSelectHint: 'Selecciona un brawler',
-  tierListDetailGames: '{total} partidas ({wins}W / {losses}L)',
-  tierListDetailStarRate: 'Star player: {rate}%',
-  tierListDetailTrophyChange: 'Trofeos: {delta} promedio',
   tierListEmptyTier: '—',
+  // Sample-size label — lock the "N partidas" pattern so a future
+  // visual redesign cannot silently drop it from the detail panel.
+  gamesCount: '{count} partidas',
   confidenceHigh: 'High',
   confidenceMedium: 'Medium',
   confidenceLow: 'Low',

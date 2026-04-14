@@ -51,6 +51,9 @@ supabase/.temp/
 /battle-history-*.png
 /page-*.png
 
+# local operational notes (SSH key paths, secrets references, etc.)
+/docs/local/
+
 # local tooling configs (agents, skills, tool preferences)
 /.agents
 /.claude

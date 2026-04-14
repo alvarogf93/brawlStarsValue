@@ -8,6 +8,7 @@ interface BrawlImgProps {
   fallbackText?: string
   fallbackSrc?: string
   className?: string
+  style?: React.CSSProperties
 }
 
 /**
