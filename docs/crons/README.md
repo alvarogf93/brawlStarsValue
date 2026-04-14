@@ -36,6 +36,7 @@ BrawlVision corre **6 cron jobs** distribuidos en **3 infraestructuras distintas
 | 4 | `enqueue-premium-syncs` | `*/15 * * * *` en prod (PERO `* * * * *` en el repo) | pg_cron (Supabase) | `SELECT * FROM cron.job_run_details` | ✅ activo — **DRIFT con el repo** |
 | 5 | `process-sync-queue` | `*/5 * * * *` en prod (PERO **comentado** en el repo) | pg_cron (Supabase) | `SELECT * FROM cron.job_run_details` | ✅ activo — **NO ESTÁ EN EL REPO** |
 | 6 | `cleanup-anonymous-visits` | `0 3 * * *` (diario 03:00) | pg_cron (Supabase) | `SELECT * FROM cron.job_run_details` | ✅ activo |
+| 7 | `archive-meta-stats` | `0 4 * * 1` (lunes 04:00) | pg_cron (Supabase) | `SELECT * FROM cron.job_run_details` | ⏳ pending — requiere backfill inicial manual antes de activación (ver [archive-runbook.md](archive-runbook.md)) |
 
 > Todos los schedules están en **UTC**.
 
@@ -831,16 +832,25 @@ Parcialmente. Hay mejoras posibles **sin consolidar** los 3 tiers, y otras que *
 
 La **recomendación inmediata** son los pasos 1, 2, 3 (todos sin coste ni upgrade). El paso 4 solo tiene sentido si ya se upgrade a Pro por otros motivos. El paso 5 es un sprint dedicado si se valora mucho la observabilidad centralizada de los crons HTTP.
 
-### Archivo a largo plazo de `meta_stats` (roadmap)
+### Archivo a largo plazo de `meta_stats` (implementado — pending activation)
 
-Sprint F estableció el invariante "nunca borrar datos", pero la ventana rodante de 14/28 días significa que las lecturas **ignoran** filas viejas aunque físicamente siguen en la tabla. Con el tiempo, `meta_stats` acumula muchas filas que ninguna query lee, lo cual crecerá sin límite y eventualmente degradará índices.
+Sprint F estableció el invariante "nunca borrar datos", pero la ventana rodante de 14/28 días significa que las lecturas **ignoran** filas viejas aunque físicamente siguen en la tabla. Sin un mecanismo de archivado, `meta_stats` crecería indefinidamente.
 
-La propuesta (task formal pendiente) es una tabla `meta_stats_archive` con granularidad más gruesa (agregados semanales o mensuales por `map + mode + brawler_id`) poblada por un cron semanal que copia las filas de `meta_stats` que están a punto de salir de la ventana caliente, y un segundo paso que las borra de `meta_stats` **solo después** de haberse copiado con éxito. De esa manera:
+**La solución (migrations 018 + 019)**: una tabla `meta_stats_archive` con granularidad **semanal** por `(brawler_id, map, mode, source, period_start)` y una función SQL `archive_meta_stats_weekly()` que cada lunes 04:00 UTC (cron `archive-meta-stats` — ver tabla maestra, entrada #7) mueve filas mayores de **90 días** de la hot table al archive. El movimiento es **atómico en una única transacción**: INSERT al archive, DELETE de la hot, en un solo CTE. Si el INSERT falla, el DELETE hace rollback. **Imposible perder datos**.
 
-- La tabla caliente (`meta_stats`) se mantiene acotada a ~30-60 días.
-- La tabla histórica (`meta_stats_archive`) preserva toda la historia con granularidad semanal — datos de temporadas pasadas siguen disponibles para analytics cross-season, comparativas pre/post balance patch, etc.
-- Nunca se pierde un dato: antes de borrar en `meta_stats`, hay que haber escrito en `meta_stats_archive`. Transacción atómica.
+**Propiedades del diseño**:
 
-**Estado**: diseño pendiente (no urgente — `meta_stats` actual son ~80k filas, margen de sobra antes de que importe). Ver task superpowers para el spec completo cuando se priorice.
+- Retención hot de 90 días > `META_POLL_PRELOAD_DAYS` (28) > `META_ROLLING_DAYS` (14). La jerarquía garantiza que todas las lecturas operativas (UI, cron) encuentran sus datos en la hot table sin tocar el archive.
+- Idempotente: la función puede re-ejecutarse sin duplicar datos (`ON CONFLICT DO UPDATE SET wins = wins + EXCLUDED.wins`).
+- Granularidad semanal (ratio 7×) preserva resolución para detectar el impacto de balance patches (que salen cada 2-4 semanas) sin explotar en tamaño.
+- Append-or-merge only: el archive **nunca** tiene DELETE ni UPDATE destructivo. Toda la historia se preserva a perpetuidad.
+
+**Estado actual**: migrations escritas y en el repo, **pending aplicación manual**. La primera invocación procesará ~50k filas acumuladas en un batch grande, así que el primer backfill se hace manualmente desde el SQL Editor de Supabase y solo después se activa el cron semanal.
+
+**Runbook completo**: [`docs/crons/archive-runbook.md`](archive-runbook.md) — incluye procedimiento paso a paso para el backfill inicial, verificación periódica, y recuperación de incidentes.
+
+**Migrations**:
+- [`supabase/migrations/018_meta_stats_archive.sql`](../../supabase/migrations/018_meta_stats_archive.sql) — schema + función
+- [`supabase/migrations/019_schedule_archive_cron.sql`](../../supabase/migrations/019_schedule_archive_cron.sql) — pg_cron entry
 
 Referencia: [audit de 2026-04-12](../superpowers/specs/2026-04-12-meta-coverage-audit.md).
