@@ -211,8 +211,18 @@ export function BrawlerTierList({ data }: Props) {
                 {selected.winRate.toFixed(1)}%
               </p>
               <div className="flex items-center gap-3 text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-2 flex-wrap bg-black/40 inline-flex px-2 py-1.5 rounded-md border border-white/5">
+                {/* Sample size — non-negotiable: every WR needs its N.
+                    Uses the `advancedAnalytics.gamesCount` i18n key
+                    ("{count} partidas" / "{count} games" / …) so all
+                    13 locales render natively instead of a cryptic "G". */}
+                <span className="text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.4)] normal-case tracking-normal font-bold">
+                  {t('gamesCount', { count: selected.total })}
+                </span>
+                <span className="w-1 h-1 rounded-full bg-slate-600" />
                 <span>
-                  <span className="text-white drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]">{selected.total}</span> <span className="text-[9px]">G</span> <span className="text-green-400 mx-0.5">{selected.wins}</span><span className="text-slate-600">/</span><span className="text-red-400 mx-0.5">{selected.losses}</span>
+                  <span className="text-green-400">{selected.wins}W</span>
+                  <span className="text-slate-600">/</span>
+                  <span className="text-red-400">{selected.losses}L</span>
                 </span>
                 <span className="w-1 h-1 rounded-full bg-slate-600" />
                 <span className="flex items-center gap-1">
