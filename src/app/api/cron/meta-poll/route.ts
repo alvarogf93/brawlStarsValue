@@ -46,7 +46,8 @@ import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
  *      rolling window so maps with slow rotation cadences have memory
  *      of ≥2-3 appearances when deciding priority.)
  *   4. Loop through the candidate pool up to `META_POLL_MAX_DEPTH`
- *      players. For each player, rebuild a probabilistic sampler
+ *      (1000 on Hobby plan, 1500 on Pro) players. For each player,
+ *      rebuild a probabilistic sampler
  *      `p = min(1, (minLive + 1) / (current + 1))` and evaluate it
  *      per incoming battle. Scarce live maps (count close to `minLive`)
  *      accept at rate ≈ 1; oversampled live maps (count >> minLive)
@@ -71,7 +72,12 @@ import { writeCronHeartbeat, CRON_JOB_NAMES } from '@/lib/cron/heartbeat'
  * Runs every 30 min from the Oracle VPS crontab (see `docs/crons/README.md`).
  * Protected by CRON_SECRET.
  */
-export const maxDuration = 600
+// Plan-aware hard cap: Vercel Hobby rejects any value > 300 at build
+// time ("Builder returned invalid maxDuration value"). When the
+// project upgrades to Pro we can raise this back to 600 and widen
+// the soft wall-clock guard + META_POLL_MAX_DEPTH to match — see
+// the paired constants in `@/lib/draft/constants`.
+export const maxDuration = 300
 
 interface ProcessOnePlayerResult {
   processed: boolean
@@ -371,13 +377,14 @@ async function runBalancedPoll(
   let playersPolled = 0
   let timeBudgetExit = false
 
-  // Soft wall-clock guard. Vercel's hard `maxDuration = 600` would return
-  // a 504 and lose the batch of battles already accumulated in `acc`. By
-  // bailing voluntarily at 540s we still have ~60s to run the 4 bulk
-  // upserts and flush the cursor updates before Vercel kills the function.
-  // The `timeBudgetExit` flag is surfaced in the response body so it's
-  // obvious from the JSON log when we hit this path.
-  const WALL_CLOCK_BUDGET_MS = 540_000
+  // Soft wall-clock guard. Vercel's hard `maxDuration = 300` (Hobby plan
+  // cap) would return a 504 and lose the batch of battles already
+  // accumulated in `acc`. By bailing voluntarily at 270s we still have
+  // ~30s to run the 4 bulk upserts and flush the cursor updates before
+  // Vercel kills the function. The `timeBudgetExit` flag is surfaced in
+  // the response body so it's obvious from the JSON log when we hit
+  // this path. On upgrade to Pro raise to 540_000 alongside maxDuration.
+  const WALL_CLOCK_BUDGET_MS = 270_000
 
   // Track the starting minLive so diagnostics can report convergence
   // (how much the gap closed within this single run).
@@ -419,8 +426,9 @@ async function runBalancedPoll(
     playersPolled++
 
     // Rate-limit throttle between Supercell API calls — NOT a poll.
-    // Total bounded runtime: META_POLL_MAX_DEPTH (1500) × (~150ms fetch
-    // + META_POLL_DELAY_MS) ≈ 375s worst-case, inside maxDuration=600.
+    // Total bounded runtime: META_POLL_MAX_DEPTH (1000) × (~150ms fetch
+    // + META_POLL_DELAY_MS) ≈ 250s worst-case, inside maxDuration=300
+    // with ~50s margin for the bulk upserts that follow the loop.
     // Deliberately stays in a regular Vercel Function (not Workflow)
     // because the work finishes in a single invocation — Workflow's
     // durable-step model is for multi-minute-to-hour jobs that need

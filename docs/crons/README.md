@@ -356,7 +356,7 @@ para resolver [Issue 5](#issue-5-resuelto-cron_secret-en-texto-plano-en-el-cront
   7. **Bulk upsert** — `bulk_upsert_meta_stats`, `bulk_upsert_meta_matchups`, `bulk_upsert_meta_trios` (cada uno es una sola llamada RPC con un array JSONB).
   8. **Heartbeat** — `writeCronHeartbeat(..., { initialMinLive, finalMinLive, ... })` al final de todo. La convergencia se observa comparando ambos valores: `finalMinLive > initialMinLive` significa que el run logró subir el piso de los escasos; `finalMinLive == initialMinLive` indica que el par más escaso no tuvo supply en este batch (limitación real del meta pro, no del algoritmo).
 - **Throttle**: `META_POLL_DELAY_MS` (100ms) entre llamadas API para no saturar el proxy. NO es polling — es rate-limiting de la API de Supercell. El cron es un único invocation bounded por pool size + throttle.
-- **Duración envelope**: 1500 jugadores × (~150ms Supercell fetch + 100ms throttle) ≈ **375s worst-case**, dentro del `maxDuration = 600` con margen. Soft wall-clock guard sale graceful a 540s, dejando ~60s para los bulk upserts + cursor flush antes del hard kill de Vercel.
+- **Duración envelope** (Hobby plan): 1000 jugadores × (~150ms Supercell fetch + 100ms throttle) ≈ **250s worst-case**, dentro del `maxDuration = 300` con ~50s de margen. Soft wall-clock guard sale graceful a 270s, dejando los 30s finales para los bulk upserts + cursor flush antes del hard kill de Vercel. **Nota**: Sprint F diseñó originalmente para `maxDuration = 600` + 1500 jugadores (plan Pro). Vercel Hobby rechaza `maxDuration > 300` en build time, así que los tres valores (`maxDuration`, `META_POLL_MAX_DEPTH`, `WALL_CLOCK_BUDGET_MS`) bajaron juntos al envelope Hobby. En upgrade a Pro, **los tres se suben juntos** a 600 / 1500 / 540_000 — están documentados como un triplete en `route.ts:65` y `constants.ts` para que nadie los toque por separado.
 - **Output visible en `/tmp/meta-poll.log`** — cada invocación añade el JSON de respuesta del endpoint con la forma:
   ```json
   {
@@ -400,9 +400,9 @@ Sprint F resuelve los dos problemas de raíz:
 
 1. **Migration 017** — el RPC ahora devuelve `ROUND(SUM(total) / 6)`. Unidades coherentes end-to-end. Bug silencioso eliminado. Ver `supabase/migrations/017_sum_meta_stats_battles_unit_fix.sql`.
 2. **Sampler probabilístico en lugar de gate binario** — la fórmula `(minLive + 1) / (current + 1)` atenúa sin excluir, elimina el feedback loop (minLive no tiene forma de escalarse con el máximo), y converge asintóticamente sin necesidad de target explícito.
-3. **Pool ampliado** — `META_POLL_MAX_DEPTH: 600 → 1500`. El pool tiene ~2,100 únicos; sólo procesábamos el 28%. Más jugadores = más chances de encontrar a alguien que juegue los maps escasos.
+3. **Pool ampliado** — `META_POLL_MAX_DEPTH: 600 → 1000` (Hobby) / `1500` (Pro). El pool tiene ~2,100 únicos; antes procesábamos el 28%, ahora el 48% (Hobby) o 71% (Pro). Más jugadores = más chances de encontrar a alguien que juegue los maps escasos.
 4. **Ventana de preload separada** — `META_POLL_PRELOAD_DAYS = 28` (cron) vs `META_ROLLING_DAYS = 14` (UI). El cron necesita memoria más larga para priorizar bien maps con rotación lenta; la UI mantiene recency para reflejar el meta post-balance-patches.
-5. **`maxDuration: 300 → 600`** para dar margen a 1500 jugadores. Requiere plan Pro de Vercel (si el plan Hobby rechaza, bajar a 300 y `META_POLL_MAX_DEPTH` a 1000).
+5. **`maxDuration`** se queda en **300** (cap del plan Hobby). El diseño original de Sprint F apuntaba a 600 (plan Pro), pero Vercel rechazó el deploy con ese valor (`Builder returned invalid maxDuration value for Serverless Function "api/cron/meta-poll"`) y el fallback es 300 + pool reducido. Los tres valores `maxDuration`, `META_POLL_MAX_DEPTH`, y `WALL_CLOCK_BUDGET_MS` están documentados como un **triplete acoplado**: si alguna vez se upgrade a Pro, los tres se suben juntos a 600 / 1500 / 540_000.
 
 ##### Modelo de rotación de Brawl Stars y por qué importa
 

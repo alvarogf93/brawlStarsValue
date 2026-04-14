@@ -134,18 +134,28 @@ export const META_POLL_RANKING_COUNTRIES = [
 
 /** Hard cap on total players polled per cron run.
  *
- *  Sprint F raised this from 600 to 1500 so the cron can spend budget
- *  on a larger slice of the ~2,100-unique candidate pool. The
- *  probabilistic sampler attenuates oversampled maps automatically,
- *  so more players = more chances to find someone playing a scarce
- *  map, without flooding the popular ones.
+ *  Sprint F originally raised this from 600 to 1500 to exploit a
+ *  `maxDuration=600` Pro-tier envelope. Vercel Hobby rejects
+ *  `maxDuration > 300` at build time, so we fall back to a smaller
+ *  pool that fits in the 300s hard cap while keeping the sampler
+ *  philosophy intact.
  *
- *  Timing envelope: 1500 × (~150ms Supercell fetch + 100ms throttle)
- *  ≈ 375s worst case, inside `maxDuration=600`. The soft wall-clock
- *  guard in the route trips at 540s — leaving ~60s for bulk upserts
- *  + cursor flush before Vercel's hard kill.
+ *  Timing envelope with `maxDuration=300` + soft budget 270s:
+ *    1000 players × (~150ms Supercell fetch + 100ms throttle) ≈ 250s
+ *    worst case, leaving ~50s for bulk upserts + cursor flush before
+ *    the soft budget trips at 270s.
+ *
+ *  On upgrade to Pro, raise this to 1500 AND raise `maxDuration` to
+ *  600 AND widen `WALL_CLOCK_BUDGET_MS` to 540_000 in the route — the
+ *  three values are paired and must move together.
+ *
+ *  Sampler compensation: the value of polling players 1000→1500 is
+ *  marginally decreasing (tail of the country rankings has lower
+ *  supply), and the probabilistic sampler converges asymptotically
+ *  on the scarce maps regardless of depth — cutting depth by a third
+ *  slows convergence but does not break it.
  */
-export const META_POLL_MAX_DEPTH = 1500
+export const META_POLL_MAX_DEPTH = 1000
 
 /** Delay between API calls in ms (throttle) */
 export const META_POLL_DELAY_MS = 100
