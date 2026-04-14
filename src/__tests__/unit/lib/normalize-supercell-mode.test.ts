@@ -38,6 +38,17 @@ describe('normalizeSupercellMode', () => {
     expect(normalizeSupercellMode('brawlHockey', 45)).toBe('brawlHockey')
   })
 
+  it('prefers modeId over a conflicting mode string — Hyperspace/brawlHockey regression', () => {
+    // Supercell reported Hyperspace battles with mode='brawlBall' and
+    // modeId=45 for weeks. The original implementation checked
+    // isDraftMode(rawMode) first and returned 'brawlBall' without ever
+    // looking at the modeId, so 369 Hyperspace rows ended up mis-
+    // classified in meta_stats and brawlHockey had 0 rows. The fix
+    // flips the priority so modeId wins when it maps to a known
+    // draft mode. This test locks the new ordering.
+    expect(normalizeSupercellMode('brawlBall', 45)).toBe('brawlHockey')
+  })
+
   it('every currently-listed draft mode round-trips through the normalizer', () => {
     for (const mode of DRAFT_MODES) {
       expect(normalizeSupercellMode(mode, 0)).toBe(mode)

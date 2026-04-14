@@ -1,252 +1,326 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { fetchPlayerRankings, fetchBattlelog } from '@/lib/api'
+import { fetchPlayerRankings, fetchBattlelog, fetchEventRotation } from '@/lib/api'
 import { parseBattleTime } from '@/lib/battle-parser'
 import {
-  META_POLL_BATCH_SIZE,
   META_POLL_DELAY_MS,
   META_POLL_MAX_DEPTH,
-  META_POLL_CHUNK_SIZE,
+  META_POLL_RANKING_COUNTRIES,
+  META_ROLLING_DAYS,
   normalizeSupercellMode,
 } from '@/lib/draft/constants'
-import { computeModeTarget, findUnderTargetModes, type ModeCounts } from '@/lib/draft/meta-poll-balance'
+import {
+  computeMapModeTarget,
+  findUnderTargetMapModes,
+  mapModeKey,
+  type MapModeCounts,
+} from '@/lib/draft/meta-poll-balance'
 import { processBattleForMeta, type MetaAccumulators } from '@/lib/draft/meta-accumulator'
 
 /**
- * Cron: Poll top global players' battlelogs and aggregate into
- * meta_stats / meta_matchups / meta_trios.
+ * Cron: Poll top pro players from multiple country rankings and
+ * aggregate their recent battles into `meta_stats` / `meta_matchups`
+ * / `meta_trios`.
  *
- * Strategy (Sprint D — 2026-04-13): adaptive top-up.
+ * Strategy — cumulative per-(map, mode) balance (Sprint E, 2026-04-14):
  *
- * 1. Fetch the top META_POLL_MAX_DEPTH players from global rankings in
- *    a single call (Supercell returns a list).
- * 2. Process the first META_POLL_BATCH_SIZE (200) — the "base batch".
- *    Every draft-mode battle from these players is kept.
- * 3. Count battles per mode in a side map.
- * 4. Compute target = max(MIN_TARGET, bestMode * RATIO).
- *    If any draft mode is below target AND we have not yet exhausted
- *    META_POLL_MAX_DEPTH, pull the next META_POLL_CHUNK_SIZE (100)
- *    players and process their battlelogs. On top-up iterations we
- *    ONLY keep battles whose mode is under target — no point
- *    amplifying modes that are already saturated.
- * 5. Loop on (step 4) until all modes are balanced or depth is hit.
- * 6. Bulk upsert meta_stats / meta_matchups / meta_trios in three
- *    single RPC calls as before.
+ *   1. Fetch candidate pool by merging `/rankings/{country}/players`
+ *      across a fixed list of countries (`META_POLL_RANKING_COUNTRIES`).
+ *      Supercell caps each rankings response at 200 items, so a single
+ *      global call is wildly insufficient. 11 country rankings yield
+ *      ~2,100 unique players with minimal overlap.
+ *   2. Fetch the Supercell events rotation to determine the set of
+ *      currently-live `(map, mode)` pairs. Only these pairs are the
+ *      targets of balancing — out-of-rotation maps can't receive new
+ *      battles regardless of who we poll.
+ *   3. Preload the last 14 days of `meta_stats` grouped by `(map, mode)`
+ *      into the in-memory `battlesByMapMode` map. This gives the
+ *      balancing algorithm **cumulative** visibility instead of the
+ *      old per-run delta-only view. The previous implementation was
+ *      fundamentally broken because it computed the target against
+ *      this-run counts only — a mode with 100× imbalance on disk
+ *      would be "balanced" per-run while the cumulative ratio kept
+ *      growing indefinitely.
+ *   4. Loop through the candidate pool up to `META_POLL_MAX_DEPTH`
+ *      players. For each player, fetch their battlelog and filter
+ *      incoming battles against the dynamic underTarget set (which
+ *      is recomputed after each player so the filter adapts as the
+ *      run progresses). Battles on over-target `(map, mode)` pairs
+ *      are discarded; battles on under-target pairs are accumulated.
+ *   5. Early-exit if every live `(map, mode)` pair reaches target
+ *      before the depth cap.
+ *   6. Bulk upsert meta_stats / meta_matchups / meta_trios in three
+ *      single RPC calls.
  *
- * Cursors advance for every battle the player has — including the
- * ones we discard — so the next cron run does not re-examine them.
+ * Cursors (`meta_poll_cursors`) advance for every battle the player
+ * has — including the ones we discard — so the next cron run does
+ * not re-examine them.
  *
- * Runs every 2-4 hours. Protected by CRON_SECRET.
+ * Runs every 30 min from the Oracle VPS crontab (see `docs/crons/README.md`).
+ * Protected by CRON_SECRET.
  */
 export const maxDuration = 300
 
-interface ChunkResult {
-  processed: number
-  skipped: number
-  errors: number
+interface ProcessOnePlayerResult {
+  processed: boolean
+  skipped: boolean
+  errored: boolean
   battlesKept: number
 }
 
-async function processPlayerChunk(
-  tags: string[],
+async function processOnePlayer(
+  tag: string,
   cursorMap: Map<string, string>,
   acc: MetaAccumulators,
-  battlesByMode: Map<string, number>,
+  battlesByMapMode: MapModeCounts,
   cursorUpdates: Array<{ player_tag: string; last_battle_time: string }>,
-  acceptMode: (mode: string) => boolean,
-): Promise<ChunkResult> {
-  let processed = 0
-  let skipped = 0
-  let errors = 0
-  let battlesKept = 0
+  acceptKey: (key: string) => boolean,
+): Promise<ProcessOnePlayerResult> {
+  try {
+    const response = await fetchBattlelog(tag)
+    const entries = response.items ?? []
 
-  for (const tag of tags) {
-    try {
-      const response = await fetchBattlelog(tag)
-      const entries = response.items ?? []
-
-      if (entries.length === 0) {
-        skipped++
-        continue
-      }
-
-      const lastSeen = cursorMap.get(tag)
-      let latestBattleTime = lastSeen ?? ''
-
-      for (const entry of entries) {
-        const battleTime = parseBattleTime(entry.battleTime)
-
-        // Skip already-processed battles
-        if (lastSeen && battleTime <= lastSeen) continue
-
-        // Track latest for cursor update — we advance the cursor even for
-        // battles we later discard (wrong mode, wrong type, saturated mode)
-        // so the next cron run doesn't re-examine them.
-        if (battleTime > latestBattleTime) latestBattleTime = battleTime
-
-        const battle = entry.battle
-        // Normalize via helper: Supercell reports `mode: "unknown"` for
-        // brand-new modes (e.g. brawlHockey) even though the modeId is
-        // correct. Without this fallback, isDraftMode("unknown") drops
-        // the battle and meta_stats never gets brawlHockey data —
-        // which is exactly why Hyperspace had zero pro stats.
-        const rawMode = battle.mode || entry.event.mode
-        const rawModeId = (entry.event as { modeId?: number }).modeId
-        const mode = normalizeSupercellMode(rawMode, rawModeId)
-        const map = entry.event.map || null
-
-        if (!mode) continue
-        if (battle.type === 'friendly') continue
-        if (battle.result !== 'victory' && battle.result !== 'defeat') continue
-        if (!battle.teams || battle.teams.length !== 2) continue
-        if (battle.teams[0].length !== 3 || battle.teams[1].length !== 3) continue
-
-        // Adaptive top-up filter: on top-up iterations only keep battles
-        // from under-sampled modes. The base batch passes `() => true`.
-        if (!acceptMode(mode)) continue
-
-        let myBrawlerId: number | null = null
-        let opponentBrawlerIds: number[] = []
-
-        for (let teamIdx = 0; teamIdx < battle.teams.length; teamIdx++) {
-          const playerInTeam = battle.teams[teamIdx].find(p => p.tag === tag)
-          if (playerInTeam) {
-            myBrawlerId = playerInTeam.brawler.id
-            const otherTeamIdx = 1 - teamIdx
-            opponentBrawlerIds = battle.teams[otherTeamIdx].map(p => p.brawler.id)
-            break
-          }
-        }
-
-        if (myBrawlerId === null) continue
-
-        processBattleForMeta(acc, {
-          myBrawlerId,
-          opponentBrawlerIds,
-          map,
-          mode,
-          result: battle.result,
-        })
-
-        // Extract trio composition (polled player's team — 3 brawlers sorted canonically)
-        const myTeamIdx = battle.teams.findIndex(
-          (team: Array<{ tag: string; brawler: { id: number } }>) =>
-            team.some(p => p.tag === tag),
-        )
-        if (myTeamIdx !== -1 && map) {
-          const teamBrawlerIds = battle.teams[myTeamIdx]
-            .map((p: { brawler: { id: number } }) => p.brawler.id)
-            .sort((a: number, b: number) => a - b)
-
-          if (teamBrawlerIds.length === 3) {
-            const trioKey = `${teamBrawlerIds[0]}|${teamBrawlerIds[1]}|${teamBrawlerIds[2]}|${map}|${mode}`
-            const existing = acc.trios.get(trioKey) ?? {
-              wins: 0, losses: 0, total: 0,
-              ids: teamBrawlerIds, map, mode,
-            }
-            existing.total++
-            if (battle.result === 'victory') existing.wins++
-            else existing.losses++
-            acc.trios.set(trioKey, existing)
-          }
-        }
-
-        battlesKept++
-        battlesByMode.set(mode, (battlesByMode.get(mode) ?? 0) + 1)
-      }
-
-      // Update cursor for this player (even if we discarded all battles)
-      if (latestBattleTime && latestBattleTime !== (lastSeen ?? '')) {
-        cursorUpdates.push({ player_tag: tag, last_battle_time: latestBattleTime })
-      }
-
-      processed++
-    } catch {
-      errors++
+    if (entries.length === 0) {
+      return { processed: false, skipped: true, errored: false, battlesKept: 0 }
     }
 
-    // Throttle API calls
-    await new Promise(r => setTimeout(r, META_POLL_DELAY_MS))
-  }
+    const lastSeen = cursorMap.get(tag)
+    let latestBattleTime = lastSeen ?? ''
+    let battlesKept = 0
 
-  return { processed, skipped, errors, battlesKept }
+    for (const entry of entries) {
+      const battleTime = parseBattleTime(entry.battleTime)
+
+      // Skip already-processed battles
+      if (lastSeen && battleTime <= lastSeen) continue
+
+      // Track latest for cursor update — we advance the cursor even for
+      // battles we later discard (wrong mode, wrong type, saturated pair)
+      // so the next cron run doesn't re-examine them.
+      if (battleTime > latestBattleTime) latestBattleTime = battleTime
+
+      const battle = entry.battle
+      // Normalize mode via helper: modeId is authoritative when known
+      // (Hyperspace is a brawlHockey map but ships with `mode: 'brawlBall'`).
+      const rawMode = battle.mode || entry.event.mode
+      const rawModeId = (entry.event as { modeId?: number }).modeId
+      const mode = normalizeSupercellMode(rawMode, rawModeId)
+      const map = entry.event.map || null
+
+      if (!mode) continue
+      if (!map) continue
+      if (battle.type === 'friendly') continue
+      if (battle.result !== 'victory' && battle.result !== 'defeat') continue
+      if (!battle.teams || battle.teams.length !== 2) continue
+      if (battle.teams[0].length !== 3 || battle.teams[1].length !== 3) continue
+
+      // Per-(map, mode) balance gate: drop battles whose key is not
+      // currently under-target. The base batch uses the same filter as
+      // everything else — there is no unrestricted "collect everything"
+      // phase, because that was exactly what floded brawlBall in the
+      // old implementation.
+      const key = mapModeKey(map, mode)
+      if (!acceptKey(key)) continue
+
+      let myBrawlerId: number | null = null
+      let opponentBrawlerIds: number[] = []
+
+      for (let teamIdx = 0; teamIdx < battle.teams.length; teamIdx++) {
+        const playerInTeam = battle.teams[teamIdx].find(p => p.tag === tag)
+        if (playerInTeam) {
+          myBrawlerId = playerInTeam.brawler.id
+          const otherTeamIdx = 1 - teamIdx
+          opponentBrawlerIds = battle.teams[otherTeamIdx].map(p => p.brawler.id)
+          break
+        }
+      }
+
+      if (myBrawlerId === null) continue
+
+      processBattleForMeta(acc, {
+        myBrawlerId,
+        opponentBrawlerIds,
+        map,
+        mode,
+        result: battle.result,
+      })
+
+      // Trio composition (polled player's team — 3 brawlers sorted canonically)
+      const myTeamIdx = battle.teams.findIndex(
+        (team: Array<{ tag: string; brawler: { id: number } }>) =>
+          team.some(p => p.tag === tag),
+      )
+      if (myTeamIdx !== -1) {
+        const teamBrawlerIds = battle.teams[myTeamIdx]
+          .map((p: { brawler: { id: number } }) => p.brawler.id)
+          .sort((a: number, b: number) => a - b)
+
+        if (teamBrawlerIds.length === 3) {
+          const trioKey = `${teamBrawlerIds[0]}|${teamBrawlerIds[1]}|${teamBrawlerIds[2]}|${map}|${mode}`
+          const existing = acc.trios.get(trioKey) ?? {
+            wins: 0, losses: 0, total: 0,
+            ids: teamBrawlerIds, map, mode,
+          }
+          existing.total++
+          if (battle.result === 'victory') existing.wins++
+          else existing.losses++
+          acc.trios.set(trioKey, existing)
+        }
+      }
+
+      battlesKept++
+      battlesByMapMode[key] = (battlesByMapMode[key] ?? 0) + 1
+    }
+
+    if (latestBattleTime && latestBattleTime !== (lastSeen ?? '')) {
+      cursorUpdates.push({ player_tag: tag, last_battle_time: latestBattleTime })
+    }
+
+    return { processed: true, skipped: false, errored: false, battlesKept }
+  } catch {
+    return { processed: false, skipped: false, errored: true, battlesKept: 0 }
+  }
 }
 
-async function runAdaptivePoll(supabase: SupabaseClient) {
-  // 1. Fetch up to META_POLL_MAX_DEPTH players in a single ranking call
-  const rankings = await fetchPlayerRankings('global', META_POLL_MAX_DEPTH)
-  const allPlayerTags: string[] = rankings.items.map((p: { tag: string }) => p.tag)
+async function fetchCandidatePool(): Promise<string[]> {
+  // Fetch all rankings in parallel — each call is ~200-400ms and
+  // they're independent. Total wall clock ≈ slowest single call.
+  const results = await Promise.allSettled(
+    META_POLL_RANKING_COUNTRIES.map(c => fetchPlayerRankings(c, 200)),
+  )
+  const seen = new Set<string>()
+  const ordered: string[] = []
+  for (const r of results) {
+    if (r.status !== 'fulfilled') continue
+    for (const p of r.value.items ?? []) {
+      if (!seen.has(p.tag)) {
+        seen.add(p.tag)
+        ordered.push(p.tag)
+      }
+    }
+  }
+  return ordered
+}
 
-  // 2. Load cursors for every candidate tag (one query, not per-chunk)
+async function fetchLiveMapModeKeys(): Promise<Set<string>> {
+  try {
+    const rotation = await fetchEventRotation()
+    const live = new Set<string>()
+    for (const slot of rotation) {
+      const mode = normalizeSupercellMode(slot.event.mode, slot.event.modeId)
+      const map = slot.event.map
+      if (mode && map) live.add(mapModeKey(map, mode))
+    }
+    return live
+  } catch {
+    // If the rotation endpoint is down we fall back to an empty
+    // set — the balance algorithm will then consider every key
+    // already seen in the preload as live, which is a safe fallback
+    // (it's what the old code effectively did).
+    return new Set()
+  }
+}
+
+async function preloadCumulativeCounts(
+  supabase: SupabaseClient,
+): Promise<MapModeCounts> {
+  const since = new Date(Date.now() - META_ROLLING_DAYS * 86400_000)
+    .toISOString()
+    .slice(0, 10)
+  const { data, error } = await supabase.rpc('sum_meta_stats_by_map_mode', {
+    p_since: since,
+    p_source: 'global',
+  })
+  if (error || !data) return {}
+  const counts: MapModeCounts = {}
+  for (const row of data as Array<{ map: string; mode: string; total: number | string }>) {
+    counts[mapModeKey(row.map, row.mode)] = Number(row.total)
+  }
+  return counts
+}
+
+async function runBalancedPoll(supabase: SupabaseClient) {
+  // 1. Fetch candidate pool + live keys + cumulative counts in parallel
+  const [allPlayerTags, liveKeys, battlesByMapMode] = await Promise.all([
+    fetchCandidatePool(),
+    fetchLiveMapModeKeys(),
+    preloadCumulativeCounts(supabase),
+  ])
+
+  // Merge liveKeys with any cumulative keys we've seen before so the
+  // filter doesn't drop all battles when the rotation fetch fails.
+  // Pre-existing keys are treated as "live" fallback only when liveKeys
+  // is empty — otherwise we strictly respect the rotation.
+  const effectiveLiveKeys =
+    liveKeys.size > 0
+      ? liveKeys
+      : new Set(Object.keys(battlesByMapMode))
+
+  // 2. Load cursors for the capped candidate list (one query)
+  const cappedTags = allPlayerTags.slice(0, META_POLL_MAX_DEPTH)
   const { data: cursors } = await supabase
     .from('meta_poll_cursors')
     .select('player_tag, last_battle_time')
-    .in('player_tag', allPlayerTags)
+    .in('player_tag', cappedTags)
 
   const cursorMap = new Map<string, string>()
   for (const c of (cursors ?? []) as Array<{ player_tag: string; last_battle_time: string }>) {
     cursorMap.set(c.player_tag, c.last_battle_time)
   }
 
-  // 3. Shared state across base + top-up iterations
+  // 3. Shared state across the single processing loop
   const acc: MetaAccumulators = { stats: new Map(), matchups: new Map(), trios: new Map() }
-  const battlesByMode = new Map<string, number>()
   const cursorUpdates: { player_tag: string; last_battle_time: string }[] = []
 
-  // 4. Base batch — accept all draft modes
-  const baseTags = allPlayerTags.slice(0, META_POLL_BATCH_SIZE)
-  const baseResult = await processPlayerChunk(
-    baseTags, cursorMap, acc, battlesByMode, cursorUpdates,
-    () => true,
-  )
+  let processed = 0
+  let skipped = 0
+  let errors = 0
+  let battlesKept = 0
+  let playersPolled = 0
+  let earlyExit = false
 
-  let processed = baseResult.processed
-  let skipped = baseResult.skipped
-  let errors = baseResult.errors
-  let battlesKept = baseResult.battlesKept
-  let iterationsRun = 1
-  let offset = Math.min(META_POLL_BATCH_SIZE, allPlayerTags.length)
+  // 4. Process players in order, filtering by dynamic underTarget
+  for (const tag of cappedTags) {
+    // Recompute target + underTarget per-player so the filter adapts
+    // as battlesByMapMode grows within the run. Cheap (O(liveKeys)).
+    const target = computeMapModeTarget(battlesByMapMode, effectiveLiveKeys)
+    const underTarget = findUnderTargetMapModes(battlesByMapMode, effectiveLiveKeys, target)
 
-  // 5. Adaptive top-up loop
-  while (offset < META_POLL_MAX_DEPTH && offset < allPlayerTags.length) {
-    const counts: ModeCounts = {}
-    for (const [mode, n] of battlesByMode) counts[mode] = n
+    if (underTarget.size === 0) {
+      earlyExit = true
+      break
+    }
 
-    const target = computeModeTarget(counts)
-    const underTarget = findUnderTargetModes(counts, target)
-
-    if (underTarget.size === 0) break // fully balanced
-
-    const chunkEnd = Math.min(
-      offset + META_POLL_CHUNK_SIZE,
-      META_POLL_MAX_DEPTH,
-      allPlayerTags.length,
-    )
-    const chunkTags = allPlayerTags.slice(offset, chunkEnd)
-    offset = chunkEnd
-
-    const chunkResult = await processPlayerChunk(
-      chunkTags, cursorMap, acc, battlesByMode, cursorUpdates,
-      (mode: string) => underTarget.has(mode),
+    const acceptKey = (key: string) => underTarget.has(key)
+    const result = await processOnePlayer(
+      tag, cursorMap, acc, battlesByMapMode, cursorUpdates, acceptKey,
     )
 
-    processed += chunkResult.processed
-    skipped += chunkResult.skipped
-    errors += chunkResult.errors
-    battlesKept += chunkResult.battlesKept
-    iterationsRun++
+    if (result.processed) processed++
+    if (result.skipped) skipped++
+    if (result.errored) errors++
+    battlesKept += result.battlesKept
+    playersPolled++
+
+    // Rate-limit throttle between Supercell API calls — NOT a poll.
+    // Total bounded runtime: META_POLL_MAX_DEPTH (600) × (~150ms fetch
+    // + META_POLL_DELAY_MS) ≈ 150s worst-case, inside maxDuration=300.
+    // Deliberately stays in a regular Vercel Function (not Workflow)
+    // because the work finishes in a single invocation — Workflow's
+    // durable-step model is for multi-minute-to-hour jobs that need
+    // crash-safe resume, which this does not.
+    await new Promise(r => setTimeout(r, META_POLL_DELAY_MS))
   }
-
-  // 6. Final counts snapshot for the response diagnostics
-  const finalCountsByMode: Record<string, number> = {}
-  for (const [mode, n] of battlesByMode) finalCountsByMode[mode] = n
 
   return {
     acc, cursorUpdates,
     processed, skipped, errors, battlesKept,
-    iterationsRun, playersPolled: offset,
-    finalCountsByMode,
+    poolSize: allPlayerTags.length,
+    playersPolled,
+    liveKeyCount: effectiveLiveKeys.size,
+    earlyExit,
+    finalCountsByMapMode: { ...battlesByMapMode },
   }
 }
 
@@ -263,7 +337,7 @@ export async function GET(request: Request) {
   )
 
   try {
-    const result = await runAdaptivePoll(supabase)
+    const result = await runBalancedPoll(supabase)
     const today = new Date().toISOString().slice(0, 10)
 
     // Bulk upsert meta_stats
@@ -335,9 +409,13 @@ export async function GET(request: Request) {
       matchupKeys: result.acc.matchups.size,
       trioKeys: result.acc.trios.size,
       adaptive: {
-        iterationsRun: result.iterationsRun,
+        poolSize: result.poolSize,
         playersPolled: result.playersPolled,
-        finalCountsByMode: result.finalCountsByMode,
+        liveKeyCount: result.liveKeyCount,
+        earlyExit: result.earlyExit,
+        // NOTE: this field is the CUMULATIVE state including the preload,
+        // so its numbers reflect the 14-day running totals, not just this run.
+        finalCountsByMapMode: result.finalCountsByMapMode,
       },
     })
   } catch (err) {
