@@ -472,7 +472,18 @@ export async function GET(request: Request) {
     const result = await runBalancedPoll(supabase)
     const today = new Date().toISOString().slice(0, 10)
 
-    // Bulk upsert meta_stats
+    // Bulk upsert meta_stats.
+    //
+    // We ALWAYS check `.error` on Supabase RPC calls. The JS client does
+    // not throw on PostgREST errors — it returns `{ data, error }` — so
+    // an unchecked `await rpc(...)` silently eats any RPC failure. Before
+    // Sprint F+ we had that exact bug: the cron reported success via the
+    // heartbeat while the bulk upserts were failing silently, and nobody
+    // noticed until a direct `meta_stats` inspection showed data stuck
+    // at 5 days old. Throwing here surfaces the failure as a 500, which
+    // skips the heartbeat write (heartbeat lives outside this try/catch
+    // — see `writeCronHeartbeat` below) and shows up as a red row in
+    // `cron_heartbeats` rather than a phantom-success entry.
     if (result.acc.stats.size > 0) {
       const statRows = Array.from(result.acc.stats.entries()).map(([key, val]) => {
         const [brawlerId, map, mode] = key.split('|')
@@ -487,7 +498,10 @@ export async function GET(request: Request) {
           total: val.total,
         }
       })
-      await supabase.rpc('bulk_upsert_meta_stats', { rows: statRows })
+      const { error: statsErr } = await supabase.rpc('bulk_upsert_meta_stats', { rows: statRows })
+      if (statsErr) {
+        throw new Error(`bulk_upsert_meta_stats failed: ${statsErr.message} (${statRows.length} rows)`)
+      }
     }
 
     // Bulk upsert meta_matchups
@@ -505,7 +519,10 @@ export async function GET(request: Request) {
           total: val.total,
         }
       })
-      await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows })
+      const { error: matchupsErr } = await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows })
+      if (matchupsErr) {
+        throw new Error(`bulk_upsert_meta_matchups failed: ${matchupsErr.message} (${matchupRows.length} rows)`)
+      }
     }
 
     // Bulk upsert meta_trios
@@ -522,7 +539,10 @@ export async function GET(request: Request) {
         losses: val.losses,
         total: val.total,
       }))
-      await supabase.rpc('bulk_upsert_meta_trios', { rows: trioRows })
+      const { error: triosErr } = await supabase.rpc('bulk_upsert_meta_trios', { rows: trioRows })
+      if (triosErr) {
+        throw new Error(`bulk_upsert_meta_trios failed: ${triosErr.message} (${trioRows.length} rows)`)
+      }
     }
 
     // Update cursors
