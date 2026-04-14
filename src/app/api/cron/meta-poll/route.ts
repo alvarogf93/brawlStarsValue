@@ -545,11 +545,17 @@ export async function GET(request: Request) {
       }
     }
 
-    // Update cursors
+    // Update cursors. CRITICAL: if this fails silently, the next run
+    // re-processes the same battlelogs, which bloats the API call
+    // budget and makes the heartbeat's "playersPolled" count misleading.
+    // Same destructure+throw pattern as the three bulk upserts above.
     if (result.cursorUpdates.length > 0) {
-      await supabase.from('meta_poll_cursors').upsert(result.cursorUpdates, {
-        onConflict: 'player_tag',
-      })
+      const { error: cursorErr } = await supabase
+        .from('meta_poll_cursors')
+        .upsert(result.cursorUpdates, { onConflict: 'player_tag' })
+      if (cursorErr) {
+        throw new Error(`meta_poll_cursors.upsert failed: ${cursorErr.message} (${result.cursorUpdates.length} rows)`)
+      }
     }
 
     // Success heartbeat — written AFTER all side-effects commit so a

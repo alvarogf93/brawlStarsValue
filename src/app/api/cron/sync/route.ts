@@ -60,17 +60,35 @@ export async function GET(request: Request) {
       const entries = response.items ?? []
 
       if (entries.length === 0) {
-        await supabase.from('profiles').update({ last_sync: new Date().toISOString() }).eq('player_tag', player_tag)
+        // Still advance `last_sync` even when the battlelog is empty so
+        // we don't re-hit the API next run for the same player with no
+        // new battles. The error-check here is defensive: Supabase JS
+        // doesn't throw on PostgREST errors, and a silent failure would
+        // leave `last_sync` stale and cause redundant fetches forever.
+        const { error: markEmptyErr } = await supabase
+          .from('profiles')
+          .update({ last_sync: new Date().toISOString() })
+          .eq('player_tag', player_tag)
+        if (markEmptyErr) {
+          throw new Error(`profiles.update (empty battlelog) failed: ${markEmptyErr.message}`)
+        }
         results.push({ tag: player_tag, fetched: 0, inserted: 0 })
         continue
       }
 
       const parsed = parseBattlelog(entries, player_tag)
-      const { count } = await supabase.from('battles').upsert(parsed, {
+      // CRITICAL write. If the bulk upsert fails silently, every battle
+      // in this batch is lost — destructure `error` and throw so the
+      // outer per-player try/catch captures the failure and records it
+      // in `results` (instead of a phantom success).
+      const { count, error: battlesErr } = await supabase.from('battles').upsert(parsed, {
         onConflict: 'player_tag,battle_time',
         ignoreDuplicates: true,
         count: 'exact',
       })
+      if (battlesErr) {
+        throw new Error(`battles.upsert failed: ${battlesErr.message} (${parsed.length} rows)`)
+      }
 
       // Aggregate into meta_stats/meta_matchups (source='users')
       // CRITICAL: only process battles NEWER than last_sync to prevent double counting.
@@ -113,7 +131,18 @@ export async function GET(request: Request) {
         try { await supabase.rpc('bulk_upsert_meta_matchups', { rows: matchupRows }) } catch (e) { console.warn('[sync] meta_matchups RPC failed (non-critical):', String(e)) }
       }
 
-      await supabase.from('profiles').update({ last_sync: new Date().toISOString() }).eq('player_tag', player_tag)
+      // CRITICAL write. Advances the sync cursor so the next run skips
+      // the battles we just processed. A silent failure here would cause
+      // re-processing next run (harmless to `battles` thanks to
+      // ignoreDuplicates, but re-adds to `meta_stats` via additive
+      // ON CONFLICT and inflates counts). Destructure + throw.
+      const { error: markOkErr } = await supabase
+        .from('profiles')
+        .update({ last_sync: new Date().toISOString() })
+        .eq('player_tag', player_tag)
+      if (markOkErr) {
+        throw new Error(`profiles.update (post-sync) failed: ${markOkErr.message}`)
+      }
       results.push({ tag: player_tag, fetched: entries.length, inserted: count ?? parsed.length })
     } catch (err) {
       results.push({ tag: player_tag, fetched: 0, inserted: 0, error: String(err) })

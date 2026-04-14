@@ -64,8 +64,16 @@ const fromMock = vi.fn((table: string) => {
   return makeBuilder(queue.shift()!, table)
 })
 
+// Optional per-RPC error injection. Set `rpcErrors.bulk_upsert_meta_stats
+// = { message: '...' }` in a test to force that RPC to return an error
+// instead of data. Used to lock in the defensive-error-check behavior.
+const rpcErrors: Record<string, { message: string } | undefined> = {}
+
 const rpcMock = vi.fn(async (fn: string, payload: unknown) => {
   rpcCalls.push({ fn, payload })
+  if (rpcErrors[fn]) {
+    return { data: null, error: rpcErrors[fn] }
+  }
   if (fn in rpcResponses) {
     return { data: rpcResponses[fn], error: null }
   }
@@ -182,6 +190,7 @@ beforeEach(() => {
   for (const k of Object.keys(battlelogByTag)) delete battlelogByTag[k]
   for (const k of Object.keys(rankingByCountry)) delete rankingByCountry[k]
   for (const k of Object.keys(rpcResponses)) delete rpcResponses[k]
+  for (const k of Object.keys(rpcErrors)) delete rpcErrors[k]
   for (const k of Object.keys(upsertCalls)) delete upsertCalls[k]
   rotationFixture = []
   rpcCalls.length = 0
@@ -589,6 +598,72 @@ describe('GET /api/cron/meta-poll — cumulative per-(map, mode) balancing', () 
     expect(fns).toContain('bulk_upsert_meta_stats')
     expect(fns).toContain('bulk_upsert_meta_matchups')
     expect(fns).toContain('bulk_upsert_meta_trios')
+  })
+
+  it('throws + skips heartbeat when bulk_upsert_meta_stats returns an error (defensive check)', async () => {
+    // Regression test for the defensive error-check added in commit dc19059.
+    // Supabase JS client does NOT throw on PostgREST errors — it returns
+    // { data, error }. A handler that ignores `error` would silently lose
+    // the write AND still write a phantom-success heartbeat. The fix
+    // destructures `error` and throws, so the outer try/catch catches
+    // the throw, returns 500, and the heartbeat (which lives AFTER the
+    // try block) is skipped. A missing heartbeat is detectable by the
+    // staleness check; a phantom-success is not.
+    mockRandom(0)
+    rpcErrors.bulk_upsert_meta_stats = { message: 'simulated: deadlock detected' }
+    setGlobalRanking([playerTag(1)])
+    addBattle(playerTag(1), { mode: 'brawlBall', map: 'Sneaky Fields', result: 'victory' })
+    rotationFixture = [{ map: 'Sneaky Fields', mode: 'brawlBall' }]
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    const body = await res.json()
+
+    // Route returned 500, with a message that surfaces the RPC name
+    // AND the underlying error — easy to find in logs.
+    expect(res.status).toBe(500)
+    expect(String(body.error)).toContain('bulk_upsert_meta_stats failed')
+    expect(String(body.error)).toContain('simulated: deadlock detected')
+
+    // Heartbeat was NOT written (upsert of cron_heartbeats never got
+    // called). Staleness alert will fire on the next check cycle.
+    const heartbeatCalls = upsertCalls['cron_heartbeats'] ?? []
+    expect(heartbeatCalls).toHaveLength(0)
+  })
+
+  it('throws + skips heartbeat when meta_poll_cursors upsert returns an error (defensive check)', async () => {
+    // Symmetric regression for the cursor upsert — if the cursor write
+    // fails silently, the next run re-processes the same battlelogs and
+    // re-inflates counts. Destructure + throw ensures a missing heartbeat.
+    //
+    // This path exercises the `.from().upsert()` builder (not `.rpc()`)
+    // so the error must come from the makeBuilder mock. The handler
+    // makes TWO calls to from('meta_poll_cursors'): a SELECT at the
+    // start of runBalancedPoll (to load existing cursors) and an UPSERT
+    // at the end. The queue is FIFO, so we enqueue two responses: a
+    // benign success for the SELECT, and the error for the UPSERT.
+    mockRandom(0)
+    enqueue('meta_poll_cursors', { data: [] }) // SELECT at start of run
+    enqueue('meta_poll_cursors', {              // UPSERT at end of run
+      data: null,
+      error: { message: 'simulated: unique constraint violation' },
+    })
+    setGlobalRanking([playerTag(1)])
+    addBattle(playerTag(1), { mode: 'brawlBall', map: 'Sneaky Fields', result: 'victory' })
+    rotationFixture = [{ map: 'Sneaky Fields', mode: 'brawlBall' }]
+
+    const res = await GET(
+      makeRequest('Bearer test-cron-secret') as unknown as Parameters<typeof GET>[0],
+    )
+    const body = await res.json()
+
+    expect(res.status).toBe(500)
+    expect(String(body.error)).toContain('meta_poll_cursors.upsert failed')
+
+    // Heartbeat was NOT written.
+    const heartbeatCalls = upsertCalls['cron_heartbeats'] ?? []
+    expect(heartbeatCalls).toHaveLength(0)
   })
 
   it('writes a success heartbeat to cron_heartbeats at the end of the run', async () => {
