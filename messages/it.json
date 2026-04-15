@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "Quanto è potente il tuo account?",
-    "subtitle": "Inserisci il tuo Player Tag e scopri il tuo Punteggio di Potenza in Gemme",
+    "title": "La tua cronologia completa con statistiche avanzate",
+    "subtitle": "Inserisci il tuo Player Tag e scopri i tuoi punti di forza e debolezza con le statistiche più avanzate",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Calcola Potenza",
-    "calculating": "Calcolo...",
+    "cta": "Entra",
+    "calculating": "Caricamento...",
     "invalidTag": "Formato non valido. Esempio: #2P0Q8C2C0",
     "error": "Errore di connessione",
     "feature1": "Valore Gemme",

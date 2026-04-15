@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "Jak silne jest twoje konto?",
-    "subtitle": "Wpisz swój Player Tag i odkryj swój Gem Power Score",
+    "title": "Twoja pełna historia z zaawansowanymi statystykami",
+    "subtitle": "Wpisz swój Player Tag i odkryj swoje mocne i słabe strony dzięki najnowocześniejszej statystyce",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Oblicz siłę",
-    "calculating": "Obliczam...",
+    "cta": "Wejdź",
+    "calculating": "Ładowanie...",
     "invalidTag": "Nieprawidłowy format. Przykład: #2P0Q8C2C0",
     "error": "Błąd połączenia",
     "feature1": "Gem Value",

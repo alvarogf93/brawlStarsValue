@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "Quelle est la puissance de ton compte ?",
-    "subtitle": "Entre ton Player Tag et découvre ton Score de Puissance en Gemmes",
+    "title": "Ton historique complet avec des statistiques avancées",
+    "subtitle": "Entre ton Player Tag et découvre tes forces et faiblesses avec les statistiques les plus avancées",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Calculer la Puissance",
-    "calculating": "Calcul en cours...",
+    "cta": "Entrer",
+    "calculating": "Chargement...",
     "invalidTag": "Format invalide. Exemple : #2P0Q8C2C0",
     "error": "Erreur de connexion",
     "feature1": "Valeur en Gemmes",

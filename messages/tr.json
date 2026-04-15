@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "Hesabın ne kadar güçlü?",
-    "subtitle": "Player Tag'ını gir ve Gem Power Score'unu keşfet",
+    "title": "Gelişmiş istatistiklerle tüm geçmişin",
+    "subtitle": "Player Tag'ini gir ve en gelişmiş istatistiklerle güçlü ve zayıf yönlerini keşfet",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Gücü hesapla",
-    "calculating": "Hesaplanıyor...",
+    "cta": "Giriş",
+    "calculating": "Yükleniyor...",
     "invalidTag": "Geçersiz format. Örnek: #2P0Q8C2C0",
     "error": "Bağlantı hatası",
     "feature1": "Gem Value",

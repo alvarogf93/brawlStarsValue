@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "How powerful is your account?",
-    "subtitle": "Enter your Player Tag and discover your Gem Power Score",
+    "title": "Your complete history with advanced statistics",
+    "subtitle": "Enter your Player Tag and discover your strengths and weaknesses with the most advanced statistics",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Calculate Power",
-    "calculating": "Calculating...",
+    "cta": "Enter",
+    "calculating": "Loading...",
     "invalidTag": "Invalid format. Example: #2P0Q8C2C0",
     "error": "Connection error",
     "feature1": "Gem Value",

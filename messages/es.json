@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "¿Cuánto poder tiene tu cuenta?",
-    "subtitle": "Ingresa tu Player Tag y descubre tu Puntuación de Poder en Gemas",
+    "title": "Tu historial completo con estadísticas avanzadas",
+    "subtitle": "Ingresa tu Player Tag y descubre cuáles son tus fortalezas y debilidades con la estadística más avanzada",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Calcular Poder",
-    "calculating": "Calculando...",
+    "cta": "Entrar",
+    "calculating": "Cargando...",
     "invalidTag": "Formato inválido. Ejemplo: #2P0Q8C2C0",
     "error": "Error de conexión",
     "feature1": "Valor en Gemas",

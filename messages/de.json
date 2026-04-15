@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "Wie mächtig ist dein Account?",
-    "subtitle": "Gib deinen Player Tag ein und entdecke deinen Edelstein-Power-Score",
+    "title": "Dein vollständiger Verlauf mit erweiterten Statistiken",
+    "subtitle": "Gib dein Player Tag ein und entdecke deine Stärken und Schwächen mit der fortschrittlichsten Statistik",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "Power Berechnen",
-    "calculating": "Berechne...",
+    "cta": "Loslegen",
+    "calculating": "Lädt...",
     "invalidTag": "Ungültiges Format. Beispiel: #2P0Q8C2C0",
     "error": "Verbindungsfehler",
     "feature1": "Edelstein-Wert",

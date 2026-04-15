@@ -1,10 +1,10 @@
 {
   "landing": {
-    "title": "你的账号有多强？",
-    "subtitle": "输入你的玩家标签，查看宝石力量评分",
+    "title": "你的完整对战历史与进阶统计数据",
+    "subtitle": "输入你的玩家标签，用最先进的统计数据发现你的优势与劣势",
     "placeholder": "#2P0Q8C2C0",
-    "cta": "计算力量",
-    "calculating": "计算中...",
+    "cta": "进入",
+    "calculating": "加载中...",
     "invalidTag": "格式不正确。示例：#2P0Q8C2C0",
     "error": "连接错误",
     "feature1": "宝石价值",
