@@ -146,6 +146,7 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Prop
               <select
                 value={mapFilter}
                 onChange={e => { setMapFilter(e.target.value); setExpanded(false) }}
+                aria-label={t('allMaps') || 'Filter by map'}
                 className="bg-[#090E17] text-white text-xs rounded-md px-3 py-1.5 border border-white/10 focus:outline-none focus:border-[#4EC0FA]/50 font-['Lilita_One'] cursor-pointer shadow-md"
               >
                 <option value="all">{t('allMaps') || 'All Maps'}</option>

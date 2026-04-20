@@ -157,7 +157,7 @@ export function BrawlerTierList({ data }: Props) {
                             : 'ring-1 ring-white/10 hover:ring-white/40 hover:scale-105 hover:shadow-[0_0_10px_rgba(255,255,255,0.2)]'
                         }`}
                         aria-label={`${b.name} — ${b.winRate.toFixed(1)}% win rate`}
-                        aria-pressed={isSelected}
+                        aria-pressed={isSelected ? 'true' : 'false'}
                       >
                         <BrawlImg
                           src={getBrawlerPortraitUrl(b.id)}

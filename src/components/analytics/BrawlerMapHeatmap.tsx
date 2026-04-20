@@ -93,6 +93,7 @@ export function BrawlerMapHeatmap({ data, proData }: Props) {
         <select
           value={selectedBrawler}
           onChange={e => setSelectedBrawler(e.target.value)}
+          aria-label={t('brawlerMapTitle')}
           className="bg-[#0A0E1A]/90 text-xs text-white border-2 border-white/10 rounded-lg px-3 py-2 outline-none font-['Lilita_One'] shadow-[0_4px_8px_rgba(0,0,0,0.5)] hover:border-[#4EC0FA]/50 focus:border-[#4EC0FA] transition-colors cursor-pointer"
         >
           <option value="all">{t('allBrawlers')}</option>
