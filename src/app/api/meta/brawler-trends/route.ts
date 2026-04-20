@@ -29,6 +29,11 @@ type Row = { brawler_id: number; date: string; wins: number; total: number }
 
 const PAGE_SIZE = 1000
 
+// Cron runs every 6 hours (see migration 020). Anything older than
+// 2× that window is treated as stale, triggering the fallback. This
+// guards against a silent cron outage serving week-old data.
+const STALENESS_THRESHOLD_HOURS = 12
+
 export async function GET() {
   const supabase = await createServiceClient()
 
@@ -37,19 +42,40 @@ export async function GET() {
   // refreshed every 6 hours by the `compute-brawler-trends` pg_cron
   // job (see supabase/migrations/020_*). This is a ~100-row query
   // that returns in ~50ms vs the ~10k-row scan below.
+  //
+  // Freshness guard: `.gte('computed_at', …)` hides rows written
+  // more than 12 hours ago. If the cron is dead, the filter
+  // returns zero rows and we fall through to the inline path.
+  const freshCutoff = new Date(
+    Date.now() - STALENESS_THRESHOLD_HOURS * 3600_000,
+  ).toISOString()
+
   const { data: precomputed, error: precomputedError } = await supabase
     .from('brawler_trends')
-    .select('brawler_id, trend_7d')
+    .select('brawler_id, trend_7d, computed_at')
+    .gte('computed_at', freshCutoff)
 
-  // Use the fast path only when the table exists AND has data.
+  // Use the fast path only when the table exists AND has fresh data.
   // An error code '42P01' (undefined_table) means the migration
   // hasn't been applied yet — fall through to the inline path.
   if (!precomputedError && precomputed && precomputed.length > 0) {
     const trends: Record<string, number | null> = {}
-    for (const row of precomputed as Array<{ brawler_id: number; trend_7d: number | null }>) {
+    let newestComputedAt: string | null = null
+    for (const row of precomputed as Array<{
+      brawler_id: number
+      trend_7d: number | null
+      computed_at: string
+    }>) {
       trends[String(row.brawler_id)] = row.trend_7d
+      if (!newestComputedAt || row.computed_at > newestComputedAt) {
+        newestComputedAt = row.computed_at
+      }
     }
-    return NextResponse.json({ trends, source: 'precomputed' })
+    return NextResponse.json({
+      trends,
+      source: 'precomputed',
+      computedAt: newestComputedAt,
+    })
   }
 
   // ─── Fallback path (pre-migration) ──────────────────────────

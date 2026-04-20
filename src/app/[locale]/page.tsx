@@ -27,14 +27,6 @@ export default function LandingPage() {
       <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden">
         <HeroBrawlers />
 
-        {/* Feature showcase carousel — sits above the hero card so
-            visitors see the Premium analytics preview before dropping
-            their tag. Kept narrower than default (max-w-[640px]) to
-            match the card below and stay on viewport on mobile. */}
-        <div className="w-full max-w-[640px] mb-6 animate-fade-in relative z-10">
-          <FeatureShowcase />
-        </div>
-
         <div className="text-center brawl-card p-10 max-w-[500px] w-full animate-fade-in relative z-10">
           <div className="absolute top-3 right-3 z-50">
             <LocaleSwitcher />
@@ -53,6 +45,14 @@ export default function LandingPage() {
 
           <InputForm />
           <HeroSignIn />
+        </div>
+
+        {/* Feature showcase carousel — sits below the hero card so
+            the tag input + CTA remain the primary above-the-fold
+            action, and the carousel teases the Premium analytics
+            preview as the visitor scrolls (or glances) further. */}
+        <div className="w-full max-w-[640px] mt-6 animate-fade-in relative z-10">
+          <FeatureShowcase />
         </div>
 
         <ScrollIndicator />
