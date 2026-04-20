@@ -66,14 +66,25 @@ export function useBrawlerTrends(): {
 
     const controller = new AbortController()
     fetch('/api/meta/brawler-trends', { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : { trends: {} }))
-      .then((body: { trends: TrendsMap }) => {
+      .then(async (res) => {
+        // Only treat 2xx as success — otherwise throw so the catch
+        // path runs and we DON'T write an empty map to localStorage.
+        // Prior version swallowed non-2xx into `{ trends: {} }` and
+        // cached that for 10 minutes, so a single API blip would
+        // hide every trend badge across the whole session until the
+        // TTL expired (flagged by code review — I1).
+        if (!res.ok) throw new Error(`status ${res.status}`)
+        return res.json() as Promise<{ trends: TrendsMap }>
+      })
+      .then((body) => {
+        if (controller.signal.aborted) return
         const next = body.trends ?? {}
         writeCache(next)
         setTrends(next)
       })
       .catch(() => {
-        // Network error — leave trends empty, UI falls back to "no data".
+        // Network error OR non-2xx — leave trends empty in memory,
+        // and do NOT write to cache so the next page load retries.
       })
       .finally(() => {
         if (!controller.signal.aborted) setIsLoading(false)
