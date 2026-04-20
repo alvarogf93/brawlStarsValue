@@ -43,5 +43,11 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  // Exclude: api, _next, _vercel, static files (anything with a dot),
+  // and the root-level metadata file conventions (icon, apple-icon,
+  // opengraph-image, twitter-image, sitemap, robots, manifest).
+  // Without these exclusions, the next-intl middleware redirects
+  // e.g. `/icon/small` to `/es/icon/small`, which doesn't exist
+  // because these files live at the app root, not under [locale].
+  matcher: ['/((?!api|_next|_vercel|icon|apple-icon|opengraph-image|twitter-image|sitemap|robots|manifest|.*\\..*).*)'],
 }
