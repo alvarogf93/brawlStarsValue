@@ -664,7 +664,11 @@
     "allOpponents": "全ての相手",
     "matchupVs": "対",
     "clearFilters": "フィルタをクリア",
-    "matchupsEmptyFiltered": "この組み合わせの試合がありません"
+    "matchupsEmptyFiltered": "この組み合わせの試合がありません",
+    "heatmapSearchPlaceholder": "ブロウラーまたはマップを検索...",
+    "heatmapAllModes": "すべてのモード",
+    "heatmapShowingOf": "{total}件中{shown}件表示",
+    "heatmapLoadMore": "もっと見る"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

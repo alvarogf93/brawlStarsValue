@@ -757,8 +757,14 @@ function computePowerLevelImpact(battles: Battle[]): PowerLevelImpact[] {
   const grouped = groupBy(battles, b => b.my_brawler?.power ?? 0)
   const results: PowerLevelImpact[] = []
 
+  // Power levels in Brawl Stars are always 1..11. Anything outside that
+  // range is either the `?? 0` fallback (unknown) or a Supercell API
+  // anomaly (we've observed power=-1 rows for established brawlers
+  // like COLT in Bounty battles — not pre-release content, just bad
+  // data). Skipping these keeps the UI from rendering meaningless
+  // "Power -1" / "Power 0" rows.
   for (const [power, group] of grouped) {
-    if (power === 0) continue
+    if (power < 1 || power > 11) continue
     const wins = group.filter(b => isWin(b.result)).length
     results.push({
       powerLevel: power,

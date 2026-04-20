@@ -664,7 +664,11 @@
     "allOpponents": "모든 상대",
     "matchupVs": "상대",
     "clearFilters": "필터 초기화",
-    "matchupsEmptyFiltered": "이 조합에 해당하는 전투가 없습니다"
+    "matchupsEmptyFiltered": "이 조합에 해당하는 전투가 없습니다",
+    "heatmapSearchPlaceholder": "브롤러 또는 맵 검색...",
+    "heatmapAllModes": "모든 모드",
+    "heatmapShowingOf": "{total}개 중 {shown}개 표시",
+    "heatmapLoadMore": "더 보기"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

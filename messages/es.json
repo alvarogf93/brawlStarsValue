@@ -719,7 +719,11 @@
     "allOpponents": "Todos los oponentes",
     "matchupVs": "Contra",
     "clearFilters": "Limpiar filtros",
-    "matchupsEmptyFiltered": "No tienes batallas con esta combinación"
+    "matchupsEmptyFiltered": "No tienes batallas con esta combinación",
+    "heatmapSearchPlaceholder": "Buscar brawler o mapa...",
+    "heatmapAllModes": "Todos los modos",
+    "heatmapShowingOf": "Mostrando {shown} de {total}",
+    "heatmapLoadMore": "Ver más"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

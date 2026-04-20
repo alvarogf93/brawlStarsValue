@@ -664,7 +664,11 @@
     "allOpponents": "جميع الخصوم",
     "matchupVs": "ضد",
     "clearFilters": "مسح الفلاتر",
-    "matchupsEmptyFiltered": "لا توجد معارك لهذا المزيج"
+    "matchupsEmptyFiltered": "لا توجد معارك لهذا المزيج",
+    "heatmapSearchPlaceholder": "ابحث عن brawler أو خريطة...",
+    "heatmapAllModes": "كل الأوضاع",
+    "heatmapShowingOf": "عرض {shown} من {total}",
+    "heatmapLoadMore": "عرض المزيد"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

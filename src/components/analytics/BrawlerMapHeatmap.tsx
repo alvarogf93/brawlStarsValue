@@ -47,26 +47,63 @@ function getThermalStyle(wr: number) {
   }
 }
 
+const INITIAL_VISIBLE = 40
+const PAGE_SIZE = 40
+
 export function BrawlerMapHeatmap({ data, proData }: Props) {
   const t = useTranslations('advancedAnalytics')
   const [selectedBrawler, setSelectedBrawler] = useState<string>('all')
+  const [search, setSearch] = useState<string>('')
+  const [modeFilter, setModeFilter] = useState<string>('all')
+  const [visible, setVisible] = useState<number>(INITIAL_VISIBLE)
   const mapImages = useMapImages()
 
-  const { brawlers, filtered } = useMemo(() => {
+  // Reset pagination whenever any filter changes — without this, a
+  // user could expand to N tiles on one filter then switch to a
+  // smaller filter and still be stuck on the expanded count
+  // (harmless but confusing).
+  const resetAndSet = <T,>(setter: (v: T) => void) => (v: T) => {
+    setter(v)
+    setVisible(INITIAL_VISIBLE)
+  }
+
+  const { brawlers, modes, filtered } = useMemo(() => {
     const brawlerMap = new Map<number, { id: number; name: string; total: number }>()
+    const modeSet = new Set<string>()
     for (const e of data) {
       const existing = brawlerMap.get(e.brawlerId)
       if (existing) existing.total += e.total
       else brawlerMap.set(e.brawlerId, { id: e.brawlerId, name: e.brawlerName, total: e.total })
+      modeSet.add(e.mode)
     }
-    const sorted = [...brawlerMap.values()].sort((a, b) => b.total - a.total)
+    const sortedBrawlers = [...brawlerMap.values()].sort((a, b) => b.total - a.total)
+    const sortedModes = [...modeSet].sort()
 
-    const filtered = selectedBrawler === 'all'
+    let out = selectedBrawler === 'all'
       ? data
       : data.filter(e => String(e.brawlerId) === selectedBrawler)
 
-    return { brawlers: sorted, filtered: [...filtered].sort((a, b) => b.wilsonScore - a.wilsonScore) }
-  }, [data, selectedBrawler])
+    if (modeFilter !== 'all') {
+      out = out.filter(e => e.mode === modeFilter)
+    }
+
+    const query = search.trim().toLowerCase()
+    if (query) {
+      out = out.filter(e =>
+        e.brawlerName.toLowerCase().includes(query) ||
+        e.map.toLowerCase().includes(query),
+      )
+    }
+
+    return {
+      brawlers: sortedBrawlers,
+      modes: sortedModes,
+      filtered: [...out].sort((a, b) => b.wilsonScore - a.wilsonScore),
+    }
+  }, [data, selectedBrawler, modeFilter, search])
+
+  const shown = filtered.slice(0, visible)
+  const hasMore = filtered.length > visible
 
   if (data.length === 0) {
     return (
@@ -92,7 +129,7 @@ export function BrawlerMapHeatmap({ data, proData }: Props) {
         </h3>
         <select
           value={selectedBrawler}
-          onChange={e => setSelectedBrawler(e.target.value)}
+          onChange={e => resetAndSet(setSelectedBrawler)(e.target.value)}
           aria-label={t('brawlerMapTitle')}
           className="bg-[#0A0E1A]/90 text-xs text-white border-2 border-white/10 rounded-lg px-3 py-2 outline-none font-['Lilita_One'] shadow-[0_4px_8px_rgba(0,0,0,0.5)] hover:border-[#4EC0FA]/50 focus:border-[#4EC0FA] transition-colors cursor-pointer"
         >
@@ -103,9 +140,50 @@ export function BrawlerMapHeatmap({ data, proData }: Props) {
         </select>
       </div>
 
+      {/* Search + mode chips — filter the tile grid before pagination
+          slices it. Keeps "TODOS" usable on players with 100+ tile
+          combinations (was the main jank source). */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-3 relative z-10">
+        <input
+          type="text"
+          value={search}
+          onChange={e => resetAndSet(setSearch)(e.target.value)}
+          placeholder={t('heatmapSearchPlaceholder')}
+          className="flex-1 bg-[#0A0E1A]/90 text-xs text-white border-2 border-white/10 rounded-lg px-3 py-2 outline-none font-['Inter'] placeholder-slate-500 hover:border-[#4EC0FA]/50 focus:border-[#4EC0FA] transition-colors"
+        />
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <button
+            type="button"
+            onClick={() => resetAndSet(setModeFilter)('all')}
+            className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-widest font-['Lilita_One'] border-2 transition-all ${
+              modeFilter === 'all'
+                ? 'bg-[#FFC91B]/20 text-[#FFC91B] border-[#FFC91B]/40'
+                : 'bg-[#0A0E1A]/90 text-slate-400 border-white/10 hover:text-white hover:border-white/30'
+            }`}
+          >
+            {t('heatmapAllModes')}
+          </button>
+          {modes.map(m => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => resetAndSet(setModeFilter)(m)}
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-widest font-['Lilita_One'] border-2 transition-all ${
+                modeFilter === m
+                  ? 'bg-[#4EC0FA]/20 text-[#4EC0FA] border-[#4EC0FA]/40'
+                  : 'bg-[#0A0E1A]/90 text-slate-400 border-white/10 hover:text-white hover:border-white/30'
+              }`}
+            >
+              <ModeIcon mode={m} size={12} />
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-[#000000] p-2 rounded-xl border border-white/5 shadow-[inset_0_4px_20px_rgba(0,0,0,0.8)]">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
-          {filtered.map(entry => {
+          {shown.map(entry => {
             const thermal = getThermalStyle(entry.winRate)
             return (
               <div
@@ -179,6 +257,26 @@ export function BrawlerMapHeatmap({ data, proData }: Props) {
           })}
         </div>
       </div>
+
+      {/* Pagination footer — only rendered when there's more data
+          than currently visible. "Show more" reveals another batch
+          without re-rendering the tiles already on screen. */}
+      {filtered.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-3 relative z-10">
+          <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">
+            {t('heatmapShowingOf', { shown: shown.length, total: filtered.length })}
+          </span>
+          {hasMore && (
+            <button
+              type="button"
+              onClick={() => setVisible(v => v + PAGE_SIZE)}
+              className="px-4 py-2 rounded-lg text-xs font-['Lilita_One'] uppercase tracking-widest bg-[#FFC91B]/10 text-[#FFC91B] border-2 border-[#FFC91B]/40 hover:bg-[#FFC91B]/20 hover:border-[#FFC91B] transition-all"
+            >
+              {t('heatmapLoadMore')}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -664,7 +664,11 @@
     "allOpponents": "Wszyscy przeciwnicy",
     "matchupVs": "Przeciw",
     "clearFilters": "Wyczyść filtry",
-    "matchupsEmptyFiltered": "Brak walk dla tej kombinacji"
+    "matchupsEmptyFiltered": "Brak walk dla tej kombinacji",
+    "heatmapSearchPlaceholder": "Szukaj brawlera lub mapy...",
+    "heatmapAllModes": "Wszystkie tryby",
+    "heatmapShowingOf": "Wyświetlono {shown} z {total}",
+    "heatmapLoadMore": "Pokaż więcej"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

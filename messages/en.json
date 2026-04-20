@@ -664,7 +664,11 @@
     "allOpponents": "All opponents",
     "matchupVs": "Vs",
     "clearFilters": "Clear filters",
-    "matchupsEmptyFiltered": "No battles found for this combination"
+    "matchupsEmptyFiltered": "No battles found for this combination",
+    "heatmapSearchPlaceholder": "Search brawler or map...",
+    "heatmapAllModes": "All modes",
+    "heatmapShowingOf": "Showing {shown} of {total}",
+    "heatmapLoadMore": "Show more"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

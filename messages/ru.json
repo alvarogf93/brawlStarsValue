@@ -664,7 +664,11 @@
     "allOpponents": "Все противники",
     "matchupVs": "Против",
     "clearFilters": "Сбросить фильтры",
-    "matchupsEmptyFiltered": "Нет боёв для этой комбинации"
+    "matchupsEmptyFiltered": "Нет боёв для этой комбинации",
+    "heatmapSearchPlaceholder": "Поиск бравлера или карты...",
+    "heatmapAllModes": "Все режимы",
+    "heatmapShowingOf": "Показано {shown} из {total}",
+    "heatmapLoadMore": "Показать еще"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

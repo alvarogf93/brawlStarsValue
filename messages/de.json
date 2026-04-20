@@ -664,7 +664,11 @@
     "allOpponents": "Alle Gegner",
     "matchupVs": "Gegen",
     "clearFilters": "Filter löschen",
-    "matchupsEmptyFiltered": "Keine Kämpfe für diese Kombination"
+    "matchupsEmptyFiltered": "Keine Kämpfe für diese Kombination",
+    "heatmapSearchPlaceholder": "Brawler oder Map suchen...",
+    "heatmapAllModes": "Alle Modi",
+    "heatmapShowingOf": "{shown} von {total} angezeigt",
+    "heatmapLoadMore": "Mehr anzeigen"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

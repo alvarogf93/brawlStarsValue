@@ -664,7 +664,11 @@
     "allOpponents": "Tüm rakipler",
     "matchupVs": "Karşı",
     "clearFilters": "Filtreleri temizle",
-    "matchupsEmptyFiltered": "Bu kombinasyon için savaş yok"
+    "matchupsEmptyFiltered": "Bu kombinasyon için savaş yok",
+    "heatmapSearchPlaceholder": "Brawler veya harita ara...",
+    "heatmapAllModes": "Tüm modlar",
+    "heatmapShowingOf": "{shown} / {total} gösteriliyor",
+    "heatmapLoadMore": "Daha fazla göster"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
