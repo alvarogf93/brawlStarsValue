@@ -293,7 +293,8 @@
     "sortRank": "Rütbe",
     "labelValue": "Değer",
     "labelBest": "En iyi: ",
-    "filterSelected": "seçili"
+    "filterSelected": "seçili",
+    "sortTrend": "Trend"
   },
   "stats": {
     "loading": "İstatistikler yükleniyor...",

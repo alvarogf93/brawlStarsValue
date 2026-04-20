@@ -293,7 +293,8 @@
     "sortRank": "Rank",
     "labelValue": "Value",
     "labelBest": "Best: ",
-    "filterSelected": "selected"
+    "filterSelected": "selected",
+    "sortTrend": "Trend"
   },
   "stats": {
     "loading": "Loading stats...",

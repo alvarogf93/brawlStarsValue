@@ -293,7 +293,8 @@
     "sortRank": "Rango",
     "labelValue": "Valor",
     "labelBest": "Mejor: ",
-    "filterSelected": "seleccionadas"
+    "filterSelected": "seleccionadas",
+    "sortTrend": "Tendencia"
   },
   "brawlerDetail": {
     "backToBrawlers": "← Brawlers",

@@ -293,7 +293,8 @@
     "sortRank": "Ранг",
     "labelValue": "Стоимость",
     "labelBest": "Лучший: ",
-    "filterSelected": "выбрано"
+    "filterSelected": "выбрано",
+    "sortTrend": "Тренд"
   },
   "stats": {
     "loading": "Загрузка статистики...",

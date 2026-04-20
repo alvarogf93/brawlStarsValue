@@ -9,6 +9,7 @@ import { GemIcon } from '@/components/ui/GemIcon'
 import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { usePlayerData } from '@/hooks/usePlayerData'
+import { useBrawlerTrends } from '@/hooks/useBrawlerTrends'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS, RARITY_COLORS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
@@ -19,14 +20,15 @@ const ALL_RARITIES: BrawlerRarityName[] = [
   'Mythic', 'Legendary', 'Chromatic', 'Ultra Legendary',
 ]
 
-type SortOption = 'gems' | 'trophies' | 'power' | 'name' | 'rank'
+type SortOption = 'gems' | 'trophies' | 'power' | 'name' | 'rank' | 'trend'
 
-type SortLabelKey = 'sortValue' | 'sortTrophies' | 'sortPowerLevel' | 'sortName' | 'sortRank'
+type SortLabelKey = 'sortValue' | 'sortTrophies' | 'sortPowerLevel' | 'sortName' | 'sortRank' | 'sortTrend'
 
 const SORT_OPTIONS: { value: SortOption; labelKey: SortLabelKey }[] = [
   { value: 'gems', labelKey: 'sortValue' },
   { value: 'trophies', labelKey: 'sortTrophies' },
   { value: 'power', labelKey: 'sortPowerLevel' },
+  { value: 'trend', labelKey: 'sortTrend' },
   { value: 'name', labelKey: 'sortName' },
   { value: 'rank', labelKey: 'sortRank' },
 ]
@@ -41,7 +43,36 @@ function calcBrawlerGemValue(b: BrawlerStat): number {
   return powerCost + gadgets + starPowers + hypercharges + buffies + gears
 }
 
-function sortBrawlers(brawlers: BrawlerStat[], sortBy: SortOption): BrawlerStat[] {
+/**
+ * Small inline badge rendering the 7-day WR delta for a brawler.
+ * Returns null when the trend is unknown (insufficient historical
+ * data) so the card layout collapses instead of showing a dash.
+ */
+function TrendBadge({ delta }: { delta: number | null | undefined }) {
+  if (delta === null || delta === undefined) return null
+  const rising = delta > 0.1
+  const falling = delta < -0.1
+  const color = rising
+    ? 'text-green-600 bg-green-500/15 border-green-500/40'
+    : falling
+    ? 'text-red-600 bg-red-500/15 border-red-500/40'
+    : 'text-slate-500 bg-slate-400/15 border-slate-400/40'
+  const arrow = rising ? '↑' : falling ? '↓' : '→'
+  const sign = delta > 0 ? '+' : ''
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[9px] font-['Inter'] font-bold px-1.5 py-0.5 rounded-full border tabular-nums ${color}`}
+    >
+      {arrow} {sign}{delta.toFixed(1)}%
+    </span>
+  )
+}
+
+function sortBrawlers(
+  brawlers: BrawlerStat[],
+  sortBy: SortOption,
+  trends: Record<string, number | null>,
+): BrawlerStat[] {
   return [...brawlers].sort((a, b) => {
     switch (sortBy) {
       case 'gems':
@@ -54,6 +85,15 @@ function sortBrawlers(brawlers: BrawlerStat[], sortBy: SortOption): BrawlerStat[
         return a.name.localeCompare(b.name)
       case 'rank':
         return b.rank - a.rank
+      case 'trend': {
+        // Nulls (no-data) sink to the bottom; otherwise descending
+        // by delta so the brawlers rising the most appear first.
+        const ta = trends[String(a.id)]
+        const tb = trends[String(b.id)]
+        if (ta === undefined || ta === null) return tb === undefined || tb === null ? 0 : 1
+        if (tb === undefined || tb === null) return -1
+        return tb - ta
+      }
       default:
         return 0
     }
@@ -70,6 +110,7 @@ export default function BrawlersPage() {
   const tag = decodeURIComponent(params.tag)
   const brawlersBasePath = `/${locale}/profile/${encodeURIComponent(tag)}/brawlers`
   const { data, isLoading, error } = usePlayerData(tag)
+  const { trends } = useBrawlerTrends()
 
   // Read filter state from URL search params
   const searchQuery = searchParams.get('search') ?? ''
@@ -135,8 +176,8 @@ export default function BrawlersPage() {
       })
     }
 
-    return sortBrawlers(result, sortBy)
-  }, [brawlers, searchQuery, activeRarities, sortBy])
+    return sortBrawlers(result, sortBy, trends)
+  }, [brawlers, searchQuery, activeRarities, sortBy, trends])
 
   const filteredGemTotal = useMemo(() => {
     return filteredAndSorted.reduce((sum, b) => sum + calcBrawlerGemValue(b), 0)
@@ -392,14 +433,17 @@ export default function BrawlersPage() {
                   )}
                 </div>
 
-                {/* Name + Rarity */}
+                {/* Name + Rarity + Trend */}
                 <div className="px-3 pt-2 pb-1 text-center">
                   <h2 className="text-lg font-['Lilita_One'] text-[var(--color-brawl-dark)] uppercase leading-tight truncate" style={{ textShadow: '0 1px 0 rgba(0,0,0,0.1)' }}>
                     {brawler.name}
                   </h2>
-                  <span className="text-[9px] font-['Inter'] font-bold uppercase tracking-wider" style={{ color }}>
-                    {rarity}
-                  </span>
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                    <span className="text-[9px] font-['Inter'] font-bold uppercase tracking-wider" style={{ color }}>
+                      {rarity}
+                    </span>
+                    <TrendBadge delta={trends[String(brawler.id)]} />
+                  </div>
                 </div>
 
                 {/* Trophies */}

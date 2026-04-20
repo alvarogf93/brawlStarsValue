@@ -293,7 +293,8 @@
     "sortRank": "ランク",
     "labelValue": "価値",
     "labelBest": "最高: ",
-    "filterSelected": "選択中"
+    "filterSelected": "選択中",
+    "sortTrend": "トレンド"
   },
   "stats": {
     "loading": "スタッツを読み込み中...",

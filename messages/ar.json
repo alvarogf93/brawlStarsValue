@@ -293,7 +293,8 @@
     "sortRank": "الرتبة",
     "labelValue": "القيمة",
     "labelBest": "الأفضل: ",
-    "filterSelected": "مُختار"
+    "filterSelected": "مُختار",
+    "sortTrend": "الاتجاه"
   },
   "stats": {
     "loading": "جارٍ تحميل الإحصائيات...",

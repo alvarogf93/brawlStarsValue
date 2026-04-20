@@ -293,7 +293,8 @@
     "sortRank": "排名",
     "labelValue": "价值",
     "labelBest": "最佳：",
-    "filterSelected": "已选择"
+    "filterSelected": "已选择",
+    "sortTrend": "趋势"
   },
   "stats": {
     "loading": "加载数据中...",
