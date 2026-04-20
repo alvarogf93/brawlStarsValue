@@ -4,12 +4,16 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+// 2026-04-20: refreshed the carousel with five new analytics
+// screenshots supplied by the user (overview, performance,
+// matchups, trends, meta-pro). Both the image paths and the
+// caption keys map positionally to the same analytics sections.
 const PREVIEWS = [
-  { src: '/assets/premium-previews/carousel-1-overview.jpg', captionKey: 'previewCaption1' as const },
-  { src: '/assets/premium-previews/carousel-2-performance.jpg', captionKey: 'previewCaption2' as const },
-  { src: '/assets/premium-previews/carousel-3-team.jpg', captionKey: 'previewCaption3' as const },
-  { src: '/assets/premium-previews/carousel-4-trends.jpg', captionKey: 'previewCaption4' as const },
-  { src: '/assets/premium-previews/carousel-5-metapro.jpg', captionKey: 'previewCaption5' as const },
+  { src: '/assets/premium-previews/carousel-1-overview.png', captionKey: 'previewCaption1' as const },
+  { src: '/assets/premium-previews/carousel-2-performance.png', captionKey: 'previewCaption2' as const },
+  { src: '/assets/premium-previews/carousel-3-matchups.png', captionKey: 'previewCaption3' as const },
+  { src: '/assets/premium-previews/carousel-4-trends.png', captionKey: 'previewCaption4' as const },
+  { src: '/assets/premium-previews/carousel-5-metapro.png', captionKey: 'previewCaption5' as const },
 ] as const
 
 export function FeatureShowcase() {
