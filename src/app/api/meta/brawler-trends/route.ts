@@ -31,15 +31,34 @@ const PAGE_SIZE = 1000
 
 export async function GET() {
   const supabase = await createServiceClient()
-  const cutoff = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10)
 
+  // ─── Fast path ──────────────────────────────────────────────
+  // Read from the pre-computed `brawler_trends` table, which is
+  // refreshed every 6 hours by the `compute-brawler-trends` pg_cron
+  // job (see supabase/migrations/020_*). This is a ~100-row query
+  // that returns in ~50ms vs the ~10k-row scan below.
+  const { data: precomputed, error: precomputedError } = await supabase
+    .from('brawler_trends')
+    .select('brawler_id, trend_7d')
+
+  // Use the fast path only when the table exists AND has data.
+  // An error code '42P01' (undefined_table) means the migration
+  // hasn't been applied yet — fall through to the inline path.
+  if (!precomputedError && precomputed && precomputed.length > 0) {
+    const trends: Record<string, number | null> = {}
+    for (const row of precomputed as Array<{ brawler_id: number; trend_7d: number | null }>) {
+      trends[String(row.brawler_id)] = row.trend_7d
+    }
+    return NextResponse.json({ trends, source: 'precomputed' })
+  }
+
+  // ─── Fallback path (pre-migration) ──────────────────────────
   // PostgREST caps unpaginated queries at 1000 rows. The 14-day
   // `meta_stats` slice is ~10k rows across ~100 brawlers, so we
   // MUST paginate — without this, only the first 1000 rows come
   // back and most brawlers get "insufficient data" nulls even
-  // though they have thousands of battles. Detail endpoint is
-  // immune because its `.eq('brawler_id', X)` filter trims to
-  // a single brawler's rows (<1000).
+  // though they have thousands of battles.
+  const cutoff = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10)
   const allRows: Row[] = []
   let offset = 0
   for (;;) {
@@ -56,12 +75,9 @@ export async function GET() {
     allRows.push(...rows)
     if (rows.length < PAGE_SIZE) break
     offset += PAGE_SIZE
-    // Safety valve — stop at 100k rows (100 pages) to guard
-    // against runaway loops if `meta_stats` unexpectedly balloons.
-    if (offset >= 100_000) break
+    if (offset >= 100_000) break // runaway safety valve
   }
 
-  // Group by brawler_id, then run compute7dTrend per group.
   const grouped = new Map<number, Row[]>()
   for (const r of allRows) {
     const existing = grouped.get(r.brawler_id)
@@ -74,5 +90,5 @@ export async function GET() {
     trends[String(brawlerId)] = compute7dTrend(group)
   }
 
-  return NextResponse.json({ trends })
+  return NextResponse.json({ trends, source: 'inline' })
 }
