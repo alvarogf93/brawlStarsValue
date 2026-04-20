@@ -283,7 +283,8 @@ export default function ClubPage() {
         isLoading={tcLoading}
       />
 
-      {/* Loading progress + ad space */}
+      {/* Loading progress (no ad — AdSense policy forbids ads on
+          loading screens without meaningful content). */}
       {enrichLoading && (
         <div className="space-y-4">
           <div className="brawl-card-dark p-4">
@@ -298,7 +299,6 @@ export default function ClubPage() {
               />
             </div>
           </div>
-          <AdPlaceholder />
         </div>
       )}
 

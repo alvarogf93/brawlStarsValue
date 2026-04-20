@@ -96,8 +96,6 @@ export default function LeaderboardPage() {
         </Link>
       </div>
 
-      <AdPlaceholder className="mb-8 relative z-10" />
-
       <div className="text-center mb-10 relative z-10 w-full flex flex-col items-center">
         <div className="bg-[#1C5CF1] border-4 border-[#121A2F] rounded-[2rem] w-24 h-24 flex items-center justify-center shadow-[0_8px_0_0_#121A2F,inset_0_4px_0_rgba(255,255,255,0.3)] transform rotate-[-5deg] mb-6 hover:rotate-0 transition-transform">
           <Trophy className="w-12 h-12 text-white drop-shadow-md" strokeWidth={2.5} />
