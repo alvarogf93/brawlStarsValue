@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { Home, Check, Infinity as InfinityIcon, TrendingUp, BarChart3, RefreshCw } from 'lucide-react'
 
 export const revalidate = 86400 // ISR: 1 day — static marketing content
@@ -180,6 +181,12 @@ export default async function BattleHistoryPage({ params }: { params: Promise<{ 
             ))}
           </ol>
         </section>
+
+        {/* In-content ad — between How-It-Works and FAQ. Only renders
+            when the translated benefits+steps arrays are non-empty
+            (they ship in all 13 locales, but the gate is a safety net
+            against a locale shipping with empty keys). */}
+        <SafeAdSlot hasContent={benefits.length > 0 && steps.length > 0 && faq.length > 0} />
 
         {/* FAQ */}
         <section>

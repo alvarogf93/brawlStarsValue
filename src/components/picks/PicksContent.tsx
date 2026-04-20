@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import { MapCard } from '@/components/picks/MapCard'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
@@ -75,6 +76,12 @@ export function PicksContent({ events, locale }: Props) {
                   source={event.source}
                 />
               ))}
+            </div>
+
+            {/* In-content ad — reached only in the non-empty branch,
+                so `events.length` is always > 0 here. */}
+            <div className="mt-8">
+              <SafeAdSlot hasContent={events.length > 0} />
             </div>
 
             {/* CTA for premium */}

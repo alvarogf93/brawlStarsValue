@@ -6,6 +6,7 @@ import { BrawlImg } from '@/components/ui/BrawlImg'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, RARITY_COLORS } from '@/lib/constants'
 import { resolveBrawlerName } from '@/lib/brawler-name'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { Home } from 'lucide-react'
 import type { BrawlerRarityName } from '@/lib/types'
 
@@ -71,6 +72,12 @@ export default function BrawlerIndexPage() {
               </Link>
             )
           })}
+        </div>
+
+        {/* In-content ad — rendered only when the brawler grid
+            has entries (i.e. BRAWLER_RARITY_MAP isn't empty). */}
+        <div className="mt-8">
+          <SafeAdSlot hasContent={brawlerIds.length > 0} />
         </div>
       </main>
 

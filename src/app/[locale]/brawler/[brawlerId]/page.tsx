@@ -10,6 +10,7 @@ import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, RARITY_COLORS } from '@/lib/constants'
 import { MetaIntelligence } from '@/components/brawler-detail/MetaIntelligence'
 import { BrawlImg } from '@/components/ui/BrawlImg'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton'
 import { Home, ArrowLeft } from 'lucide-react'
 import type { BrawlerRarityName } from '@/lib/types'
@@ -132,6 +133,11 @@ export default function PublicBrawlerPage() {
               <p className="text-sm text-slate-500">{t('insufficientData')}</p>
             </div>
           )}
+
+          {/* In-content ad — only after MetaIntelligence has real data.
+              Gated by !error so the "insufficientData" empty state
+              never carries an ad. */}
+          <SafeAdSlot hasContent={!!metaData && !error} />
 
           {/* CTA to sign up */}
           <div className="brawl-card p-6 md:p-8 text-center">
