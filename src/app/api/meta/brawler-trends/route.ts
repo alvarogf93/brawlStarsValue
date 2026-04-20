@@ -27,22 +27,43 @@ export const revalidate = 300 // 5 minutes
 
 type Row = { brawler_id: number; date: string; wins: number; total: number }
 
+const PAGE_SIZE = 1000
+
 export async function GET() {
   const supabase = await createServiceClient()
   const cutoff = new Date(Date.now() - 14 * 86400000).toISOString().slice(0, 10)
 
-  const { data: rows, error } = await supabase
-    .from('meta_stats')
-    .select('brawler_id, date, wins, total')
-    .gte('date', cutoff)
+  // PostgREST caps unpaginated queries at 1000 rows. The 14-day
+  // `meta_stats` slice is ~10k rows across ~100 brawlers, so we
+  // MUST paginate — without this, only the first 1000 rows come
+  // back and most brawlers get "insufficient data" nulls even
+  // though they have thousands of battles. Detail endpoint is
+  // immune because its `.eq('brawler_id', X)` filter trims to
+  // a single brawler's rows (<1000).
+  const allRows: Row[] = []
+  let offset = 0
+  for (;;) {
+    const { data: page, error } = await supabase
+      .from('meta_stats')
+      .select('brawler_id, date, wins, total')
+      .gte('date', cutoff)
+      .range(offset, offset + PAGE_SIZE - 1)
 
-  if (error) {
-    return NextResponse.json({ error: 'Failed to fetch meta stats' }, { status: 500 })
+    if (error) {
+      return NextResponse.json({ error: 'Failed to fetch meta stats' }, { status: 500 })
+    }
+    const rows = (page ?? []) as Row[]
+    allRows.push(...rows)
+    if (rows.length < PAGE_SIZE) break
+    offset += PAGE_SIZE
+    // Safety valve — stop at 100k rows (100 pages) to guard
+    // against runaway loops if `meta_stats` unexpectedly balloons.
+    if (offset >= 100_000) break
   }
 
   // Group by brawler_id, then run compute7dTrend per group.
   const grouped = new Map<number, Row[]>()
-  for (const r of (rows ?? []) as Row[]) {
+  for (const r of allRows) {
     const existing = grouped.get(r.brawler_id)
     if (existing) existing.push(r)
     else grouped.set(r.brawler_id, [r])
