@@ -187,3 +187,10 @@ body {
 .parade-row-right:hover {
   animation-play-state: paused;
 }
+
+/* Cyber-bevel corners for the analytics tab buttons (mobile dropdown
+   trigger + desktop horizontal tabs). Previously duplicated inline on
+   both buttons in /profile/[tag]/analytics/page.tsx. */
+.clip-bevel {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}

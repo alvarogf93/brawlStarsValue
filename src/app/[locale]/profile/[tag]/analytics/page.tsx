@@ -302,8 +302,7 @@ export default function AnalyticsPage() {
       <div className="md:hidden relative">
         <button
           onClick={() => setTabMenuOpen(!tabMenuOpen)}
-          style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
-          className="w-full relative flex items-center justify-between px-5 py-4 font-['Lilita_One'] text-sm bg-[#121A2F]/90 text-white border-t border-x border-white/10 border-b-[3px] border-b-[#FFC91B] shadow-[0_0_20px_rgba(255,201,27,0.1)] backdrop-blur-md"
+          className="clip-bevel w-full relative flex items-center justify-between px-5 py-4 font-['Lilita_One'] text-sm bg-[#121A2F]/90 text-white border-t border-x border-white/10 border-b-[3px] border-b-[#FFC91B] shadow-[0_0_20px_rgba(255,201,27,0.1)] backdrop-blur-md"
         >
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#FFC91B]/10 to-transparent opacity-50 pointer-events-none" />
           <span className="relative z-10 flex items-center gap-2 drop-shadow-[0_0_8px_rgba(255,201,27,0.5)]">
@@ -342,12 +341,11 @@ export default function AnalyticsPage() {
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`group relative flex items-center gap-2 px-5 py-3 font-['Lilita_One'] text-sm whitespace-nowrap transition-all duration-300 overflow-hidden ${
+            className={`clip-bevel group relative flex items-center gap-2 px-5 py-3 font-['Lilita_One'] text-sm whitespace-nowrap transition-all duration-300 overflow-hidden ${
               activeTab === id
                 ? 'bg-[#121A2F]/80 text-white shadow-[0_0_15px_rgba(255,201,27,0.15)] border-t border-x border-white/5 border-b-[3px] border-b-[#FFC91B]'
                 : 'bg-[#090E17]/60 text-slate-400 border-t border-x border-transparent border-b-[3px] border-b-[#1E293B] hover:bg-[#121A2F] hover:text-slate-200 hover:border-b-[#FFC91B]/50'
             }`}
-            style={{ clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' }}
           >
             {/* Active Glow Background */}
             {activeTab === id && (
