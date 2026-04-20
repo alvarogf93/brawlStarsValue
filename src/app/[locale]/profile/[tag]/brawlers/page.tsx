@@ -322,13 +322,15 @@ export default function BrawlersPage() {
         </div>
       </div>
 
-      <AdPlaceholder className="mb-6" />
-
       {filteredAndSorted.length === 0 && (
         <div className="brawl-card p-12 text-center">
           <p className="font-['Lilita_One'] text-2xl text-slate-400">{t('noResults')}</p>
         </div>
       )}
+
+      {/* Ad is only shown when there is a roster to display — AdSense
+          policy forbids ads on empty/filter-miss screens. */}
+      {filteredAndSorted.length > 0 && <AdPlaceholder className="mb-6" />}
 
       {/* Roster Grid — 3D Pop-Out Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">

@@ -69,8 +69,6 @@ export default function CosmeticsPage() {
         </div>
       </div>
 
-      <AdPlaceholder className="mb-2" />
-
       {/* Instructions */}
       <div className="brawl-card p-5 border-l-4 border-[var(--color-brawl-gold)]">
         <p className="text-sm text-[var(--color-brawl-dark)] font-['Inter'] font-semibold">
