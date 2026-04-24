@@ -27,16 +27,34 @@ export async function GET(request: Request) {
 
     if (ok) {
       const supabase = await createServiceClient()
-      await supabase
+      // Skip the update if the webhook (which fires concurrently with this
+      // callback) already wrote the same target state. Avoids two writes
+      // per upgrade and keeps `updated_at` stable. The webhook is the
+      // authoritative path; this callback is a UX nicety so the user sees
+      // their upgrade reflected without waiting for the next poll.
+      const { data: existing } = await supabase
         .from('profiles')
-        .update({
-          tier: 'premium',
-          ls_subscription_id: subscriptionId,
-          ls_subscription_status: 'active',
-          ls_customer_id: `paypal_${subscriptionId}`,
-          updated_at: new Date().toISOString(),
-        })
+        .select('tier, ls_subscription_status, ls_subscription_id')
         .eq('id', profileId)
+        .single()
+
+      const alreadyApplied =
+        existing?.tier === 'premium' &&
+        existing?.ls_subscription_status === 'active' &&
+        existing?.ls_subscription_id === subscriptionId
+
+      if (!alreadyApplied) {
+        await supabase
+          .from('profiles')
+          .update({
+            tier: 'premium',
+            ls_subscription_id: subscriptionId,
+            ls_subscription_status: 'active',
+            ls_customer_id: `paypal_${subscriptionId}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', profileId)
+      }
     }
 
     // Success → profile dashboard with celebration flag.

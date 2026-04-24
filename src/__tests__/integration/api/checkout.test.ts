@@ -6,6 +6,20 @@ const mockSingle = vi.fn()
 const mockSelect = vi.fn(() => ({ eq: vi.fn(() => ({ single: mockSingle })) }))
 const mockFrom = vi.fn(() => ({ select: mockSelect }))
 
+// Tracks whether the confirm route's "skip if already premium" pre-check
+// fires. Default: profile is in a non-premium state so the update IS issued.
+type ProfileRow = {
+  tier: 'free' | 'premium'
+  ls_subscription_status: 'active' | 'cancelled' | null
+  ls_subscription_id: string | null
+}
+type ProfileRead = { data: ProfileRow; error: null }
+const mockServiceProfileRead = vi.fn<() => ProfileRead>(() => ({
+  data: { tier: 'free', ls_subscription_status: null, ls_subscription_id: null },
+  error: null,
+}))
+const mockServiceUpdate = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
     auth: { getUser: mockGetUser },
@@ -13,7 +27,11 @@ vi.mock('@/lib/supabase/server', () => ({
   })),
   createServiceClient: vi.fn(async () => ({
     from: vi.fn(() => ({
-      update: vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) })),
+      // Both `.select(...).eq(...).single()` and `.update(...).eq(...)` are
+      // exercised by the confirm route. The select reads current state to
+      // decide whether to apply the update; the update writes the new tier.
+      select: vi.fn(() => ({ eq: vi.fn(() => ({ single: mockServiceProfileRead })) })),
+      update: mockServiceUpdate,
     })),
   })),
 }))
@@ -206,6 +224,34 @@ describe('GET /api/checkout/paypal/confirm', () => {
     const location = res.headers.get('Location') || ''
     expect(location).toContain('/en/profile/')
     expect(location).toContain('upgraded=true')
+  })
+
+  it('skips the profile update when the webhook already promoted the user (idempotency)', async () => {
+    // PayPal says ACTIVE
+    mockGetSubscriptionDetails.mockResolvedValue({
+      status: 'ACTIVE',
+      customId: 'u1',
+      planId: 'P-MONTHLY-001',
+    })
+    // Pre-existing profile state — webhook already wrote this exact subscription
+    mockServiceProfileRead.mockReturnValueOnce({
+      data: { tier: 'premium', ls_subscription_status: 'active', ls_subscription_id: 'I-SUB-001' },
+      error: null,
+    })
+
+    const res = await GET(makeGetRequest({
+      subscription_id: 'I-SUB-001',
+      profile_id: 'u1',
+      locale: 'en',
+      tag: '#TEST123',
+    }))
+
+    expect(res.status).toBe(307)
+    // User STILL gets the upgraded toast (UX nicety) even though we skipped
+    // the redundant DB write.
+    expect(res.headers.get('Location')).toContain('upgraded=true')
+    // Critical: no second update call when the row is already in the target state
+    expect(mockServiceUpdate).not.toHaveBeenCalled()
   })
 
   it('preserves locale and surfaces payment_error on PayPal API error', async () => {

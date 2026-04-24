@@ -14,6 +14,10 @@ import '../globals.css'
 const LOCALES = ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh'] as const
 type SupportedLocale = typeof LOCALES[number]
 
+/** Locales whose script is right-to-left. Used to set `<html dir>` so
+ *  the AR layout renders correctly without per-component overrides. */
+const RTL_LOCALES = new Set<string>(['ar'])
+
 /** Per-locale title + description. Single source of truth — fed into
  *  `title`, `description`, `openGraph` and `twitter` metadata. Previously
  *  only 5 locales were populated here and the remaining 8 silently fell
@@ -154,8 +158,10 @@ export default async function LocaleLayout({
   const { locale } = await params
   const messages = await getMessages()
 
+  const dir = RTL_LOCALES.has(locale) ? 'rtl' : 'ltr'
+
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} dir={dir} suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1C5CF1" />
