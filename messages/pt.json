@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "Seu histórico completo com estatísticas avançadas",
-    "subtitle": "Digite sua Player Tag e descubra seus pontos fortes e fracos com as estatísticas mais avançadas",
+    "title": "Seu histórico ilimitado de Brawl Stars",
+    "subtitle": "O Brawl Stars apaga suas batalhas além das 25 mais recentes. O BrawlVision salva todas a partir do momento em que você vincula sua conta — com análises avançadas, counters e meta pro.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Entrar",
     "calculating": "Carregando...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "Stats dos Brawlers",
     "exploreBrawlersDesc": "Counters, melhores mapas e matchups",
     "battleHistoryLink": "Histórico ilimitado",
-    "loadingDashboard": "Carregando seu painel..."
+    "loadingDashboard": "Carregando seu painel...",
+    "faq": {
+      "sectionTitle": "Perguntas frequentes",
+      "q1": "Quantas batalhas o Brawl Stars guarda?",
+      "a1": "Apenas as últimas 25. Depois, o jogo as apaga e não há como recuperá-las pelo app.",
+      "q2": "Como ver o histórico completo das minhas partidas?",
+      "a2": "Vincule sua conta no BrawlVision e guardamos cada batalha automaticamente a partir desse momento. Filtre por modo, mapa e brawler, e compare sua evolução semana a semana.",
+      "q3": "É seguro vincular minha conta?",
+      "a3": "Sim. Usamos a API oficial da Supercell apenas com seu player tag (o código público mostrado abaixo do seu nome no jogo). Nunca pedimos senha nem acesso ao jogo.",
+      "q4": "O BrawlVision é grátis?",
+      "a4": "A consulta de perfil, brawlers e meta é gratuita. O histórico ilimitado e as análises avançadas estão no plano premium — com 3 dias de teste grátis ao se cadastrar.",
+      "q5": "Funciona para qualquer nível de troféus?",
+      "a5": "Sim, de 0 troféus até o top global. A análise de meta incorpora batalhas de jogadores pro para você se comparar com os melhores."
+    }
   },
   "nav": {
     "overview": "Visão Geral",

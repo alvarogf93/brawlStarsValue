@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "Ton historique complet avec des statistiques avancées",
-    "subtitle": "Entre ton Player Tag et découvre tes forces et faiblesses avec les statistiques les plus avancées",
+    "title": "Ton historique illimité de Brawl Stars",
+    "subtitle": "Brawl Stars efface tes parties au-delà des 25 dernières. BrawlVision les conserve toutes dès que tu lies ton compte — avec analyses avancées, counters et meta pro.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Entrer",
     "calculating": "Chargement...",
@@ -75,7 +75,20 @@
     "exploreBrawlersDesc": "Contres, meilleures cartes et matchups",
     "trialBannerFreeTitle": "Gratuit avec ton #tag",
     "battleHistoryLink": "Historique illimité",
-    "loadingDashboard": "Chargement de ton tableau de bord..."
+    "loadingDashboard": "Chargement de ton tableau de bord...",
+    "faq": {
+      "sectionTitle": "Questions fréquentes",
+      "q1": "Combien de combats Brawl Stars sauvegarde-t-il ?",
+      "a1": "Seulement les 25 derniers. Ensuite, le jeu les supprime et il n'y a aucun moyen de les récupérer depuis l'app.",
+      "q2": "Comment voir l'historique complet de mes parties ?",
+      "a2": "Lie ton compte sur BrawlVision et nous sauvegardons automatiquement chaque combat à partir de ce moment. Filtre par mode, carte et brawler, et compare ton évolution semaine par semaine.",
+      "q3": "Est-ce sûr de lier mon compte ?",
+      "a3": "Oui. Nous utilisons l'API officielle de Supercell avec seulement ton player tag (le code public affiché sous ton nom dans le jeu). Nous ne demandons jamais de mot de passe ni d'accès au jeu.",
+      "q4": "BrawlVision est-il gratuit ?",
+      "a4": "La consultation de profil, brawlers et meta est gratuite. L'historique illimité et les analyses avancées sont dans le plan premium — avec 3 jours d'essai gratuit à l'inscription.",
+      "q5": "Est-ce que ça marche pour n'importe quel niveau de trophées ?",
+      "a5": "Oui, de 0 trophée jusqu'au top mondial. L'analyse de meta intègre des combats de joueurs pro pour que tu puisses te comparer aux meilleurs."
+    }
   },
   "nav": {
     "overview": "Aperçu",

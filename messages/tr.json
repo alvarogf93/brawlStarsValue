@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "Gelişmiş istatistiklerle tüm geçmişin",
-    "subtitle": "Player Tag'ini gir ve en gelişmiş istatistiklerle güçlü ve zayıf yönlerini keşfet",
+    "title": "Sınırsız Brawl Stars Savaş Geçmişin",
+    "subtitle": "Brawl Stars son 25 savaşının öncesini siler. BrawlVision, hesabını bağladığın andan itibaren hepsini saklar — gelişmiş analizler, counter ve pro meta.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Giriş",
     "calculating": "Yükleniyor...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "Brawler İstatistikleri",
     "exploreBrawlersDesc": "Counterlar, en iyi haritalar ve matchup'lar",
     "battleHistoryLink": "Sınırsız geçmiş",
-    "loadingDashboard": "Panelin yükleniyor..."
+    "loadingDashboard": "Panelin yükleniyor...",
+    "faq": {
+      "sectionTitle": "Sık sorulan sorular",
+      "q1": "Brawl Stars kaç savaşı kaydeder?",
+      "a1": "Sadece son 25'ini. Sonra oyun bunları siler ve uygulama üzerinden geri almanın yolu yoktur.",
+      "q2": "Tüm savaş geçmişimi nasıl görebilirim?",
+      "a2": "Hesabını BrawlVision'a bağla, o andan itibaren her savaşı otomatik olarak kaydediyoruz. Mod, harita ve brawler'a göre filtrele, haftadan haftaya gelişimini karşılaştır.",
+      "q3": "Hesabımı bağlamak güvenli mi?",
+      "a3": "Evet. Sadece player tag'in (oyunda isminin altında görünen herkese açık kod) ile resmi Supercell API'sini kullanıyoruz. Asla şifre ya da oyuna erişim istemiyoruz.",
+      "q4": "BrawlVision ücretsiz mi?",
+      "a4": "Profil, brawler ve meta sorgulama ücretsizdir. Sınırsız geçmiş ve gelişmiş analizler premium planda — kayıt olduğunda 3 günlük ücretsiz deneme ile birlikte.",
+      "q5": "Herhangi bir kupa seviyesi için çalışır mı?",
+      "a5": "Evet, 0 kupadan küresel zirveye kadar. Meta analizi, en iyilere karşı kendini karşılaştırabilmen için pro oyuncuların savaşlarını da içerir."
+    }
   },
   "nav": {
     "overview": "Genel bakış",

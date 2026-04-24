@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "Tu historial completo con estadísticas avanzadas",
-    "subtitle": "Ingresa tu Player Tag y descubre cuáles son tus fortalezas y debilidades con la estadística más avanzada",
+    "title": "Tu historial ilimitado de Brawl Stars",
+    "subtitle": "Brawl Stars borra tus batallas tras las 25 más recientes. BrawlVision las guarda todas desde que vinculas tu cuenta — con analíticas avanzadas, counters y meta pro.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Entrar",
     "calculating": "Cargando...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "Stats de Brawlers",
     "exploreBrawlersDesc": "Counters, mejores mapas y matchups",
     "battleHistoryLink": "Historial ilimitado",
-    "loadingDashboard": "Cargando tu panel..."
+    "loadingDashboard": "Cargando tu panel...",
+    "faq": {
+      "sectionTitle": "Preguntas frecuentes",
+      "q1": "¿Cuántas batallas guarda Brawl Stars?",
+      "a1": "Solo las últimas 25. Después, el juego las borra y no hay forma de recuperarlas desde la app.",
+      "q2": "¿Cómo ver el historial completo de mis partidas?",
+      "a2": "Vincula tu cuenta en BrawlVision y guardamos cada batalla automáticamente desde ese momento. Puedes filtrar por modo, mapa y brawler, y comparar tu evolución semana a semana.",
+      "q3": "¿Es seguro vincular mi cuenta?",
+      "a3": "Sí. Usamos la API oficial de Supercell con solo tu player tag (el código público que aparece bajo tu nombre en el juego). Nunca pedimos contraseña ni acceso al juego.",
+      "q4": "¿BrawlVision es gratis?",
+      "a4": "La consulta de perfil, brawlers y meta es gratis. El historial ilimitado y las analíticas avanzadas están en el plan premium — con 3 días de prueba gratis al registrarte.",
+      "q5": "¿Funciona para cualquier nivel de trofeos?",
+      "a5": "Sí, desde 0 trofeos hasta el top global. La analítica de meta incorpora batallas de jugadores pro para que puedas compararte contra los mejores."
+    }
   },
   "nav": {
     "overview": "Vista General",

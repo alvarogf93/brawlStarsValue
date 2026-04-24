@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "Your complete history with advanced statistics",
-    "subtitle": "Enter your Player Tag and discover your strengths and weaknesses with the most advanced statistics",
+    "title": "Your Unlimited Brawl Stars Battle History",
+    "subtitle": "Brawl Stars deletes your battles past the last 25. BrawlVision saves every single one from the moment you link your account — with advanced analytics, counters and pro meta.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Enter",
     "calculating": "Loading...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "Brawler Stats",
     "exploreBrawlersDesc": "Counters, best maps and matchups",
     "battleHistoryLink": "Unlimited history",
-    "loadingDashboard": "Loading your dashboard..."
+    "loadingDashboard": "Loading your dashboard...",
+    "faq": {
+      "sectionTitle": "Frequently asked questions",
+      "q1": "How many battles does Brawl Stars save?",
+      "a1": "Only the last 25. After that, the game deletes them and there's no way to recover them from the app.",
+      "q2": "How can I see my complete battle history?",
+      "a2": "Link your account in BrawlVision and we automatically save every battle from that moment on. Filter by mode, map and brawler, and compare your evolution week by week.",
+      "q3": "Is it safe to link my account?",
+      "a3": "Yes. We use the official Supercell API with just your player tag (the public code shown below your name in-game). We never ask for your password or access to the game.",
+      "q4": "Is BrawlVision free?",
+      "a4": "Profile lookups, brawler stats and meta are free. Unlimited history and advanced analytics are in the premium plan — with 3 days of free trial on sign-up.",
+      "q5": "Does it work at any trophy level?",
+      "a5": "Yes, from 0 trophies up to the global top. The meta analytics incorporates battles from pro players so you can benchmark yourself against the best."
+    }
   },
   "nav": {
     "overview": "Overview",

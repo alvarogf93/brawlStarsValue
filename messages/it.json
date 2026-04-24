@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "La tua cronologia completa con statistiche avanzate",
-    "subtitle": "Inserisci il tuo Player Tag e scopri i tuoi punti di forza e debolezza con le statistiche più avanzate",
+    "title": "La tua cronologia illimitata di Brawl Stars",
+    "subtitle": "Brawl Stars cancella le tue battaglie oltre le ultime 25. BrawlVision le salva tutte dal momento in cui colleghi il tuo account — con analisi avanzate, counter e meta pro.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Entra",
     "calculating": "Caricamento...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "Stats dei Brawler",
     "exploreBrawlersDesc": "Counter, mappe migliori e matchup",
     "battleHistoryLink": "Storico illimitato",
-    "loadingDashboard": "Caricamento del tuo pannello..."
+    "loadingDashboard": "Caricamento del tuo pannello...",
+    "faq": {
+      "sectionTitle": "Domande frequenti",
+      "q1": "Quante battaglie salva Brawl Stars?",
+      "a1": "Solo le ultime 25. Dopo, il gioco le cancella e non c'è modo di recuperarle dall'app.",
+      "q2": "Come posso vedere la cronologia completa delle mie partite?",
+      "a2": "Collega il tuo account a BrawlVision e salveremo automaticamente ogni battaglia da quel momento. Filtra per modalità, mappa e brawler, e confronta la tua evoluzione settimana per settimana.",
+      "q3": "È sicuro collegare il mio account?",
+      "a3": "Sì. Usiamo l'API ufficiale di Supercell solo con il tuo player tag (il codice pubblico mostrato sotto il tuo nome nel gioco). Non chiediamo mai la password o l'accesso al gioco.",
+      "q4": "BrawlVision è gratis?",
+      "a4": "La consultazione del profilo, brawler e meta è gratuita. La cronologia illimitata e le analisi avanzate sono nel piano premium — con 3 giorni di prova gratuita alla registrazione.",
+      "q5": "Funziona per qualsiasi livello di trofei?",
+      "a5": "Sì, da 0 trofei fino al top globale. L'analisi meta incorpora battaglie di giocatori pro così puoi confrontarti con i migliori."
+    }
   },
   "nav": {
     "overview": "Panoramica",

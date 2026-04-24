@@ -7,6 +7,7 @@ import { TrialBanner } from '@/components/landing/TrialBanner'
 import { ExploreSection } from '@/components/landing/ExploreSection'
 import { BrawlerParade } from '@/components/landing/BrawlerParade'
 import { PremiumTeaser } from '@/components/landing/PremiumTeaser'
+import { FAQSection } from '@/components/landing/FAQSection'
 import { FinalCTA } from '@/components/landing/FinalCTA'
 import { SectionReveal } from '@/components/landing/SectionReveal'
 import { LocaleSwitcher } from '@/components/common/LocaleSwitcher'
@@ -83,7 +84,15 @@ export default function LandingPage() {
         <PremiumTeaser />
       </SectionReveal>
 
-      {/* 7. Final CTA */}
+      {/* 7. FAQ — answers the pre-signup doubts we see in SERP queries
+          ("how many battles does the game save", "is it safe", "is it
+          free") and emits FAQPage JSON-LD so Google can surface rich
+          results on those exact queries. */}
+      <SectionReveal>
+        <FAQSection />
+      </SectionReveal>
+
+      {/* 8. Final CTA */}
       <SectionReveal className="px-4 py-16">
         <FinalCTA />
       </SectionReveal>

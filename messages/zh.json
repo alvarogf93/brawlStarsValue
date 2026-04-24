@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "你的完整对战历史与进阶统计数据",
-    "subtitle": "输入你的玩家标签，用最先进的统计数据发现你的优势与劣势",
+    "title": "Brawl Stars 无限战斗历史记录",
+    "subtitle": "Brawl Stars 会删除最近 25 场之前的战斗记录。BrawlVision 从你绑定账号那一刻起保存每一场 — 高级分析、克制关系和职业 meta 一应俱全。",
     "placeholder": "#2P0Q8C2C0",
     "cta": "进入",
     "calculating": "加载中...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "角色统计",
     "exploreBrawlersDesc": "克制关系、最佳地图和对战数据",
     "battleHistoryLink": "无限历史",
-    "loadingDashboard": "正在加载你的面板..."
+    "loadingDashboard": "正在加载你的面板...",
+    "faq": {
+      "sectionTitle": "常见问题",
+      "q1": "Brawl Stars 会保存多少场战斗？",
+      "a1": "仅保存最近 25 场。之后游戏会删除这些记录，从应用内无法恢复。",
+      "q2": "如何查看我完整的战斗历史？",
+      "a2": "在 BrawlVision 绑定账号后，从那一刻起我们会自动保存每一场战斗。可按模式、地图和角色筛选，并逐周对比你的进步。",
+      "q3": "绑定账号安全吗？",
+      "a3": "安全。我们仅使用你的玩家标签（游戏中名字下方显示的公开代码）通过 Supercell 官方 API 获取数据。从不索要密码或游戏访问权限。",
+      "q4": "BrawlVision 免费吗？",
+      "a4": "档案查询、角色和 meta 数据免费。无限历史和高级分析在高级会员计划中 — 注册即享 3 天免费试用。",
+      "q5": "任何奖杯水平都能用吗？",
+      "a5": "可以，从 0 奖杯到全球顶级。Meta 分析包含职业选手的战斗数据，让你能与最强玩家对比。"
+    }
   },
   "nav": {
     "overview": "概览",

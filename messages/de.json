@@ -1,7 +1,7 @@
 {
   "landing": {
-    "title": "Dein vollständiger Verlauf mit erweiterten Statistiken",
-    "subtitle": "Gib dein Player Tag ein und entdecke deine Stärken und Schwächen mit der fortschrittlichsten Statistik",
+    "title": "Dein unbegrenzter Brawl Stars Kampfverlauf",
+    "subtitle": "Brawl Stars löscht deine Kämpfe nach den letzten 25. BrawlVision speichert jeden einzelnen ab dem Moment, in dem du dein Konto verknüpfst — mit erweiterter Analyse, Countern und Pro-Meta.",
     "placeholder": "#2P0Q8C2C0",
     "cta": "Loslegen",
     "calculating": "Lädt...",
@@ -75,7 +75,20 @@
     "exploreBrawlersTitle": "Brawler-Statistiken",
     "exploreBrawlersDesc": "Counter, beste Karten und Matchups",
     "battleHistoryLink": "Unbegrenzter Verlauf",
-    "loadingDashboard": "Dein Dashboard wird geladen..."
+    "loadingDashboard": "Dein Dashboard wird geladen...",
+    "faq": {
+      "sectionTitle": "Häufig gestellte Fragen",
+      "q1": "Wie viele Kämpfe speichert Brawl Stars?",
+      "a1": "Nur die letzten 25. Danach löscht das Spiel sie und es gibt keine Möglichkeit, sie aus der App wiederherzustellen.",
+      "q2": "Wie sehe ich meinen vollständigen Kampfverlauf?",
+      "a2": "Verknüpfe dein Konto bei BrawlVision und wir speichern automatisch jeden Kampf ab diesem Moment. Filtere nach Modus, Map und Brawler und vergleiche deine Entwicklung Woche für Woche.",
+      "q3": "Ist es sicher, mein Konto zu verknüpfen?",
+      "a3": "Ja. Wir nutzen die offizielle Supercell-API nur mit deinem Player Tag (der öffentliche Code unter deinem Namen im Spiel). Wir fragen nie nach deinem Passwort oder Spielzugang.",
+      "q4": "Ist BrawlVision kostenlos?",
+      "a4": "Profilabfrage, Brawler-Stats und Meta sind kostenlos. Unbegrenzter Verlauf und erweiterte Analysen sind im Premium-Plan — mit 3 Tagen kostenloser Testphase bei der Anmeldung.",
+      "q5": "Funktioniert es für jedes Trophäen-Level?",
+      "a5": "Ja, von 0 Trophäen bis zur globalen Spitze. Die Meta-Analyse enthält Kämpfe von Pro-Spielern, sodass du dich mit den Besten vergleichen kannst."
+    }
   },
   "nav": {
     "overview": "Übersicht",
