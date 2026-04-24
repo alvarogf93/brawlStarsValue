@@ -1,5 +1,11 @@
 import type { Metadata } from 'next'
 
+import {
+  buildBrawlerMetaTitle,
+  buildBrawlerMetaDescription,
+  fetchBrawlerMetaSummary,
+} from '@/lib/brawler-metadata'
+
 const BASE_URL = 'https://brawlvision.com'
 const LOCALES = ['es', 'en', 'fr', 'pt', 'de', 'it', 'ru', 'tr', 'pl', 'ar', 'ko', 'ja', 'zh']
 
@@ -30,10 +36,16 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, brawlerId } = await params
   const id = parseInt(brawlerId, 10)
-  const name = await getBrawlerName(id)
 
-  const title = `${name} — Stats, Best Maps & Counters | BrawlVision`
-  const description = `${name} win rate, best maps, counters, and matchups in Brawl Stars. Data from pro players.`
+  // Resolve brand-name + real meta stats in parallel. Both have their own
+  // module-level TTL cache so repeated calls during ISR refresh are cheap.
+  const [name, summary] = await Promise.all([
+    getBrawlerName(id),
+    fetchBrawlerMetaSummary(id),
+  ])
+
+  const title = buildBrawlerMetaTitle(locale, name)
+  const description = buildBrawlerMetaDescription(locale, name, summary)
 
   const languages: Record<string, string> = { 'x-default': `${BASE_URL}/es/brawler/${id}` }
   for (const l of LOCALES) languages[l] = `${BASE_URL}/${l}/brawler/${id}`
@@ -42,14 +54,15 @@ export async function generateMetadata({
     title,
     description,
     openGraph: {
-      title: `${name} — Brawl Stars Stats | BrawlVision`,
+      title,
       description,
       url: `${BASE_URL}/${locale}/brawler/${id}`,
+      locale,
       images: [{ url: `https://cdn.brawlify.com/brawler/${id}/avatar.png`, width: 200, height: 200, alt: name }],
     },
     twitter: {
       card: 'summary',
-      title: `${name} Stats | BrawlVision`,
+      title,
       description,
       images: [`https://cdn.brawlify.com/brawler/${id}/avatar.png`],
     },
