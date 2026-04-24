@@ -5,6 +5,7 @@ import { CookieConsent } from '@/components/ui/CookieConsent'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { TagRequiredModal } from '@/components/auth/TagRequiredModal'
 import { ReferralToast } from '@/components/premium/ReferralToast'
+import { UrlFlashMessage } from '@/components/common/UrlFlashMessage'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AdSenseScript } from '@/components/ads/AdSenseScript'
@@ -195,6 +196,7 @@ export default async function LocaleLayout({
               {children}
               <TagRequiredModal />
               <ReferralToast />
+              <UrlFlashMessage />
               <CookieConsent />
               <Toaster />
             </TooltipProvider>

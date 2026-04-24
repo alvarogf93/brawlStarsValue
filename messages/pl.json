@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "Gotowy, żeby nie tracić już walk?",
     "finalCtaBody": "Aktywuj tracking w mniej niż minutę i zacznij budować pełną historię od dziś."
+  },
+  "flash": {
+    "authError": "Nie udało się zalogować. Spróbuj ponownie.",
+    "paymentError": "Płatność nie została zrealizowana. Spróbuj ponownie lub napisz do nas, jeśli uważasz, że to błąd.",
+    "upgraded": "Witaj w Premium! Nielimitowana historia walk aktywna."
   }
 }

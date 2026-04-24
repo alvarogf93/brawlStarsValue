@@ -39,9 +39,12 @@ export default function SubscribePage() {
     }
   }, [authLoading, hasPremium, router, params.locale, params.tag])
 
-  // Fetch player trophies for segment detection (competitive check)
+  // Fetch player trophies for segment detection (competitive check).
+  // Uses the lightweight `/api/player/tag-summary` — the old path called
+  // `/api/calculate` (3 Supercell calls + gem-value compute) just to read
+  // the `trophies` number, which is wasted work on the subscribe page.
   useEffect(() => {
-    fetch('/api/calculate', {
+    fetch('/api/player/tag-summary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerTag: tag }),
@@ -50,7 +53,7 @@ export default function SubscribePage() {
         if (!r.ok) throw new Error(`API error: ${r.status}`)
         return r.json()
       })
-      .then(d => setTrophies(d.player?.trophies ?? 0))
+      .then(d => setTrophies(d.trophies ?? 0))
       .catch(() => { /* trophies default to 0 — competitive segment won't trigger */ })
   }, [tag])
 

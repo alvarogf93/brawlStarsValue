@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "Ready to stop losing battles to the 25-match cap?",
     "finalCtaBody": "Activate tracking in under a minute and start building your complete history from today."
+  },
+  "flash": {
+    "authError": "Sign-in failed. Please try again.",
+    "paymentError": "Payment didn't go through. Try again or contact us if you think this is an error.",
+    "upgraded": "Welcome to Premium! Unlimited battle history unlocked."
   }
 }

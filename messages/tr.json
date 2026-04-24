@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "Artık savaş kaybetmemeye hazır mısın?",
     "finalCtaBody": "Bir dakikadan kısa sürede takibi aktive et ve bugünden itibaren tam geçmişini oluşturmaya başla."
+  },
+  "flash": {
+    "authError": "Giriş başarısız. Lütfen tekrar dene.",
+    "paymentError": "Ödeme tamamlanmadı. Tekrar dene ya da hata olduğunu düşünüyorsan bize yaz.",
+    "upgraded": "Premium'a hoş geldin! Sınırsız savaş geçmişi açıldı."
   }
 }

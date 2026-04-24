@@ -39,9 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const linkTag = useCallback(async (tag: string): Promise<{ ok: boolean; error?: string }> => {
     if (!user) return { ok: false, error: 'Not authenticated' }
 
-    // Validate tag exists in Brawl Stars API
+    // Validate tag exists in Brawl Stars API. Uses the lightweight
+    // `/api/player/tag-summary` (single Supercell call) instead of
+    // `/api/calculate` (player + battlelog + club + gem-value compute,
+    // ~1-3 s). Signup is the most latency-sensitive step of the funnel;
+    // this shaves the wait roughly 3×.
     try {
-      const res = await fetch('/api/calculate', {
+      const res = await fetch('/api/player/tag-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerTag: tag }),

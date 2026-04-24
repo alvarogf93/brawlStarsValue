@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "Pronto a non perdere più battaglie?",
     "finalCtaBody": "Attiva il tracking in meno di un minuto e inizia a costruire il tuo storico completo da oggi."
+  },
+  "flash": {
+    "authError": "Accesso non riuscito. Riprova.",
+    "paymentError": "Il pagamento non è andato a buon fine. Riprova o contattaci se pensi che sia un errore.",
+    "upgraded": "Benvenuto nel Premium! Cronologia illimitata attivata."
   }
 }

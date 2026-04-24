@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "¿Listo para no perder ninguna batalla más?",
     "finalCtaBody": "Activa el tracking en menos de un minuto y empieza a guardar tu historial completo desde hoy."
+  },
+  "flash": {
+    "authError": "No pudimos iniciar sesión. Inténtalo de nuevo.",
+    "paymentError": "El pago no se completó. Vuelve a intentarlo o escríbenos si crees que es un error.",
+    "upgraded": "¡Bienvenido a Premium! Historial ilimitado activado."
   }
 }

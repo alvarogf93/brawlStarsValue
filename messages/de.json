@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "Bereit, keinen Kampf mehr zu verlieren?",
     "finalCtaBody": "Aktiviere das Tracking in unter einer Minute und bau ab heute deinen kompletten Verlauf auf."
+  },
+  "flash": {
+    "authError": "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
+    "paymentError": "Die Zahlung wurde nicht abgeschlossen. Versuch es erneut oder melde dich, falls du das für einen Fehler hältst.",
+    "upgraded": "Willkommen bei Premium! Unbegrenzter Kampfverlauf freigeschaltet."
   }
 }

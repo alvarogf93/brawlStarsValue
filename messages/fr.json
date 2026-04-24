@@ -876,5 +876,10 @@
     ],
     "finalCtaTitle": "Prêt à ne plus perdre de combats ?",
     "finalCtaBody": "Active le suivi en moins d'une minute et commence à bâtir ton historique complet dès aujourd'hui."
+  },
+  "flash": {
+    "authError": "La connexion a échoué. Réessaie s'il te plaît.",
+    "paymentError": "Le paiement n'a pas abouti. Réessaie ou contacte-nous si tu penses que c'est une erreur.",
+    "upgraded": "Bienvenue sur Premium ! Historique illimité activé."
   }
 }

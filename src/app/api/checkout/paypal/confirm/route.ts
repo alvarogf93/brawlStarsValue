@@ -16,15 +16,17 @@ export async function GET(request: Request) {
     const tag = searchParams.get('tag') || ''
 
     if (!subscriptionId || !profileId) {
-      return NextResponse.redirect(`${origin}/${locale}`)
+      // Missing params = likely a direct hit or a botched callback. Send
+      // the user home with a flag so UrlFlashMessage can explain.
+      return NextResponse.redirect(`${origin}/${locale}?payment_error=1`)
     }
 
     // Verify subscription is active with PayPal
     const details = await getSubscriptionDetails(subscriptionId)
+    const ok = details.status === 'ACTIVE' || details.status === 'APPROVED'
 
-    if (details.status === 'ACTIVE' || details.status === 'APPROVED') {
+    if (ok) {
       const supabase = await createServiceClient()
-
       await supabase
         .from('profiles')
         .update({
@@ -37,13 +39,23 @@ export async function GET(request: Request) {
         .eq('id', profileId)
     }
 
-    const redirectUrl = tag
-      ? `${origin}/${locale}/profile/${encodeURIComponent(tag)}?upgraded=true`
-      : `${origin}/${locale}`
+    // Success → profile dashboard with celebration flag.
+    // Not-yet-active (SUSPENDED/CANCELLED/etc.) → redirect with payment_error
+    // so the user gets told instead of a silent same-page reload.
+    const redirectUrl = ok
+      ? tag
+        ? `${origin}/${locale}/profile/${encodeURIComponent(tag)}?upgraded=true`
+        : `${origin}/${locale}?upgraded=true`
+      : tag
+        ? `${origin}/${locale}/profile/${encodeURIComponent(tag)}/subscribe?payment_error=1`
+        : `${origin}/${locale}?payment_error=1`
 
     return NextResponse.redirect(redirectUrl)
   } catch {
-    const { origin } = new URL(request.url)
-    return NextResponse.redirect(`${origin}/es`)
+    // PayPal API unreachable / unexpected body shape. Keep the user in
+    // their locale and surface a visible error instead of a silent /es.
+    const { searchParams, origin } = new URL(request.url)
+    const locale = searchParams.get('locale') || 'es'
+    return NextResponse.redirect(`${origin}/${locale}?payment_error=1`)
   }
 }

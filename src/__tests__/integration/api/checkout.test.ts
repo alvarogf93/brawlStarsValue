@@ -208,7 +208,7 @@ describe('GET /api/checkout/paypal/confirm', () => {
     expect(location).toContain('upgraded=true')
   })
 
-  it('redirects to fallback on PayPal API error', async () => {
+  it('preserves locale and surfaces payment_error on PayPal API error', async () => {
     mockGetSubscriptionDetails.mockRejectedValue(new Error('PayPal down'))
 
     const res = await GET(makeGetRequest({
@@ -220,7 +220,9 @@ describe('GET /api/checkout/paypal/confirm', () => {
 
     expect(res.status).toBe(307)
     const location = res.headers.get('Location') || ''
-    // Falls back to /es in the catch block
-    expect(location).toContain('/es')
+    // Previously this silently fell back to /es. Now we keep the user in
+    // their locale and raise a flag so UrlFlashMessage can explain.
+    expect(location).toContain('/en')
+    expect(location).toContain('payment_error=1')
   })
 })
