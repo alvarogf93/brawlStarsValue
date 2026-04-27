@@ -143,6 +143,9 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     },
     verification: {
       google: '5uwFXu6M3E0O0IOawv8nl-Ae-OKw72tBOblsWHrXQ2Y',
+      other: {
+        'google-adsense-account': 'ca-pub-6838192381842255',
+      },
     },
     alternates: buildLanguageAlternates(locale),
   }
