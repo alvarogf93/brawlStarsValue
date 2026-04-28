@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server'
 import { fetchClub, SuprecellApiError } from '@/lib/api'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
   try {
+    // Throttle BEFORE input validation. SEG-06.
+    const rl = await enforceRateLimit(req, { limit: 30, window: '60 s' })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rl.reset ?? 60) } },
+      )
+    }
+
     const { clubTag } = await req.json()
 
     // SEG-05 — single regex source. The previous /^#[0-9A-Z]{3,12}$/

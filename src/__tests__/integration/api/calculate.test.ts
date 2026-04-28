@@ -55,6 +55,13 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }))
 
+const { enforceRateLimitMock } = vi.hoisted(() => ({
+  enforceRateLimitMock: vi.fn().mockResolvedValue({ ok: true, remaining: 9, reset: 60 }),
+}))
+vi.mock('@/lib/rate-limit', () => ({
+  enforceRateLimit: enforceRateLimitMock,
+}))
+
 const MOCK_PLAYER: PlayerData = {
   tag: '#YJU282PV' as never,
   name: 'TestPlayer',
@@ -96,7 +103,10 @@ function makeRequest(body: unknown) {
 }
 
 describe('POST /api/calculate', () => {
-  beforeEach(() => { vi.clearAllMocks() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    enforceRateLimitMock.mockResolvedValue({ ok: true, remaining: 9, reset: 60 })
+  })
 
   it('returns 200 with real gem value', async () => {
     mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
@@ -149,6 +159,7 @@ describe('POST /api/calculate — anonymous visit tracking', () => {
   beforeEach(() => {
     resetCaptured()
     vi.clearAllMocks()
+    enforceRateLimitMock.mockResolvedValue({ ok: true, remaining: 9, reset: 60 })
     // Default: Supercell returns a valid player and user is anonymous
     mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
     getUserMock.mockResolvedValue({ data: { user: null }, error: null })
@@ -237,5 +248,20 @@ describe('POST /api/calculate — anonymous visit tracking', () => {
       expect.any(Error),
     )
     consoleError.mockRestore()
+  })
+})
+
+describe('POST /api/calculate — rate limiting (SEG-06)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
+  })
+
+  it('returns 429 with Retry-After header and does NOT call Supercell', async () => {
+    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, remaining: 0, reset: 25 })
+    const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
+    expect(res.status).toBe(429)
+    expect(res.headers.get('Retry-After')).toBe('25')
+    expect(mockFetchPlayer).not.toHaveBeenCalled()
   })
 })

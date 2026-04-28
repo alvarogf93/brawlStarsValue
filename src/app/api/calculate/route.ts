@@ -4,6 +4,7 @@ import { fetchPlayer, fetchBattlelog, fetchClub, SuprecellApiError } from '@/lib
 import { calculateValue } from '@/lib/calculate'
 import { createClient } from '@/lib/supabase/server'
 import { trackAnonymousVisit } from '@/lib/anonymous-visits'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 // Locale whitelist for anonymous-visit tracking.
 // ⚠️ MUST stay in sync with `src/i18n/routing.ts` (`routing.locales`).
@@ -16,6 +17,17 @@ const SUPPORTED_LOCALES = new Set<string>([
 
 export async function POST(req: Request) {
   try {
+    // Throttle BEFORE input validation. /api/calculate fans out to up to 3
+    // Supercell API calls per request, so the limit is tighter than the
+    // single-call routes. SEG-06.
+    const rl = await enforceRateLimit(req, { limit: 10, window: '60 s' })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rl.reset ?? 60) } },
+      )
+    }
+
     const body = await req.json()
     const { playerTag } = body
 

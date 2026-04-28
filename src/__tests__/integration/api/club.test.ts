@@ -11,6 +11,13 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+const { enforceRateLimitMock } = vi.hoisted(() => ({
+  enforceRateLimitMock: vi.fn().mockResolvedValue({ ok: true, remaining: 29, reset: 60 }),
+}))
+vi.mock('@/lib/rate-limit', () => ({
+  enforceRateLimit: enforceRateLimitMock,
+}))
+
 import { fetchClub, SuprecellApiError } from '@/lib/api'
 import { POST } from '@/app/api/club/route'
 
@@ -18,7 +25,10 @@ type ClubData = Awaited<ReturnType<typeof fetchClub>>
 
 const mockFetchClub = vi.mocked(fetchClub)
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  enforceRateLimitMock.mockResolvedValue({ ok: true, remaining: 29, reset: 60 })
+})
 
 function makeRequest(body: unknown) {
   return new Request('http://localhost:3000/api/club', {
@@ -52,5 +62,13 @@ describe('POST /api/club', () => {
     mockFetchClub.mockRejectedValueOnce(new Error('network fail'))
     const res = await POST(makeRequest({ clubTag: '#CLUB1' }))
     expect(res.status).toBe(500)
+  })
+
+  it('returns 429 with Retry-After when rate-limited (SEG-06)', async () => {
+    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, remaining: 0, reset: 17 })
+    const res = await POST(makeRequest({ clubTag: '#CLUB1' }))
+    expect(res.status).toBe(429)
+    expect(res.headers.get('Retry-After')).toBe('17')
+    expect(mockFetchClub).not.toHaveBeenCalled()
   })
 })

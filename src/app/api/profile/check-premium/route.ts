@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { enforceRateLimit } from '@/lib/rate-limit'
 
 /**
  * GET /api/profile/check-premium?tag=#TAG
@@ -9,6 +10,17 @@ import { createServiceClient } from '@/lib/supabase/server'
  */
 export async function GET(request: Request) {
   try {
+    // Throttle BEFORE input validation. Light endpoint but flagged for
+    // tag enumeration risk in SEG-10 — 60/min/IP is plenty for the
+    // legitimate post-login probe. SEG-06.
+    const rl = await enforceRateLimit(request, { limit: 60, window: '60 s' })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rl.reset ?? 60) } },
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const tag = searchParams.get('tag')?.toUpperCase().trim()
 
