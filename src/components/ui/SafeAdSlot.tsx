@@ -1,5 +1,9 @@
 'use client'
 
+// `AdPlaceholder` has no `@/components/ui` barrel re-export and must
+// not be imported directly from page-level code — every public ad slot
+// goes through `SafeAdSlot` so the `hasContent` gate is enforced at the
+// type level (see ARQ-05, 2026-04-28).
 import { AdPlaceholder } from './AdPlaceholder'
 
 interface Props {

@@ -10,7 +10,7 @@ import { useClubEnriched, type EnrichedMember } from '@/hooks/useClubEnriched'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { ModeIcon } from '@/components/ui/ModeIcon'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { ClubTrophyChart } from '@/components/club/ClubTrophyChart'
 import { useClubTrophyChanges } from '@/hooks/useClubTrophyChanges'
 import { computeClubModeLeaders } from '@/lib/club-mode-leaders'
@@ -302,8 +302,11 @@ export default function ClubPage() {
         </div>
       )}
 
-      {/* Primary Ad above Leaderboard */}
-      {!enrichLoading && <AdPlaceholder className="mb-6" />}
+      {/* Primary Ad above Leaderboard — gated on the enrichment progress
+          so we never render the slot while skeleton rows are visible,
+          and on `sorted.length` so an empty club doesn't show a banner
+          above an empty roster. */}
+      <SafeAdSlot hasContent={!enrichLoading && sorted.length > 0} className="mb-6" />
 
       {/* ═══ LEADERBOARD CARD ═══ */}
       <div
@@ -511,7 +514,9 @@ export default function ClubPage() {
       </div>
     </div>
     
-    <AdPlaceholder className="mt-8" />
+    {/* Footer ad — sits below the leaderboard, so we reuse the same
+        "we have a sorted member list to show" content gate. */}
+    <SafeAdSlot hasContent={!enrichLoading && sorted.length > 0} className="mt-8" />
   </div>
   )
 }

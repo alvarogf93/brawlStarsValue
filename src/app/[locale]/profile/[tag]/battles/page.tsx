@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { useBattlelog } from '@/hooks/useBattlelog'
 import { TrophyChart } from '@/components/battles/TrophyChart'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { ModeIcon } from '@/components/ui/ModeIcon'
 import { BlurredTeaser } from '@/components/premium/BlurredTeaser'
@@ -216,8 +216,11 @@ export default function BattlesPage() {
         </BlurredTeaser>
       )}
 
-      {/* Ad space */}
-      <AdPlaceholder className="mb-8" />
+      {/* Ad space — only render when there is at least one battle to
+          show. An empty battlelog still passes the `data` check, but
+          the page above renders empty stats and an empty list, which
+          is exactly the "no valuable inventory" state AdSense bans. */}
+      <SafeAdSlot hasContent={data.battles.length > 0} className="mb-8" />
     </div>
   )
 }

@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState, useRef, useCallback } from 'react'
 import { usePlayerData } from '@/hooks/usePlayerData'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { Download } from 'lucide-react'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
 import { toast } from 'sonner'
@@ -93,8 +93,10 @@ export default function SharePage() {
   return (
     <div className="space-y-6 flex flex-col items-center pb-10">
 
-      {/* Banner Ad Space */}
-      <AdPlaceholder className="mb-6" />
+      {/* Banner Ad Space — sits above the viral card. The early-return
+          guards above ensure `data.player` is populated, which is the
+          actual content that drives the share card render. */}
+      <SafeAdSlot hasContent={!!data.player} className="mb-6" />
 
       {/* Share Card Area */}
       <div className="text-center mb-8">
