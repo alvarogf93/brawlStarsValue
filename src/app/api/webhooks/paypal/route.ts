@@ -39,26 +39,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing subscription ID' }, { status: 400 })
   }
 
-  // 3. Idempotency check
-  const eventId = request.headers.get('paypal-transmission-id') ?? ''
-  if (eventId) {
-    const { error: insertErr } = await supabase
-      .from('webhook_events')
-      .insert({ event_id: `paypal_${eventId}`, event_type: 'paypal' })
-
-    if (insertErr) {
-      if (insertErr.code === '23505') {
-        return NextResponse.json({ ok: true, skipped: true })
-      }
-      console.error('[paypal-webhook] Idempotency insert failed:', insertErr.message)
-      return NextResponse.json({ error: 'Database error' }, { status: 500 })
-    }
-  }
-
-  // 4. Get profile ID from subscription custom_id
+  // 3. Resolve profile ID
   let profileId = event.resource?.custom_id
   if (!profileId) {
-    // Fallback: fetch subscription details from PayPal
     try {
       const details = await getSubscriptionDetails(subscriptionId)
       profileId = details.customId ?? undefined
@@ -70,11 +53,33 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No profile ID' }, { status: 400 })
   }
 
-  // 5. Map event to tier
+  // 4. Map event to tier
   const subscriptionStatus = event.resource?.status || 'UNKNOWN'
   const { tier, subscriptionStatus: mappedStatus } = paypalStatusToTier(eventType, subscriptionStatus)
 
-  // 6. Update profile
+  const eventId = request.headers.get('paypal-transmission-id') ?? ''
+
+  // 5. Pre-check idempotency for fast-path: if we already processed this
+  // event successfully, return early. Also short-circuits PayPal retries
+  // that hit network glitches between our 200 and their ack.
+  if (eventId) {
+    const { data: existing } = await supabase
+      .from('webhook_events')
+      .select('event_id')
+      .eq('event_id', `paypal_${eventId}`)
+      .maybeSingle()
+    if (existing) {
+      return NextResponse.json({ ok: true, skipped: true })
+    }
+  }
+
+  // 6. LOG-02 — Apply the side-effect FIRST. The previous order (mark
+  // idempotency before update) meant a transient `profiles.update`
+  // failure left the event marked as processed; PayPal's retry then
+  // saw 23505 and returned `skipped`, leaving the user `free`
+  // permanently after they had paid. Updates here are idempotent
+  // (fixed value-set keyed on subscription_id), so re-running on
+  // retry is safe.
   const { error: updateErr } = await supabase
     .from('profiles')
     .update({
@@ -88,12 +93,25 @@ export async function POST(request: Request) {
 
   if (updateErr) {
     console.error('[paypal webhook] Update failed:', updateErr.message)
+    // No idempotency mark — PayPal must be allowed to retry until update succeeds.
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+  }
+
+  // 7. Mark event as processed AFTER the side-effect succeeded.
+  if (eventId) {
+    const { error: insertErr } = await supabase
+      .from('webhook_events')
+      .insert({ event_id: `paypal_${eventId}`, event_type: 'paypal' })
+
+    if (insertErr && insertErr.code !== '23505') {
+      // Effect already applied; log but do not fail the response — PayPal
+      // would only retry and re-apply the same idempotent update.
+      console.error('[paypal-webhook] Idempotency insert failed (non-fatal):', insertErr.message)
+    }
   }
 
   console.info('[paypal webhook] Success: event=%s tier=%s status=%s', eventType, tier, mappedStatus)
 
-  // Notify admin
   const emoji = tier === 'premium' ? '💰' : '⚠️'
   notify(`${emoji} <b>PayPal ${eventType.replace('BILLING.SUBSCRIPTION.', '')}</b>\nProfile: ${profileId}\nTier: ${tier} (${mappedStatus})`)
 

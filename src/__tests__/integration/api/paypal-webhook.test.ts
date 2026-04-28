@@ -4,10 +4,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 const mockInsert = vi.fn()
 const mockUpdate = vi.fn()
 const mockEq = vi.fn()
+// Idempotency pre-check chain: from('webhook_events').select(...).eq(...).maybeSingle()
+const mockMaybeSingle = vi.fn()
+const mockSelectEq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }))
+const mockSelect = vi.fn(() => ({ eq: mockSelectEq }))
 
 const mockFrom = vi.fn((table: string) => {
   if (table === 'webhook_events') {
-    return { insert: mockInsert }
+    return { insert: mockInsert, select: mockSelect }
   }
   if (table === 'profiles') {
     return { update: mockUpdate }
@@ -81,6 +85,9 @@ describe('POST /api/webhooks/paypal', () => {
     // Default: idempotency insert succeeds (no duplicate)
     mockInsert.mockResolvedValue({ error: null })
 
+    // Default: idempotency pre-check finds nothing (fresh event)
+    mockMaybeSingle.mockResolvedValue({ data: null, error: null })
+
     // Default: profile update succeeds
     mockEq.mockResolvedValue({ error: null })
     mockUpdate.mockReturnValue({ eq: mockEq })
@@ -116,23 +123,29 @@ describe('POST /api/webhooks/paypal', () => {
 
   // ── Idempotency ──────────────────────────────────────────────
 
-  it('returns { ok: true, skipped: true } for duplicate event_id', async () => {
-    mockInsert.mockResolvedValue({ error: { code: '23505', message: 'duplicate' } })
+  it('returns { ok: true, skipped: true } when pre-check finds processed event', async () => {
+    mockMaybeSingle.mockResolvedValue({ data: { event_id: 'paypal_tx-001' }, error: null })
 
     const res = await POST(makeRequest(VALID_EVENT))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.ok).toBe(true)
     expect(body.skipped).toBe(true)
+    // Side-effect must NOT run when event already processed
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockInsert).not.toHaveBeenCalled()
   })
 
-  it('returns 500 when idempotency insert fails with non-23505 error', async () => {
+  it('logs and returns 200 when post-update idempotency mark fails (non-fatal)', async () => {
+    // Effect already applied; even if the mark fails the user must not
+    // be sent back into the retry loop forever.
     mockInsert.mockResolvedValue({ error: { code: '42000', message: 'unexpected DB error' } })
 
     const res = await POST(makeRequest(VALID_EVENT))
-    expect(res.status).toBe(500)
+    expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.error).toMatch(/database/i)
+    expect(body.ok).toBe(true)
+    expect(mockUpdate).toHaveBeenCalled()
   })
 
   // ── Successful webhook processing ────────────────────────────
@@ -201,5 +214,39 @@ describe('POST /api/webhooks/paypal', () => {
     expect(res.status).toBe(500)
     const body = await res.json()
     expect(body.error).toMatch(/update failed/i)
+  })
+
+  // ── LOG-02: idempotency only marked AFTER side-effect ────────
+
+  it('does NOT mark idempotency when profile update fails — LOG-02', async () => {
+    mockEq.mockResolvedValue({ error: { message: 'transient db error' } })
+
+    const res = await POST(makeRequest(VALID_EVENT))
+    expect(res.status).toBe(500)
+    // Critical: webhook_events must remain free so PayPal's retry can
+    // re-attempt the update. The previous order silently lost paid
+    // upgrades when the first update failed transiently.
+    expect(mockInsert).not.toHaveBeenCalled()
+  })
+
+  it('PayPal retry after transient failure completes the update — LOG-02 regression', async () => {
+    // Attempt 1: update fails
+    mockEq.mockResolvedValueOnce({ error: { message: 'transient' } })
+    const first = await POST(makeRequest(VALID_EVENT))
+    expect(first.status).toBe(500)
+    expect(mockInsert).not.toHaveBeenCalled()
+
+    // Attempt 2 (PayPal retry, same transmission-id): pre-check still
+    // finds nothing, update now succeeds, idempotency mark applied.
+    mockEq.mockResolvedValueOnce({ error: null })
+    const second = await POST(makeRequest(VALID_EVENT))
+    expect(second.status).toBe(200)
+    const body = await second.json()
+    expect(body.ok).toBe(true)
+    expect(mockInsert).toHaveBeenCalledTimes(1)
+    expect(mockInsert).toHaveBeenCalledWith({
+      event_id: 'paypal_tx-001',
+      event_type: 'paypal',
+    })
   })
 })
