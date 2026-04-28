@@ -1,3 +1,9 @@
+import { fetchWithRetry, fetchWithTimeout, getCircuitBreaker } from './http'
+
+// PERF-01: PayPal sandbox stalls cascaded into webhook re-delivery storms.
+// Per-process circuit breaker, 5 failures / 30 s, opens for 60 s.
+const paypalBreaker = getCircuitBreaker('paypal')
+
 function getPayPalBase(): string {
   const mode = process.env.PAYPAL_MODE?.trim()
   // If PAYPAL_MODE is explicitly set, use it; otherwise default to live in production
@@ -19,14 +25,21 @@ async function getAccessToken(): Promise<string> {
   const base = getPayPalBase()
   const auth = Buffer.from(`${clientId}:${secret}`).toString('base64')
 
-  const res = await fetch(`${base}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'grant_type=client_credentials',
-  })
+  // OAuth2 client_credentials grant is idempotent — retry safe.
+  const res = await paypalBreaker.execute(() =>
+    fetchWithRetry(
+      `${base}/v1/oauth2/token`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'grant_type=client_credentials',
+      },
+      { retries: 2, timeoutMs: 8_000 },
+    ),
+  )
 
   if (!res.ok) {
     throw new Error(`PayPal auth failed: ${res.status}`)
@@ -41,19 +54,26 @@ async function getAccessToken(): Promise<string> {
 /** Create a product in PayPal (only needs to be done once) */
 export async function createProduct(): Promise<string> {
   const token = await getAccessToken()
-  const res = await fetch(`${getPayPalBase()}/v1/catalogs/products`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: 'BrawlVision Premium',
-      description: 'Brawl Stars combat analytics subscription',
-      type: 'SERVICE',
-      category: 'SOFTWARE',
-    }),
-  })
+  // POST without retries — creation is not idempotent.
+  const res = await paypalBreaker.execute(() =>
+    fetchWithTimeout(
+      `${getPayPalBase()}/v1/catalogs/products`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'BrawlVision Premium',
+          description: 'Brawl Stars combat analytics subscription',
+          type: 'SERVICE',
+          category: 'SOFTWARE',
+        }),
+      },
+      8_000,
+    ),
+  )
 
   if (!res.ok) throw new Error(`Create product failed: ${res.status}`)
   const data = await res.json()
@@ -69,35 +89,42 @@ export async function createPlan(params: {
   intervalCount?: number
 }): Promise<string> {
   const token = await getAccessToken()
-  const res = await fetch(`${getPayPalBase()}/v1/billing/plans`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      product_id: params.productId,
-      name: params.name,
-      billing_cycles: [
-        {
-          frequency: {
-            interval_unit: params.interval,
-            interval_count: params.intervalCount ?? 1,
-          },
-          tenure_type: 'REGULAR',
-          sequence: 1,
-          total_cycles: 0, // infinite
-          pricing_scheme: {
-            fixed_price: { value: params.price, currency_code: 'EUR' },
-          },
+  // POST without retries — plan creation is not idempotent.
+  const res = await paypalBreaker.execute(() =>
+    fetchWithTimeout(
+      `${getPayPalBase()}/v1/billing/plans`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      ],
-      payment_preferences: {
-        auto_bill_outstanding: true,
-        payment_failure_threshold: 3,
+        body: JSON.stringify({
+          product_id: params.productId,
+          name: params.name,
+          billing_cycles: [
+            {
+              frequency: {
+                interval_unit: params.interval,
+                interval_count: params.intervalCount ?? 1,
+              },
+              tenure_type: 'REGULAR',
+              sequence: 1,
+              total_cycles: 0, // infinite
+              pricing_scheme: {
+                fixed_price: { value: params.price, currency_code: 'EUR' },
+              },
+            },
+          ],
+          payment_preferences: {
+            auto_bill_outstanding: true,
+            payment_failure_threshold: 3,
+          },
+        }),
       },
-    }),
-  })
+      8_000,
+    ),
+  )
 
   if (!res.ok) throw new Error(`Create plan failed: ${res.status}`)
   const data = await res.json()
@@ -114,24 +141,33 @@ export async function createSubscription(params: {
 }): Promise<{ subscriptionId: string; approvalUrl: string }> {
   const token = await getAccessToken()
 
-  const res = await fetch(`${getPayPalBase()}/v1/billing/subscriptions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      plan_id: params.planId,
-      custom_id: params.profileId,
-      application_context: {
-        brand_name: 'BrawlVision',
-        shipping_preference: 'NO_SHIPPING',
-        user_action: 'SUBSCRIBE_NOW',
-        return_url: params.returnUrl,
-        cancel_url: params.cancelUrl,
+  // CRITICAL: createSubscription is NOT idempotent — never retry. A retry on
+  // a 5xx that actually succeeded server-side would create two subscriptions
+  // (and double-charge on activation). Use plain `fetchWithTimeout` only.
+  const res = await paypalBreaker.execute(() =>
+    fetchWithTimeout(
+      `${getPayPalBase()}/v1/billing/subscriptions`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          plan_id: params.planId,
+          custom_id: params.profileId,
+          application_context: {
+            brand_name: 'BrawlVision',
+            shipping_preference: 'NO_SHIPPING',
+            user_action: 'SUBSCRIBE_NOW',
+            return_url: params.returnUrl,
+            cancel_url: params.cancelUrl,
+          },
+        }),
       },
-    }),
-  })
+      8_000,
+    ),
+  )
 
   if (!res.ok) {
     const err = await res.text()
@@ -156,9 +192,14 @@ export async function getSubscriptionDetails(subscriptionId: string): Promise<{
 }> {
   const token = await getAccessToken()
 
-  const res = await fetch(`${getPayPalBase()}/v1/billing/subscriptions/${subscriptionId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
+  // GET — idempotent, retry safe.
+  const res = await paypalBreaker.execute(() =>
+    fetchWithRetry(
+      `${getPayPalBase()}/v1/billing/subscriptions/${subscriptionId}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+      { retries: 2, timeoutMs: 8_000 },
+    ),
+  )
 
   if (!res.ok) throw new Error(`Get subscription failed: ${res.status}`)
   const data = await res.json()
@@ -179,22 +220,31 @@ export async function verifyPayPalWebhook(params: {
 }): Promise<boolean> {
   const token = await getAccessToken()
 
-  const res = await fetch(`${getPayPalBase()}/v1/notifications/verify-webhook-signature`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      auth_algo: params.headers['paypal-auth-algo'],
-      cert_url: params.headers['paypal-cert-url'],
-      transmission_id: params.headers['paypal-transmission-id'],
-      transmission_sig: params.headers['paypal-transmission-sig'],
-      transmission_time: params.headers['paypal-transmission-time'],
-      webhook_id: params.webhookId,
-      webhook_event: (() => { try { return JSON.parse(params.body) } catch { return null } })(),
-    }),
-  })
+  // verify-webhook-signature is a verification POST — idempotent against
+  // PayPal. One retry is sufficient (this is on the webhook hot path; we
+  // don't want to slow down PayPal's own retry semantics).
+  const res = await paypalBreaker.execute(() =>
+    fetchWithRetry(
+      `${getPayPalBase()}/v1/notifications/verify-webhook-signature`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          auth_algo: params.headers['paypal-auth-algo'],
+          cert_url: params.headers['paypal-cert-url'],
+          transmission_id: params.headers['paypal-transmission-id'],
+          transmission_sig: params.headers['paypal-transmission-sig'],
+          transmission_time: params.headers['paypal-transmission-time'],
+          webhook_id: params.webhookId,
+          webhook_event: (() => { try { return JSON.parse(params.body) } catch { return null } })(),
+        }),
+      },
+      { retries: 1, timeoutMs: 8_000 },
+    ),
+  )
 
   if (!res.ok) return false
   const data = await res.json()
