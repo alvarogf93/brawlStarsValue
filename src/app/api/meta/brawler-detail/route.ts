@@ -37,20 +37,29 @@ export async function GET(request: Request) {
   // unpaginated and silently truncated at PostgREST's 1000-row cap,
   // corrupting the pickRate denominator. Switched to RPC scalar sum
   // (migration 023) and Promise.all.
+  //
+  // All three queries restrict to source='global' so they line up with
+  // the SQL bulk function (migration 022) and with /api/meta/pro-analysis.
+  // Without it, premium users' personal data would leak into the public
+  // brawler page (skewing winRate, mapAgg, matchups, and detaching the
+  // pickRate numerator from its denominator). The previous comment
+  // claimed "all sources: global + users" but the code's own
+  // compute7dTrend invariant (CLAUDE.md "compute7dTrend logic lives in
+  // TWO places and MUST stay in sync") requires single-source data.
   const [statsResp, matchupsResp, totalResp] = await Promise.all([
     serviceSupabase
       .from('meta_stats')
       .select('brawler_id, map, mode, date, wins, losses, total')
       .eq('brawler_id', brawlerId)
+      .eq('source', 'global')
       .gte('date', cutoffDate),
     serviceSupabase
       .from('meta_matchups')
       .select('brawler_id, opponent_id, wins, losses, total')
       .eq('brawler_id', brawlerId)
+      .eq('source', 'global')
       .gte('date', cutoffDate),
-    // p_source omitted → SQL function returns sum across all sources,
-    // matching the previous "all sources: global + users" semantics.
-    serviceSupabase.rpc('sum_meta_stats_total', { p_since: cutoffDate }),
+    serviceSupabase.rpc('sum_meta_stats_total', { p_since: cutoffDate, p_source: 'global' }),
   ])
 
   const { data: rawStats, error: statsError } = statsResp

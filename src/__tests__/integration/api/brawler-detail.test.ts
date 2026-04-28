@@ -4,11 +4,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Each Supabase method returns an object with the next method in the chain.
 // The terminal method resolves to { data, error }.
 
-function chainable(resolvedValue: { data: unknown; error: unknown }) {
+// Per-table record of `.eq(col, val)` calls so tests can assert on
+// filter clauses (e.g. source='global' contract).
+const eqCallsByTable: Record<string, Array<[string, unknown]>> = {}
+
+function chainable(
+  resolvedValue: { data: unknown; error: unknown },
+  tableForRecording?: string,
+) {
   const self: Record<string, ReturnType<typeof vi.fn>> = {}
-  for (const method of ['select', 'eq', 'gte']) {
+  for (const method of ['select', 'gte']) {
     self[method] = vi.fn().mockReturnValue(self)
   }
+  self.eq = vi.fn((col: string, val: unknown) => {
+    if (tableForRecording) {
+      eqCallsByTable[tableForRecording] = eqCallsByTable[tableForRecording] ?? []
+      eqCallsByTable[tableForRecording].push([col, val])
+    }
+    return self
+  })
   // Override the last method to also carry the resolved value
   // We need .then() so `await` works on the chain
   self.then = vi.fn((resolve: (v: unknown) => void) => resolve(resolvedValue))
@@ -19,7 +33,7 @@ function chainable(resolvedValue: { data: unknown; error: unknown }) {
 const mockChains: Record<string, ReturnType<typeof chainable>> = {}
 const mockFrom = vi.fn((table: string) => {
   // Return the pre-configured chain for this table call, or a default empty one
-  const chain = mockChains[table] ?? chainable({ data: [], error: null })
+  const chain = mockChains[table] ?? chainable({ data: [], error: null }, table)
   return chain
 })
 
@@ -48,6 +62,7 @@ describe('GET /api/meta/brawler-detail', () => {
     vi.clearAllMocks()
     // Reset chains
     for (const key of Object.keys(mockChains)) delete mockChains[key]
+    for (const key of Object.keys(eqCallsByTable)) delete eqCallsByTable[key]
     // Default: rpc returns 0 (no battles) — happy/edge tests override
     mockRpc.mockResolvedValue({ data: 0, error: null })
   })
@@ -134,7 +149,7 @@ describe('GET /api/meta/brawler-detail', () => {
     // which truncated at PostgREST's 1000-row cap. The route must
     // now never call .from('meta_stats') for the totalBattles
     // denominator; it must use rpc('sum_meta_stats_total').
-    mockFrom.mockImplementation((table: string) => chainable({ data: [], error: null }))
+    mockFrom.mockImplementation((table: string) => chainable({ data: [], error: null }, table))
     mockRpc.mockResolvedValue({ data: 99999, error: null })
 
     await GET(makeRequest({ brawlerId: '16' }))
@@ -145,6 +160,24 @@ describe('GET /api/meta/brawler-detail', () => {
     const metaStatsCalls = mockFrom.mock.calls.filter(([t]) => t === 'meta_stats').length
     expect(metaStatsCalls).toBe(1)
     expect(mockRpc).toHaveBeenCalledWith('sum_meta_stats_total', expect.any(Object))
+  })
+
+  it('filters meta_stats and meta_matchups by source=global, RPC same — source-parity', async () => {
+    // Detail endpoint must restrict to source='global' across all
+    // three datasets. Without this, premium users' personal data
+    // contaminates the public brawler page and the detail trend7d
+    // can drift from the bulk SQL fast path that already filters.
+    mockFrom.mockImplementation((table: string) => chainable({ data: [], error: null }, table))
+    mockRpc.mockResolvedValue({ data: 0, error: null })
+
+    await GET(makeRequest({ brawlerId: '16' }))
+
+    expect(eqCallsByTable.meta_stats).toContainEqual(['source', 'global'])
+    expect(eqCallsByTable.meta_matchups).toContainEqual(['source', 'global'])
+    expect(mockRpc).toHaveBeenCalledWith(
+      'sum_meta_stats_total',
+      expect.objectContaining({ p_source: 'global' }),
+    )
   })
 
   // ── DB error paths ──────────────────────────────────────────
