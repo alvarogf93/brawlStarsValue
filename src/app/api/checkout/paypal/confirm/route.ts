@@ -63,7 +63,15 @@ export async function GET(request: Request) {
         existing?.ls_subscription_id === subscriptionId
 
       if (!alreadyApplied) {
-        await supabase
+        // LOG-09 — destructure the error. The previous code ignored
+        // `update`'s result, so a transient RLS/connection failure
+        // would still send the user to the success page with
+        // `?upgraded=true` while the profile silently stayed `free`.
+        // The webhook is the authoritative path, but we cannot rely
+        // on it 100% (LOG-02 documented several ways it can lose an
+        // event). On failure here, surface payment_error so the user
+        // is told and support can reconcile.
+        const { error: updateErr } = await supabase
           .from('profiles')
           .update({
             tier: 'premium',
@@ -73,6 +81,17 @@ export async function GET(request: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq('id', profileId)
+
+        if (updateErr) {
+          console.error(
+            '[paypal/confirm] profile update failed',
+            { profileId, subscriptionId, code: updateErr.code, message: updateErr.message },
+          )
+          const errorRedirect = tag
+            ? `${origin}/${locale}/profile/${encodeURIComponent(tag)}/subscribe?payment_error=1`
+            : `${origin}/${locale}?payment_error=1`
+          return NextResponse.redirect(errorRedirect)
+        }
       }
     }
 

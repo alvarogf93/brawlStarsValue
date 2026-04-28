@@ -357,4 +357,43 @@ describe('GET /api/checkout/paypal/confirm', () => {
     expect(res.headers.get('Location')).toContain('payment_error=1')
     expect(mockServiceUpdate).not.toHaveBeenCalled()
   })
+
+  it('LOG-09: surfaces payment_error when profile update fails (no silent upgraded=true)', async () => {
+    // SEG-04 happy path (cookie + customId match) so we exercise the
+    // post-validation update branch this test exists to cover.
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+    // PayPal says ACTIVE — verification passes
+    mockGetSubscriptionDetails.mockResolvedValue({
+      status: 'ACTIVE',
+      customId: 'u1',
+      planId: 'P-MONTHLY-001',
+    })
+    // Profile is currently free → update WILL be issued
+    mockServiceProfileRead.mockReturnValueOnce({
+      data: { tier: 'free', ls_subscription_status: null, ls_subscription_id: null },
+      error: null,
+    })
+    // The update fails (transient DB / RLS)
+    mockServiceUpdate.mockReturnValueOnce({
+      eq: vi.fn().mockResolvedValue({ error: { code: '23000', message: 'transient db error' } }),
+    })
+
+    const res = await GET(makeGetRequest({
+      subscription_id: 'I-SUB-001',
+      profile_id: 'u1',
+      locale: 'en',
+      tag: '#TEST123',
+    }))
+
+    expect(res.status).toBe(307)
+    const location = res.headers.get('Location') || ''
+    // Critical: must NOT show ?upgraded=true to a user whose tier
+    // didn't actually flip. The previous code did exactly that.
+    expect(location).not.toContain('upgraded=true')
+    expect(location).toContain('payment_error=1')
+    // Also: stays in locale + tag-scoped subscribe page so the user
+    // can re-attempt instead of being bounced to the locale root.
+    expect(location).toContain('/en/profile/')
+    expect(location).toContain('/subscribe')
+  })
 })
