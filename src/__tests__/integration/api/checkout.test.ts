@@ -182,6 +182,9 @@ describe('POST /api/checkout/paypal', () => {
 describe('GET /api/checkout/paypal/confirm', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default cookie session: matches the profile_id used in the
+    // happy-path tests below. SEG-04 cases override per-test.
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
   })
 
   it('redirects to locale root when subscription_id is missing', async () => {
@@ -270,5 +273,88 @@ describe('GET /api/checkout/paypal/confirm', () => {
     // their locale and raise a flag so UrlFlashMessage can explain.
     expect(location).toContain('/en')
     expect(location).toContain('payment_error=1')
+  })
+
+  // ── SEG-04 — IDOR / upgrade-jacking guards ───────────────────
+
+  it('rejects when no cookie session — SEG-04', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+
+    const res = await GET(makeGetRequest({
+      subscription_id: 'I-SUB-001',
+      profile_id: 'u1',
+      locale: 'en',
+      tag: '#TEST123',
+    }))
+
+    expect(res.status).toBe(307)
+    const location = res.headers.get('Location') || ''
+    expect(location).toContain('payment_error=1')
+    // Must NOT call PayPal — anonymous attacker should not be able to
+    // probe other users' subscription state.
+    expect(mockGetSubscriptionDetails).not.toHaveBeenCalled()
+    expect(mockServiceUpdate).not.toHaveBeenCalled()
+  })
+
+  it('rejects when cookie session user.id != profile_id — SEG-04', async () => {
+    // Attacker logged in as 'attacker' tries to upgrade victim 'u1'
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'attacker' } } })
+
+    const res = await GET(makeGetRequest({
+      subscription_id: 'I-SUB-001',
+      profile_id: 'u1',
+      locale: 'en',
+      tag: '#TEST123',
+    }))
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('Location')).toContain('payment_error=1')
+    expect(mockGetSubscriptionDetails).not.toHaveBeenCalled()
+    expect(mockServiceUpdate).not.toHaveBeenCalled()
+  })
+
+  it('rejects when subscription customId != profile_id — SEG-04', async () => {
+    // Attacker is logged in as 'u1' (cookie matches), but is using
+    // a subscription_id whose custom_id was bound to victim 'victim'
+    // when the sub was minted.
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+    mockGetSubscriptionDetails.mockResolvedValue({
+      status: 'ACTIVE',
+      customId: 'victim',
+      planId: 'P-MONTHLY-001',
+    })
+
+    const res = await GET(makeGetRequest({
+      subscription_id: 'I-SUB-001',
+      profile_id: 'u1',
+      locale: 'en',
+      tag: '#TEST123',
+    }))
+
+    expect(res.status).toBe(307)
+    const location = res.headers.get('Location') || ''
+    expect(location).toContain('payment_error=1')
+    // Critical: profile must NOT be promoted to premium
+    expect(mockServiceUpdate).not.toHaveBeenCalled()
+  })
+
+  it('rejects when subscription has no customId — SEG-04 strict', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+    mockGetSubscriptionDetails.mockResolvedValue({
+      status: 'ACTIVE',
+      customId: null, // legacy or malformed sub
+      planId: 'P-MONTHLY-001',
+    })
+
+    const res = await GET(makeGetRequest({
+      subscription_id: 'I-SUB-001',
+      profile_id: 'u1',
+      locale: 'en',
+      tag: '#TEST123',
+    }))
+
+    expect(res.status).toBe(307)
+    expect(res.headers.get('Location')).toContain('payment_error=1')
+    expect(mockServiceUpdate).not.toHaveBeenCalled()
   })
 })
