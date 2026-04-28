@@ -59,6 +59,9 @@ export function useBrawlerTrends(): {
   useEffect(() => {
     const cached = readCache()
     if (cached) {
+      // TODO: ARQ-10 — localStorage hydration; should move to useSyncExternalStore
+      // so React reads the cache during render instead of via an effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTrends(cached)
       setIsLoading(false)
       return
