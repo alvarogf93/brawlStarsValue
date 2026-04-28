@@ -28,6 +28,15 @@ export function processBattleForMeta(acc: MetaAccumulators, battle: BattleMetaIn
   if (battle.result !== 'victory' && battle.result !== 'defeat') return
   if (!battle.map) return
 
+  // LOG-19 — reject sentinel/missing brawler ids. Callers commonly
+  // resolve the brawler with `b.my_brawler?.id ?? 0` as fallback;
+  // letting `0` flow through writes a meta_stats row keyed on a
+  // non-existent brawler. Same guard for opponents.
+  if (!Number.isFinite(battle.myBrawlerId) || battle.myBrawlerId <= 0) return
+  const validOpponents = battle.opponentBrawlerIds.filter(
+    (id) => Number.isFinite(id) && id > 0,
+  )
+
   const isWin = battle.result === 'victory'
   const wins = isWin ? 1 : 0
   const losses = isWin ? 0 : 1
@@ -44,7 +53,7 @@ export function processBattleForMeta(acc: MetaAccumulators, battle: BattleMetaIn
   }
 
   // Accumulate meta_matchups: brawler vs each opponent (mode-level, not map-level)
-  for (const opponentId of battle.opponentBrawlerIds) {
+  for (const opponentId of validOpponents) {
     const matchupKey = `${battle.myBrawlerId}|${opponentId}|${battle.mode}`
     const mexisting = acc.matchups.get(matchupKey)
     if (mexisting) {

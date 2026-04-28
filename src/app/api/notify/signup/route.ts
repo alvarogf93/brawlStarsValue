@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { notify } from '@/lib/telegram'
 
@@ -21,9 +21,19 @@ export async function POST() {
 
     if (!profile) return NextResponse.json({ ok: false })
 
-    await notify(
-      `🎮 <b>New signup!</b>\nTag: ${profile.player_tag}\nEmail: ${user.email || 'unknown'}`
-    )
+    // RES-03 — fire-and-forget Telegram notify via `after()`. Previously
+    // the response blocked on Telegram's HTTP roundtrip; if Telegram
+    // hung, the client waited too. The notification is best-effort
+    // observability, not part of the user contract.
+    const playerTag = profile.player_tag
+    const email = user.email || 'unknown'
+    after(async () => {
+      try {
+        await notify(`🎮 <b>New signup!</b>\nTag: ${playerTag}\nEmail: ${email}`)
+      } catch (err) {
+        console.error('[notify/signup] telegram notify failed:', err)
+      }
+    })
 
     return NextResponse.json({ ok: true })
   } catch {

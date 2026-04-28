@@ -5,23 +5,14 @@ import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
+import type { BrawlerMastery, MasteryPoint } from '@/lib/analytics/types'
 
 /* ─────────────────────── types ─────────────────────── */
 
-interface MasteryPoint {
-  date: string
-  wins: number
-  total: number
-  winRate: number
-  cumulativeWins: number
-  cumulativeTotal: number
-}
-
-interface BrawlerMastery {
-  brawlerId: number
-  brawlerName: string
-  points: MasteryPoint[]
-}
+// ARQ-13 — local interfaces removed; consume the canonical
+// BrawlerMastery / MasteryPoint from `lib/analytics/types`. The local
+// copies were structurally compatible by accident, so any new field
+// added upstream was silently dropped here.
 
 interface Props {
   data: BrawlerMastery[]

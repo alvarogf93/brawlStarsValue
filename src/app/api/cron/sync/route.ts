@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createServiceClientNoCookies } from '@/lib/supabase/server'
 import { fetchBattlelog } from '@/lib/api'
 import { parseBattlelog } from '@/lib/battle-parser'
 import { isDraftMode } from '@/lib/draft/constants'
@@ -21,11 +21,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll: () => [], setAll: () => {} } }
-  )
+  const supabase = createServiceClientNoCookies()
 
   const handlerStartedAt = Date.now()
 

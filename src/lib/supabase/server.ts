@@ -60,3 +60,19 @@ export async function createServiceClient() {
     }
   )
 }
+
+/**
+ * ARQ-12 — Service-role client with NO cookie wiring. For crons and
+ * other contexts where there is no incoming session: avoids the
+ * Next 16 `cookies()` async access entirely. Multiple routes had been
+ * inlining `createServerClient(URL, SERVICE_KEY, { cookies: no-op })`
+ * — they should now consume this helper so any future change to
+ * sameSite/secure/domain stays single-sourced.
+ */
+export function createServiceClientNoCookies() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { getAll: () => [], setAll: () => {} } },
+  )
+}

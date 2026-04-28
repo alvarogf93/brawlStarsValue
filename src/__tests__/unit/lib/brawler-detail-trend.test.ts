@@ -141,4 +141,29 @@ describe('compute7dTrend — null fallbacks (the "Estable" bug regression)', () 
     ]
     expect(compute7dTrend(rows, NOW)).toBeNull()
   })
+
+  it('LOG-15: rejects truncated date strings instead of bucketing as previous', () => {
+    const rows: DatedStatsRow[] = [
+      // Valid recent rows — enough to clear the threshold on their own
+      { date: dateOffset(1), wins: 8, total: 10 },
+      { date: dateOffset(2), wins: 7, total: 10 },
+      // Truncated date — lex compare would fail `>= d7ago` and silently
+      // drop into the prev bucket without this guard. With the guard,
+      // the row is dropped entirely and the prev bucket stays empty,
+      // so the function returns null as it should for "no historical data".
+      { date: '2026', wins: 100, total: 100 },
+    ]
+    expect(compute7dTrend(rows, NOW)).toBeNull()
+  })
+
+  it('LOG-15: rejects malformed dates with separators in wrong positions', () => {
+    const rows: DatedStatsRow[] = [
+      { date: dateOffset(2), wins: 5, total: 10 },
+      { date: '2026/04/13', wins: 100, total: 100 }, // slash not dash
+      { date: '26-04-13', wins: 100, total: 100 }, // 2-digit year
+      { date: dateOffset(10), wins: 5, total: 10 },
+    ]
+    // Both windows have only 10 battles each from valid rows, malformed are dropped
+    expect(compute7dTrend(rows, NOW)).toBe(0) // 5/10 - 5/10 = 0
+  })
 })
