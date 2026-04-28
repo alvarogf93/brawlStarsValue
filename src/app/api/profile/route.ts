@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { PLAYER_TAG_REGEX } from '@/lib/constants'
 
-const TAG_REGEX = /^#[0-9A-Z]{3,12}$/
+// SEG-05 — single regex source. Previously this route declared its
+// own /^#[0-9A-Z]{3,12}$/ which rejected legitimate 13+ char tags
+// that /api/calculate, /api/battlelog and /api/player/tag-summary
+// already accepted, breaking signup for those users silently.
 
 export async function GET() {
   try {
@@ -40,7 +44,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const playerTag = (body.player_tag ?? '').toUpperCase().trim()
 
-    if (!TAG_REGEX.test(playerTag)) {
+    if (!PLAYER_TAG_REGEX.test(playerTag)) {
       return NextResponse.json({ error: 'Invalid player tag format' }, { status: 400 })
     }
 
@@ -51,7 +55,17 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 409 })
+      // SEG-08 — map PostgREST error codes to stable, generic
+      // messages. Echoing `error.message` exposed constraint names
+      // (e.g. `profiles_player_tag_key`), turning the route into a
+      // tag-existence oracle.
+      console.error('[api/profile POST] insert failed', { code: error.code })
+      const isUniqueViolation = error.code === '23505'
+      const status = isUniqueViolation ? 409 : 500
+      const message = isUniqueViolation
+        ? 'Tag is already linked to another account'
+        : 'Failed to create profile'
+      return NextResponse.json({ error: message }, { status })
     }
 
     return NextResponse.json(profile, { status: 201 })

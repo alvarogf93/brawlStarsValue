@@ -56,7 +56,11 @@ export async function GET(request: Request) {
       .limit(limit)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      // SEG-08 — never echo PostgREST error messages to clients.
+      // They include constraint names, column hints, occasionally
+      // SQL fragments. Log server-side, return generic.
+      console.error('[api/battles] query failed', error)
+      return NextResponse.json({ error: 'Failed to fetch battles' }, { status: 500 })
     }
 
     const nextCursor = battles && battles.length === limit

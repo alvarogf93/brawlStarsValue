@@ -432,10 +432,26 @@ export function paypalStatusToTier(eventType: string, status: string): {
     case 'BILLING.SUBSCRIPTION.ACTIVATED':
       return { tier: 'premium', subscriptionStatus: 'active' }
     case 'BILLING.SUBSCRIPTION.UPDATED':
-      return {
-        tier: status === 'ACTIVE' ? 'premium' : 'free',
-        subscriptionStatus: status === 'ACTIVE' ? 'active' : status.toLowerCase(),
+      // LOG-14 — UPDATED + CANCELLED MUST preserve grace, identical
+      // to the dedicated CANCELLED handler below. PayPal occasionally
+      // emits both events for the same logical transition; if UPDATED
+      // arrives later (event ordering is not guaranteed), the user
+      // would otherwise be downgraded to `free` immediately and lose
+      // the documented grace period that `isPremium()` relies on.
+      // Same for SUSPENDED — keep premium until the dedicated
+      // SUSPENDED event maps it explicitly.
+      if (status === 'ACTIVE') {
+        return { tier: 'premium', subscriptionStatus: 'active' }
       }
+      if (status === 'CANCELLED') {
+        return { tier: 'premium', subscriptionStatus: 'cancelled' }
+      }
+      if (status === 'SUSPENDED') {
+        return { tier: 'free', subscriptionStatus: 'past_due' }
+      }
+      // Unknown UPDATED status — be conservative, mark as free with
+      // the raw status so it surfaces in admin diagnostics.
+      return { tier: 'free', subscriptionStatus: status.toLowerCase() }
     case 'BILLING.SUBSCRIPTION.CANCELLED':
       return { tier: 'premium', subscriptionStatus: 'cancelled' } // grace period
     case 'BILLING.SUBSCRIPTION.SUSPENDED':
