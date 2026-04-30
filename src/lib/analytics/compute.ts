@@ -30,6 +30,13 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
   )
 
   const sessions = computeSessions(battles)
+  // LOG-07 — bucket battles into sessions ONCE in a single linear pass
+  // (two-pointer walk over already-sorted-ASC inputs). The 3 consumers
+  // — tilt, warmUp, recovery — reuse this index instead of re-filtering
+  // O(N) battles inside their O(M) session loop. For a premium user
+  // with 50k battles × 1500 sessions that's ~75M ops × 3 helpers
+  // collapsing to ~75M + 1500 × 3 ≈ 75M total.
+  const battlesBySession = indexBattlesBySession(battles, sessions)
 
   return {
     overview: computeOverview(battles),
@@ -44,7 +51,7 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
     byHour: computeByHour(battles, timezone),
     dailyTrend: computeDailyTrend(battles),
     brawlerMastery: computeBrawlerMastery(battles),
-    tilt: computeTiltAnalysis(battles),
+    tilt: computeTiltAnalysis(sessions, battlesBySession),
     sessions,
     // New metrics
     clutch: computeClutch(battles),
@@ -52,10 +59,10 @@ export function computeAdvancedAnalytics(rawBattles: Battle[], timezone?: string
     brawlerComfort: computeBrawlerComfort(battles),
     powerLevelImpact: computePowerLevelImpact(battles),
     sessionEfficiency: computeSessionEfficiency(sessions),
-    warmUp: computeWarmUp(battles, sessions),
+    warmUp: computeWarmUp(sessions, battlesBySession),
     carry: computeCarry(battles),
     gadgetImpact: computeGadgetImpact(battles),
-    recovery: computeRecovery(battles, sessions),
+    recovery: computeRecovery(sessions, battlesBySession),
     weeklyPattern: computeWeeklyPattern(battles, timezone),
   }
 }
@@ -555,20 +562,19 @@ function computeBrawlerMastery(battles: Battle[]): BrawlerMastery[] {
 // Tilt = 3+ consecutive losses within a session.
 // We measure WR *after* entering tilt vs normal play.
 
-function computeTiltAnalysis(battles: Battle[]): TiltAnalysis {
-  const sessions = computeSessions(battles)
-
+function computeTiltAnalysis(
+  sessions: SessionInfo[],
+  battlesBySession: Battle[][],
+): TiltAnalysis {
   let tiltEpisodes = 0
   let tiltWins = 0, tiltTotal = 0
   let normalWins = 0, normalTotal = 0
   let tiltGamesSum = 0
 
-  for (const session of sessions) {
-    // Get actual battles in this session
-    const sessionBattles = battles.filter(b => {
-      const t = b.battle_time
-      return t >= session.start && t <= session.end
-    })
+  for (let s = 0; s < sessions.length; s++) {
+    // LOG-07 — sessionBattles comes from the prebuilt index, not a
+    // per-iteration filter. Same chronological order; same content.
+    const sessionBattles = battlesBySession[s]
 
     let consecutiveLosses = 0
     let inTilt = false
@@ -662,6 +668,45 @@ function computeSessions(battles: Battle[]): SessionInfo[] {
   }
 
   return sessions
+}
+
+/**
+ * LOG-07 — index battles into their owning session in O(N+M) via a
+ * single two-pointer pass. Both inputs are assumed sorted ASC by
+ * battle_time (the orchestrator sorts battles; sessions inherit that
+ * order from `computeSessions`'s linear scan).
+ *
+ * Returns one bucket per session, in the same order as `sessions`.
+ * Battles outside any session window are silently dropped — that
+ * matches the previous behaviour of the per-session `.filter()` calls.
+ *
+ * Tested implicitly by the existing unit tests on the 3 consumers; if
+ * a future refactor breaks ordering this function should fail those
+ * tests at the contract boundary, not silently mis-bucket.
+ */
+function indexBattlesBySession(
+  battles: Battle[],
+  sessions: SessionInfo[],
+): Battle[][] {
+  const buckets: Battle[][] = sessions.map(() => [])
+  if (sessions.length === 0) return buckets
+
+  let sessionIdx = 0
+  for (const battle of battles) {
+    // Advance past sessions whose end is before this battle. String
+    // comparison on ISO timestamps is chronologically correct.
+    while (
+      sessionIdx < sessions.length
+      && battle.battle_time > sessions[sessionIdx].end
+    ) {
+      sessionIdx++
+    }
+    if (sessionIdx >= sessions.length) break
+    if (battle.battle_time >= sessions[sessionIdx].start) {
+      buckets[sessionIdx].push(battle)
+    }
+  }
+  return buckets
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -831,12 +876,15 @@ function computeSessionEfficiency(sessions: SessionInfo[]): SessionEfficiency[] 
 
 // ── Warm-Up Analysis ───────────────────────────────────────
 
-function computeWarmUp(battles: Battle[], sessions: SessionInfo[]): WarmUpAnalysis {
+function computeWarmUp(
+  sessions: SessionInfo[],
+  battlesBySession: Battle[][],
+): WarmUpAnalysis {
   let warmUpWins = 0, warmUpTotal = 0
   let peakWins = 0, peakTotal = 0
 
-  for (const session of sessions) {
-    const sessionBattles = battles.filter(b => b.battle_time >= session.start && b.battle_time <= session.end)
+  for (let s = 0; s < sessions.length; s++) {
+    const sessionBattles = battlesBySession[s]
     sessionBattles.forEach((b, idx) => {
       if (idx < 2) {
         warmUpTotal++
@@ -911,13 +959,16 @@ function computeGadgetImpact(battles: Battle[]): GadgetStarPowerImpact {
 
 // ── Recovery Speed ─────────────────────────────────────────
 
-function computeRecovery(battles: Battle[], sessions: SessionInfo[]): RecoveryAnalysis {
+function computeRecovery(
+  sessions: SessionInfo[],
+  battlesBySession: Battle[][],
+): RecoveryAnalysis {
   let totalGamesToRecover = 0
   let recoveryEpisodes = 0
   let successfulRecoveries = 0
 
-  for (const session of sessions) {
-    const sessionBattles = battles.filter(b => b.battle_time >= session.start && b.battle_time <= session.end)
+  for (let s = 0; s < sessions.length; s++) {
+    const sessionBattles = battlesBySession[s]
     let consecutiveLosses = 0
     let tiltTrophyDebt = 0
     let inRecovery = false

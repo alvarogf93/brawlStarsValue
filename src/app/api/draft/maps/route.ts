@@ -8,15 +8,28 @@ const brawlapiBreaker = getCircuitBreaker('brawlapi')
 
 export const dynamic = 'force-dynamic'
 
-// BrawlAPI map data cache (in-memory, refreshed every 24h)
-let brawlApiMaps: Map<string, { id: number; imageUrl: string }> | null = null
-let brawlApiMapsTs = 0
-
+/**
+ * PERF-04 — fetch BrawlAPI maps WITHOUT a module-level cache.
+ *
+ * Why no module cache?
+ *   - The `next: { revalidate: 86400 }` option below makes Next.js's
+ *     own data-cache de-dup concurrent calls within a 24 h window
+ *     across the whole instance — same effect as our home-grown
+ *     module Map<>, but coordinated by the framework so cold starts
+ *     in N concurrent instances no longer cause N parallel BrawlAPI
+ *     requests (the original "cache stampede" PERF-04 flagged).
+ *   - Removing the `let brawlApiMaps` singleton also means BrawlAPI
+ *     downtime no longer leaves a stale value in memory for 24 h.
+ *     A failed fetch returns an empty Map; the next request retries
+ *     (still respecting the circuit breaker's open window).
+ *
+ * The function name + signature stays so callers below are unchanged.
+ */
 async function getBrawlApiMaps(): Promise<Map<string, { id: number; imageUrl: string }>> {
-  if (brawlApiMaps && Date.now() - brawlApiMapsTs < 86400000) return brawlApiMaps
-
   try {
     // PERF-01: timeout + idempotent GET retries + brawlapi breaker.
+    // PERF-04: revalidate: 86400 lets Next.js's data-cache dedup
+    // concurrent calls within the 24h window — no module-level Map needed.
     const res = await brawlapiBreaker.execute(() =>
       fetchWithRetry(
         'https://api.brawlapi.com/v1/maps',
@@ -24,29 +37,29 @@ async function getBrawlApiMaps(): Promise<Map<string, { id: number; imageUrl: st
         { retries: 2, timeoutMs: BRAWLAPI_TIMEOUT_MS },
       ),
     )
-    if (!res.ok) return brawlApiMaps ?? new Map()
+    if (!res.ok) return new Map()
     const data = await res.json()
     const list = (data.list ?? data) as Array<{ id: number; name: string; imageUrl?: string }>
 
     const map = new Map<string, { id: number; imageUrl: string }>()
     for (const m of list) {
       if (!m.imageUrl) continue
-      // BrawlAPI uses hyphens and no apostrophes: "Belles-Rock" → we store "Belle's Rock"
-      // Create multiple normalized keys to maximize matching
+      // BrawlAPI uses hyphens and no apostrophes: "Belles-Rock" → we store "Belle's Rock".
+      // Create multiple normalised keys to maximise matching.
       const withSpaces = m.name.replace(/-/g, ' ')
       map.set(withSpaces, { id: m.id, imageUrl: m.imageUrl })
       map.set(m.name, { id: m.id, imageUrl: m.imageUrl })
-      // Also try common apostrophe patterns: "Belles Rock" → "Belle's Rock"
       const withApostrophe = withSpaces.replace(/(\w)s\s/g, "$1's ")
       if (withApostrophe !== withSpaces) {
         map.set(withApostrophe, { id: m.id, imageUrl: m.imageUrl })
       }
     }
-    brawlApiMaps = map
-    brawlApiMapsTs = Date.now()
     return map
   } catch {
-    return brawlApiMaps ?? new Map()
+    // Hard fail (timeout / circuit open / non-2xx not caught above) →
+    // empty Map. The route below falls back to Brawlify CDN URLs by
+    // eventId so users still see images.
+    return new Map()
   }
 }
 
