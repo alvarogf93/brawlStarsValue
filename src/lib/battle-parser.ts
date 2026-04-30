@@ -152,13 +152,36 @@ export function parseBattle(entry: BattlelogEntry, playerTag: string): BattleIns
 
 /**
  * Parse all battles from a battlelog response.
- * Skips entries where the player is not found.
+ *
+ * Skips:
+ *  - Entries where the player is not found in either team.
+ *  - Entries whose `battleTime` is malformed. `parseBattleTime` throws on
+ *    unparseable input (LOG-12 — preferable to persisting silent garbage),
+ *    but we don't want a single corrupted entry from Supercell to abort
+ *    the whole batch and stall the sync cron. Log + skip + continue, so
+ *    the rest of the battlelog still flows through and the operator can
+ *    see exactly which entry was bad.
  */
 export function parseBattlelog(entries: BattlelogEntry[], playerTag: string): BattleInsert[] {
   const results: BattleInsert[] = []
   for (const entry of entries) {
-    const parsed = parseBattle(entry, playerTag)
-    if (parsed) results.push(parsed)
+    try {
+      const parsed = parseBattle(entry, playerTag)
+      if (parsed) results.push(parsed)
+    } catch (err) {
+      // Surface the bad entry's identifying fields without leaking the
+      // entire payload. `battleTime` and `event.id` are the most useful
+      // signals for triage.
+      console.warn(
+        '[battle-parser] skipping malformed entry',
+        {
+          playerTag,
+          battleTime: entry?.battleTime,
+          eventId: entry?.event?.id ?? null,
+          err: err instanceof Error ? err.message : String(err),
+        },
+      )
+    }
   }
   return results
 }

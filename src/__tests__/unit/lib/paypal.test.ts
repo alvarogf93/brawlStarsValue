@@ -43,14 +43,28 @@ describe('paypalStatusToTier', () => {
     expect(result).toEqual({ tier: 'premium', subscriptionStatus: 'active' })
   })
 
-  it('maps BILLING.SUBSCRIPTION.UPDATED with SUSPENDED status to free / suspended', () => {
+  it('maps BILLING.SUBSCRIPTION.UPDATED with SUSPENDED status to free / past_due (LOG-14)', () => {
+    // SUSPENDED on the UPDATED branch maps to past_due so dunning logic
+    // can distinguish a "PayPal will retry billing" state from a hard
+    // cancel. The dedicated SUSPENDED event maps explicitly elsewhere.
     const result = paypalStatusToTier('BILLING.SUBSCRIPTION.UPDATED', 'SUSPENDED')
-    expect(result).toEqual({ tier: 'free', subscriptionStatus: 'suspended' })
+    expect(result).toEqual({ tier: 'free', subscriptionStatus: 'past_due' })
   })
 
-  it('maps BILLING.SUBSCRIPTION.UPDATED with CANCELLED status to free / cancelled', () => {
+  it('maps BILLING.SUBSCRIPTION.UPDATED with CANCELLED status to premium / cancelled (LOG-14 grace)', () => {
+    // PayPal can emit UPDATED+CANCELLED after the dedicated CANCELLED
+    // event. Out-of-order delivery would otherwise downgrade the user
+    // to free immediately and lose the documented grace period that
+    // `isPremium()` relies on. Both code paths must preserve `premium`.
     const result = paypalStatusToTier('BILLING.SUBSCRIPTION.UPDATED', 'CANCELLED')
-    expect(result).toEqual({ tier: 'free', subscriptionStatus: 'cancelled' })
+    expect(result).toEqual({ tier: 'premium', subscriptionStatus: 'cancelled' })
+  })
+
+  it('maps BILLING.SUBSCRIPTION.UPDATED with unknown status to free / <raw> (admin diagnostic)', () => {
+    // Defensive fallback so a future PayPal status surfaces in admin
+    // diagnostics rather than being silently mapped to a stale enum.
+    const result = paypalStatusToTier('BILLING.SUBSCRIPTION.UPDATED', 'EXPIRED')
+    expect(result).toEqual({ tier: 'free', subscriptionStatus: 'expired' })
   })
 
   // ── Unknown event type ──────────────────────────────────────

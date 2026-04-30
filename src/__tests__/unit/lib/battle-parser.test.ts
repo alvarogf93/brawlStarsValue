@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { parseBattle, parseBattleTime, parseBattlelog, parseSupercellTime } from '@/lib/battle-parser'
 import type { BattlelogEntry } from '@/lib/api'
 
@@ -235,5 +235,31 @@ describe('parseBattlelog', () => {
 
   it('returns empty array for empty input', () => {
     expect(parseBattlelog([], PLAYER_TAG)).toHaveLength(0)
+  })
+
+  it('skips entries with malformed battleTime instead of aborting the batch (LOG-12)', () => {
+    // parseBattleTime now throws on unparseable input. parseBattlelog
+    // catches per-entry so one bad battle doesn't tank the whole sync.
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const entries = [
+      makeBattleEntry(),
+      makeBattleEntry({ battleTime: 'not a real time' }),
+      makeBattleEntry({ battleTime: '20260405T180000.000Z' }),
+    ]
+
+    const results = parseBattlelog(entries, PLAYER_TAG)
+
+    // 2 valid entries returned; the malformed one was skipped.
+    expect(results).toHaveLength(2)
+    expect(results[0].battle_time).toBe('2026-04-05T17:16:04.000Z')
+    expect(results[1].battle_time).toBe('2026-04-05T18:00:00.000Z')
+
+    // The skip is observable — operators can grep the bad battleTime in logs.
+    expect(warn).toHaveBeenCalledTimes(1)
+    const warnCall = warn.mock.calls[0]
+    expect(warnCall[0]).toMatch(/skipping malformed entry/)
+    expect(JSON.stringify(warnCall[1])).toContain('not a real time')
+
+    warn.mockRestore()
   })
 })
