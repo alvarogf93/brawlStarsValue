@@ -307,7 +307,8 @@
     "labelValue": "القيمة",
     "labelBest": "الأفضل: ",
     "filterSelected": "مُختار",
-    "sortTrend": "الاتجاه"
+    "sortTrend": "الاتجاه",
+    "lockedLabel": "مقفل"
   },
   "stats": {
     "loading": "جارٍ تحميل الإحصائيات...",

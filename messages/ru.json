@@ -307,7 +307,8 @@
     "labelValue": "Стоимость",
     "labelBest": "Лучший: ",
     "filterSelected": "выбрано",
-    "sortTrend": "Тренд"
+    "sortTrend": "Тренд",
+    "lockedLabel": "Заблокировано"
   },
   "stats": {
     "loading": "Загрузка статистики...",

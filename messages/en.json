@@ -307,7 +307,8 @@
     "labelValue": "Value",
     "labelBest": "Best: ",
     "filterSelected": "selected",
-    "sortTrend": "Trend"
+    "sortTrend": "Trend",
+    "lockedLabel": "Locked"
   },
   "stats": {
     "loading": "Loading stats...",

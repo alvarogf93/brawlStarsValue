@@ -307,7 +307,8 @@
     "labelValue": "Değer",
     "labelBest": "En iyi: ",
     "filterSelected": "seçili",
-    "sortTrend": "Trend"
+    "sortTrend": "Trend",
+    "lockedLabel": "Kilitli"
   },
   "stats": {
     "loading": "İstatistikler yükleniyor...",

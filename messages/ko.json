@@ -307,7 +307,8 @@
     "labelValue": "가치",
     "labelBest": "최고: ",
     "filterSelected": "선택됨",
-    "sortTrend": "추세"
+    "sortTrend": "추세",
+    "lockedLabel": "잠김"
   },
   "stats": {
     "loading": "스탯 불러오는 중...",

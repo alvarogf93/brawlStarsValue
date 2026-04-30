@@ -307,7 +307,8 @@
     "labelValue": "価値",
     "labelBest": "最高: ",
     "filterSelected": "選択中",
-    "sortTrend": "トレンド"
+    "sortTrend": "トレンド",
+    "lockedLabel": "ロック中"
   },
   "stats": {
     "loading": "スタッツを読み込み中...",

@@ -21,23 +21,30 @@ beforeEach(() => {
 })
 
 describe('GET /api/brawlers', () => {
-  it('aggregates brawlerCount + maxGadgets + maxStarPowers correctly', async () => {
+  it('aggregates brawlerCount + maxGadgets + maxStarPowers + roster correctly', async () => {
     mockFetchBrawlers.mockResolvedValue({
       items: [
-        { id: 1, name: 'A', gadgets: [{}, {}], starPowers: [{}] },
-        { id: 2, name: 'B', gadgets: [{}], starPowers: [{}, {}] },
+        // Out of order to verify the roster comes back sorted by id.
         { id: 3, name: 'C', gadgets: [], starPowers: [{}] },
+        { id: 1, name: 'A', gadgets: [{}, {}], starPowers: [{}], hyperCharges: [{}] },
+        { id: 2, name: 'B', gadgets: [{}], starPowers: [{}, {}] },
       ],
     } as unknown as Awaited<ReturnType<typeof fetchBrawlers>>)
 
     const res = await GET()
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body).toEqual({
-      brawlerCount: 3,
-      maxGadgets: 3,    // 2 + 1 + 0
-      maxStarPowers: 4, // 1 + 2 + 1
-    })
+    // FAIL-NEW-BRAWLERS — roster MUST ship so clients can render the
+    // full game, not just owned brawlers. Sort by id ASC for stable
+    // rendering (regardless of Supercell's response order).
+    expect(body.brawlerCount).toBe(3)
+    expect(body.maxGadgets).toBe(3)
+    expect(body.maxStarPowers).toBe(4)
+    expect(body.roster).toEqual([
+      { id: 1, name: 'A', gadgets: 2, starPowers: 1, hyperCharges: 1 },
+      { id: 2, name: 'B', gadgets: 1, starPowers: 2, hyperCharges: 0 },
+      { id: 3, name: 'C', gadgets: 0, starPowers: 1, hyperCharges: 0 },
+    ])
   })
 
   it('handles missing optional fields without crashing', async () => {
@@ -86,7 +93,12 @@ describe('GET /api/brawlers', () => {
     const res = await GET()
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body).toEqual({ brawlerCount: 0, maxGadgets: 0, maxStarPowers: 0 })
+    expect(body).toEqual({
+      brawlerCount: 0,
+      maxGadgets: 0,
+      maxStarPowers: 0,
+      roster: [],
+    })
   })
 })
 

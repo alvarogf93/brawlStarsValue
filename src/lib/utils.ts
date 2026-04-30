@@ -69,9 +69,23 @@ export function getBrawlerPortraitUrl(id: number): string {
   return `/assets/brawlers/${id}.png`
 }
 
-/** CDN fallback for brawler portraits not in local assets (new brawlers) */
+/**
+ * CDN fallback for brawler portraits not in local assets.
+ *
+ * Path canonicalised against Brawlify's actual API in 2026-04 — the
+ * previous `/brawler/{id}/avatar.png` was returning 404 for EVERY
+ * brawler, not just new ones. The site only "worked" because every
+ * profile/brawlers card has a local asset at /assets/brawlers/{id}.png
+ * that masks the broken fallback.
+ *
+ * This URL is the same one Brawlify itself ships in `imageUrl` from
+ * its `/v1/brawlers` API response, so any brawler Brawlify knows about
+ * will render correctly. New brawlers may take a few hours to appear
+ * in Brawlify's CDN after Supercell publishes them — that's the
+ * unavoidable upstream window.
+ */
 export function getBrawlerPortraitFallback(id: number): string {
-  return `https://cdn.brawlify.com/brawler/${id}/avatar.png`
+  return `https://cdn.brawlify.com/brawlers/borders/${id}.png`
 }
 
 export function getMapImageUrl(eventId: number): string {

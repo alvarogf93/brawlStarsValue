@@ -307,7 +307,8 @@
     "labelValue": "Valor",
     "labelBest": "Mejor: ",
     "filterSelected": "seleccionadas",
-    "sortTrend": "Tendencia"
+    "sortTrend": "Tendencia",
+    "lockedLabel": "Bloqueado"
   },
   "brawlerDetail": {
     "backToBrawlers": "← Brawlers",

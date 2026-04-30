@@ -10,6 +10,7 @@ import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { useBrawlerTrends } from '@/hooks/useBrawlerTrends'
+import { useBrawlerRegistry, type BrawlerRosterEntry } from '@/hooks/useBrawlerRegistry'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback, getGadgetImageUrl, getStarPowerImageUrl } from '@/lib/utils'
 import { BRAWLER_RARITY_MAP, POWER_LEVEL_GEM_COST, GEM_COSTS, RARITY_COLORS } from '@/lib/constants'
 import type { BrawlerStat, BrawlerRarityName } from '@/lib/types'
@@ -111,6 +112,7 @@ export default function BrawlersPage() {
   const brawlersBasePath = `/${locale}/profile/${encodeURIComponent(tag)}/brawlers`
   const { data, isLoading, error } = usePlayerData(tag)
   const { trends } = useBrawlerTrends()
+  const registry = useBrawlerRegistry()
 
   // Read filter state from URL search params
   const searchQuery = searchParams.get('search') ?? ''
@@ -160,6 +162,26 @@ export default function BrawlersPage() {
   // across renders — otherwise the downstream useMemo recomputes
   // on every render.
   const brawlers = useMemo(() => data?.player?.brawlers ?? [], [data?.player?.brawlers])
+
+  // FAIL-NEW-BRAWLERS — derive the LOCKED roster (brawlers in the game
+  // that the user hasn't unlocked yet). The registry is the canonical
+  // source: it ships from /api/brawlers which proxies Supercell's
+  // official roster, so a new brawler is visible the same day it
+  // launches without any code change. registry.roster may be empty
+  // (initial fallback before the API responds) — in that case we
+  // gracefully render only the owned brawlers.
+  const lockedBrawlers = useMemo(() => {
+    if (registry.roster.length === 0) return []
+    const ownedIds = new Set(brawlers.map(b => b.id))
+    return registry.roster.filter(r => !ownedIds.has(r.id))
+  }, [registry.roster, brawlers])
+
+  // The "real" denominator the header shows: full game roster size from
+  // Supercell, NOT the hardcoded BRAWLER_RARITY_MAP (which lags behind
+  // every release until someone manually updates the constant).
+  const totalRosterSize = registry.roster.length > 0
+    ? registry.roster.length
+    : Object.keys(BRAWLER_RARITY_MAP).length
 
   const filteredAndSorted = useMemo(() => {
     let result = brawlers
@@ -221,7 +243,7 @@ export default function BrawlersPage() {
               {tProfile('brawlerCount').toUpperCase()}
             </h1>
             <p className="font-['Inter'] font-semibold text-[var(--color-brawl-gold)]">
-              {brawlers.length} / {Object.keys(BRAWLER_RARITY_MAP).length}
+              {brawlers.length} / {totalRosterSize}
             </p>
           </div>
         </div>
@@ -521,6 +543,63 @@ export default function BrawlersPage() {
                 </div>
               </div>
             </div>
+            </Link>
+          )
+        })}
+
+        {/* FAIL-NEW-BRAWLERS — locked brawlers from the game roster the
+            user hasn't unlocked yet. Rendered AFTER the owned grid (still
+            in the same grid container so the responsive columns flow)
+            with a distinct treatment: greyed portrait, "Bloqueado" tag,
+            no power/rank/gems, and a click-through to the public
+            /brawler/[id] info page so the user can still learn about
+            the brawler before unlocking. Filters (search/rarity) only
+            apply to the owned grid; locked are kept simple. */}
+        {lockedBrawlers.map((b: BrawlerRosterEntry) => {
+          const rarity = BRAWLER_RARITY_MAP[b.id] ?? 'Trophy Road'
+          const color = RARITY_COLORS[rarity]
+          return (
+            <Link
+              key={`locked-${b.id}`}
+              href={`/${locale}/brawler/${b.id}`}
+              className="group transition-transform hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] opacity-70 hover:opacity-100"
+              aria-label={`${b.name} (locked)`}
+            >
+              <div className="relative pt-6">
+                <BrawlImg
+                  src={getBrawlerPortraitUrl(b.id)}
+                  fallbackSrc={getBrawlerPortraitFallback(b.id)}
+                  alt={b.name}
+                  fallbackText={b.name}
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 z-[10] drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] w-[100px] h-[100px] rounded-xl grayscale"
+                />
+                <div className="brawl-card relative overflow-visible">
+                  <div
+                    className="w-full h-20 border-b-4 border-[var(--color-brawl-dark)] relative"
+                    style={{ backgroundColor: color, filter: 'saturate(0.5) brightness(0.85)' }}
+                  >
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(black_2px,transparent_2px)] [background-size:12px_12px]" />
+                    <div className="absolute top-1.5 right-1.5 bg-black/70 rounded-lg px-2 py-0.5 text-[10px] font-bold text-white z-10 font-['Lilita_One'] border-2 border-[var(--color-brawl-dark)]">
+                      🔒
+                    </div>
+                  </div>
+                  <div className="px-3 pt-2 pb-1 text-center">
+                    <h2 className="text-lg font-['Lilita_One'] text-[var(--color-brawl-dark)] uppercase leading-tight truncate">
+                      {b.name}
+                    </h2>
+                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <span className="text-[9px] font-['Inter'] font-bold uppercase tracking-wider" style={{ color }}>
+                        {rarity}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-3 pb-3 pt-2 text-center">
+                    <span className="font-['Inter'] font-bold text-slate-500 text-[10px] uppercase">
+                      {t('lockedLabel')}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </Link>
           )
         })}
