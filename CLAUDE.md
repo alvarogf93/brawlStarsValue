@@ -5,6 +5,13 @@
 ## What is this?
 Brawl Stars combat analytics platform. 13 locales, premium subscriptions via PayPal, Supabase backend.
 
+## ⚠️ Active AdSense violation (2026-04-30)
+**Before touching ANY ad code**, read `docs/audits/2026-04-30-adsense/README.md` (audit) and `SESSION_PROMPT.md` (next-session playbook). Live findings queued for fix:
+- `/profile/[tag]/cosmetics` has a `<SafeAdSlot>` despite the rule "calculators have no ads" — Tier-1 fix pending.
+- `/profile/[tag]/stats` has 3 ad slots — should be 1 (density violation).
+- Several public pages need editorial content depth (≥500 palabras antes del primer ad) before re-soliciting AdSense review.
+**Do NOT solicit AdSense review until Tier 1 + Tier 2 are merged AND deployed for ≥14 days.** A premature rejection makes the next attempt harder.
+
 ## Tech Stack
 - Next.js 16 (App Router, `cacheComponents` era — read `AGENTS.md` first)
 - TypeScript (strict mode)
@@ -24,6 +31,11 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - `npx playwright test e2e/<file>.spec.ts` — run a single spec (needs `npm run dev` up)
 - `node scripts/git-push.js` — push current branch to origin
 - i18n batch scripts live in `scripts/add-*.js` — one-off CommonJS scripts that idempotently write keys across all 13 `messages/*.json`
+- **Diagnostic scripts (read-only, prod-safe):**
+  - `node scripts/verify-migrations.js` — confirms migrations 022/023/024 applied + behaviour-correct via PostgREST.
+  - `node scripts/probe-damian.js [#TAG]` — empirical Brawl Stars roster, ownership diff, image-source matrix probe (Supercell vs Brawlify CDN paths).
+  - `node scripts/paypal-webhook-smoke.js` — end-to-end signed-payload smoke against the local dev server (verifier accepts / tampered rejects / stale rejects / hostile cert URL rejects).
+  - `node scripts/introspect-supabase-schema.js` — read-only PostgREST OpenAPI dump used to ground `src/lib/supabase/types.ts`.
 
 ## Dev environment gotchas
 - **`BRAWLSTARS_API_URL` is REQUIRED in `.env.local`** — without it, `src/lib/api.ts` falls back to a VPS IP unreachable from dev machines. Features that silently break: `/profile/:tag/compare` trophy chart, `/profile/:tag/subscribe` segment detection, `/brawler/:id` activity calendar, club trophy chart. See `.env.example` for the full list. The dev server logs a warning on boot when the var is missing.
@@ -31,6 +43,7 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - **NEVER create `src/middleware.ts`** — Next 16 renamed the middleware file convention to `src/proxy.ts`. Having both throws a hard build error: *"Both middleware file and proxy file are detected. Please use './src/proxy.ts' only."* `proxy.ts` already handles next-intl locale negotiation **and** Supabase session refresh; adding a middleware file would also silently bypass the auth refresh logic. If you find yourself reaching for `middleware.ts`, edit `src/proxy.ts` instead.
 - **PostgREST caps unpaginated queries at 1000 rows** — calling `.from(table).select().gte(col, x)` without a filter that narrows below 1k rows returns a silently-truncated page. Symptom from 2026-04-20: the bulk trends endpoint scanned `meta_stats` 14-day slice (~10k rows) and only saw the first 1000, so most brawlers fell below `MIN_BATTLES_PER_TREND_WINDOW` and returned `null` even though the data existed. The `.eq(...)`-filtered detail endpoint was unaffected because one brawler's rows never cross the cap. Fix: paginate with `.range(offset, offset+999)` until a short page arrives, or write a SQL function that aggregates server-side (see `brawler_trends` pattern below).
 - **Line endings**: repo is Windows — git warns about LF→CRLF conversion on new files. Ignore.
+- **Pre-push hook brittleness**: `.claude/hooks/pre-push-check.sh` runs `npx tsc --noEmit`. Fails with *"This is not the tsc you are looking for"* when `node_modules/typescript` is missing — happens after worktree cleanup nukes shared symlinks. Fix: `npm install`.
 
 ## Key Architecture
 - `/src/app/[locale]/profile/[tag]/` — private profile pages (DashboardLayoutClient)
@@ -44,11 +57,19 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - `/src/hooks/` — 11 data-fetching hooks with localStorage cache
 - `/src/__tests__/helpers/` — shared test helpers (e.g. strict `next-intl` mock)
 
+### Cross-cutting helpers (single canonical entry point each — never reinvent)
+- `@/lib/local-cache.ts` — versioned localStorage helper (`readLocalCache(key, version, ttlMs)` / `writeLocalCache` / `clearLocalCache`). Bumping the version drops stale entries on read. SSR-safe, quota-safe.
+- `@/lib/log.ts` — structured JSON logging (`log.info / .warn / .error`) with `request_id` from `requestIdFrom(req)`. `proxy.ts` injects `x-request-id` on every request (preferring upstream `cf-ray` / `x-vercel-id` when present).
+- `@/lib/meta/cascade.ts::buildEventsWithCascade` — Tier-1 + Tier-2 `meta_stats` aggregation shared by `/api/meta` and `/[locale]/picks/page.tsx`. Always filter `source='global'`.
+- `@/lib/http.ts` — `fetchWithTimeout` / `fetchWithRetry` / `getCircuitBreaker`. Constants: `SUPERCELL_TIMEOUT_MS=8000`, `BRAWLAPI_TIMEOUT_MS=5000`. Default circuit `openDurationMs=30000`.
+- `@/lib/rate-limit.ts` — `enforceRateLimit(req, opts, identifierOverride?)` + `rateLimitHeaders(rl, rejected)`. Falls open + warns once when Upstash creds absent (dev-only).
+
 ## API route auth pattern (IMPORTANT)
 - **All user-authenticated routes use cookie-based auth** via `createClient` from `@/lib/supabase/server`. Never `Authorization: Bearer` tokens — the client hooks all fetch with `credentials: 'include'`, not headers.
 - Data queries that need to bypass RLS use `createServiceClient()` from the same helper.
 - `/api/meta/pro-analysis` is the canonical pattern: `createCookieAuthClient()` for auth, service-role client for data.
 - `/api/cron/*` routes are protected with `Authorization: Bearer ${process.env.CRON_SECRET}` — NOT a user session.
+- **Supabase `Database` typing trap (v2.50+)**: the `Database` interface in `src/lib/supabase/types.ts` MUST include `__InternalSupabase: { PostgrestVersion: '12' }`. Without it, `createServerClient<Database>(...).from(...)` returns `never` for every table. The generic is NOT applied repo-wide on purpose — would force a 30+ file refactor. The interface ships as exports for opt-in per-route casting; clients stay loose.
 
 ## Testing conventions
 - **Component tests**: use `mockNextIntl` from `src/__tests__/helpers/mock-next-intl.ts`. It **throws** when a `{param}` is referenced but not supplied — mirrors next-intl production behaviour and catches `FORMATTING_ERROR` bugs at test time. Pilot-migrated: `TopBrawlersGrid`, `PlayNowDashboard`, `BrawlerTierList`. Remaining test files can migrate opportunistically.
@@ -56,6 +77,8 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - **Auth contract tests**: every user-facing API route gets a `-auth-contract.test.ts` covering anonymous → 401/empty, cookie session + data → 200, cookie session + no data → empty (not 401). Locks in the cookie-vs-Bearer contract.
 - **E2E smoke tests**: `e2e/*.spec.ts`. Two styles: "zero console.error during flow" catches runtime throws; **positive assertion** tests (e.g. `e2e/compare.spec.ts` asserting the trophy chart is visible) catch silent component absence — the `console.error` style will NOT catch silent-hide bugs.
 - **Numeric regex in tests**: always `\b`-anchor — `/\b8 batallas\b/` not `/8 batallas/` (avoids substring collisions with 98, 108, etc.).
+- **`vi.mock(path, () => ({...}))` factory hoisting**: variables referenced inside the factory MUST come from `vi.hoisted(() => ({ xMock: vi.fn() }))`. Direct top-level `const x = vi.fn()` references throw `Cannot access X before initialization` at import time.
+- **`vi.mock('@/lib/X', ...)` must export EVERY symbol the consumed route imports.** Missing one (e.g. exporting `enforceRateLimit` but not `rateLimitHeaders`) makes the route call `undefined(...)` and return 500 silently. Always grep the route's imports first.
 
 ## i18n
 - 13 locales: ar, de, en, es, fr, it, ja, ko, pl, pt, ru, tr, zh. Default: es.
@@ -75,6 +98,13 @@ Brawl Stars combat analytics platform. 13 locales, premium subscriptions via Pay
 - **Never** reinvent a local `MODE_ICONS` emoji table — two existed (battles + club) and were deleted in Sprint D.
 - **Display names** come from `MODE_DISPLAY_NAMES` in `src/lib/constants.ts`. The raw API string (`"brawlBall"`, `"gemGrab"`) is NOT user-facing copy — always localize via this map.
 - **Inside SVG `foreignObject` tooltips** (TrophyChart, ClubTrophyChart) you can't use React components easily; use `getGameModeImageUrl(mode)` + `<img>` inline. Same CDN asset, no component overhead.
+
+## Image + metadata sources (Supercell + Brawlify split)
+- **Supercell `/brawlers` (via `/api/brawlers`) returns ONLY structural data** — id, name, gadgets, starPowers, hyperCharges, gears. **NOT** rarity, images, or descriptions. This is a deliberate gap of the official API; cross-source needed.
+- **Brawler images: `https://cdn.brawlify.com/brawlers/borders/{id}.png`** — verified for all 104 IDs as of 2026-04-30. The path `cdn.brawlify.com/brawler/{id}/avatar.png` is **404 universally** (not just for new brawlers); if you see that string anywhere, it's a bug. Canonical fallback in `src/lib/utils.ts::getBrawlerPortraitFallback`.
+- **Brawlify API (`api.brawlapi.com/v1/brawlers`)** updates manually — can lag 5+ brawlers behind Supercell (observed 2026-04-30: SIRIUS, NAJIA, DAMIAN, STARR NOVA, BOLT all missing). Treat rarity from Brawlify as best-effort, with `BRAWLER_RARITY_MAP` in `src/lib/constants.ts` as the catch-up fallback.
+- **New brawler workflow:** roster auto-updates via `/api/brawlers` (Supercell). Rarity: optional 1-line entry in `BRAWLER_RARITY_MAP` for same-day badge; otherwise the locked-card path renders no rarity until Brawlify catches up (1-3 days). Diagnose with `node scripts/probe-damian.js #TAG`.
+- **`/api/brawlers` response includes `roster: BrawlerRosterEntry[]`** with optional `rarity` + `rarityColor` fields merged from Brawlify. Consumers fall back through Brawlify → `BRAWLER_RARITY_MAP` → omit badge entirely (never show "Trophy Road" as a default for unknown).
 
 ## Event-time parsing
 - Supercell `/events/rotation` returns times in compact format `"20260413T120000.000Z"` (no dashes/colons). **`new Date()` cannot parse this** — it returns `Invalid Date` → `NaN` → `"NaNm"` in the UI.
