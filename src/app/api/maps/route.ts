@@ -1,4 +1,7 @@
 import { NextResponse } from 'next/server'
+import { fetchWithRetry, getCircuitBreaker, BRAWLAPI_TIMEOUT_MS } from '@/lib/http'
+
+const brawlapiBreaker = getCircuitBreaker('brawlapi')
 
 export const dynamic = 'force-dynamic'
 
@@ -10,7 +13,14 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    const res = await fetch('https://api.brawlapi.com/v1/maps', { next: { revalidate: 86400 } })
+    // PERF-01: timeout + idempotent GET retries + brawlapi breaker.
+    const res = await brawlapiBreaker.execute(() =>
+      fetchWithRetry(
+        'https://api.brawlapi.com/v1/maps',
+        { next: { revalidate: 86400 } } as RequestInit,
+        { retries: 2, timeoutMs: BRAWLAPI_TIMEOUT_MS },
+      ),
+    )
     if (!res.ok) return NextResponse.json({})
 
     const data = await res.json()

@@ -1,6 +1,13 @@
 import type { PlayerData } from './types'
+import { fetchWithRetry, getCircuitBreaker } from './http'
 
 const API_BASE = process.env.BRAWLSTARS_API_URL || 'http://141.253.197.60:3001/v1'
+
+// Per-process Supercell circuit breaker. Trips after 5 failures in 30 s and
+// fails fast for 60 s. See `src/lib/http.ts` for the per-instance caveat —
+// in serverless this only bounds blast within a single Function instance,
+// which is exactly what we need for the meta-poll cron loop.
+const supercellBreaker = getCircuitBreaker('supercell')
 
 // Dev-mode guardrail: warn once at boot if BRAWLSTARS_API_URL isn't set.
 // Without it, the fallback hits the raw Oracle VPS IP, which is firewalled
@@ -43,10 +50,19 @@ export class SuprecellApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, revalidate = 300): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: headers(),
-    next: { revalidate },
-  })
+  // PERF-01: 8 s per-attempt timeout + 2 GET retries (timeout, 5xx, 429) +
+  // supercell circuit breaker so meta-poll stops hammering a dead upstream
+  // mid-cron.
+  const res = await supercellBreaker.execute(() =>
+    fetchWithRetry(
+      `${API_BASE}${path}`,
+      {
+        headers: headers(),
+        next: { revalidate },
+      },
+      { timeoutMs: 8_000, retries: 2 },
+    ),
+  )
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))

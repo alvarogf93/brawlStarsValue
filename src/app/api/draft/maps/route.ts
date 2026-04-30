@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchEventRotation } from '@/lib/api'
 import { META_ROLLING_DAYS, isDraftMode } from '@/lib/draft/constants'
+import { fetchWithRetry, getCircuitBreaker, BRAWLAPI_TIMEOUT_MS } from '@/lib/http'
+
+const brawlapiBreaker = getCircuitBreaker('brawlapi')
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +16,14 @@ async function getBrawlApiMaps(): Promise<Map<string, { id: number; imageUrl: st
   if (brawlApiMaps && Date.now() - brawlApiMapsTs < 86400000) return brawlApiMaps
 
   try {
-    const res = await fetch('https://api.brawlapi.com/v1/maps', { next: { revalidate: 86400 } })
+    // PERF-01: timeout + idempotent GET retries + brawlapi breaker.
+    const res = await brawlapiBreaker.execute(() =>
+      fetchWithRetry(
+        'https://api.brawlapi.com/v1/maps',
+        { next: { revalidate: 86400 } } as RequestInit,
+        { retries: 2, timeoutMs: BRAWLAPI_TIMEOUT_MS },
+      ),
+    )
     if (!res.ok) return brawlApiMaps ?? new Map()
     const data = await res.json()
     const list = (data.list ?? data) as Array<{ id: number; name: string; imageUrl?: string }>

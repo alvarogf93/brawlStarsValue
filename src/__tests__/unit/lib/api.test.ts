@@ -5,9 +5,13 @@ const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
 import { fetchPlayer, fetchBattlelog, fetchClub, SuprecellApiError } from '@/lib/api'
+import { resetAllCircuitBreakers } from '@/lib/http'
 
 beforeEach(() => {
   vi.clearAllMocks()
+  // The supercell breaker is a per-process singleton; tests that force 5xx
+  // responses would otherwise trip it for the next test in the file.
+  resetAllCircuitBreakers()
 })
 
 function mockJsonResponse(data: unknown, status = 200) {
@@ -51,13 +55,17 @@ describe('fetchPlayer', () => {
   })
 
   it('throws SuprecellApiError on 429 rate limit', async () => {
-    mockFetch.mockResolvedValueOnce(mockJsonResponse({}, 429))
+    // 429 is retried by the resilience wrapper — mock the same response across
+    // all attempts. The final attempt surfaces as SuprecellApiError, locking
+    // in the contract that retries do not silently mask rate limits.
+    mockFetch.mockResolvedValue(mockJsonResponse({}, 429))
 
     await expect(fetchPlayer('#TEST')).rejects.toThrow(SuprecellApiError)
   })
 
   it('throws SuprecellApiError on 503 maintenance', async () => {
-    mockFetch.mockResolvedValueOnce(mockJsonResponse({}, 503))
+    // 503 is retried; mock all attempts so retries exhaust into the typed error.
+    mockFetch.mockResolvedValue(mockJsonResponse({}, 503))
 
     await expect(fetchPlayer('#TEST')).rejects.toThrow(SuprecellApiError)
   })
