@@ -7,7 +7,6 @@ import { useSkinClassifications } from '@/hooks/useSkinClassifications'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { SKIN_TIER_PRICES, SKIN_TIER_LABELS, PIN_TIER_PRICES, PIN_TIER_LABELS } from '@/lib/constants'
-import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { Minus, Plus } from 'lucide-react'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
 
@@ -122,11 +121,9 @@ export default function CosmeticsPage() {
         </div>
       )}
 
-      {/* Ad sits below the cosmetics calculator. Past the early-return
-          guards `data` is non-null and the skin/pin tiers + grand total
-          are rendered above this slot, so `data.totalGems !== undefined`
-          is the meaningful "we have player data to display" signal. */}
-      <SafeAdSlot hasContent={data.totalGems !== undefined} className="mt-8" />
+      {/* No ad slot here — calculadoras / formularios de edición están
+          explícitamente prohibidos por la política de Valuable Inventory
+          de AdSense (ref: docs/audits/2026-04-30-adsense/README.md AD-01). */}
     </div>
   )
 }

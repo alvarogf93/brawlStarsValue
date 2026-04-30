@@ -88,7 +88,9 @@
       "a4": "Profil, brawler ve meta sorgulama ücretsizdir. Sınırsız geçmiş ve gelişmiş analizler premium planda — kayıt olduğunda 3 günlük ücretsiz deneme ile birlikte.",
       "q5": "Herhangi bir kupa seviyesi için çalışır mı?",
       "a5": "Evet, 0 kupadan küresel zirveye kadar. Meta analizi, en iyilere karşı kendini karşılaştırabilmen için pro oyuncuların savaşlarını da içerir."
-    }
+    },
+    "methodologyLink": "Metodoloji",
+    "aboutLink": "Hakkımızda"
   },
   "nav": {
     "overview": "Genel bakış",
@@ -882,5 +884,140 @@
     "authError": "Giriş başarısız. Lütfen tekrar dene.",
     "paymentError": "Ödeme tamamlanmadı. Tekrar dene ya da hata olduğunu düşünüyorsan bize yaz.",
     "upgraded": "Premium'a hoş geldin! Sınırsız savaş geçmişi açıldı."
+  },
+  "methodology": {
+    "metaTitle": "BrawlVision Metodolojisi — Her İstatistik Nasıl Hesaplanır",
+    "metaDescription": "BrawlVision'daki her sayının arkasındaki formüller, kaynaklar ve güncelleme sıklıkları: Bayesian Win Rate, Comfort Score, PRO örnekleme, zaman pencereleri ve source=global filtreleri.",
+    "breadcrumbLabel": "Metodoloji",
+    "homeAriaLabel": "Ana sayfaya git",
+    "eyebrow": "Metodoloji",
+    "heroTitle": "Her istatistiği nasıl inşa ediyoruz",
+    "heroLead": "BrawlVision, Supercell'in resmi API'sini, kendi PRO oyuncu örnekleme katmanımızı ve birkaç istatistiksel yumuşatma adımını birleştirerek sana kararlı, karşılaştırılabilir ve kendi belirsizliği konusunda dürüst sayılar sunuyor. Bu sayfa her bir adımı tam formülleri ve güncelleme sıklıklarıyla belgeler.",
+    "lastUpdated": "Son güncelleme: {date}",
+    "tocTitle": "Bu sayfada",
+    "sections": [
+      {
+        "id": "data-sources",
+        "title": "Veri kaynakları",
+        "paragraphs": [
+          "Gösterdiğimiz her şey, denetlenebilir tuttuğumuz üç kaynaktan gelir: Supercell'in genel API'si (developer.brawlstars.com), Brawlify CDN'i (cdn.brawlify.com) ve resmi API'nin oyuncu başına son 25 maçın ötesinde sunmadığı savaşları ve toplamları kalıcılaştıran kendi Supabase veritabanımız.",
+          "Supercell API'si yapısal veriler için kanonik kaynaktır — brawlerlar, gadgetlar, star powerlar, hyperchargelar, gearlar ve etkinlik rotasyonu — ancak brawler görselleri, nadirlik ve uzun açıklamalar gibi kritik alanları dışarıda bırakır. Bu alanları, bağımsız çalışan ve bazen Supercell'den bir-üç gün geriden gelen Brawlify CDN'i ile çapraz kontrol ederiz. Resmi API'de Brawlify'da henüz var olmayan yeni bir brawler tespit ettiğimizde, brawler sayfasının lansman gününde doğru render edilmesi için yerel bir nadirlik haritası (BRAWLER_RARITY_MAP) tutarız.",
+          "Veritabanımız meta_stats tablosunda iki sınıf satır saklar: source=user (senkronizasyonu açan premium kullanıcıların gerçek savaşları) ve source=global (en iyi PRO sıralamalarından otomatik örnekleme). Sitede gösterilen her kamuya açık istatistik source=global filtresiyle hesaplanır, böylece tek bir kullanıcının kişisel verisi kamuya açık sayfalara sızmaz."
+        ]
+      },
+      {
+        "id": "meta-poll",
+        "title": "PRO verilerini nasıl inşa ederiz",
+        "paragraphs": [
+          "BrawlVision'ın \"PRO\" katmanı, dünyanın en iyi oyuncularının son savaşları üzerinden hesaplanan toplamlardır. Her altı saatte bir cron işi (meta-poll), rekabetçi aktivitenin yoğunlaştığı on bir ülkenin Supercell resmi sıralamalarını sorgular ve her ülkenin top 200'ünden yaklaşık 2.100 benzersiz oyunculuk dedupe edilmiş bir havuz oluşturur.",
+          "Bu havuza, popüler (harita, mod) kombinasyonlarının veri kümesine hâkim olup nadir olanları maskelemesini engellemek için olasılıklı bir örnekleyici uygularız. Bireysel bir savaşı kabul olasılığı p = min(1, (minLive + 1) / (current + 1)) olup minLive en az temsil edilen kombinasyonun sayısı, current ise aday savaşın kombinasyonunun sayısıdır. Yetersiz örneklenen kombinasyonlar daha fazla ağırlık alır; doymuş olanlar büyümeyi bırakır.",
+          "Cron, serverless fonksiyonun 300 sn maxDuration'ı içinde kalmak için yumuşak 270 saniyelik bir bütçeyle çalıştırma başına META_POLL_MAX_DEPTH = 1.000 oyuncuya kadar yineler. Her yanıt; iterasyon sayıları, sorgulanan oyuncular ve mod başına sayımları içeren \"adaptive\" tanılama bloğu içerir, böylece anormal örnekleyici davranışı üretimde gözlemlenebilir kalır."
+        ]
+      },
+      {
+        "id": "bayesian-wr",
+        "title": "Bayesian Win Rate",
+        "paragraphs": [
+          "Naif Win Rate (galibiyet / maç) küçük örneklerde yanıltıcıdır: yeni bir haritada 3-0 olan bir brawler \"100 % WR\" gösterir ama bunun bir anlamı yoktur. BrawlVision bunu düzeltmek için Bayesian yumuşatma kullanır ve çok farklı örneklem boyutlarına sahip brawlerlar arasında karşılaştırılabilir bir sayı döndürür.",
+          "Formül WR_bayesian = (wins + α) / (battles + α + β) olup α ve β, %50 WR civarında merkezlenmiş bir önsel inancı kodlayan hiperparametrelerdir. Pratikte α = β = 25, yani \"gerçek veriyi görmeden önce 50 önceki savaşı 50/50 varsay\" demek. 3 win ve 0 loss'lu bir brawler, naif 100 %'den (3 + 25) / (3 + 50) = %52,8'e geçer; bu da örneklemin gerçek durumunu çok daha iyi temsil eder.",
+          "Örneklem büyüdükçe önselin ağırlığı azalır: 1.000 savaş ve 530 win'de Bayesian WR (530 + 25) / (1.000 + 50) = %52,9 olur, naif %53,0 ile neredeyse aynı. Yumuşatma yalnızca örneklem gerçekten küçük olduğunda \"acıtır\". İstenen özellik tam olarak budur: gürültüyü cezalandır, sinyali değil."
+        ]
+      },
+      {
+        "id": "comfort-score",
+        "title": "Comfort Score",
+        "paragraphs": [
+          "Comfort Score, \"ortalamadan gerçekten hangi brawlerla daha iyi oynuyorsun?\" sorusunu yanıtlayan BrawlVision'a özgü bir metriktir. Saf Win Rate değildir: kişisel performansın farklı boyutlarını kapsamak için 60/30/10 ağırlıklarıyla üç bileşeni birleştirir.",
+          "Ana bileşen (% 60), oyuncunun o brawlerla WR'ı; küresel meta gibi Bayesian yumuşatılmıştır, böylece nadir oynanan brawler sıralamayı bozmaz. Orta bileşen (% 30), kişisel WR ile brawlerın genel meta WR'ı arasındaki farktır: küresel meta %48'deyken SHELLY üzerinde %55 olan oyuncu, metası %53 olan bir brawlerda %55 olan oyuncudan daha fazla comfort kazanır çünkü göreceli artış daha büyüktür.",
+          "Son bileşen (% 10), normalize edilmiş kullanım sıklığıdır: diğer her şey eşit olduğunda bir brawleri 100 kez oynamak 10 kez oynamaktan daha çok sayar çünkü tutarlılık ödüllendirilir. Tam formüller ve ağırlıklar src/lib/analytics/compute.ts içinde yaşar ve her endpoint çağrısında aynı şekilde uygulanır, böylece sıralama tekrarlanabilir."
+        ]
+      },
+      {
+        "id": "weekly-trends",
+        "title": "7 günlük trendler",
+        "paragraphs": [
+          "Her kamuya açık brawlerin \"+X,Y%\" veya \"−X,Y%\" trend göstergesi, meta WR'ının son 7 günde bir önceki 7'ye göre nasıl değiştiğini gösterir (toplam 14 günlük pencere). Hesap source=global üzerinde, pencerenin her yarısında en az MIN_BATTLES_PER_TREND_WINDOW = 3 savaş asgarisiyle çalışır — yarımlardan biri eşiği geçmezse null döneriz ve UI, zayıf sinyalli bir sayı uydurmak yerine oku gizler.",
+          "Trend, her altı saatte bir küçük bir tabloda (public.brawler_trends, brawler başına bir satır) pg_cron işiyle önceden hesaplanır. Bunu endpoint yanıtı yerine veritabanında yapmak, her ISR yenilemesinde 14 günlük dilimin on binlerce satırını taramaktan kaçınır. Önceden hesaplanan tablo 12 saatten eskiyse veya boşsa endpoint, aynı yanıtı daha yüksek maliyetle döndüren meta_stats üzerinde sayfalandırılmış inline rotaya düşer. Sayfalandırma gereklidir çünkü PostgREST sayfalandırılmamış sorguları sessizce 1.000 satıra keser; bu bir keresinde brawlerların çoğunun yanlış yetersiz örneklem nedeniyle null dönmesine yol açtı.",
+          "Mantık tasarım gereği iki yerde yaşar: src/lib/brawler-detail/trend.ts içindeki TypeScript versiyonu (detay rotası) ve supabase/migrations/022_*.sql içindeki SQL versiyonu (toplu rota). İkisi de aynı eşiği, aynı pencereyi ve aynı source=global filtresini kullanır. Eğer ayrılırlarsa brawler başına detay sayfası ile toplu sayfa aynı brawler için farklı sayılar gösterir, bu yüzden her değişiklik ikisine de uygulanır."
+        ]
+      },
+      {
+        "id": "update-cadence",
+        "title": "Güncelleme sıklığı",
+        "paragraphs": [
+          "Bir verinin ne sıklıkta yenilendiği nasıl yorumlanması gerektiğini etkiler, bu yüzden açıkça belgeleriz. Statik sayfalar (bu dahil) 24 saatlik revalidasyonla ISR (Incremental Static Regeneration) kullanır. Dinamik veriye sahip sayfalar, ilgili iş geçersiz kılana kadar API yanıtını önbelleğe alır.",
+          "Brawlerlar, gadgetlar ve star powerlar Supercell API'sinden 24 saatlik sunucu önbelleğiyle senkronize olur. Meta-poll (PRO verisi) her 6 saatte bir çalışır ve taze meta_stats satırları üretir. 7 günlük trend ön hesaplaması meta-poll ile çakışmamak için pg_cron'da \"17 */6 * * *\" üzerinde (her altıncı saatin 17. dakikasında) çalışır. Oyun içi etkinlik rotasyonu her 30 dakikada bir yenilenir.",
+          "Senkronizasyonu açan premium kullanıcıların bireysel savaşları, sync cron'u ile her maçtan hemen sonra kayan bir pencerede indirilir. Veritabanına girdikten sonra source=user ile meta_stats'i besler ve profil bölümündeki özel analizlerin temelidir; kamuya açık toplamlarda asla görünmez ve source=global ile asla karışmaz."
+        ]
+      }
+    ],
+    "faqTitle": "Sık sorulan sorular",
+    "faq": [
+      {
+        "q": "Az örneklemli bir brawlerin WR'ı neden %0 veya %100 değil?",
+        "a": "Çünkü %50 merkezli önselle Bayesian yumuşatma uyguluyoruz. Çok az maçta gösterilen sayı %50'ye yakın; örneklem büyüdükçe gerçek WR'a yakınsar. Bu kasıtlı: 3 maçta %100 bilgi değil, gürültüdür."
+      },
+      {
+        "q": "Kamuya açık sayfalar gerçek kullanıcı verisi kullanıyor mu?",
+        "a": "Hayır. Her kamuya açık toplam source=global filtreler; bu yalnızca PRO sıralamalarından otomatik örneklenen savaşları içerir. Premium kullanıcıların özel savaşları source=user ile saklanır ve asla kamuya açık sayfalara geçmez."
+      },
+      {
+        "q": "Supercell yeni bir brawler çıkardığında ne olur?",
+        "a": "Brawler listesi resmi API'den gelir, dolayısıyla tam roster lansman gününde sitede görünür. Nadirlik ve görseller Brawlify'dan gelir ve bir-üç gün gecikebilir; o ilk günler için fallback olarak yerel bir nadirlik haritası (BRAWLER_RARITY_MAP) tutarız."
+      },
+      {
+        "q": "Bazı trendler neden yüzde yerine tire gösteriyor?",
+        "a": "Trendi yalnızca 14 günlük pencerenin her yarısında source=global'de en az 3 savaş varsa gösteririz. Bir brawler nadir görüldüğünde zayıf sinyalli sayı yerine hiçbir şey göstermeyi tercih ederiz."
+      },
+      {
+        "q": "Site açıklamaları üretmek için yapay zeka kullanıyor mu?",
+        "a": "Açıklamalar kendi verilerimizden dinamik üretilir (en iyi harita, en iyi mod, brawler başına Bayesian WR). Brawlify'dan veya wiki'den metin kopyalamayız ve içerik şişirmek için dil modeli kullanmayız."
+      }
+    ],
+    "contactTitle": "Sorular veya düzeltmeler?",
+    "contactBody": "Metodolojik bir hata fark edersen veya bir iyileştirme önermek istersen bize yaz. Bu sayfayı verilerin hesaplanma şeklindeki her ilgili değişiklikle senkron tutuyoruz.",
+    "aboutLink": "BrawlVision Hakkında",
+    "privacyLink": "Gizlilik politikası"
+  },
+  "about": {
+    "metaTitle": "BrawlVision Hakkında — bu platformu kim inşa ediyor",
+    "metaDescription": "Biz kimiz, BrawlVision nasıl çalışıyor ve Brawl Stars için neden bağımsız analitik kuruyoruz: misyon, ekip, iletişim ve editoryal taahhütler.",
+    "breadcrumbLabel": "Hakkımızda",
+    "homeAriaLabel": "Ana sayfaya git",
+    "eyebrow": "Hakkımızda",
+    "heroTitle": "Brawl Stars için bağımsız analitik",
+    "heroLead": "BrawlVision, Supercell'in resmi API'sini kendi PRO örnekleme sistemimizle çapraz ileten bağımsız bir projedir; böylece herhangi bir oyuncu — ücretsiz ya da premium — oyunun metasını dürüst sayılarla görebilir. Supercell'in parçası değiliz, Brawlify ile bağlantımız yok; onların kamuya açık verilerinin okuruyuz ve onları açık metodolojiyle sunuyoruz.",
+    "sections": [
+      {
+        "id": "mission",
+        "title": "Neden varız",
+        "paragraphs": [
+          "Brawl Stars'ın genel API'si oyuncu başına yalnızca son 25 savaşı saklar ve meta toplamlarını ortaya çıkarmaz. \"Son maçımı kazandım mı kaybettim mi?\"den daha derin herhangi bir içgörü, resmi oyunun sağlamadığı bir hesaplama katmanı gerektirir. BrawlVision bu katmanı kurar: savaşları kalıcılaştırırız, dünya PRO sıralamalarından sonuçları toplarız ve oyun uygulamasında bulamayacağınız galibiyet oranları, comfort skorları ve haftalık trendler yayınlarız.",
+          "Bunu kamuya açık ve çok dilli (13 dil) yaparız çünkü rekabetçi topluluk özel elektronik tablolara veya kapalı kanallara bağımlı olmamalıdır. Belgelenmiş metodolojiyle yaparız çünkü formülsüz sayılar, veri kılığına girmiş görüştür."
+        ]
+      },
+      {
+        "id": "team",
+        "title": "Arkasında kim var",
+        "paragraphs": [
+          "BrawlVision, veri arka uçları ve mobil uygulama UI geçmişine sahip küçük bir geliştirici ekip tarafından sürdürülür. Tasarlarız, kurarız, işletiriz ve e-postaları yanıtlarız. Dış yatırımcımız yok ve içerik üreticileriyle ticari anlaşmalarımız yok; site bazı kamuya açık sayfalardaki premium abonelikler ve uyumlu reklamlarla finanse edilir.",
+          "Bir hesaplamada, çeviride veya veri noktasında bir hata bulursanız bize yazın: `/methodology` sayfası her formülü ve güncellenme zamanını tanımlar. Doğruladığımız anda hataları düzeltir ve dahili changelog'da kayıt tutarız."
+        ]
+      },
+      {
+        "id": "editorial",
+        "title": "Editoryal taahhütlerimiz",
+        "paragraphs": [
+          "Kişisel verileri kamuya açık verilerden ayırırız: kamuya açık bir sayfada gösterilen her istatistik (`/brawler`, `/picks` vb.) yalnızca otomatik PRO örneklemesinden alınan savaşları içeren `source=global` filtresiyle hesaplanır. Premium kullanıcıların özel savaşları kamuya açık olanlarla asla karışmaz.",
+          "Dil modelleri tarafından yazılmış içerik yayınlamayız ve Brawlify'dan veya wiki'den açıklamalar kopyalamayız. Tek brawler sayfalarındaki metinler kendi toplamlarımızdan dinamik olarak üretilir (en iyi harita, en iyi mod, Bayesian galibiyet oranı), editoryal makaleler ise insanlar tarafından yazılır. Bunun daha yavaş olduğunu kabul ederiz; düşük değerli içerik yerine yavaşlığı tercih ederiz.",
+          "Supercell, Brawlify veya herhangi bir telif hakkı sahibi içeriği kaldırmamızı isterse, kaldırırız. İletişim e-postası bu bloktadır ve 72 iş saati içinde yanıt veririz."
+        ]
+      }
+    ],
+    "contactTitle": "İletişim",
+    "contactBody": "Metodolojik düzeltmeler, kaldırma talepleri, özellik önerileri veya hata raporları için aşağıdaki e-postaya yazın. 72 iş saati içinde yanıt veririz.",
+    "methodologyLink": "Metodoloji",
+    "privacyLink": "Gizlilik",
+    "disclaimer": "BrawlVision, Supercell veya Brawl Stars ile bağlantılı değildir. Brawl Stars, Supercell Oy'un tescilli markasıdır. Oyun görselleri ve verileri Supercell'e aittir."
   }
 }

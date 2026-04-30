@@ -88,7 +88,9 @@
       "a4": "La consultation de profil, brawlers et meta est gratuite. L'historique illimité et les analyses avancées sont dans le plan premium — avec 3 jours d'essai gratuit à l'inscription.",
       "q5": "Est-ce que ça marche pour n'importe quel niveau de trophées ?",
       "a5": "Oui, de 0 trophée jusqu'au top mondial. L'analyse de meta intègre des combats de joueurs pro pour que tu puisses te comparer aux meilleurs."
-    }
+    },
+    "methodologyLink": "Méthodologie",
+    "aboutLink": "À propos"
   },
   "nav": {
     "overview": "Aperçu",
@@ -882,5 +884,140 @@
     "authError": "La connexion a échoué. Réessaie s'il te plaît.",
     "paymentError": "Le paiement n'a pas abouti. Réessaie ou contacte-nous si tu penses que c'est une erreur.",
     "upgraded": "Bienvenue sur Premium ! Historique illimité activé."
+  },
+  "methodology": {
+    "metaTitle": "Méthodologie BrawlVision — comment chaque stat est calculée",
+    "metaDescription": "Les formules, les sources et les cadences derrière chaque chiffre sur BrawlVision : Win Rate bayésien, Comfort Score, sampling PRO, fenêtres temporelles et filtres source=global.",
+    "breadcrumbLabel": "Méthodologie",
+    "homeAriaLabel": "Aller à la page d'accueil",
+    "eyebrow": "Méthodologie",
+    "heroTitle": "Comment nous construisons chaque statistique",
+    "heroLead": "BrawlVision combine l'API officielle de Supercell, notre propre couche d'échantillonnage de joueurs PRO et plusieurs étapes de lissage statistique pour te fournir des chiffres stables, comparables, et honnêtes sur leur propre incertitude. Cette page décrit chacune de ces étapes, avec les formules exactes et les fréquences de mise à jour.",
+    "lastUpdated": "Dernière mise à jour : {date}",
+    "tocTitle": "Sur cette page",
+    "sections": [
+      {
+        "id": "data-sources",
+        "title": "Sources de données",
+        "paragraphs": [
+          "Tout ce que nous affichons vient de trois sources que nous gardons auditables : l'API publique de Supercell (developer.brawlstars.com), le CDN Brawlify (cdn.brawlify.com), et notre propre base Supabase, qui persiste les combats et agrégats que l'API officielle ne révèle pas au-delà des 25 derniers matchs par joueur.",
+          "L'API Supercell est la source canonique pour les données structurelles — brawlers, gadgets, star powers, hypercharges, gears et rotation des événements — mais elle laisse de côté des champs critiques comme les images, la rareté et les descriptions longues. Nous croisons ces champs avec le CDN Brawlify, qui fonctionne indépendamment et accuse parfois un retard d'un à trois jours sur Supercell. Quand un brawler nouveau apparaît sur l'API officielle sans encore exister chez Brawlify, nous gardons une carte locale de rareté (BRAWLER_RARITY_MAP) pour que sa page s'affiche correctement le jour du lancement.",
+          "Notre base stocke deux classes de lignes dans la table meta_stats : source=user (combats réels d'utilisateurs premium ayant activé la sync) et source=global (échantillonnage automatique des classements PRO). Toute statistique publique sur le site est calculée en filtrant par source=global, pour qu'aucune donnée personnelle d'un utilisateur ne fuite vers les pages publiques."
+        ]
+      },
+      {
+        "id": "meta-poll",
+        "title": "Comment nous construisons les données PRO",
+        "paragraphs": [
+          "La couche « PRO » de BrawlVision est un ensemble d'agrégats calculés sur les combats récents des meilleurs joueurs du monde. Toutes les six heures, un cron (meta-poll) interroge les classements officiels de Supercell pour onze pays — ceux qui concentrent l'activité compétitive — et construit une pool dédoublonnée d'environ 2 100 joueurs uniques tirés de chaque top 200.",
+          "Sur cette pool nous appliquons un sampler probabiliste pour empêcher que les combinaisons (carte, mode) populaires écrasent le dataset et masquent les plus rares. La probabilité d'accepter un combat individuel est p = min(1, (minLive + 1) / (current + 1)), où minLive est le nombre de la combinaison la moins représentée et current celui de la combinaison du combat candidat. Les combinaisons sous-échantillonnées reçoivent plus de poids, les saturées arrêtent de croître.",
+          "Le cron itère jusqu'à META_POLL_MAX_DEPTH = 1 000 joueurs par exécution avec un budget souple de 270 secondes pour rester sous le maxDuration de 300 s de la fonction serverless. Chaque réponse inclut un bloc « adaptive » avec compteurs d'itérations, joueurs interrogés et nombres par mode, pour que tout comportement anormal du sampler reste observable en production."
+        ]
+      },
+      {
+        "id": "bayesian-wr",
+        "title": "Win Rate bayésien",
+        "paragraphs": [
+          "Le Win Rate naïf (victoires / matchs) trompe sur les petits échantillons : un brawler à 3-0 sur une nouvelle carte affiche « 100 % WR » sans que cela signifie rien. BrawlVision utilise un lissage bayésien pour corriger cela et renvoyer un nombre comparable entre brawlers ayant des tailles d'échantillon très différentes.",
+          "La formule est WR_bayésien = (wins + α) / (battles + α + β), où α et β sont des hyperparamètres encodant une croyance préalable centrée sur 50 % de WR. En pratique α = β = 25, équivalent à « supposer 50 combats préalables 50/50 avant de voir les vraies données ». Un brawler à 3 wins et 0 losses passe de 100 % naïf à (3 + 25) / (3 + 50) = 52,8 %, beaucoup plus représentatif de l'état réel de l'échantillon.",
+          "À mesure que l'échantillon grandit, le poids du prior décroît : avec 1 000 combats et 530 wins, le WR bayésien est à (530 + 25) / (1 000 + 50) = 52,9 %, quasi identique au naïf 53,0 %. Le lissage ne « pénalise » que lorsque l'échantillon est réellement petit. C'est exactement la propriété voulue : pénaliser le bruit, pas le signal."
+        ]
+      },
+      {
+        "id": "comfort-score",
+        "title": "Comfort Score",
+        "paragraphs": [
+          "Le Comfort Score est la métrique maison de BrawlVision pour répondre à la question « avec quel brawler joues-tu vraiment mieux que la moyenne ? ». Ce n'est pas un Win Rate brut : il combine trois composantes avec des poids 60/30/10 pour couvrir différentes dimensions de la performance personnelle.",
+          "La composante principale (60 %) est le WR du joueur avec ce brawler, lissé bayésiennement comme le meta global, pour qu'un brawler joué peu de fois ne fausse pas le classement. La composante intermédiaire (30 %) est l'écart entre ce WR personnel et le WR meta du brawler en général : un joueur à 55 % sur SHELLY quand le meta global est à 48 % gagne plus de comfort qu'un joueur à 55 % sur un brawler dont le meta est 53 %, parce que la progression relative est plus grande.",
+          "La composante finale (10 %) est la fréquence d'usage normalisée : à conditions égales, jouer un brawler 100 fois compte plus que 10, parce que la régularité est récompensée. Les formules exactes et les poids vivent dans src/lib/analytics/compute.ts et s'appliquent identiquement à chaque appel d'endpoint, pour que le classement reste reproductible."
+        ]
+      },
+      {
+        "id": "weekly-trends",
+        "title": "Tendances 7 jours",
+        "paragraphs": [
+          "Chaque brawler public porte un indicateur de tendance « +X,Y% » ou « −X,Y% » qui mesure comment son WR meta a changé sur les 7 derniers jours par rapport aux 7 précédents (fenêtre totale de 14 jours). Le calcul tourne sur source=global avec un minimum de MIN_BATTLES_PER_TREND_WINDOW = 3 combats dans chaque moitié de la fenêtre — si l'une des deux moitiés n'atteint pas le seuil, nous renvoyons null et l'UI cache la flèche au lieu d'inventer un nombre à faible signal.",
+          "La tendance est précalculée toutes les six heures dans une petite table (public.brawler_trends, une ligne par brawler) via un job pg_cron. Le faire dans la base — plutôt que dans la réponse de l'endpoint — évite de scanner des dizaines de milliers de lignes de la fenêtre de 14 jours à chaque rafraîchissement ISR. Si la table précalculée a plus de 12 heures ou est vide, l'endpoint bascule vers une route inline paginée sur meta_stats qui renvoie la même réponse à un coût plus élevé. La pagination est requise parce que PostgREST tronque silencieusement les requêtes non paginées à 1 000 lignes, ce qui avait fait retourner null à la majorité des brawlers pour fausse insuffisance d'échantillon.",
+          "La logique vit dupliquée par design : une version TypeScript dans src/lib/brawler-detail/trend.ts (route détail) et une version SQL dans supabase/migrations/022_*.sql (route bulk). Les deux utilisent le même seuil, la même fenêtre et le même filtre source=global. Si elles divergent un jour, la page individuelle d'un brawler et la page agrégée afficheraient des nombres différents pour le même brawler, donc tout changement est appliqué aux deux."
+        ]
+      },
+      {
+        "id": "update-cadence",
+        "title": "Cadence de mise à jour",
+        "paragraphs": [
+          "La fréquence à laquelle une donnée est rafraîchie influence comment la lire, alors nous la documentons explicitement. Les pages statiques (celle-ci comprise) utilisent ISR (Incremental Static Regeneration) avec une revalidation de 24 heures. Les pages avec données dynamiques mettent en cache la réponse de l'API jusqu'à ce que le job pertinent l'invalide.",
+          "Brawlers, gadgets et star powers se synchronisent depuis l'API Supercell avec un cache serveur de 24 heures. Le meta-poll (données PRO) tourne toutes les 6 heures et produit des lignes meta_stats fraîches. La précalcul des tendances 7 jours tourne en pg_cron à « 17 */6 * * * » (minute 17 de toutes les six heures) pour ne pas entrer en conflit avec le meta-poll. La rotation in-game des événements se rafraîchit toutes les 30 minutes.",
+          "Les combats individuels d'utilisateurs premium ayant activé la sync sont téléchargés juste après chaque match dans une fenêtre glissante via le cron de sync. Une fois en base, ils alimentent meta_stats avec source=user et servent aux analyses privées de la section profil ; ils n'apparaissent jamais dans des agrégats publics et ne se mélangent jamais à source=global."
+        ]
+      }
+    ],
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      {
+        "q": "Pourquoi le WR d'un brawler peu joué n'est pas 0 % ou 100 % ?",
+        "a": "Parce que nous appliquons un lissage bayésien avec un prior centré sur 50 %. Avec très peu de matchs, le nombre affiché est proche de 50 % ; à mesure que l'échantillon grandit, il converge vers le vrai WR. C'est délibéré : 100 % sur 3 matchs n'est pas une information, c'est du bruit."
+      },
+      {
+        "q": "Les pages publiques utilisent-elles des données d'utilisateurs réels ?",
+        "a": "Non. Chaque agrégat public filtre par source=global, qui ne contient que des combats issus de l'échantillonnage automatique des classements PRO. Les combats privés d'utilisateurs premium sont stockés avec source=user et ne traversent jamais vers les pages publiques."
+      },
+      {
+        "q": "Que se passe-t-il quand Supercell sort un nouveau brawler ?",
+        "a": "La liste des brawlers vient de l'API officielle, donc le roster complet apparaît sur le site le jour même du lancement. La rareté et les images viennent de Brawlify, qui peut accuser un à trois jours de retard ; nous gardons une carte locale de rareté (BRAWLER_RARITY_MAP) en fallback pour ces premiers jours."
+      },
+      {
+        "q": "Pourquoi certaines tendances montrent un tiret au lieu d'un pourcentage ?",
+        "a": "Nous n'affichons la tendance que si chaque moitié de la fenêtre 14 jours a au moins 3 combats en source=global. Quand un brawler est peu vu, nous préférons ne rien montrer plutôt qu'un chiffre à faible signal."
+      },
+      {
+        "q": "Le site utilise-t-il l'IA pour générer les descriptions ?",
+        "a": "Les descriptions sont générées dynamiquement à partir de nos propres données (meilleure carte, meilleur mode, WR bayésien par brawler). Nous ne copions pas de texte de Brawlify ni du wiki, et nous n'utilisons pas de modèles de langage pour gonfler le contenu."
+      }
+    ],
+    "contactTitle": "Questions ou corrections ?",
+    "contactBody": "Si tu repères une erreur méthodologique ou veux suggérer une amélioration, écris-nous. Nous gardons cette page synchronisée avec chaque changement pertinent dans la façon de calculer les données.",
+    "aboutLink": "À propos de BrawlVision",
+    "privacyLink": "Politique de confidentialité"
+  },
+  "about": {
+    "metaTitle": "À propos de BrawlVision — qui construit cette plateforme",
+    "metaDescription": "Qui nous sommes, comment fonctionne BrawlVision, et pourquoi nous construisons une analytique indépendante pour Brawl Stars : mission, équipe, contact et engagements éditoriaux.",
+    "breadcrumbLabel": "À propos",
+    "homeAriaLabel": "Aller à la page d'accueil",
+    "eyebrow": "À propos",
+    "heroTitle": "Analytique indépendante pour Brawl Stars",
+    "heroLead": "BrawlVision est un projet indépendant qui croise l'API officielle de Supercell avec notre propre système d'échantillonnage PRO pour que n'importe quel joueur — gratuit ou premium — puisse voir le meta du jeu avec des chiffres honnêtes. Nous ne faisons pas partie de Supercell et nous ne sommes pas affiliés à Brawlify ; nous lisons leurs données publiques et nous les présentons avec une méthodologie ouverte.",
+    "sections": [
+      {
+        "id": "mission",
+        "title": "Pourquoi nous existons",
+        "paragraphs": [
+          "L'API publique de Brawl Stars ne conserve que les 25 derniers combats par joueur et n'expose aucun agrégat du meta. N'importe quelle observation plus profonde que « ai-je gagné ou perdu mon dernier match ? » exige une couche de calcul que le jeu officiel ne fournit pas. BrawlVision construit cette couche : nous persistons les combats, agrégeons les résultats des classements PRO mondiaux, et publions taux de victoire, comfort scores et tendances hebdomadaires que tu ne trouveras pas dans l'app du jeu.",
+          "Nous le faisons publiquement et en plusieurs langues (13) parce que la communauté compétitive ne devrait pas dépendre de feuilles de calcul privées ou de canaux fermés. Nous le faisons avec une méthodologie documentée parce que les chiffres sans formule sont une opinion déguisée en donnée."
+        ]
+      },
+      {
+        "id": "team",
+        "title": "Qui est derrière",
+        "paragraphs": [
+          "BrawlVision est maintenu par une petite équipe de développeurs avec une expérience en backends de données et UI d'applications mobiles. Nous concevons, construisons, opérons et répondons aux emails. Nous n'avons pas d'investisseurs externes ni d'accords commerciaux avec des créateurs de contenu ; le site est financé par les abonnements premium et la publicité compliant sur certaines pages publiques.",
+          "Si tu trouves une erreur dans un calcul, une traduction ou une donnée, écris-nous : la page `/methodology` décrit chaque formule et quand elle est mise à jour. Nous corrigeons les erreurs dès que nous les confirmons et conservons une trace dans le changelog interne."
+        ]
+      },
+      {
+        "id": "editorial",
+        "title": "Nos engagements éditoriaux",
+        "paragraphs": [
+          "Nous séparons les données personnelles des données publiques : chaque statistique affichée sur une page publique (`/brawler`, `/picks`, etc.) est calculée en filtrant sur `source=global`, qui ne contient que des combats issus de l'échantillonnage PRO automatique. Les combats privés des utilisateurs premium ne se mélangent jamais aux publics.",
+          "Nous ne publions pas de contenu écrit par modèles de langage et nous ne copions pas de descriptions de Brawlify ou de la wiki. Les textes des pages individuelles de brawlers sont générés dynamiquement à partir de nos propres agrégats (meilleure carte, meilleur mode, taux de victoire bayésien), et les articles éditoriaux sont écrits par des personnes. Nous acceptons que ce soit plus lent ; nous préférons la lenteur au contenu de faible valeur.",
+          "Si Supercell, Brawlify ou n'importe quel détenteur de droits nous demande de retirer un contenu, nous le faisons. L'email de contact est dans ce bloc et nous répondons sous 72 heures ouvrées."
+        ]
+      }
+    ],
+    "contactTitle": "Contact",
+    "contactBody": "Pour les corrections méthodologiques, demandes de retrait, suggestions de fonctionnalités ou rapports de bug, écris à l'email ci-dessous. Nous répondons sous 72 heures ouvrées.",
+    "methodologyLink": "Méthodologie",
+    "privacyLink": "Confidentialité",
+    "disclaimer": "BrawlVision n'est pas affilié à Supercell ni à Brawl Stars. Brawl Stars est une marque déposée de Supercell Oy. Les images et données du jeu sont la propriété de Supercell."
   }
 }

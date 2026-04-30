@@ -216,11 +216,11 @@ export default function BattlesPage() {
         </BlurredTeaser>
       )}
 
-      {/* Ad space — only render when there is at least one battle to
-          show. An empty battlelog still passes the `data` check, but
-          the page above renders empty stats and an empty list, which
-          is exactly the "no valuable inventory" state AdSense bans. */}
-      <SafeAdSlot hasContent={data.battles.length > 0} className="mb-8" />
+      {/* Ad space — gated to ≥10 batallas. AdSense penaliza listas
+          delgadas (una o dos partidas + ad) como "thin content";
+          mantenemos el slot solo cuando el histórico ya es sustantivo.
+          Ref: docs/audits/2026-04-30-adsense/README.md AD-09. */}
+      <SafeAdSlot hasContent={data.battles.length >= 10} className="mb-8" />
     </div>
   )
 }

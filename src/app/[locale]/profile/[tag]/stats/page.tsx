@@ -69,10 +69,10 @@ export default function StatsPage() {
   return (
     <div className="animate-fade-in w-full pb-10 space-y-6">
 
-      {/* Banner Ad Space — top of stats. Past the early-return guards
-          `data.player` and `data.breakdown` are populated, which drive
-          every panel below. */}
-      <SafeAdSlot hasContent={!!data.player && !!data.breakdown} />
+      {/* No top-of-page ad — la política de AdSense penaliza la densidad
+          de ads (3 slots era demasiado). Mantenemos solo el slot mid-page
+          entre los dos bloques densos de contenido. Ref:
+          docs/audits/2026-04-30-adsense/README.md AD-02. */}
 
       {/* Header Panel */}
       <div className="brawl-card p-6 md:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between bg-gradient-to-r from-[var(--color-brawl-purple)] to-[#121A2F]">
@@ -349,8 +349,8 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Footer ad — sits below the gem breakdown table; same gate. */}
-      <SafeAdSlot hasContent={!!data.player && !!data.breakdown} className="my-6" />
+      {/* No footer ad — un único slot mid-page (arriba) cumple el límite
+          de densidad. Ref: docs/audits/2026-04-30-adsense/README.md AD-02. */}
     </div>
   )
 }

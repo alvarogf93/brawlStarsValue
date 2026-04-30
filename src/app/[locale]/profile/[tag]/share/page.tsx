@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState, useRef, useCallback } from 'react'
 import { usePlayerData } from '@/hooks/usePlayerData'
-import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { Download } from 'lucide-react'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
 import { toast } from 'sonner'
@@ -93,10 +92,9 @@ export default function SharePage() {
   return (
     <div className="space-y-6 flex flex-col items-center pb-10">
 
-      {/* Banner Ad Space — sits above the viral card. The early-return
-          guards above ensure `data.player` is populated, which is the
-          actual content that drives the share card render. */}
-      <SafeAdSlot hasContent={!!data.player} className="mb-6" />
+      {/* No ad slot here — pantalla de acción puntual (descargar / compartir
+          tarjeta viral) prohibida por la política de Valuable Inventory de
+          AdSense (ref: docs/audits/2026-04-30-adsense/README.md AD-03). */}
 
       {/* Share Card Area */}
       <div className="text-center mb-8">
