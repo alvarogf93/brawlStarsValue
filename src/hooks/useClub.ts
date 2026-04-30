@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import type { ClubResponse } from '@/lib/api'
+import { readLocalCache, writeLocalCache } from '@/lib/local-cache'
 
 const CACHE_TTL = 10 * 60 * 1000 // 10 min
+// LOG-13 — bump on changes to ClubResponse shape from /api/club.
+const CACHE_VERSION = 1
 
 function getCacheKey(tag: string) { return `brawlvalue:club:${tag.toUpperCase()}` }
 
@@ -15,18 +18,17 @@ export function useClub(clubTag: string | null) {
   useEffect(() => {
     if (!clubTag) return
 
-    try {
-      const raw = localStorage.getItem(getCacheKey(clubTag))
-      if (raw) {
-        const cached = JSON.parse(raw)
-        if (Date.now() - cached.timestamp < CACHE_TTL) {
-          // Cache-hit on mount — setState here is intentional.
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setData(cached.data)
-          return
-        }
-      }
-    } catch { /* ignore */ }
+    const cached = readLocalCache<ClubResponse>(
+      getCacheKey(clubTag),
+      CACHE_VERSION,
+      CACHE_TTL,
+    )
+    if (cached) {
+      // Cache-hit on mount — setState here is intentional.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setData(cached)
+      return
+    }
 
     const controller = new AbortController()
     setIsLoading(true)
@@ -43,7 +45,7 @@ export function useClub(clubTag: string | null) {
       })
       .then((result: ClubResponse) => {
         setData(result)
-        try { localStorage.setItem(getCacheKey(clubTag), JSON.stringify({ data: result, timestamp: Date.now() })) } catch { /* ignore */ }
+        writeLocalCache(getCacheKey(clubTag), CACHE_VERSION, result)
       })
       .catch((err) => {
         if (err.name === 'AbortError') return

@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { readLocalCache, writeLocalCache } from '@/lib/local-cache'
 
 const CACHE_TTL = 5 * 60 * 1000
 const BATCH_SIZE = 3
 const STORAGE_PREFIX = 'brawlvalue:club-tc:'
+// LOG-13 — bump on changes to FetchResult shape (BattlePoint, progression).
+const CACHE_VERSION = 1
 
 /** Per-battle data point for the chart */
 export interface BattlePoint {
@@ -32,27 +35,18 @@ interface CachedData {
   totalBattles: number
   progression: number[]
   battlePoints: BattlePoint[]
-  _ts: number
 }
 
 function getCacheKey(tag: string) {
   return `${STORAGE_PREFIX}${tag.toUpperCase().replace('#', '')}`
 }
 
-function getCached(tag: string): Omit<CachedData, '_ts'> | null {
-  try {
-    const raw = localStorage.getItem(getCacheKey(tag))
-    if (!raw) return null
-    const cached: CachedData = JSON.parse(raw)
-    if (Date.now() - cached._ts > CACHE_TTL) return null
-    return { netChange: cached.netChange, totalBattles: cached.totalBattles, progression: cached.progression, battlePoints: cached.battlePoints }
-  } catch { return null }
+function getCached(tag: string): CachedData | null {
+  return readLocalCache<CachedData>(getCacheKey(tag), CACHE_VERSION, CACHE_TTL)
 }
 
-function setCache(tag: string, data: Omit<CachedData, '_ts'>) {
-  try {
-    localStorage.setItem(getCacheKey(tag), JSON.stringify({ ...data, _ts: Date.now() }))
-  } catch { /* full storage */ }
+function setCache(tag: string, data: CachedData) {
+  writeLocalCache(getCacheKey(tag), CACHE_VERSION, data)
 }
 
 interface FetchResult {
@@ -100,11 +94,22 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
   const [totalLoaded, setTotalLoaded] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
 
-  const load = useCallback(async (list: { tag: string; name: string }[]) => {
+  // LOG-11 — abort controller for the cross-batch load. Without it, when
+  // `members` changes mid-load (user picks a different club, or the parent
+  // hook refreshes), the current Promise.allSettled keeps resolving and
+  // setResults() merges rows from the OLD club into the new state map.
+  // The visible symptom was 30+ seconds of mixed-club rows after a switch.
+  const controllerRef = useRef<AbortController | null>(null)
+
+  const load = useCallback(async (
+    list: { tag: string; name: string }[],
+    signal: AbortSignal,
+  ) => {
     setIsLoading(true)
     let loaded = 0
 
     for (let i = 0; i < list.length; i += BATCH_SIZE) {
+      if (signal.aborted) return
       const batch = list.slice(i, i + BATCH_SIZE)
 
       const settled = await Promise.allSettled(
@@ -116,6 +121,10 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
           return { tag: m.tag, ...data }
         })
       )
+
+      // Drop the batch entirely if a newer load() has started — no torn
+      // state, no half-loaded mix from the old club.
+      if (signal.aborted) return
 
       setResults(prev => {
         const next = new Map(prev)
@@ -136,17 +145,28 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
       setTotalLoaded(loaded)
     }
 
-    setIsLoading(false)
+    if (!signal.aborted) setIsLoading(false)
   }, [])
 
   useEffect(() => {
     if (!members?.length) return
+    // Cancel any in-flight load (previous club). load() reads the signal
+    // between every fetch boundary; once aborted, it returns without
+    // mutating state. The new controller drives the new load.
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
+    // Reset accumulated state so the previous club's rows don't briefly
+    // leak into the new render before the first batch lands.
+    setResults(new Map())
+    setTotalLoaded(0)
     // load() is a useCallback that internally setStates (results map +
     // isLoading). This is the classic on-mount fetch pattern; the
     // alternative (derived state over members) would recompute on every
     // render which is worse for a hook with N async fetches.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    load(members)
+    load(members, controller.signal)
+    return () => controller.abort()
   }, [members, load])
 
   const data: MemberTrophyChange[] = (members ?? []).map(m => {
