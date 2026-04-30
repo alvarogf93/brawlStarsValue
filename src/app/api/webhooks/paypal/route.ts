@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { verifyPayPalWebhook, paypalStatusToTier, getSubscriptionDetails } from '@/lib/paypal'
+import {
+  verifyPayPalWebhook,
+  paypalStatusToTier,
+  getSubscriptionDetails,
+  PayPalCertUrlError,
+} from '@/lib/paypal'
 import { notify } from '@/lib/telegram'
 
 export async function POST(request: Request) {
@@ -16,8 +21,22 @@ export async function POST(request: Request) {
     headers[key] = request.headers.get(key) ?? ''
   }
 
-  // 1. Verify webhook signature
-  const verified = await verifyPayPalWebhook({ webhookId, headers, body: rawBody })
+  // 1. Verify webhook signature LOCALLY against the raw body (RES-01 + RES-05).
+  //    NOTE: `rawBody` is the original bytes; we deliberately do NOT JSON.parse it
+  //    before verification — that round-trip used to allow canonicalization-equivalent
+  //    payloads to slip past PayPal's remote verifier.
+  let verified = false
+  try {
+    const result = await verifyPayPalWebhook({ webhookId, headers, body: rawBody })
+    verified = result.verified
+  } catch (err) {
+    if (err instanceof PayPalCertUrlError) {
+      // Hostile cert URL — log generically, return 401 (never echo the URL).
+      console.warn('[paypal webhook] rejected cert URL')
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
+    }
+    throw err
+  }
   if (!verified) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }

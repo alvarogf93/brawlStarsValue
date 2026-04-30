@@ -211,44 +211,214 @@ export async function getSubscriptionDetails(subscriptionId: string): Promise<{
   }
 }
 
-// ── Webhook Verification ─────────────────────────────────────
+// ── Webhook Verification (LOCAL, cert-pinned) ────────────────
+//
+// We do NOT delegate signature verification to PayPal's
+// /v1/notifications/verify-webhook-signature anymore. That endpoint required
+// us to JSON.parse(body) + JSON.stringify(body) before sending — which
+// (a) silently breaks if PayPal changes its serialization, (b) opens the door
+// to canonicalization-equivalence attacks, and (c) made every webhook hit a
+// blocking outbound RPC.
+//
+// Per https://developer.paypal.com/api/rest/webhooks/rest/#link-eventheaders
+// the signed message is:
+//   transmissionId | transmissionTime | webhookId | crc32(rawBody)
+// where crc32 is the unsigned 32-bit CRC of the raw HTTP body, in decimal.
+// The signature header `paypal-transmission-sig` is base64-encoded and
+// produced with SHA256withRSA (PKCS#1 v1.5) using PayPal's signing cert.
+// We verify locally against the cert public key, with the cert URL pinned to
+// the official PayPal hosts.
 
+import crypto from 'node:crypto'
+import zlib from 'node:zlib'
+
+/** Hosts allowed to serve the PayPal signing certificate. */
+const ALLOWED_CERT_HOSTS = new Set(['api.paypal.com', 'api.sandbox.paypal.com'])
+const ALLOWED_CERT_PATH_PREFIX = '/v1/notifications/certs/'
+
+/** Cache TTL for fetched signing certs. PayPal rotates infrequently. */
+const CERT_CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
+const CERT_FETCH_TIMEOUT_MS = 5000
+
+interface CachedCert {
+  pem: string
+  fetchedAt: number
+}
+
+const certCache = new Map<string, CachedCert>()
+
+export class PayPalCertUrlError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'PayPalCertUrlError'
+  }
+}
+
+export interface PayPalWebhookVerifyResult {
+  verified: boolean
+  reason?: string
+}
+
+/**
+ * Validate that a PayPal cert URL points to an official PayPal certs host.
+ * Anchored on `parsed.host` (NOT a substring/.startsWith on the full URL),
+ * so attacker-controlled hosts like `api.paypal.com.evil.com` are rejected.
+ *
+ * Throws `PayPalCertUrlError` with a generic message — never includes the URL
+ * or any env-derived secret.
+ */
+export function assertAllowedCertUrl(certUrl: string): URL {
+  let parsed: URL
+  try {
+    parsed = new URL(certUrl)
+  } catch {
+    throw new PayPalCertUrlError('cert url malformed')
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new PayPalCertUrlError('cert url must be https')
+  }
+  if (!ALLOWED_CERT_HOSTS.has(parsed.host)) {
+    throw new PayPalCertUrlError('cert url host not allowlisted')
+  }
+  if (!parsed.pathname.startsWith(ALLOWED_CERT_PATH_PREFIX)) {
+    throw new PayPalCertUrlError('cert url path not allowlisted')
+  }
+  return parsed
+}
+
+/**
+ * Test-only seam: clear the in-memory cert cache between cases.
+ * Not exported via barrel; tests reach into the module directly.
+ */
+export function __clearPayPalCertCache(): void {
+  certCache.clear()
+}
+
+async function fetchCertPem(certUrl: string, now: number): Promise<string> {
+  const cached = certCache.get(certUrl)
+  if (cached && now - cached.fetchedAt < CERT_CACHE_TTL_MS) {
+    return cached.pem
+  }
+
+  const res = await fetch(certUrl, {
+    method: 'GET',
+    signal: AbortSignal.timeout(CERT_FETCH_TIMEOUT_MS),
+  })
+  if (!res.ok) {
+    throw new Error('cert fetch failed')
+  }
+  const pem = await res.text()
+  certCache.set(certUrl, { pem, fetchedAt: now })
+  return pem
+}
+
+/**
+ * Verify a PayPal webhook signature LOCALLY against the raw body.
+ *
+ * Contract:
+ *  - Receives the raw HTTP body as a string (DO NOT parse first).
+ *  - Computes signed = `${transmissionId}|${transmissionTime}|${webhookId}|${crc32(rawBody)}`.
+ *  - Verifies `paypal-transmission-sig` (base64) with SHA256withRSA against
+ *    the public key extracted from the cert at `paypal-cert-url`.
+ *  - Returns `{ verified: false, reason }` on every soft failure (no throw),
+ *    so the route can convert false → 401 uniformly.
+ *  - Throws `PayPalCertUrlError` ONLY when the cert URL fails the allowlist —
+ *    that's a configuration / attack signal worth surfacing distinctly.
+ */
 export async function verifyPayPalWebhook(params: {
   webhookId: string
   headers: Record<string, string>
   body: string
-}): Promise<boolean> {
-  const token = await getAccessToken()
+  /** Injectable clock for tests. */
+  now?: () => number
+}): Promise<PayPalWebhookVerifyResult> {
+  const transmissionId = params.headers['paypal-transmission-id']
+  const transmissionTime = params.headers['paypal-transmission-time']
+  const transmissionSig = params.headers['paypal-transmission-sig']
+  const certUrl = params.headers['paypal-cert-url']
+  const authAlgo = params.headers['paypal-auth-algo']
 
-  // verify-webhook-signature is a verification POST — idempotent against
-  // PayPal. One retry is sufficient (this is on the webhook hot path; we
-  // don't want to slow down PayPal's own retry semantics).
-  const res = await paypalBreaker.execute(() =>
-    fetchWithRetry(
-      `${getPayPalBase()}/v1/notifications/verify-webhook-signature`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          auth_algo: params.headers['paypal-auth-algo'],
-          cert_url: params.headers['paypal-cert-url'],
-          transmission_id: params.headers['paypal-transmission-id'],
-          transmission_sig: params.headers['paypal-transmission-sig'],
-          transmission_time: params.headers['paypal-transmission-time'],
-          webhook_id: params.webhookId,
-          webhook_event: (() => { try { return JSON.parse(params.body) } catch { return null } })(),
-        }),
-      },
-      { retries: 1, timeoutMs: 8_000 },
-    ),
-  )
+  // RES-01 supersedes the previous verify-webhook-signature outbound call:
+  // local cryptographic verification removes the JSON.parse + JSON.stringify
+  // of the raw body that the PayPal endpoint required (and which silently
+  // accepted canonicalization-equivalent payloads). PERF-01's circuit breaker
+  // and timeout still wrap the cert fetch via fetchCertPem below.
+  if (!transmissionId || !transmissionTime || !transmissionSig || !certUrl) {
+    return { verified: false, reason: 'missing webhook headers' }
+  }
+  // PayPal documents only SHA256withRSA today. If they ever rotate to a new
+  // algorithm we want to fail closed rather than silently downgrade.
+  if (authAlgo && authAlgo !== 'SHA256withRSA') {
+    return { verified: false, reason: 'unsupported auth algo' }
+  }
 
-  if (!res.ok) return false
-  const data = await res.json()
-  return data.verification_status === 'SUCCESS'
+  // Pin cert URL to the official hosts. Throws on hostile values.
+  assertAllowedCertUrl(certUrl)
+
+  const now = (params.now ?? Date.now)()
+
+  // Replay-attack guard. PayPal does not document a max-age window, so we
+  // apply the industry-standard 5 min ± 30s clock skew tolerance used by
+  // Stripe, GitHub and most major webhook providers. A captured webhook
+  // older than this MUST be rejected even when the cryptographic signature
+  // is valid — the idempotency table only protects against re-using the
+  // same `paypal-transmission-id`, not against a fresh ID with replayed
+  // body bytes.
+  const transmissionMs = Date.parse(transmissionTime)
+  if (!Number.isFinite(transmissionMs)) {
+    return { verified: false, reason: 'invalid transmission-time format' }
+  }
+  const ageMs = now - transmissionMs
+  const MAX_AGE_MS = 5 * 60 * 1000
+  const SKEW_MS = 30 * 1000
+  if (ageMs > MAX_AGE_MS || ageMs < -SKEW_MS) {
+    return { verified: false, reason: 'transmission time out of window' }
+  }
+
+  let certPem: string
+  try {
+    certPem = await fetchCertPem(certUrl, now)
+  } catch {
+    return { verified: false, reason: 'cert fetch failed' }
+  }
+
+  let publicKey: crypto.KeyObject
+  try {
+    publicKey = crypto.createPublicKey(certPem)
+  } catch {
+    return { verified: false, reason: 'cert parse failed' }
+  }
+
+  // CRC32 of the RAW body bytes, unsigned 32-bit, decimal — exactly as
+  // PayPal computes it. zlib.crc32 returns an unsigned int directly.
+  const crc = zlib.crc32(Buffer.from(params.body, 'utf8'))
+  const signed = `${transmissionId}|${transmissionTime}|${params.webhookId}|${crc}`
+
+  let signatureBytes: Buffer
+  try {
+    signatureBytes = Buffer.from(transmissionSig, 'base64')
+  } catch {
+    return { verified: false, reason: 'signature decode failed' }
+  }
+
+  const verifier = crypto.createVerify('SHA256')
+  verifier.update(signed)
+  verifier.end()
+
+  let ok = false
+  try {
+    // Pin the padding to PKCS#1 v1.5 explicitly. PayPal uses SHA256withRSA
+    // with v1.5 padding; the Node default already matches but pinning makes
+    // the intent obvious and forces a behaviour change to be a code change.
+    ok = verifier.verify(
+      { key: publicKey, padding: crypto.constants.RSA_PKCS1_PADDING },
+      signatureBytes,
+    )
+  } catch {
+    return { verified: false, reason: 'verify threw' }
+  }
+
+  return ok ? { verified: true } : { verified: false, reason: 'signature mismatch' }
 }
 
 // ── Tier Mapping ─────────────────────────────────────────────

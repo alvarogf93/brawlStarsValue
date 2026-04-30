@@ -80,7 +80,7 @@ describe('POST /api/webhooks/paypal', () => {
     process.env.PAYPAL_WEBHOOK_ID = 'wh-test-id'
 
     // Default: verification passes
-    mockVerifyPayPalWebhook.mockResolvedValue(true)
+    mockVerifyPayPalWebhook.mockResolvedValue({ verified: true })
 
     // Default: idempotency insert succeeds (no duplicate)
     mockInsert.mockResolvedValue({ error: null })
@@ -114,7 +114,7 @@ describe('POST /api/webhooks/paypal', () => {
   // ── Signature verification ───────────────────────────────────
 
   it('returns 401 when signature verification fails', async () => {
-    mockVerifyPayPalWebhook.mockResolvedValue(false)
+    mockVerifyPayPalWebhook.mockResolvedValue({ verified: false, reason: 'signature mismatch' })
     const res = await POST(makeRequest(VALID_EVENT))
     expect(res.status).toBe(401)
     const body = await res.json()
