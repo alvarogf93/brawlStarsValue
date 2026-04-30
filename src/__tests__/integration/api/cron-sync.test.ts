@@ -20,9 +20,13 @@ import { GET } from '@/app/api/cron/sync/route'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  process.env.CRON_SECRET = 'test-secret'
-  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
-  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key'
+  // TEST-10 — vi.stubEnv auto-restores via the global afterEach
+  // (vi.unstubAllEnvs in src/test/setup.ts). Direct process.env.X = ...
+  // assignments would leak into the next test file whose own setup
+  // assumed the var was undefined.
+  vi.stubEnv('CRON_SECRET', 'test-secret')
+  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test.supabase.co')
+  vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-key')
 })
 
 function makeRequest(secret?: string) {

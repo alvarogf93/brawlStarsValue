@@ -52,11 +52,17 @@ test.describe('/picks smoke — anonymous public flow', () => {
     // `.brawl-card` is used by every map card on this page.
     await page.waitForSelector('[class*="brawl-card"]', { timeout: 45_000 })
 
-    // Give React 1s more to mount any post-hydration work (hooks that fetch
-    // from /api/meta, client-side map image loading, etc.).
-    await page.waitForTimeout(1000)
+    // TEST-05/06 — wait for both image loading AND the meta network call
+    // to settle, instead of guessing 1s. /api/meta is what the picks page
+    // fetches client-side; once it resolves we know the data layer is done.
+    await page
+      .waitForResponse(r => r.url().includes('/api/meta'), { timeout: 5_000 })
+      .catch(() => { /* server-component path — meta was inlined, OK */ })
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {})
 
-    // Assert zero console errors across the whole render flow
+    // TEST-06 — positive assertion: the page rendered map cards, not just
+    // the skeleton with a console.error scrolled past.
+    await expect(page.locator('[class*="brawl-card"]').first()).toBeVisible()
     expect(errors, `Console errors during /picks render:\n${errors.join('\n')}`).toHaveLength(0)
   })
 

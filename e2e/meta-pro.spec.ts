@@ -60,8 +60,19 @@ test.describe('Meta PRO smoke — analytics → meta pro → map selection', () 
       timeout: 60_000,
     })
 
-    // Give the page an extra moment for all client-side data hooks to fire.
-    await page.waitForTimeout(2000)
+    // TEST-05/06 — wait for the analytics suite's data-hooks to actually
+    // settle, not a magic 2s. The presence of a populated chart or a
+    // visible "no data" empty state means hydration + first-fetch are done.
+    await page.waitForFunction(() => {
+      const root = document.querySelector('main')
+      if (!root) return false
+      // Either a chart svg landed, or an empty-state message rendered.
+      return !!root.querySelector('svg') || root.textContent?.length! > 200
+    }, { timeout: 30_000 })
+
+    // TEST-06 — positive assertion alongside the zero-error check: the
+    // analytics shell rendered something visible, not a silent skeleton.
+    await expect(page.locator('main')).toBeVisible()
 
     expect(
       errors,
@@ -86,7 +97,13 @@ test.describe('Meta PRO smoke — analytics → meta pro → map selection', () 
     const metaProTab = page.getByRole('button', { name: /meta pro|pro/i }).first()
     if (await metaProTab.count() > 0) {
       await metaProTab.click().catch(() => {/* non-fatal — page may have a different tab UI */})
-      await page.waitForTimeout(2000)
+      // TEST-05 — wait for the network calls that the Meta PRO tab fires
+      // to settle, not a fixed 2s. The server-side endpoint is /api/meta/
+      // pro-analysis; the tab is "loaded" once at least one of those
+      // requests completes (or 8s passes, whichever first).
+      await page
+        .waitForResponse(r => r.url().includes('/api/meta/'), { timeout: 8_000 })
+        .catch(() => {})
     }
 
     expect(

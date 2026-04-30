@@ -80,8 +80,11 @@ test.describe('Locale switching', () => {
       const btn = document.querySelector('button[title="Change Language"]')
       return btn && Object.keys(btn).some(k => k.startsWith('__react'))
     }, { timeout: 30_000 })
-    // Extra wait — profile page re-renders when player data loads/fails
-    await page.waitForTimeout(2_000)
+    // TEST-05 — wait for the locale-switcher button to be stable instead
+    // of guessing 2s. The button's React event handler is wired only
+    // after hydration completes; once it accepts a hover-pointer event
+    // we know the data-loading re-render has settled.
+    await page.locator('button[title="Change Language"]').hover({ timeout: 10_000 }).catch(() => {})
 
     // Click locale switcher — retry if dropdown doesn't open (re-render may close it)
     const englishBtn = page.locator('button', { hasText: 'English' })

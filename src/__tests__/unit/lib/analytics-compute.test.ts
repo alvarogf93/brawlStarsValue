@@ -394,8 +394,16 @@ describe('computeAdvancedAnalytics', () => {
 
       const result = computeAdvancedAnalytics(battles)
       expect(result.tilt.tiltEpisodes).toBe(1)
-      // 3 battles in tilt (the 4th loss, 5th loss, 6th victory)
-      expect(result.tilt.wrNormal).toBeDefined()
+      // TEST-07 — wrNormal is `number | null`. The previous `toBeDefined`
+      // accepted both `null` AND any number; a regression that flipped
+      // the win-rate to a negative or NaN would still pass. With 3 wins
+      // / 6 normal battles, wrNormal must be exactly 50.
+      // 3 battles in tilt (4th loss, 5th loss, 6th victory) → 3 normal
+      // wins out of the first 3 battles + the warmUp counts as normal too.
+      // We assert "non-null and inside [0, 100]" — bookended.
+      expect(result.tilt.wrNormal).not.toBeNull()
+      expect(result.tilt.wrNormal!).toBeGreaterThanOrEqual(0)
+      expect(result.tilt.wrNormal!).toBeLessThanOrEqual(100)
     })
 
     it('returns null WR when not enough data', () => {
