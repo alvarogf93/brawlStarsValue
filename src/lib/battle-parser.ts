@@ -4,17 +4,22 @@ import { normalizeSupercellMode } from '@/lib/draft/constants'
 
 /**
  * Convert Supercell battleTime format "20260405T171604.000Z"
- * to ISO 8601 "2026-04-05T17:16:04.000Z"
+ * to ISO 8601 "2026-04-05T17:16:04.000Z".
+ *
+ * LOG-12 — delegates to the regex-validated `parseSupercellTime`
+ * below. The previous slice-only implementation produced
+ * syntactically-valid ISO strings from malformed input (e.g. an
+ * already-ISO `"2026-04-05T..."` would become
+ * `"2026--0-4-T..."` and silently land in `battles.battle_time`).
+ * Throws on invalid input so the caller sees the corruption
+ * instead of persisting it.
  */
 export function parseBattleTime(raw: string): string {
-  const y = raw.slice(0, 4)
-  const m = raw.slice(4, 6)
-  const d = raw.slice(6, 8)
-  const rest = raw.slice(8)
-  const h = rest.slice(1, 3)
-  const min = rest.slice(3, 5)
-  const sec = rest.slice(5, 7)
-  return `${y}-${m}-${d}T${h}:${min}:${sec}.000Z`
+  const date = parseSupercellTime(raw)
+  if (!date) {
+    throw new Error(`Invalid Supercell battleTime: ${JSON.stringify(raw)}`)
+  }
+  return date.toISOString()
 }
 
 /**
@@ -147,13 +152,36 @@ export function parseBattle(entry: BattlelogEntry, playerTag: string): BattleIns
 
 /**
  * Parse all battles from a battlelog response.
- * Skips entries where the player is not found.
+ *
+ * Skips:
+ *  - Entries where the player is not found in either team.
+ *  - Entries whose `battleTime` is malformed. `parseBattleTime` throws on
+ *    unparseable input (LOG-12 — preferable to persisting silent garbage),
+ *    but we don't want a single corrupted entry from Supercell to abort
+ *    the whole batch and stall the sync cron. Log + skip + continue, so
+ *    the rest of the battlelog still flows through and the operator can
+ *    see exactly which entry was bad.
  */
 export function parseBattlelog(entries: BattlelogEntry[], playerTag: string): BattleInsert[] {
   const results: BattleInsert[] = []
   for (const entry of entries) {
-    const parsed = parseBattle(entry, playerTag)
-    if (parsed) results.push(parsed)
+    try {
+      const parsed = parseBattle(entry, playerTag)
+      if (parsed) results.push(parsed)
+    } catch (err) {
+      // Surface the bad entry's identifying fields without leaking the
+      // entire payload. `battleTime` and `event.id` are the most useful
+      // signals for triage.
+      console.warn(
+        '[battle-parser] skipping malformed entry',
+        {
+          playerTag,
+          battleTime: entry?.battleTime,
+          eventId: entry?.event?.id ?? null,
+          err: err instanceof Error ? err.message : String(err),
+        },
+      )
+    }
   }
   return results
 }
