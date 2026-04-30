@@ -69,6 +69,13 @@ beforeAll(() => {
 beforeEach(() => {
   __clearPayPalCertCache()
   vi.restoreAllMocks()
+  // Freeze the wall-clock at TRANSMISSION_TIME + 1s so the anti-replay
+  // window guard (5 min default) accepts the fixture without each test
+  // having to inject `now`. Tests that need to exercise the window
+  // explicitly (stale / future-dated webhooks) override this with their
+  // own `now` injection or `vi.setSystemTime`.
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date(Date.parse(TRANSMISSION_TIME) + 1000))
 })
 
 afterEach(() => {
@@ -258,31 +265,41 @@ describe('verifyPayPalWebhook — local cryptographic verification (RES-01)', ()
   })
 
   it('refetches the cert after the TTL expires', async () => {
+    // Use a transmission time AT the start of the test's wall-clock window
+    // so that the cert TTL (1h) and anti-replay window (5 min) don't
+    // collide: each verifyPayPalWebhook call passes its own `now`, but the
+    // body's transmission-time has to be within 5 min of every `now`
+    // value we check. We update the transmission-time per call to keep
+    // it inside the window while still letting the cert cache age out.
     const fetchMock = mockFetchReturningCert()
-    const sig = signPayload(RAW_BODY, { privateKey: keypair.privateKey })
-    const headers = makeHeaders({ 'paypal-transmission-sig': sig })
-
-    const t0 = 1_700_000_000_000
     const TTL = 60 * 60 * 1000 // matches CERT_CACHE_TTL_MS in paypal.ts
 
-    const r1 = await verifyPayPalWebhook({
-      webhookId: WEBHOOK_ID,
-      headers,
-      body: RAW_BODY,
-      now: () => t0,
-    })
-    const r2 = await verifyPayPalWebhook({
-      webhookId: WEBHOOK_ID,
-      headers,
-      body: RAW_BODY,
-      now: () => t0 + TTL - 1, // still cached
-    })
-    const r3 = await verifyPayPalWebhook({
-      webhookId: WEBHOOK_ID,
-      headers,
-      body: RAW_BODY,
-      now: () => t0 + TTL + 1, // cache expired
-    })
+    async function verifyAt(nowMs: number) {
+      const ttIso = new Date(nowMs - 1000).toISOString()
+      const headers = makeHeaders({
+        'paypal-transmission-sig': '',
+        'paypal-transmission-time': ttIso,
+      })
+      // Re-sign with the per-call transmission-time.
+      const crc = zlib.crc32(Buffer.from(RAW_BODY, 'utf8'))
+      const signed = `${TRANSMISSION_ID}|${ttIso}|${WEBHOOK_ID}|${crc}`
+      const signer = crypto.createSign('SHA256')
+      signer.update(signed)
+      signer.end()
+      headers['paypal-transmission-sig'] = signer.sign(keypair.privateKey).toString('base64')
+
+      return verifyPayPalWebhook({
+        webhookId: WEBHOOK_ID,
+        headers,
+        body: RAW_BODY,
+        now: () => nowMs,
+      })
+    }
+
+    const t0 = Date.parse('2026-04-28T12:00:00Z')
+    const r1 = await verifyAt(t0)
+    const r2 = await verifyAt(t0 + TTL - 1) // still cached
+    const r3 = await verifyAt(t0 + TTL + 1) // cache expired
 
     expect([r1.verified, r2.verified, r3.verified]).toEqual([true, true, true])
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -359,5 +376,111 @@ describe('verifyPayPalWebhook — local cryptographic verification (RES-01)', ()
     expect(result.verified).toBe(false)
     expect(result.reason).not.toContain(WEBHOOK_ID)
     expect(result.reason).not.toContain(TRANSMISSION_ID)
+  })
+})
+
+// ── Anti-replay protection (RES-01 hardening) ─────────────────────────────
+
+describe('verifyPayPalWebhook — anti-replay window', () => {
+  it('rejects a cryptographically valid webhook older than 5 min', async () => {
+    mockFetchReturningCert()
+    const sig = signPayload(RAW_BODY, { privateKey: keypair.privateKey })
+
+    const result = await verifyPayPalWebhook({
+      webhookId: WEBHOOK_ID,
+      headers: makeHeaders({ 'paypal-transmission-sig': sig }),
+      body: RAW_BODY,
+      // 6 minutes after transmission-time → outside the 5 min window.
+      now: () => Date.parse(TRANSMISSION_TIME) + 6 * 60 * 1000,
+    })
+
+    expect(result.verified).toBe(false)
+    expect(result.reason).toBe('transmission time out of window')
+  })
+
+  it('rejects a webhook timestamped > 30s in the future (clock skew limit)', async () => {
+    mockFetchReturningCert()
+    const sig = signPayload(RAW_BODY, { privateKey: keypair.privateKey })
+
+    const result = await verifyPayPalWebhook({
+      webhookId: WEBHOOK_ID,
+      headers: makeHeaders({ 'paypal-transmission-sig': sig }),
+      body: RAW_BODY,
+      // 60s before transmission-time → "future" webhook, beyond skew tolerance.
+      now: () => Date.parse(TRANSMISSION_TIME) - 60 * 1000,
+    })
+
+    expect(result.verified).toBe(false)
+    expect(result.reason).toBe('transmission time out of window')
+  })
+
+  it('accepts a webhook within the 5 min window', async () => {
+    mockFetchReturningCert()
+    const sig = signPayload(RAW_BODY, { privateKey: keypair.privateKey })
+
+    const result = await verifyPayPalWebhook({
+      webhookId: WEBHOOK_ID,
+      headers: makeHeaders({ 'paypal-transmission-sig': sig }),
+      body: RAW_BODY,
+      // 4 minutes after transmission-time → still inside.
+      now: () => Date.parse(TRANSMISSION_TIME) + 4 * 60 * 1000,
+    })
+
+    expect(result.verified).toBe(true)
+  })
+
+  it('rejects malformed paypal-transmission-time', async () => {
+    mockFetchReturningCert()
+    const sig = signPayload(RAW_BODY, { privateKey: keypair.privateKey })
+
+    const result = await verifyPayPalWebhook({
+      webhookId: WEBHOOK_ID,
+      headers: makeHeaders({
+        'paypal-transmission-sig': sig,
+        'paypal-transmission-time': 'not-a-date',
+      }),
+      body: RAW_BODY,
+    })
+
+    expect(result.verified).toBe(false)
+    expect(result.reason).toBe('invalid transmission-time format')
+  })
+})
+
+// ── Regression for the original RES-01 bug: parse + re-stringify ──────────
+
+describe('verifyPayPalWebhook — RES-01 round-trip regression', () => {
+  it('rejects a body that has been JSON.parse + JSON.stringify round-tripped', async () => {
+    // Construct a body with whitespace + ordering that JSON.stringify would
+    // canonicalize away. CRC32 is byte-sensitive, so a re-stringify ALWAYS
+    // produces different bytes when the source has any non-canonical
+    // formatting. This locks the fix: if the function ever re-introduces
+    // an internal JSON.parse/stringify of the body, this test fires.
+    const PRETTY_BODY = '{\n  "event_type": "BILLING.SUBSCRIPTION.ACTIVATED",\n  "resource": { "id": "I-SUB123", "status": "ACTIVE" }\n}'
+
+    mockFetchReturningCert()
+
+    // Sign over the EXACT bytes on the wire — that's what the route does.
+    const sig = signPayload(PRETTY_BODY, { privateKey: keypair.privateKey })
+
+    // Sanity: the canonical form really differs from the wire bytes.
+    const canonical = JSON.stringify(JSON.parse(PRETTY_BODY))
+    expect(canonical).not.toBe(PRETTY_BODY)
+
+    // Pass the canonical form (what a buggy implementation would CRC).
+    const buggyResult = await verifyPayPalWebhook({
+      webhookId: WEBHOOK_ID,
+      headers: makeHeaders({ 'paypal-transmission-sig': sig }),
+      body: canonical,
+    })
+    expect(buggyResult.verified).toBe(false)
+
+    // Pass the original wire body (correct path).
+    const correctResult = await verifyPayPalWebhook({
+      webhookId: WEBHOOK_ID,
+      headers: makeHeaders({ 'paypal-transmission-sig': sig }),
+      body: PRETTY_BODY,
+    })
+    expect(correctResult.verified).toBe(true)
   })
 })

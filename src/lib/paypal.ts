@@ -356,6 +356,25 @@ export async function verifyPayPalWebhook(params: {
   assertAllowedCertUrl(certUrl)
 
   const now = (params.now ?? Date.now)()
+
+  // Replay-attack guard. PayPal does not document a max-age window, so we
+  // apply the industry-standard 5 min ± 30s clock skew tolerance used by
+  // Stripe, GitHub and most major webhook providers. A captured webhook
+  // older than this MUST be rejected even when the cryptographic signature
+  // is valid — the idempotency table only protects against re-using the
+  // same `paypal-transmission-id`, not against a fresh ID with replayed
+  // body bytes.
+  const transmissionMs = Date.parse(transmissionTime)
+  if (!Number.isFinite(transmissionMs)) {
+    return { verified: false, reason: 'invalid transmission-time format' }
+  }
+  const ageMs = now - transmissionMs
+  const MAX_AGE_MS = 5 * 60 * 1000
+  const SKEW_MS = 30 * 1000
+  if (ageMs > MAX_AGE_MS || ageMs < -SKEW_MS) {
+    return { verified: false, reason: 'transmission time out of window' }
+  }
+
   let certPem: string
   try {
     certPem = await fetchCertPem(certUrl, now)
@@ -388,7 +407,13 @@ export async function verifyPayPalWebhook(params: {
 
   let ok = false
   try {
-    ok = verifier.verify(publicKey, signatureBytes)
+    // Pin the padding to PKCS#1 v1.5 explicitly. PayPal uses SHA256withRSA
+    // with v1.5 padding; the Node default already matches but pinning makes
+    // the intent obvious and forces a behaviour change to be a code change.
+    ok = verifier.verify(
+      { key: publicKey, padding: crypto.constants.RSA_PKCS1_PADDING },
+      signatureBytes,
+    )
   } catch {
     return { verified: false, reason: 'verify threw' }
   }
