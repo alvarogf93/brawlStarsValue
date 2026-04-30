@@ -441,6 +441,13 @@ async function runBalancedPoll(
     // — that asymmetry made the batch behaviour non-deterministic and broke
     // the convergence test. Within a batch, the rate freezes; between
     // batches, both minLive and the snapshot rebuild from live state.
+    //
+    // LOG-17 — granularity note: `computeMinLive` is recomputed PER BATCH
+    // (not per battle). Within a batch of CONCURRENCY=4 players, all four
+    // see the same minLive even if earlier players in the batch produced
+    // matching battles. This is the intentional trade-off for the
+    // parallelisation in PERF-06 and converges in aggregate because each
+    // batch's snapshot reflects the previous batch's accumulation.
     const minLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)
     const batchCountsSnapshot: MapModeCounts = { ...battlesByMapMode }
     const sampler = (key: string): boolean => {

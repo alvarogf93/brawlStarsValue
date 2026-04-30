@@ -139,11 +139,11 @@ describe('TopBrawlersGrid — Task 7 (inline counters)', () => {
     expect(screen.getByText(/LEON/)).toBeTruthy()
   })
 
-  it('does not crash when counters array is missing', () => {
-    expect(() => {
-      render(<TopBrawlersGrid brawlers={MOCK_BRAWLERS} totalBattles={3000} />)
-    }).not.toThrow()
-  })
+  // TEST-12 — removed "does not crash when counters array is missing": it had
+  // no positive assertion, so a regression where the component renders pure
+  // garbage (e.g. `Object Object`) would still pass it. The next test below
+  // exercises the missing-counter case AND asserts on visible content,
+  // covering the same code path with a real assertion.
 
   it('does not crash when a brawler has no corresponding counter entry', () => {
     render(

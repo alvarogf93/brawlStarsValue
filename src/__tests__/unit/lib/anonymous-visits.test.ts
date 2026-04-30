@@ -16,7 +16,7 @@ vi.mock('@supabase/supabase-js', () => ({
 }))
 
 const notifyMock = vi.fn().mockResolvedValue(undefined)
-vi.mock('@/lib/telegram', () => ({
+vi.mock('@/lib/telegram/notify', () => ({
   notify: notifyMock,
 }))
 

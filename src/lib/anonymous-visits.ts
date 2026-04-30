@@ -7,7 +7,7 @@
 // role key — stateless, cookie-free, safe in any execution context.
 
 import { createClient as createSupabaseAdmin, type SupabaseClient } from '@supabase/supabase-js'
-import { notify } from '@/lib/telegram'
+import { notify } from '@/lib/telegram/notify'
 import { isValidPlayerTag, normalizePlayerTag } from '@/lib/utils'
 
 interface TrackInput {

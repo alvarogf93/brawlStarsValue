@@ -18,7 +18,24 @@ const mockServiceProfileRead = vi.fn<() => ProfileRead>(() => ({
   data: { tier: 'free', ls_subscription_status: null, ls_subscription_id: null },
   error: null,
 }))
-const mockServiceUpdate = vi.fn(() => ({ eq: vi.fn().mockResolvedValue({ error: null }) }))
+// RES-02 — the confirm route now chains `.eq().not('ls_subscription_status', 'in', ...)`
+// after `.update()`. The mock builder returns a thennable that resolves to
+// the configured update result regardless of which terminal method (`.eq` or
+// `.not`) is called last, mirroring PostgREST's chain-builder shape.
+const mockServiceUpdate = vi.fn(() => {
+  const finalResult: { error: null | { code: string; message: string } } = { error: null }
+  const thennable = {
+    then: (resolve: (v: typeof finalResult) => unknown) => resolve(finalResult),
+    eq: () => thennable,
+    not: () => thennable,
+  }
+  return {
+    ...thennable,
+    // Allow tests to override the final result via mockReturnValueOnce on
+    // the `eq()` returned object — this matches the legacy contract.
+    eq: vi.fn(() => thennable),
+  }
+})
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
@@ -373,9 +390,18 @@ describe('GET /api/checkout/paypal/confirm', () => {
       data: { tier: 'free', ls_subscription_status: null, ls_subscription_id: null },
       error: null,
     })
-    // The update fails (transient DB / RLS)
+    // The update fails (transient DB / RLS). The chain is now
+    // `.update(...).eq(...).not(...)` — RES-02 added the `.not()` to skip the
+    // overwrite when the webhook's CANCELLED already landed. Mirror it.
+    const failingResult = { error: { code: '23000', message: 'transient db error' } }
+    const failingChain = {
+      then: (resolve: (v: typeof failingResult) => unknown) => resolve(failingResult),
+      eq: () => failingChain,
+      not: () => failingChain,
+    }
     mockServiceUpdate.mockReturnValueOnce({
-      eq: vi.fn().mockResolvedValue({ error: { code: '23000', message: 'transient db error' } }),
+      ...failingChain,
+      eq: vi.fn(() => failingChain),
     })
 
     const res = await GET(makeGetRequest({

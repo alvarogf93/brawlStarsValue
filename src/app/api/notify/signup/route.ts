@@ -1,6 +1,6 @@
 import { NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { notify } from '@/lib/telegram'
+import { notify } from '@/lib/telegram/notify'
 
 /**
  * POST /api/notify/signup
