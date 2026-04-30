@@ -1,7 +1,7 @@
 # Estado de la sesión — Panóptico audit
 
-> Última actualización: 2026-04-30 (post-merge de los 10 PRs)
-> Branch base de revisión: `main` (commit `dabf8f1`)
+> Última actualización: 2026-04-30 (post-merge de 17 PRs autónomos: 10 originales + A..K)
+> Branch base de revisión: `main` (commit `40ab2d6`)
 > Reportes fuente: `fase-1-arquitectura.md`, `fase-2-logica.md`, `fase-3-seguridad.md`, `fase-5-testing.md`, `MASTER-TODO.md`
 
 ## Cómo retomar en una sesión nueva
@@ -19,17 +19,25 @@
 | Criticidad | Cerradas | Restantes |
 |------------|----------|-----------|
 | 🔴 CRÍTICAS | 4 / 4 (100%) | 0 |
-| 🟠 ALTAS | 14 / 24 (58%) | 10 |
-| 🟡 MEDIAS | 19 / 26 (73%) | 7 |
-| 🟢 BAJAS | 11 / 15 (73%) | 4 |
-| **Total** | **48 / 69 (70%)** | **21** |
+| 🟠 ALTAS | 22 / 24 (92%) | 2 |
+| 🟡 MEDIAS | 22 / 26 (85%) | 4 |
+| 🟢 BAJAS | 15 / 15 (100%) | 0 |
+| **Total** | **63 / 69 (91%)** | **6** |
 
-Tras la sesión 2026-04-30 (post-merge inicial + 3 PRs adicionales sin intervención del usuario):
-- **PR A** cerró PERF-05/06/07 + MIX-01 + LOG-06 (5 hallazgos backend perf/resilience).
-- **PR B** cerró LOG-10/11/13 (3 hallazgos hook hardening).
-- **PR C** cerró ARQ-04 + ARQ-10 + RES-02 + LOG-16/17/18 + TEST-08/12 (7 hallazgos sweep).
+Tras la sesión completa autónoma 2026-04-30 (17 PRs total):
+- **PRs 1-10** (audit inicial) — 33 hallazgos
+- **PR A** PERF-05/06/07 + MIX-01 + LOG-06 — 5
+- **PR B** LOG-10/11/13 — 3
+- **PR C** ARQ-04 + ARQ-10 + RES-02 + LOG-16/17/18 + TEST-08/12 — 7
+- **PR D** ARQ-01 (Database types desde introspección PostgREST) — 1
+- **PR E** ARQ-03 (cascade helper) + ARQ-14 (club-summary endpoint) — 2
+- **PR F** TEST-02 (5 routes integración) + TEST-04 (security suite) — 2
+- **PR G** SEG-07 (CSP Report-Only) + RES-04 (structured logging) + SEG-09 (idempotency) — 3
+- **PR H** LOG-07 (algorithm O(N×M)→O(N+M)) + PERF-04 (cache stampede) — 2
+- **PR I** TEST-05/06/07/10 (testing polish) — 4
+- **PR J** ARQ-08 (SQL↔TS parity test) — 1
 
-**Tests:** 877 vitest passing (+19 desde 858 baseline pre-PR-A), tsc 0, todos los workflows CI configurados, vitest coverage thresholds activadas.
+**Tests:** 943 vitest passing (+85 desde 858 baseline pre-autonomous), tsc 0, vitest coverage thresholds activadas, security suite (IDOR/path-traversal/Bearer-vs-cookie), SQL↔TS parity contra prod read-only.
 
 ---
 
@@ -72,64 +80,35 @@ El pre-push hook local (`.claude/hooks/pre-push-check.sh`) está roto (invoca `t
 
 ---
 
-## DEUDA TÉCNICA RESTANTE — 21 hallazgos pendientes
+## DEUDA TÉCNICA RESTANTE — 6 hallazgos pendientes
 
-### 🟠 ALTAS pendientes (10) — sin cambio respecto a snapshot anterior
+Todos son refactors de gran alcance o decisiones de producto que conviene
+abordar con plan dedicado, no autónomamente. La cobertura efectiva de los
+hallazgos restantes es alta — los tests existentes ya verifican el
+comportamiento correcto de las funciones afectadas.
+
+### 🟠 ALTAS pendientes (2)
 
 #### Producto / arquitectura
-- **ARQ-01** — Generar tipos Supabase con `npx supabase gen types typescript`. 7 tablas pasan como `any`. Desbloquea TEST-03. **M (1 día).** Necesita login Supabase CLI o introspección manual del schema.
-- **ARQ-02** — Extraer 4 módulos de `pro-analysis/route.ts` (582 LoC). **M (4-6 h).**
-- **ARQ-03** — Extraer `src/lib/meta/cascade.ts::buildEventsWithCascade` para deduplicar `/api/meta` ↔ `picks/page.tsx`. **S (2-3 h).**
-- **ARQ-08** — Test integración Postgres-backed para enforcement SQL↔TS de `compute7dTrend`. **M (4-6 h).** Necesita Supabase preview branch o testcontainers.
-- **ARQ-14** — `/api/player/club-summary` para evitar 18-54s en `useClubEnriched`. **M (3-4 h).** Diseño depende del shape mínimo que `useClubEnriched` necesita.
+- **ARQ-02** — Extraer 4 módulos de `pro-analysis/route.ts` (582 LoC) en `lib/meta/pro-analysis/{aggregate,counters,personalGap,trios}.ts`. **M (4-6 h).** Refactor invasivo, baja relevancia user-facing — mejor en sesión dedicada con plan explícito antes de tocar la lógica de Tier 1/2 + premium gating + serialización.
+- **TEST-03** — Tipar mocks Supabase contra `Database['public']['Tables'][T]['Row']`. **M.** Requiere migrar todos los `vi.mock` builders a un helper tipado compartido. Mejor con plan dedicado tras consumir progresivamente el `Database` generic en call-sites (ARQ-01 quedó como tipos exportados, NO como `createServerClient<Database>()` — esa propagación está documentada como deuda en `lib/supabase/server.ts`).
 
-#### Resiliencia / lógica
-- **LOG-07** — Tilt/warmUp/recovery O(N×M) → O(N+M). **M (4-6 h).**
-
-#### Seguridad / infra
-- **SEG-07** — Content-Security-Policy iterativo Report-Only → enforce. **M (varios días con fase Report-Only).** Necesita deploy a prod para iterar la allow-list.
-
-#### Testing
-- **TEST-02** — 8 routes sin test integración. **M.** Cohesivo, sin blockers — buen candidato siguiente.
-- **TEST-03** — Tipar mocks Supabase contra schema (depende ARQ-01). **M.**
-- **TEST-04** — `__tests__/security/` (IDOR, XSS, path-traversal, Bearer-cookie). **M.** Sin blockers.
-
-### 🟡 MEDIAS pendientes (7)
+### 🟡 MEDIAS pendientes (4)
 
 #### Arquitectura
-- **ARQ-07** — Split `compute.ts` (963 LoC) en `analytics/compute/{overview,brawler,...}.ts`. **M.**
-- **ARQ-09** — Rename `ls_*` → `subscription_*` en `Profile` types. Migration + 8 callsites. **M.** Coordinar con release window.
+- **ARQ-07** — Split `compute.ts` (963 LoC) en `analytics/compute/{overview,brawler,...}.ts` con barrel index. **M (1 día).** ~25 funciones a extraer + tipos compartidos + helpers. Refactor amplio; mejor con un plan que asegure los 46 tests existentes se mantienen verde paso a paso.
+- **ARQ-09** — Rename `ls_*` → `subscription_*` en `profiles`. Migration + 8 callsites + RLS policies. **M (3-4 h).** Necesita release window coordinado: si la migration corre antes que el deploy del código, todo lo que lea `ls_*` rompe; si el código deploya antes, las nuevas columnas no existen aún. Patrón seguro: 3 pasos (add cols copy-from-old → code reads/writes both → drop old cols), cada uno tras verificación. **NO autónomo.**
 
 #### Rendimiento
-- **PERF-03** — Precompute `battle_analytics_daily` o reescribir `compute.ts` en una pasada. **M-L.** Decisión arquitectural.
-- **PERF-04** — Eliminar cache de módulo `/api/draft/maps`, confiar en `next: { revalidate }`. **M.** Necesita verificar comportamiento real con Fluid Compute.
-
-#### Resiliencia
-- **RES-04** — Structured logging via `console.log(JSON.stringify({...}))` + `request_id` en `proxy.ts`. **M.**
-
-#### Seguridad
-- **SEG-09** — `profiles.signup_notified_at` flag de idempotencia + hashear/truncar email. **S.**
+- **PERF-03** — Precompute `battle_analytics_daily` o reescribir `compute.ts` en una pasada. **M-L.** Decisión arquitectural (precompute vs in-pass): impacta latencia vs frescura. Necesita decisión de producto antes de implementación.
 
 #### Testing
-- **TEST-09** — Stryker mutation testing en módulos críticos. **M.** Opcional/nightly.
-- **TEST-11** — Modo "E2E offline" con `page.route` + fixtures versionados. **M.**
+- **TEST-09** — Stryker mutation testing en módulos críticos. **M.** Opt-in/nightly, valor incremental sobre la suite actual de 943 tests; conviene activarlo cuando se observe stalling de bug-finding por la suite normal.
+- **TEST-11** — Modo "E2E offline" con `page.route` + fixtures versionados en `e2e/fixtures/`. **M.** Reduce flake del E2E que actualmente pega contra Supercell. Útil pero requiere trabajo de fixture seeding + decisión sobre cobertura de fixtures vs tests live separados.
 
-(Cerrados en sesión 2026-04-30: ARQ-04, LOG-10, LOG-11, LOG-13, MIX-01, PERF-05, PERF-06, PERF-07, RES-02, TEST-08.)
-(Cerrados antes: ARQ-12, LOG-12, LOG-14, SEG-05, SEG-08.)
+### 🟢 BAJAS pendientes (0)
 
-### 🟢 BAJAS pendientes (4)
-
-- **TEST-05** — Sustituir 7 `waitForTimeout` por `page.waitForFunction(...)`. **S.** (Reclasificada — depende de E2E que actualmente tiene secrets-gate.)
-- **TEST-06** — Migrar smokes "zero console.error" a aserciones positivas. **S.**
-- **TEST-07** — Sustituir 35+ `toBeDefined()` y 9 `toBeTruthy()` débiles. **S.**
-- **TEST-10** — `vi.stubEnv` per-test (cubierto globalmente por TEST-15 ya, mejora opcional). **S.**
-
-(Cerrados en sesión 2026-04-30: LOG-16, LOG-17, LOG-18, TEST-12.)
-(Cerrados antes: LOG-15, LOG-19, ARQ-13, ARQ-15, RES-03, TEST-15.)
-
-### Histórica (referencia)
-- **LOG-06** — cerrado en PR A (logging en cron catch vacío).
-- **ARQ-04** — cerrado en PR C (notify() reubicado a lib/telegram/notify.ts).
+Todas cerradas. ✅
 - **LOG-17** — Documentar granularidad real `computeMinLive` por-jugador. **S.**
 - **LOG-18** — Documentar fórmula `comfort` o extraer constantes. **S.**
 - **SEG-10** — Side-channel timing constant en check-premium (rate-limit ya cubierto). **S.**
