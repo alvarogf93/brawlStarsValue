@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { fetchEventRotation } from '@/lib/api'
 import { META_ROLLING_DAYS, isDraftMode } from '@/lib/draft/constants'
-import { fetchWithRetry, getCircuitBreaker } from '@/lib/http'
+import { fetchWithRetry, getCircuitBreaker, BRAWLAPI_TIMEOUT_MS } from '@/lib/http'
 
 const brawlapiBreaker = getCircuitBreaker('brawlapi')
 
@@ -21,7 +21,7 @@ async function getBrawlApiMaps(): Promise<Map<string, { id: number; imageUrl: st
       fetchWithRetry(
         'https://api.brawlapi.com/v1/maps',
         { next: { revalidate: 86400 } } as RequestInit,
-        { retries: 2, timeoutMs: 8_000 },
+        { retries: 2, timeoutMs: BRAWLAPI_TIMEOUT_MS },
       ),
     )
     if (!res.ok) return brawlApiMaps ?? new Map()

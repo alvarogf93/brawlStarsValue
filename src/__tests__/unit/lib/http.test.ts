@@ -36,7 +36,7 @@ describe('fetchWithTimeout', () => {
     expect(res.status).toBe(200)
   })
 
-  it('throws HttpTimeoutError with url + timeoutMs when the timeout fires', async () => {
+  it('throws HttpTimeoutError with url + timeoutMs when the timeout fires (AbortError name)', async () => {
     // Simulate a hung upstream: fetch only resolves after the abort fires.
     fetchMock.mockImplementation((_url: string, init?: RequestInit) =>
       new Promise((_resolve, reject) => {
@@ -52,6 +52,33 @@ describe('fetchWithTimeout', () => {
     )
 
     const url = 'https://example.com/hung'
+    await expect(fetchWithTimeout(url, undefined, 20)).rejects.toMatchObject({
+      name: 'HttpTimeoutError',
+      url,
+      timeoutMs: 20,
+    })
+  })
+
+  it('throws HttpTimeoutError when fetch rejects with the native TimeoutError name', async () => {
+    // In real Node 24, AbortSignal.timeout() raises a DOMException whose
+    // `.name` is "TimeoutError" (NOT "AbortError"). The previous test only
+    // exercised the AbortError branch — if the TimeoutError name path were
+    // accidentally removed from `isAbortError`, no test would catch it.
+    fetchMock.mockImplementation((_url: string, init?: RequestInit) =>
+      new Promise((_resolve, reject) => {
+        const sig = init?.signal as AbortSignal | undefined
+        if (sig) {
+          sig.addEventListener('abort', () => {
+            // Mirror the real Node behaviour exactly.
+            const err = new Error('The operation was aborted due to timeout')
+            err.name = 'TimeoutError'
+            reject(err)
+          })
+        }
+      }),
+    )
+
+    const url = 'https://example.com/hung-timeout'
     await expect(fetchWithTimeout(url, undefined, 20)).rejects.toMatchObject({
       name: 'HttpTimeoutError',
       url,

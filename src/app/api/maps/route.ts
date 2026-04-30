@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { fetchWithRetry, getCircuitBreaker } from '@/lib/http'
+import { fetchWithRetry, getCircuitBreaker, BRAWLAPI_TIMEOUT_MS } from '@/lib/http'
 
 const brawlapiBreaker = getCircuitBreaker('brawlapi')
 
@@ -18,7 +18,7 @@ export async function GET() {
       fetchWithRetry(
         'https://api.brawlapi.com/v1/maps',
         { next: { revalidate: 86400 } } as RequestInit,
-        { retries: 2, timeoutMs: 8_000 },
+        { retries: 2, timeoutMs: BRAWLAPI_TIMEOUT_MS },
       ),
     )
     if (!res.ok) return NextResponse.json({})

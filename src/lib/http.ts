@@ -20,6 +20,18 @@
 
 const DEFAULT_TIMEOUT_MS = 8_000
 
+// ── Per-upstream timeouts. Surface these as named constants so callers can
+//    cite intent rather than scattering magic numbers across the codebase.
+//    Supercell is the slowest of the upstreams (battlelogs are big, the
+//    proxy adds a hop, and rate-limit responses arrive late).
+//    BrawlAPI is a CDN-backed lookup; 5s is industry-standard for static
+//    JSON endpoints behind a CDN.
+
+/** Timeout for Supercell Brawl Stars API calls (player, battlelog, club, rotation). */
+export const SUPERCELL_TIMEOUT_MS = 8_000
+/** Timeout for BrawlAPI calls (brawlers list, maps metadata). */
+export const BRAWLAPI_TIMEOUT_MS = 5_000
+
 // ─── Errors ────────────────────────────────────────────────────────────────
 
 export class HttpTimeoutError extends Error {
@@ -263,7 +275,11 @@ export class CircuitBreaker {
   ) {
     this.threshold = opts.failureThreshold ?? 5
     this.windowMs = opts.failureWindowMs ?? 30_000
-    this.openMs = opts.openDurationMs ?? 60_000
+    // Open duration of 30s is the resilience4j / industry mid-range default.
+    // Aggressive enough that a transient Supercell 503 wave doesn't burn 20%
+    // of the cron budget (300s) on a single circuit trip; conservative
+    // enough to give the upstream room to recover before we hit it again.
+    this.openMs = opts.openDurationMs ?? 30_000
     this.clock = opts.now ?? Date.now
   }
 
