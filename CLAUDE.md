@@ -96,10 +96,12 @@ When a new UI widget needs aggregates that the existing hooks already fetched, *
 ## Data Pipeline
 - Supercell API → `battle-parser` → `battles` table (premium users only, via `/api/cron/sync`)
 - Cron sync → `processBattleForMeta` → `meta_stats` / `meta_matchups` (aggregated, source='user')
-- `/api/cron/meta-poll` → **adaptive** top-up polling of top pro players → `meta_stats` / `meta_matchups` / `meta_trios` (source='global')
-  - Base batch: 200 players. Hard cap: 600. Top-up chunks of 100 when any draft mode is below `max(50, bestMode × 0.6)`. Only keeps battles from under-sampled modes in top-up iterations.
-  - Runtime: ~60s balanced day, up to ~180s on top-up days. Well inside the 300s Vercel Function cap.
-  - Pure helper: `src/lib/draft/meta-poll-balance.ts` (`computeModeTarget`, `findUnderTargetModes`).
+- `/api/cron/meta-poll` → **probabilistic sampler** that polls top pro players → `meta_stats` / `meta_matchups` / `meta_trios` (source='global')
+  - Candidate pool: 11 country rankings × top-200 ≈ 2,100 unique players (deduped). Loop iterates up to `META_POLL_MAX_DEPTH = 1000` players (`src/lib/draft/constants.ts:158`).
+  - Acceptance: per-battle sampler `p = min(1, (minLive + 1) / (current + 1))` — under-sampled (map, mode) keys get higher probability than already-saturated ones.
+  - Runtime: soft budget 270s within `maxDuration = 300`.
+  - Pure helpers: `src/lib/draft/meta-poll-balance.ts` (`computeAcceptRate`, `computeMinLive`, `findMapModeStragglers`, `mapModeKey`).
+  - ARQ-15 fix: previous CLAUDE.md text described an older "base 200 / hard cap 600 / top-up chunks 100" scheme that no longer matches the code; that documentation is gone.
   - Response includes an `adaptive` diagnostic block (iterations, players polled, per-mode counts) for observability.
 
 ## Premium Model
@@ -113,7 +115,7 @@ When a new UI widget needs aggregates that the existing hooks already fetched, *
 - **`map + mode` as composite key is imperfect but works** — maps sometimes appear in multiple modes; we accept the rare collision rather than the event_id chaos.
 - **`useMapImages` hook resolves by name**, not id — same reason.
 - **`last_sync` is the cursor for meta aggregation dedup** — `processBattleForMeta` only consumes new battles since the cursor. Running the cron twice doesn't duplicate data.
-- **Cron stays on Vercel Functions, not Workflow** — the meta-poll is deliberately bounded by `META_POLL_MAX_DEPTH = 600` to fit within `maxDuration = 300`. Not polling, bounded batch; Workflow would be over-engineering.
+- **Cron stays on Vercel Functions, not Workflow** — the meta-poll is deliberately bounded by `META_POLL_MAX_DEPTH = 1000` (see `src/lib/draft/constants.ts:158`) and a 270s soft time budget to fit within `maxDuration = 300`. Bounded batch with probabilistic sampling, not unbounded polling; Workflow would be over-engineering.
 - **Duplicate cascade logic between `/api/meta` and `src/app/[locale]/picks/page.tsx`** — the public picks page queries Supabase directly via `fetchMetaEvents`, bypassing the API route, for SSR performance. A ~30 line duplication is YAGNI-acceptable for a single cross-file reuse; do NOT extract into a shared helper. Both paths must be updated when changing cascade logic.
 - **`proTrios` kept in `ProAnalysisResponse` even after removing `ProTrioGrid`** — the private analytics page's `TeamSynergyView` uses it as a lookup to annotate user's own trios with pro comparison badges. `topBrawlerTeammates` is a derived different field for the public Meta PRO tab.
 - **Completion charts normalize to game-wide max, not player total** — the old "gem score donut" showed `powerLevels.gems / totalGems` which is always ~50% for any player and means nothing. Progress bars must rellena toward a real in-game ceiling: `computeMaxGems` for gem-weighted, `TROPHY_ROAD_MAX=100000` for trophies, `computeMaxCounts` for raw unlocks. Never against personal best (moving target) or own total (self-referential).

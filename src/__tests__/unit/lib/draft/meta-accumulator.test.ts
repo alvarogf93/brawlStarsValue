@@ -145,4 +145,54 @@ describe('processBattleForMeta', () => {
 
     expect(acc.stats.size).toBe(0)
   })
+
+  it('LOG-19: skips battles with sentinel myBrawlerId=0', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: 0, // fallback sentinel from `b.my_brawler?.id ?? 0`
+      opponentBrawlerIds: [10],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+    expect(acc.stats.size).toBe(0)
+    expect(acc.matchups.size).toBe(0)
+  })
+
+  it('LOG-19: skips battles with negative myBrawlerId', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: -1,
+      opponentBrawlerIds: [10],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+    expect(acc.stats.size).toBe(0)
+  })
+
+  it('LOG-19: skips battles with non-finite myBrawlerId (NaN)', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: NaN,
+      opponentBrawlerIds: [10],
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+    expect(acc.stats.size).toBe(0)
+  })
+
+  it('LOG-19: drops sentinel opponents from matchups but keeps the brawler stat', () => {
+    const acc = makeAccumulators()
+    processBattleForMeta(acc, {
+      myBrawlerId: 1,
+      opponentBrawlerIds: [10, 0, -5, 20], // 0 and -5 dropped
+      map: 'Hard Rock Mine',
+      mode: 'gemGrab',
+      result: 'victory',
+    })
+    expect(acc.stats.size).toBe(1) // brawler stat is recorded
+    expect(acc.matchups.size).toBe(2) // only the 2 valid opponents
+  })
 })

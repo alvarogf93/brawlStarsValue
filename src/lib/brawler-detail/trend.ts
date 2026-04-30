@@ -17,6 +17,8 @@
 
 export const MIN_BATTLES_PER_TREND_WINDOW = 3
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
 export interface DatedStatsRow {
   date: string
   wins: number
@@ -42,7 +44,10 @@ export function compute7dTrend(
   let prevTotal = 0
 
   for (const r of rows) {
-    if (!r.date) continue
+    // LOG-15 — strict ISO-date guard. Lex comparison on a truncated
+    // date like "2026" would misclassify the row as "previous 7d"
+    // without warning. Reject anything that is not exactly YYYY-MM-DD.
+    if (!r.date || !ISO_DATE_RE.test(r.date)) continue
     if (r.date >= d7ago) {
       recentWins += r.wins
       recentTotal += r.total

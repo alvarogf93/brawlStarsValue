@@ -59,6 +59,9 @@ vi.mock('@/lib/supabase/server', () => ({
     from: fromMock,
     auth: { getUser: authGetUserMock },
   }),
+  // ARQ-12: route now consumes createServiceClientNoCookies for the
+  // service-role queries; expose it on the mock so the import resolves.
+  createServiceClientNoCookies: () => ({ from: fromMock }),
 }))
 
 vi.mock('@/lib/draft/brawler-names', () => ({

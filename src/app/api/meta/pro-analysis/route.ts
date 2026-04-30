@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { createClient as createCookieAuthClient } from '@/lib/supabase/server'
+import {
+  createClient as createCookieAuthClient,
+  createServiceClientNoCookies,
+} from '@/lib/supabase/server'
 import { bayesianWinRate } from '@/lib/draft/scoring'
 import { PRO_MIN_BATTLES_DISPLAY, PRO_TREND_DAYS_SHORT, PRO_TREND_DAYS_LONG } from '@/lib/draft/constants'
 import {
@@ -42,11 +44,7 @@ export async function GET(request: Request) {
     )
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll: () => [], setAll: () => {} } },
-  )
+  const supabase = createServiceClientNoCookies()
 
   // --- Auth check (cookie-based) ---
   // The single caller (useProAnalysis hook) fetches with `credentials: 'include'`,
