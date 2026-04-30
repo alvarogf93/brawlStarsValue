@@ -67,7 +67,7 @@ test.describe('Meta PRO smoke — analytics → meta pro → map selection', () 
       const root = document.querySelector('main')
       if (!root) return false
       // Either a chart svg landed, or an empty-state message rendered.
-      return !!root.querySelector('svg') || root.textContent?.length! > 200
+      return !!root.querySelector('svg') || (root.textContent ?? '').length > 200
     }, { timeout: 30_000 })
 
     // TEST-06 — positive assertion alongside the zero-error check: the

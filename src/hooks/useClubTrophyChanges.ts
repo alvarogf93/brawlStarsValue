@@ -157,13 +157,19 @@ export function useClubTrophyChanges(members: { tag: string; name: string }[] | 
     const controller = new AbortController()
     controllerRef.current = controller
     // Reset accumulated state so the previous club's rows don't briefly
-    // leak into the new render before the first batch lands.
+    // leak into the new render before the first batch lands. Both
+    // setState calls are intentional — we are responding to a NEW
+    // `members` reference, not a render of the same one. The lint rule
+    // doesn't distinguish; the alternative (derived state) would
+    // recompute on every render which is strictly worse for a hook
+    // with N async fetches. ARQ-10 covers refactoring this to
+    // useSyncExternalStore in a future PR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setResults(new Map())
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTotalLoaded(0)
     // load() is a useCallback that internally setStates (results map +
-    // isLoading). This is the classic on-mount fetch pattern; the
-    // alternative (derived state over members) would recompute on every
-    // render which is worse for a hook with N async fetches.
+    // isLoading). This is the classic on-mount fetch pattern.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     load(members, controller.signal)
     return () => controller.abort()
