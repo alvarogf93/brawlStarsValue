@@ -41,6 +41,14 @@ AS $$
     AND (p_source IS NULL OR source = p_source);
 $$;
 
-GRANT EXECUTE ON FUNCTION public.sum_meta_stats_total(DATE, TEXT) TO service_role;
+-- Hardening: explicit GRANTs for the three application roles.
+-- The current caller (`createServiceClient()` in /api/meta/brawler-detail)
+-- only needs `service_role`, but routes that use `createClient()` (cookie-
+-- auth, rol `authenticated`) or anon SSR (rol `anon`) would silently fail
+-- with `permission denied for function` if they ever invoked this RPC.
+-- Granting all three is consistent with how migrations 014/017 expose
+-- sibling helpers (`sum_meta_stats_by_map_mode`).
+GRANT EXECUTE ON FUNCTION public.sum_meta_stats_total(DATE, TEXT)
+  TO authenticated, anon, service_role;
 
 COMMIT;
