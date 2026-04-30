@@ -743,7 +743,16 @@
     "ctaTitle": "Kişiselleştirilmiş pickler",
     "ctaDescription": "Premium ile 1-2-2-1 Competitive Draft'a ve geçmişine dayalı önerilere eriş",
     "ctaButton": "PRO'ya geç",
-    "ctaSignup": "Ücretsiz başla"
+    "ctaSignup": "Ücretsiz başla",
+    "editorialEyebrow": "Mevcut rotasyon için öneriler",
+    "editorialIntro": "Brawl Stars'ın harita ve mod rotasyonu günde birkaç kez değişir; her değişiklikle en iyi brawler önerileri de değişir. Bu sayfa şu anda canlı olan rotasyonu (draft modları dahil) yakalar ve her harita için on bir farklı ülkenin son top PRO savaşları üzerinden hesaplanmış en yüksek galibiyet oranına sahip brawler'ları gösterir.",
+    "editorialMethodology": "Aşağıdaki yüzdeler, source=global filtresiyle meta_stats tablosunun 14 günlük penceresi üzerinde Bayesian yumuşatmasıyla hesaplanır; küçük örneklemli bir brawler yapay olarak yüksek görünmez. Belirli bir haritanın örneklemi inceyse mod başına toplama düşeriz — her kartın rozeti verinin tam haritadan mı yoksa fallback'ten mi geldiğini belirtir — böylece yeni bir rotasyonda asla boş bir slot görmezsin.",
+    "editorialNotesTitle": "Bu önerileri nasıl okumalı",
+    "editorialNote1": "Haritanın en yüksek WR'sine sahip brawler'ı yalnızca takımın diğer iki pozisyonu kapatıyorsa pickle; tek bir meta dışı pick istatistiksel avantajı silebilir. Takımında zaten tank ve damage varsa listeden birinciyi değil ikinciyi veya üçüncüyü tercih et.",
+    "editorialNote2": "Harita-mod başına örneklem boyutu önemlidir: 200+ savaşlık öneri çok güvenilirdir, 30-50 olan henüz tam olarak oturmamıştır. Sayfa bağlamsız hiçbir şey göstermemek için Bayesian minimumunu kullanır ama güven düzeyi tek tip değildir.",
+    "editorialNote3": "Rotasyon sunucu önbelleğinde 30 dakikada bir yenilenir; bir rotasyon yeni başladıysa ve görünmüyorsa birkaç dakika sonra yenile. Önümüzdeki saat içinde biten rotasyonlar yatırımın değip değmediğine karar vermen için countdown gösterir.",
+    "editorialClosing": "Her yüzdenin nasıl oluştuğunu (PRO örnekleme, Bayesian yumuşatma, zaman penceresi, source=global filtresi) anlamak istersen metodoloji sayfasında tam formül var. Aşağıdaki öneriler gerçek savaşların toplamlarıdır, tier list görüşleri değil.",
+    "methodologyLink": "Tam metodolojiyi gör"
   },
   "draft": {
     "draftTitle": "Competitive Draft",
@@ -827,7 +836,38 @@
     "matchupsEmptyContextual": "Bu brawler için son 90 gün içinde kayıtlı eşleşme yok. Genellikle yeni çıkan veya az oynanan brawlerlarda olur.",
     "bestMapsEmptyContextual": "Bu brawler için henüz harita verisi yok. 24-48 saat sonra tekrar kontrol et.",
     "bestTeammatesEmptyContextual": "Henüz kayıtlı takım arkadaşı yok.",
-    "noTrendData": "Veri yok"
+    "noTrendData": "Veri yok",
+    "article": {
+      "sectionLeadTitle": "{name} kimdir",
+      "sectionMapsTitle": "{name} için en iyi haritalar",
+      "sectionCountersTitle": "Counter'lar ve eşleşmeler",
+      "sectionUpgradesTitle": "Star Power'lar, gadget'lar ve hypercharge",
+      "sectionTrendTitle": "Haftalık meta analizi",
+      "methodologyLink": "Bu verileri nasıl hesaplıyoruz",
+      "methodologyBody": "Bu sayfadaki her yüzde, minimum örneklem eşiği ve sahte pozitiflere karşı Bayesian yumuşatma ile gerçek top PRO savaşlarından gelir. Teknik detaylar {link} adresinde.",
+      "leadFull": "{name}, {rarity} nadirliğinde {class} sınıfı bir brawler. Bu sayfa, mevcut rekabetçi metadaki performansını özetler: en iyi harita, en zor counter'lar ve haftalık galibiyet oranı trendi. Sayılar, son 14 günün top PRO savaşlarından gelir; küçük örneklemli bir brawler'ın yanıltıcı bir yüzde göstermemesi için Bayesian yumuşatması uygulanır.",
+      "leadRarity": "{name}, {rarity} nadirliğinde bir brawler. Bu sayfa mevcut rekabetçi performansını özetler: en iyi harita, en zor counter'lar ve WR'nin haftalık trendi; hepsi son 14 günün gerçek top PRO savaşları üzerinden hesaplanır.",
+      "leadGeneric": "{name}, mevcut rekabetçi rotasyonun bir parçası. Bu sayfa metada nasıl olduğunu özetler: en iyi harita, en zor counter'lar ve haftalık trend; hepsi son 14 günün gerçek top PRO savaşları üzerinden Bayesian yumuşatmayla hesaplanır.",
+      "leadStats": "14 günlük pencerede {name}, {total} savaşta görünüyor; %{wr} küresel galibiyet oranı ve %{pr} pick rate. Bu pick rate, bir top PRO oyuncunun mevcut tüm brawler'lar arasından {name}'i seçtiği maçların oranı; yani şu an ne kadar meta olduğunun termometresi.",
+      "leadStatsThin": "{name}'in son 14 gündeki savaş örneklemi çok küçük, dolayısıyla aşağıdaki istatistikler geçici. PRO örnekleme cron'u daha fazla veri biriktirdikçe yüzdeler hassasiyet kazanır ve 7 günlük trend ok gösterir.",
+      "mapsIntro": "{name} için en iyi harita {mode} modunda {map}, %{wr} Bayesian galibiyet oranıyla. Bu, sınıf ortalamasının üzerine yerleştiriyor; o rotasyon canlıyken {name}'i seçmeye değer. {map}'te güçlü bir performans genelde uygun geometri (kısa menziller veya siperler) ve brawler'ın kit'ine uyan amacı olan bir modu birleştirir.",
+      "mapsRunnerUp": "İkinci en iyi seçenek olarak {name}, {map} ({mode}) üzerinde de %{wr} WR ile iyi performans gösteriyor. En iyi haritayla aradaki fark genelde küçük; birini ya da ötekini seçmek brawler'dan çok rakip takıma bağlı.",
+      "mapsAvoid": "Karşı uçta, {map} ({mode}) {name}'in WR'sini %{wr}'ye düşürür. Bir oturumda o rotasyon çıkarsa maçları kaybetmemek için başka bir brawler düşün; en iyi ile en kötü harita arasındaki fark birkaç puanı bulabilir.",
+      "mapsEmpty": "{name} için belirli bir harita önermek için source=global'da henüz yeterli savaş yok. PRO örnekleme cron'u minimum örneklemi biriktirir biriktirmez bu bölüm en iyi haritayı, ikincisini ve kaçınılması gerekeni gösterecek; hepsi aynı Bayesian metodolojisiyle.",
+      "countersStrong": "{name} sistematik olarak {opponent}'a kaybediyor: o eşleşme için kayıtlı {total} savaşta WR'sı %{wr}'ye düşüyor. Draft'ta {opponent}'i rakip takımda görürsen {name}'i seçmemeyi veya aynı koridoru paylaşmamak için planı ayarlamayı düşün.",
+      "countersWeak": "Ters eşleşmede {name}, {opponent}'a karşı da zorlanıyor: {total} savaşta {name}'in WR'si %{wr} civarında düşük kalıyor; bu da {opponent}'in çok hasar verdiğini gösteriyor. Bu eşleşmeler, iki brawler aynı koridoru paylaşır paylaşmaz oyunları belirler.",
+      "countersClosing": "Brawler'a karşı brawler eşleşmeleri bu sayfanın en küçük örnekli metriği, bu yüzden örneklem boyutu rozetine dikkat ederek oku. 50 savaşlık kötü bir eşleşme, 500 savaşlık bir haritadan daha az şey söyler.",
+      "countersEmpty": "{name}'in tipik counter'larını belirlemek için henüz yeterli savaş yok. Eşleşmeler, Bayesian yumuşatması sonucu artık baskın olmadan önce rakip başına en az 30 savaş gerektirir.",
+      "upgradesIntro": "{name}'i mevcut metada en iyi şekilde değerlendirmek için yükseltmeleri kit'iyle olan sinerjiye göre önceliklendir, gem maliyetine göre değil. Star power'lar, gadget'lar ve hypercharge metaya göre tier değiştirir, bu yüzden öncelik dinamiktir.",
+      "upgradesPriority": "Genel kural olarak {name} için ilk kârlı yükseltme genelde PRO turnuvalarında en yüksek pick rate'e sahip star power'dır, ardından rolüne en uygun gadget gelir (koridor, destek veya pick). Hypercharge varsa en sona kalır çünkü daha çok Coins ve Power Points'e mal olur ve yalnızca tam super barıyla tetiklenir.",
+      "upgradesTeammate": "Takımda {name}, {teammate}'le özellikle iyi geçinir: ikili son haftaların top PRO triolarında birkaç kez görünüyor. Bu her zaman {teammate}'i seçmen gerektiği anlamına gelmez ama hangi koridorları iyi kapattığına dair bir ipucudur.",
+      "trendRising": "Son 7 günde {name}'in küresel WR'si önceki 7'ye göre +{delta} puan yükseldi. Bu yükseliş, her yarıda en az 3 savaş olan 14 günlük pencerede yayımlanır, dolayısıyla gürültü değildir: meta {name}'in lehine hareket etti, genelde harita/mod rotasyonları nedeniyle.",
+      "trendFalling": "Son 7 günde {name}'in küresel WR'si önceki 7'ye göre −{delta} puan düştü. Düşüş, her yarıda minimum örnekli 14 günlük pencerede hesaplanır, gürültü değildir: meta {name}'e karşı hareket ediyor, genelde rotasyon veya bir counter'ın yükselişi nedeniyle.",
+      "trendStable": "Son 7 günde {name}'in WR'si önceki 7 ile neredeyse aynı kaldı. 1 puanın altındaki bir dalgalanmayı stabil olarak değerlendiriyoruz çünkü doğal örnekleme gürültüsüne sığar, dolayısıyla meta bu brawler için anlamlı şekilde değişmedi.",
+      "trendNone": "Şu an {name}'in 7 günlük trendini göstermek için 14 günlük pencerenin iki yarısının birinde yeterli savaş yok. PRO örnekleme cron'u minimum örneklemi biriktirdiğinde ok ve tam delta görünecek.",
+      "trendMethodology": "7 günlük trend her altı saatte bir küçük bir Postgres tablosunda source=global filtresiyle önceden hesaplanır. Tam teknik detaylar metodoloji sayfasında.",
+      "someOpponent": "belirli bir brawler"
+    }
   },
   "battleHistory": {
     "metaTitle": "Tam Brawl Stars Savaş Geçmişi | BrawlVision",
@@ -1019,5 +1059,23 @@
     "methodologyLink": "Metodoloji",
     "privacyLink": "Gizlilik",
     "disclaimer": "BrawlVision, Supercell veya Brawl Stars ile bağlantılı değildir. Brawl Stars, Supercell Oy'un tescilli markasıdır. Oyun görselleri ve verileri Supercell'e aittir."
+  },
+  "brawlerRoster": {
+    "metaTitle": "Brawl Stars 2026 Tam Roster — tüm brawlerlar, nadirlik ve meta",
+    "metaDescription": "{count} Brawl Stars brawler'ının tam listesi: nadirlik, sınıf ve mevcut rekabetçi metadaki konum. Supercell'in resmi API'si ve kendi PRO örneklememizle çapraz kontrol edildi.",
+    "breadcrumbLabel": "Brawlerlar",
+    "eyebrow": "Rekabetçi roster",
+    "heroTitle": "Brawl Stars 2026 tam roster",
+    "heroLead": "Bu sayfa Brawl Stars'ın mevcut rotasyonundaki {count} brawler'ı listeler; her birinin açıldığı nadirlik ve bireysel meta analizine doğrudan link ile birlikte. Roster Supercell'in resmi API'siyle her gün senkronize olur, dolayısıyla yeni brawler lansman gününde görünür; nadirlik Brawlify'dan gelir ve bu CDN yakalanırken (genelde bir-üç gün) yerel nadirlik haritamız görsel boşluğu kapatır.",
+    "heroLeadSecond": "Her brawler'ın son 14 günün küresel galibiyet oranı, en iyi haritası, olası counter'ları ve 7 günlük WR trendi olan kendi sayfası vardır. Tüm yüzdeler, küçük örneklemli bir brawler'ın yanıltıcı yüzde göstermemesi için Bayesian yumuşatması uygulanan on bir ülkenin gerçek top PRO savaşlarından gelir. Hesaplama detayları metodoloji sayfasındadır.",
+    "distributionTitle": "Nadirlik dağılımı",
+    "distributionLead": "Nadirlik, her brawler'ın oyunda nasıl açıldığını belirler (Trophy Road ödülleri, eski Brawl Box'lar veya yeni sistemin özel paketleri). Rekabetçi metada nadirlik gücün doğrudan vekili değildir: birçok Trophy Road bir rotasyondan on dört gün sonra %52 üzerinde galibiyet oranını korurken birkaç Legendary stabil olarak %50 civarında durur. Bu tablo mevcut roster'da her kategoride kaç brawler olduğunu gösterir.",
+    "distributionFootnote": "Yüzdeler en yakın tam sayıya yuvarlanır ve ±1 puan paylı 100'e ulaşır.",
+    "metaNotesTitle": "Meta notları",
+    "metaNotesParagraph1": "Brawl Stars metası her harita/mod rotasyonunda değişir. Bazı brawlerlar tutarlıdır (WR'leri hafta hafta bir puandan az dalgalanır), diğerlerinin kit'lerini ödüllendiren bir harita rotasyona girdiğinde döngüsel zirveleri olur. Her brawler'ın bireysel sayfası örneklem yeterli olduğunda 7 günlük trendi tam yüzde olarak gösterir; yetersizse düşük güvenli bir sayı yerine placeholder gösterir.",
+    "metaNotesParagraph2": "Hızlı değişen şeyleri (rotasyon, last-pick avantajı, takım sinerjisi) statikmiş gibi ele aldıkları için toplu tier listeleri yayınlamıyoruz. Onun yerine ilgilendiğin brawler'ın sayfasını açmaya davet ediyoruz: orada aynı PRO verileriyle aynı Bayesian metodolojisiyle hesaplanmış WR'yi, en iyi haritayı, ana counter'ları ve trendi görürsün.",
+    "methodologyLink": "Her istatistiği nasıl hesaplıyoruz",
+    "countLabel": "brawler",
+    "rarityCountFormat": "{count} (%{percent})"
   }
 }

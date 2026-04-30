@@ -6,7 +6,7 @@ import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { useAuth } from '@/hooks/useAuth'
 import { isPremium } from '@/lib/premium'
 import type { Profile } from '@/lib/supabase/types'
-import { Crown, ArrowLeft } from 'lucide-react'
+import { Crown, ArrowLeft, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
 interface TopBrawler {
@@ -63,6 +63,47 @@ export function PicksContent({ events, locale }: Props) {
           </div>
         ) : (
           <>
+            {/* Editorial block — runs above the data grid so the page
+                has ≥200 words of original commentary before the ad
+                slot, which AdSense AD-07 flagged as missing. */}
+            <section className="brawl-card-dark p-6 md:p-8 border-[#090E17] mb-8 space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-2">
+                  {t('editorialEyebrow')}
+                </p>
+                <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+                  {t('editorialIntro')}
+                </p>
+              </div>
+              <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+                {t('editorialMethodology')}
+              </p>
+              <div className="brawl-card-dark p-4 border-[#1E293B] bg-[#0B1220] space-y-3">
+                <h2 className="font-['Lilita_One'] text-base text-[var(--color-brawl-gold)]">
+                  {t('editorialNotesTitle')}
+                </h2>
+                <p className="text-sm text-slate-400 leading-relaxed font-['Inter']">
+                  {t('editorialNote1')}
+                </p>
+                <p className="text-sm text-slate-400 leading-relaxed font-['Inter']">
+                  {t('editorialNote2')}
+                </p>
+                <p className="text-sm text-slate-400 leading-relaxed font-['Inter']">
+                  {t('editorialNote3')}
+                </p>
+              </div>
+              <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+                {t('editorialClosing')}
+              </p>
+              <Link
+                href={`/${locale}/methodology`}
+                className="inline-flex items-center gap-2 text-sm text-[#4EC0FA] hover:text-white font-bold font-['Inter'] underline-offset-2 hover:underline"
+              >
+                <BookOpen className="w-4 h-4" />
+                {t('methodologyLink')}
+              </Link>
+            </section>
+
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {events.map(event => (
                 <MapCard
@@ -78,8 +119,10 @@ export function PicksContent({ events, locale }: Props) {
               ))}
             </div>
 
-            {/* In-content ad — reached only in the non-empty branch,
-                so `events.length` is always > 0 here. */}
+            {/* In-content ad — reached only in the non-empty branch
+                AND after the ≥200-word editorial block above, so
+                `events.length > 0` is the meaningful "we have content
+                worth seeing above this slot" signal. */}
             <div className="mt-8">
               <SafeAdSlot hasContent={events.length > 0} />
             </div>

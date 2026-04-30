@@ -743,7 +743,16 @@
     "ctaTitle": "Personalisierte Picks",
     "ctaDescription": "Mit Premium: 1-2-2-1 Draft und persönliche Empfehlungen",
     "ctaButton": "PRO werden",
-    "ctaSignup": "Kostenlos starten"
+    "ctaSignup": "Kostenlos starten",
+    "editorialEyebrow": "Empfehlungen für die aktuelle Rotation",
+    "editorialIntro": "Brawl Stars' Map- und Modus-Rotation wechselt mehrmals täglich, und mit jedem Wechsel ändern sich auch die Best-Brawler-Empfehlungen. Diese Seite erfasst die Rotation, die gerade läuft (einschließlich Draft-Modi), und zeigt für jede Map die Brawler mit der höchsten Siegrate, berechnet über aktuelle Top-PRO-Kämpfe aus elf verschiedenen Ländern.",
+    "editorialMethodology": "Die Prozentsätze unten werden mit Bayesian-Glättung über das 14-Tage-Fenster der meta_stats-Tabelle mit Filter source=global berechnet, sodass ein Brawler mit kleiner Stichprobe nicht künstlich hoch erscheint. Wenn eine bestimmte Map dünne Stichprobe hat, fallen wir auf einen Per-Modus-Aggregat zurück — das Badge jeder Karte zeigt, ob die Daten von der exakten Map oder vom Fallback kommen — damit du auf einer brandneuen Rotation nie einen leeren Slot siehst.",
+    "editorialNotesTitle": "Wie diese Empfehlungen zu lesen sind",
+    "editorialNote1": "Pick den Brawler mit der höchsten WR für die Map nur, wenn dein Team die anderen beiden Positionen abdeckt; ein einziger Off-Meta-Pick kann den statistischen Vorteil aufheben. Hat dein Team bereits Tank und Damage, nimm den zweiten oder dritten der Liste statt den ersten.",
+    "editorialNote2": "Stichprobengröße pro Map-Modus zählt: eine Empfehlung mit 200+ Kämpfen ist sehr zuverlässig, eine mit 30-50 hat sich noch nicht stabilisiert. Die Seite nutzt das Bayesian-Minimum, um nichts ohne Kontext zu zeigen, aber Konfidenz ist nicht uniform.",
+    "editorialNote3": "Die Rotation aktualisiert sich alle 30 Minuten im Server-Cache; wenn eine Rotation gerade eingetreten und nicht zu sehen ist, lade in wenigen Minuten neu. Rotationen, die in der nächsten Stunde enden, zeigen einen Countdown, damit du entscheiden kannst, ob die Investition lohnt.",
+    "editorialClosing": "Willst du verstehen, wie jede Prozentzahl zusammengesetzt ist (PRO-Sampling, Bayesian-Glättung, Zeitfenster, Filter source=global), enthält die Methodik-Seite die vollständige Formel. Die Empfehlungen unten sind Aggregate echter Kämpfe, keine Tier-List-Meinungen.",
+    "methodologyLink": "Vollständige Methodik ansehen"
   },
   "draft": {
     "draftTitle": "Kompetitiver Draft",
@@ -827,7 +836,38 @@
     "matchupsEmptyContextual": "Keine Matchups für diesen Brawler in den letzten 90 Tagen. Das passiert oft bei neuen oder selten gespielten Brawlern.",
     "bestMapsEmptyContextual": "Noch keine Kartendaten für diesen Brawler. Schau in 24-48h wieder vorbei.",
     "bestTeammatesEmptyContextual": "Noch keine Teammates erfasst.",
-    "noTrendData": "Keine Daten"
+    "noTrendData": "Keine Daten",
+    "article": {
+      "sectionLeadTitle": "Wer ist {name}",
+      "sectionMapsTitle": "Beste Maps für {name}",
+      "sectionCountersTitle": "Counter und Matchups",
+      "sectionUpgradesTitle": "Star Powers, Gadgets und Hypercharge",
+      "sectionTrendTitle": "Wöchentliche Meta-Analyse",
+      "methodologyLink": "Wie wir diese Daten berechnen",
+      "methodologyBody": "Jede Prozentzahl auf dieser Seite kommt aus echten Top-PRO-Kämpfen mit Mindeststichprobe und Bayesian-Glättung gegen falsche Positive. Technische Details unter {link}.",
+      "leadFull": "{name} ist ein Brawler der Seltenheit {rarity} und Klasse {class}. Dieser Artikel fasst seine Leistung im aktuellen kompetitiven Meta zusammen: beste Map, härteste Counter und wöchentlicher Win-Rate-Trend. Die Zahlen kommen aus Top-PRO-Kämpfen der letzten 14 Tage, Bayesian-geglättet, damit ein Brawler mit kleiner Stichprobe keinen irreführenden Prozentsatz zeigt.",
+      "leadRarity": "{name} ist ein Brawler der Seltenheit {rarity}. Dieser Artikel fasst seine aktuelle kompetitive Leistung zusammen: beste Map, härteste Counter und wöchentlicher Trend, alles berechnet aus echten Top-PRO-Kämpfen der letzten 14 Tage.",
+      "leadGeneric": "{name} gehört zur aktuellen kompetitiven Rotation. Dieser Artikel fasst zusammen, wie er im Meta steht: beste Map, härteste Counter und wöchentlicher Trend, alles aus echten Top-PRO-Kämpfen der letzten 14 Tage mit Bayesian-Glättung.",
+      "leadStats": "In einem 14-Tage-Fenster ist {name} in {total} Kämpfen aufgetaucht mit globaler Siegrate von {wr}% und Pick Rate von {pr}%. Diese Pick Rate ist der Anteil der Matches, in denen ein Top-PRO-Spieler {name} aus allen verfügbaren Brawlern wählte — ein Thermometer dafür, wie meta er gerade ist.",
+      "leadStatsThin": "Die Kampf-Stichprobe für {name} der letzten 14 Tage ist sehr klein, daher sind die Stats unten vorläufig. Sobald der PRO-Sampling-Cron mehr Daten ansammelt, gewinnen die Prozentsätze an Präzision und der 7-Tage-Trend zeigt einen Pfeil.",
+      "mapsIntro": "Die beste Map für {name} ist {map} in {mode} mit Bayesian-geglätteter Siegrate von {wr}%. Das stellt ihn über den Klassendurchschnitt in diesem Modus, also lohnt sich {name} bei dieser Rotation. Eine starke {map}-Performance kombiniert meist günstige Geometrie (kurze Reichweiten, Deckung) und einen Modus, dessen Ziel zum Kit des Brawlers passt.",
+      "mapsRunnerUp": "Als zweitbeste Option performt {name} auch auf {map} ({mode}) mit {wr}% WR gut. Der Abstand zur Spitzen-Map ist meist klein; die Wahl hängt mehr vom gegnerischen Team als vom Brawler ab.",
+      "mapsAvoid": "Am anderen Ende drückt {map} ({mode}) {name}'s WR auf {wr}%. Wenn diese Rotation in einer Session auftaucht, wähle einen anderen Brawler, um keine Matches zu verschenken; der Unterschied zwischen bester und schlechtester Map kann mehrere Punkte betragen.",
+      "mapsEmpty": "Wir haben noch nicht genug Kämpfe in source=global, um eine konkrete Map für {name} zu empfehlen. Sobald der PRO-Sampling-Cron die Mindeststichprobe ansammelt, zeigt dieser Abschnitt beste Map, Vize und zu vermeidende Map, alle mit derselben Bayesian-Methodik.",
+      "countersStrong": "{name} verliert systematisch gegen {opponent}: über die {total} Kämpfe in diesem Matchup fällt seine WR auf {wr}%. Siehst du {opponent} im Draft im Gegnerteam, überlege, {name} nicht zu picken oder den Spielplan anzupassen, um die Lane zu meiden.",
+      "countersWeak": "Im umgekehrten Matchup hat {name} auch Probleme mit {opponent}: über {total} Kämpfe bleibt {name}'s WR niedrig bei etwa {wr}%, was bedeutet, dass {opponent} viel Schaden austeilt. Solche Matchups entscheiden Spiele, sobald sich beide Brawler eine Lane teilen.",
+      "countersClosing": "Brawler-zu-Brawler-Matchups sind die Metrik mit der kleinsten Stichprobe auf dieser Seite, also lies sie mit dem Sample-Size-Badge im Auge. Ein schlechtes Matchup mit 50 Kämpfen sagt weniger als eine Map mit 500.",
+      "countersEmpty": "Wir haben noch nicht genug Kämpfe, um die typischen Counter für {name} zu identifizieren. Matchups brauchen mindestens 30 Kämpfe pro Gegner, bevor Bayesian-Glättung das Ergebnis nicht mehr dominiert.",
+      "upgradesIntro": "Um aus {name} im aktuellen Meta das Maximum herauszuholen, priorisiere Upgrades nach Synergie mit dem Kit, nicht nach Edelsteinkosten. Star Powers, Gadgets und Hypercharge wechseln Tier je nach Meta, daher ist die Upgrade-Priorität dynamisch.",
+      "upgradesPriority": "Als Faustregel ist das erste profitable Upgrade für {name} meist das Star Power mit der höchsten Pick Rate in PRO-Turnieren, gefolgt vom Gadget, das am besten zur Rolle passt (Lane, Support, Pick). Hypercharge, falls vorhanden, kommt zuletzt, weil es mehr Coins und Power Points kostet und nur mit voller Super-Leiste auslöst.",
+      "upgradesTeammate": "Im Team passt {name} besonders gut zu {teammate}: das Duo taucht mehrfach unter den Top-PRO-Trios der letzten Wochen auf. Das heißt nicht, dass du immer {teammate} picken musst, aber es ist ein Hinweis darauf, welche Lanes er gut abdeckt.",
+      "trendRising": "In den letzten 7 Tagen ist {name}'s globale WR um +{delta} Punkte gegenüber den vorherigen 7 gestiegen. Der Anstieg wird über ein 14-Tage-Fenster mit mindestens 3 Kämpfen in jeder Hälfte berechnet, also kein Rauschen: das Meta hat sich zugunsten von {name} bewegt, meist durch Map-/Mode-Rotationen.",
+      "trendFalling": "In den letzten 7 Tagen ist {name}'s globale WR um −{delta} Punkte gegenüber den vorherigen 7 gefallen. Der Rückgang wird über ein 14-Tage-Fenster mit Mindeststichprobe in jeder Hälfte berechnet, also kein Rauschen: das Meta bewegt sich gegen {name}, meist durch Rotation oder den Aufstieg eines Counters.",
+      "trendStable": "In den letzten 7 Tagen ist {name}'s WR praktisch gleich geblieben verglichen mit den vorherigen 7. Eine Schwankung unter 1 Prozentpunkt behandeln wir als stabil, da sie ins natürliche Sampling-Rauschen passt; das Meta hat sich für diesen Brawler nicht signifikant verändert.",
+      "trendNone": "Aktuell haben wir nicht genug Kämpfe in einer der beiden Hälften des 14-Tage-Fensters, um {name}'s 7-Tage-Trend zu zeigen. Sobald der PRO-Sampling-Cron die Mindeststichprobe ansammelt, erscheinen Pfeil und exaktes Delta.",
+      "trendMethodology": "Der 7-Tage-Trend wird alle sechs Stunden in einer kleinen Postgres-Tabelle vorberechnet, gefiltert auf source=global. Vollständige technische Details auf der Methodik-Seite.",
+      "someOpponent": "ein bestimmter Brawler"
+    }
   },
   "battleHistory": {
     "metaTitle": "Vollständiger Brawl Stars Kampfverlauf | BrawlVision",
@@ -1019,5 +1059,23 @@
     "methodologyLink": "Methodik",
     "privacyLink": "Datenschutz",
     "disclaimer": "BrawlVision ist nicht mit Supercell oder Brawl Stars verbunden. Brawl Stars ist eine eingetragene Marke der Supercell Oy. Spielbilder und -daten sind Eigentum von Supercell."
+  },
+  "brawlerRoster": {
+    "metaTitle": "Brawl Stars 2026 Vollständiges Roster — alle Brawler, Seltenheit, Meta",
+    "metaDescription": "Vollständige Liste aller {count} Brawl-Stars-Brawler mit Seltenheit, Klasse und aktueller Position im kompetitiven Meta. Abgeglichen mit Supercells offizieller API und unserem PRO-Sampling.",
+    "breadcrumbLabel": "Brawler",
+    "eyebrow": "Kompetitives Roster",
+    "heroTitle": "Vollständiges Brawl-Stars-2026-Roster",
+    "heroLead": "Diese Seite listet die {count} Brawler der aktuellen Brawl-Stars-Rotation mit ihrer Freischalt-Seltenheit und einem Direktlink zu ihrer individuellen Meta-Analyse. Das Roster synchronisiert täglich mit Supercells offizieller API, daher erscheint jeder neue Brawler am Launch-Tag; die Seltenheit kommt von Brawlify, und während dieses CDN aufholt (meist ein bis drei Tage), füllt unsere lokale Seltenheits-Map die visuelle Lücke.",
+    "heroLeadSecond": "Jeder Brawler hat eine eigene Seite mit globaler Siegrate der letzten 14 Tage, bester Map, wahrscheinlichsten Countern und 7-Tage-Trend der WR. Alle Prozentsätze kommen aus echten Top-PRO-Kämpfen aus elf Ländern, Bayesian-geglättet, damit ein Brawler mit kleiner Stichprobe keinen irreführenden Prozentsatz zeigt. Komplette Berechnungsdetails auf der Methodik-Seite.",
+    "distributionTitle": "Verteilung nach Seltenheit",
+    "distributionLead": "Die Seltenheit bestimmt, wie jeder Brawler im Spiel freigeschaltet wird (Trophy-Road-Belohnungen, alte Brawl Boxes oder spezielle Packs des neuen Systems). Im kompetitiven Meta ist Seltenheit kein direkter Proxy für Stärke: viele Trophy Roads halten Siegraten über 52% vierzehn Tage nach einer Rotation, und etliche Legendaries bleiben stabil um 50%. Diese Tabelle zeigt, wie viele Brawler je Kategorie im aktuellen Roster sind.",
+    "distributionFootnote": "Prozentsätze werden auf die nächste Ganzzahl gerundet und summieren sich auf 100 mit einem Spielraum von ±1 Punkt.",
+    "metaNotesTitle": "Meta-Hinweise",
+    "metaNotesParagraph1": "Das Brawl-Stars-Meta verschiebt sich mit jeder Map/Mode-Rotation. Manche Brawler sind beständig (ihre WR schwankt um weniger als einen Prozentpunkt pro Woche), andere haben zyklische Spitzen, wenn eine Map kommt, die ihr Kit belohnt. Die Einzelseite jedes Brawlers zeigt den 7-Tage-Trend in exaktem Prozent, wenn die Stichprobe ausreicht; wenn nicht, zeigen wir einen Platzhalter statt einer Zahl mit niedriger Konfidenz.",
+    "metaNotesParagraph2": "Wir veröffentlichen keine aggregierten Tier-Listen, weil sie schnell bewegliche Dinge (Rotation, Last-Pick-Vorteil, Team-Synergie) so behandeln, als wären sie statisch. Stattdessen laden wir dich ein, die Seite des Brawlers zu öffnen, der dich interessiert: dort siehst du WR, beste Map, primäre Counter und den Trend, alles aus denselben PRO-Daten mit derselben Bayesian-Methodik berechnet.",
+    "methodologyLink": "Wie wir jede Statistik berechnen",
+    "countLabel": "Brawler",
+    "rarityCountFormat": "{count} ({percent}%)"
   }
 }
