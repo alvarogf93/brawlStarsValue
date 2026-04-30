@@ -170,11 +170,22 @@ export default function BrawlersPage() {
   // launches without any code change. registry.roster may be empty
   // (initial fallback before the API responds) — in that case we
   // gracefully render only the owned brawlers.
+  //
+  // The search filter ALSO applies to locked cards (by name) so a user
+  // looking for "DAM" sees DAMIAN as a locked card, not nothing.
+  // Rarity filter does NOT apply to locked because rarity may be
+  // unknown for brand-new brawlers; the user can still find them by
+  // name and click through to the public info page.
   const lockedBrawlers = useMemo(() => {
     if (registry.roster.length === 0) return []
     const ownedIds = new Set(brawlers.map(b => b.id))
-    return registry.roster.filter(r => !ownedIds.has(r.id))
-  }, [registry.roster, brawlers])
+    let result = registry.roster.filter(r => !ownedIds.has(r.id))
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(r => r.name.toLowerCase().includes(q))
+    }
+    return result
+  }, [registry.roster, brawlers, searchQuery])
 
   // The "real" denominator the header shows: full game roster size from
   // Supercell, NOT the hardcoded BRAWLER_RARITY_MAP (which lags behind
@@ -377,7 +388,12 @@ export default function BrawlersPage() {
 
         <div className="flex flex-wrap items-center gap-4 pt-1 border-t border-white/10">
           <span className="font-['Inter'] font-bold text-slate-300 text-sm">
-            {filteredAndSorted.length} / {brawlers.length} {tProfile('brawlerCount').toLowerCase()}
+            {/* Counter reflects ALL visible cards (owned-after-filter +
+                locked-after-search) over the FULL roster size. With no
+                filter applied this reads e.g. 104 / 104 — making it
+                obvious how many brawlers exist in the game right now,
+                not just how many the user owns. */}
+            {filteredAndSorted.length + lockedBrawlers.length} / {totalRosterSize} {tProfile('brawlerCount').toLowerCase()}
           </span>
           <span className="font-['Lilita_One'] text-lg text-white flex items-center gap-1">
             {filteredGemTotal.toLocaleString()} <GemIcon className="w-5 h-5 mb-0.5" />
@@ -556,8 +572,22 @@ export default function BrawlersPage() {
             the brawler before unlocking. Filters (search/rarity) only
             apply to the owned grid; locked are kept simple. */}
         {lockedBrawlers.map((b: BrawlerRosterEntry) => {
-          const rarity = BRAWLER_RARITY_MAP[b.id] ?? 'Trophy Road'
-          const color = RARITY_COLORS[rarity]
+          // Rarity resolution (3-tier, never show a wrong default):
+          //   1. Brawlify (via /api/brawlers) — most current.
+          //   2. BRAWLER_RARITY_MAP local — covers the gap when Brawlify
+          //      hasn't published a brand-new brawler yet.
+          //   3. null → omit the rarity badge entirely. Better than
+          //      lying with "Trophy Road" (the legacy default) for an
+          //      Ultra Legendary release.
+          const knownRarity =
+            (b.rarity as keyof typeof RARITY_COLORS | undefined) ??
+            BRAWLER_RARITY_MAP[b.id] ??
+            null
+          // Color: Brawlify ships hex (b.rarityColor) which matches the
+          // game; fall back to our RARITY_COLORS map; final fallback
+          // is a neutral slate so the card still has visual structure.
+          const color = b.rarityColor
+            ?? (knownRarity ? RARITY_COLORS[knownRarity] : '#475569')
           return (
             <Link
               key={`locked-${b.id}`}
@@ -587,11 +617,13 @@ export default function BrawlersPage() {
                     <h2 className="text-lg font-['Lilita_One'] text-[var(--color-brawl-dark)] uppercase leading-tight truncate">
                       {b.name}
                     </h2>
-                    <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                      <span className="text-[9px] font-['Inter'] font-bold uppercase tracking-wider" style={{ color }}>
-                        {rarity}
-                      </span>
-                    </div>
+                    {knownRarity && (
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <span className="text-[9px] font-['Inter'] font-bold uppercase tracking-wider" style={{ color }}>
+                          {knownRarity}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="px-3 pb-3 pt-2 text-center">
                     <span className="font-['Inter'] font-bold text-slate-500 text-[10px] uppercase">

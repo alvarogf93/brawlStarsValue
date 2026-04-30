@@ -228,4 +228,12 @@ export const BRAWLER_RARITY_MAP: RarityMap = {
   16000101: 'Mythic',
   16000102: 'Ultra Legendary',
   16000103: 'Mythic',
+  // April 2026 release. Rarities confirmed via Supercell Release
+  // Notes and gamingonphone.com guides — kept as a hardcoded fallback
+  // because Brawlify's API can take hours-to-days to publish new
+  // brawler metadata. Once Brawlify has them, /api/brawlers ships
+  // rarity dynamically and this entry is redundant but harmless.
+  16000104: 'Mythic',         // DAMIAN — Mythic Tank
+  16000105: 'Mythic',         // STARR NOVA — Mythic Assassin
+  16000106: 'Epic',           // BOLT — Epic Tank
 }

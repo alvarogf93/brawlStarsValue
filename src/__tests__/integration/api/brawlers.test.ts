@@ -11,6 +11,23 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+// Mock the Brawlify fetch (via lib/http) so we can test:
+//   - rarity merge happy-path
+//   - graceful degradation when Brawlify is unreachable
+const { brawlifyFetchMock } = vi.hoisted(() => ({
+  brawlifyFetchMock: vi.fn(),
+}))
+vi.mock('@/lib/http', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/http')>('@/lib/http')
+  return {
+    ...actual,
+    fetchWithRetry: (url: string) => brawlifyFetchMock(url),
+    getCircuitBreaker: () => ({
+      execute: <T>(op: () => Promise<T>) => op(),
+    }),
+  }
+})
+
 import { fetchBrawlers, SuprecellApiError } from '@/lib/api'
 import { GET } from '@/app/api/brawlers/route'
 
@@ -18,6 +35,12 @@ const mockFetchBrawlers = vi.mocked(fetchBrawlers)
 
 beforeEach(() => {
   vi.clearAllMocks()
+  // Default: Brawlify reachable but empty (no rarity merged). Tests that
+  // care about rarity override this in the test body.
+  brawlifyFetchMock.mockResolvedValue({
+    ok: true,
+    json: async () => ({ list: [] }),
+  })
 })
 
 describe('GET /api/brawlers', () => {
@@ -86,6 +109,50 @@ describe('GET /api/brawlers', () => {
     const body = await res.json()
     // SEG-08 — generic message, no internal leak.
     expect(body.error).toBe('Internal server error')
+  })
+
+  it('merges rarity from Brawlify into roster entries when available', async () => {
+    mockFetchBrawlers.mockResolvedValue({
+      items: [
+        { id: 16000000, name: 'SHELLY', gadgets: [{}], starPowers: [{}] },
+        { id: 16000104, name: 'DAMIAN', gadgets: [{}, {}], starPowers: [{}, {}] },
+      ],
+    } as unknown as Awaited<ReturnType<typeof fetchBrawlers>>)
+    // Brawlify has SHELLY (Common) but NOT DAMIAN (too new).
+    brawlifyFetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        list: [
+          { id: 16000000, rarity: { name: 'Common', color: '#b9eaff' } },
+        ],
+      }),
+    })
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    const shelly = body.roster.find((r: { id: number }) => r.id === 16000000)
+    const damian = body.roster.find((r: { id: number }) => r.id === 16000104)
+    expect(shelly.rarity).toBe('Common')
+    expect(shelly.rarityColor).toBe('#b9eaff')
+    // DAMIAN absent from Brawlify → no rarity field. Client falls
+    // back to BRAWLER_RARITY_MAP / null. Better than wrong rarity.
+    expect(damian.rarity).toBeUndefined()
+  })
+
+  it('survives Brawlify failure without losing the Supercell roster', async () => {
+    mockFetchBrawlers.mockResolvedValue({
+      items: [{ id: 16000000, name: 'SHELLY', gadgets: [{}], starPowers: [{}] }],
+    } as unknown as Awaited<ReturnType<typeof fetchBrawlers>>)
+    // Brawlify completely down — circuit-open or network throw.
+    brawlifyFetchMock.mockRejectedValue(new Error('brawlapi unreachable'))
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.roster).toEqual([
+      { id: 16000000, name: 'SHELLY', gadgets: 1, starPowers: 1, hyperCharges: 0 },
+    ])
   })
 
   it('treats missing items array as empty (defensive)', async () => {

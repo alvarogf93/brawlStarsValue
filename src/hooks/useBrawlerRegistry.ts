@@ -32,6 +32,14 @@ export interface BrawlerRosterEntry {
   gadgets: number
   starPowers: number
   hyperCharges: number
+  /**
+   * Rarity name from Brawlify ("Mythic", "Legendary", "Common", etc.).
+   * OPTIONAL — Brawlify takes hours-to-days to publish brand-new
+   * brawlers, and may be temporarily unreachable. When absent, clients
+   * fall back to BRAWLER_RARITY_MAP and finally omit the badge.
+   */
+  rarity?: string
+  rarityColor?: string
 }
 
 const FALLBACK: BrawlerRegistry = {
@@ -51,7 +59,7 @@ const CACHE_KEY = STORAGE_KEYS.BRAWLER_REGISTRY_TOTALS
 const CACHE_TTL = 24 * 60 * 60 * 1000 // 24h — matches the server revalidate window
 // Bump when BrawlerRegistry / BrawlerRosterEntry shape changes. Old
 // caches without the right shape are dropped on read.
-const CACHE_VERSION = 2
+const CACHE_VERSION = 3
 
 interface CachedRegistry {
   _v: number
