@@ -71,6 +71,16 @@ export async function GET(request: Request) {
         // on it 100% (LOG-02 documented several ways it can lose an
         // event). On failure here, surface payment_error so the user
         // is told and support can reconcile.
+        //
+        // RES-02 — narrow the WHERE so the webhook's CANCELLED /
+        // EXPIRED writes win the race. Without `not.in`, this update
+        // and the BILLING.SUBSCRIPTION.CANCELLED webhook can fire in
+        // either order: if the webhook lands first and writes
+        // `ls_subscription_status='cancelled'`, this update would
+        // overwrite it with `'active'` and the user appears premium
+        // even though they cancelled. The narrowed predicate makes
+        // the update a no-op once the webhook has terminated the
+        // subscription, regardless of arrival order.
         const { error: updateErr } = await supabase
           .from('profiles')
           .update({
@@ -81,6 +91,7 @@ export async function GET(request: Request) {
             updated_at: new Date().toISOString(),
           })
           .eq('id', profileId)
+          .not('ls_subscription_status', 'in', '("cancelled","expired")')
 
         if (updateErr) {
           console.error(

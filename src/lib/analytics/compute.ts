@@ -692,6 +692,14 @@ function computeOpponentStrength(battles: Battle[]): OpponentStrengthBreakdown[]
     { tier: 'strong', wins: 0, total: 0, trophySum: 0 },
   ]
 
+  // LOG-16 — fixed ±50 trophy threshold for weak/even/strong classification
+  // is a product decision, not a technical one. At low trophies (~300) a
+  // 50-trophy gap is significant; at high trophies (1500+) it's noise. A
+  // future iteration could scale by 5% of myTrophies or use bucket
+  // percentiles, but the current bucketing is consistent across players
+  // and easy to reason about — keep as-is until product asks for change.
+  const TROPHY_GAP_THRESHOLD = 50
+
   for (const b of battles) {
     const myTrophies = b.my_brawler?.trophies ?? 0
     const opponents = (b.opponents ?? []) as Array<{ brawler: { trophies: number } }>
@@ -700,7 +708,7 @@ function computeOpponentStrength(battles: Battle[]): OpponentStrengthBreakdown[]
     const avgOppTrophies = opponents.reduce((s, o) => s + (o.brawler.trophies ?? 0), 0) / opponents.length
     const diff = avgOppTrophies - myTrophies
 
-    const tierIdx = diff < -50 ? 0 : diff > 50 ? 2 : 1
+    const tierIdx = diff < -TROPHY_GAP_THRESHOLD ? 0 : diff > TROPHY_GAP_THRESHOLD ? 2 : 1
     tiers[tierIdx].total++
     tiers[tierIdx].trophySum += avgOppTrophies
     if (isWin(b.result)) tiers[tierIdx].wins++
@@ -733,8 +741,23 @@ function computeBrawlerComfort(battles: Battle[]): BrawlerComfort[] {
     const variance = outcomes.reduce((s, v) => s + (v - mean) ** 2, 0) / outcomes.length
     const consistency = 1 - Math.sqrt(variance) // higher = more consistent
 
+    // LOG-18 — comfort score scale and weights documented:
+    //   - wilson is already a percentage (0..100), weighted at 60%.
+    //   - group.length / maxGames is a ratio (0..1), promoted to a 0..30
+    //     scale by the *30 multiplier. So a brawler that's the player's
+    //     most-played pick contributes its full 30 popularity points.
+    //   - consistency is a ratio (0..1), promoted to a 0..10 scale. A
+    //     perfectly consistent brawler adds 10 points; pure variance, 0.
+    // Result is bounded in 0..100 (60 + 30 + 10) and is the displayed
+    // comfort percentage. Changing the weights here is a product call —
+    // the chart legend assumes "0..100, higher = better".
+    const COMFORT_WEIGHT_WINRATE = 0.6
+    const COMFORT_WEIGHT_POPULARITY = 30
+    const COMFORT_WEIGHT_CONSISTENCY = 10
     const comfort = Math.round(
-      wilson * 0.6 + (group.length / maxGames) * 30 + consistency * 10
+      wilson * COMFORT_WEIGHT_WINRATE
+      + (group.length / maxGames) * COMFORT_WEIGHT_POPULARITY
+      + consistency * COMFORT_WEIGHT_CONSISTENCY,
     )
 
     results.push({

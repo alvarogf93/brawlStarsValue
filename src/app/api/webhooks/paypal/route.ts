@@ -6,7 +6,7 @@ import {
   getSubscriptionDetails,
   PayPalCertUrlError,
 } from '@/lib/paypal'
-import { notify } from '@/lib/telegram'
+import { notify } from '@/lib/telegram/notify'
 
 export async function POST(request: Request) {
   const webhookId = process.env.PAYPAL_WEBHOOK_ID
