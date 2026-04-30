@@ -1,42 +1,93 @@
 import { NextResponse, after } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notify } from '@/lib/telegram/notify'
+import { log, requestIdFrom } from '@/lib/log'
 
 /**
  * POST /api/notify/signup
- * Called after a new profile is created to notify admin via Telegram.
- * Requires authentication — only the profile owner can trigger this.
+ *
+ * Called once after a new profile is created to ping the admin Telegram
+ * chat. Cookie-auth required.
+ *
+ * SEG-09 idempotency — `profiles.signup_notified_at` is NULL by default;
+ * this route checks it before sending and writes the timestamp on success.
+ * A double-call (refresh, retry, browser back-button) becomes a no-op
+ * after the first successful Telegram delivery, avoiding duplicate
+ * notifications and avoiding repeated email exposure to a third party.
+ *
+ * RES-03 — the actual Telegram send runs inside `after()` so the response
+ * doesn't block on Telegram's HTTP roundtrip. `after()` continues
+ * executing after the response is committed; failures inside it are
+ * logged but never thrown.
+ *
+ * RES-04 — uses structured logging with the request_id so a "my admin
+ * inbox shows duplicates" report can be cross-referenced to the route
+ * trace.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const requestId = requestIdFrom(request)
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ ok: false }, { status: 401 })
 
-    const { data: profile } = await supabase
+    // Service-role client so the SEG-09 update can persist regardless of
+    // RLS policies on `signup_notified_at` (the column is read-only to the
+    // user, write-only to the route).
+    const serviceSupabase = await createServiceClient()
+    const { data: profile } = await serviceSupabase
       .from('profiles')
-      .select('player_tag')
+      .select('player_tag, signup_notified_at')
       .eq('id', user.id)
       .single()
 
-    if (!profile) return NextResponse.json({ ok: false })
+    if (!profile) {
+      return NextResponse.json({ ok: false })
+    }
 
-    // RES-03 — fire-and-forget Telegram notify via `after()`. Previously
-    // the response blocked on Telegram's HTTP roundtrip; if Telegram
-    // hung, the client waited too. The notification is best-effort
-    // observability, not part of the user contract.
+    // SEG-09 — already notified. Return ok=true (the contract from the
+    // client's perspective is "it ran"), but skip the Telegram side-effect.
+    if (profile.signup_notified_at) {
+      return NextResponse.json({ ok: true, skipped: true })
+    }
+
     const playerTag = profile.player_tag
+    const userId = user.id
     const email = user.email || 'unknown'
+
     after(async () => {
       try {
         await notify(`🎮 <b>New signup!</b>\nTag: ${playerTag}\nEmail: ${email}`)
+        // Persist the idempotency timestamp ONLY after successful delivery.
+        // If Telegram is down we leave the column NULL so the next call
+        // can retry — better one duplicate than a permanently missed
+        // notification because we wrote the flag eagerly.
+        const { error: updateErr } = await serviceSupabase
+          .from('profiles')
+          .update({ signup_notified_at: new Date().toISOString() })
+          .eq('id', userId)
+        if (updateErr) {
+          log.warn('notify/signup', 'failed to mark signup_notified_at', {
+            request_id: requestId,
+            user_id: userId,
+            err: updateErr.message,
+          })
+        }
       } catch (err) {
-        console.error('[notify/signup] telegram notify failed:', err)
+        log.error('notify/signup', 'telegram notify failed', {
+          request_id: requestId,
+          user_id: userId,
+          err,
+        })
       }
     })
 
     return NextResponse.json({ ok: true })
-  } catch {
+  } catch (err) {
+    log.error('notify/signup', 'unexpected handler error', {
+      request_id: requestId,
+      err,
+    })
     return NextResponse.json({ ok: false })
   }
 }
