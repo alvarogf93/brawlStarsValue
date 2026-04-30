@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Search, ChevronDown } from 'lucide-react'
 import { GemIcon } from '@/components/ui/GemIcon'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { BrawlImg } from '@/components/ui/BrawlImg'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { useBrawlerTrends } from '@/hooks/useBrawlerTrends'
@@ -371,7 +371,7 @@ export default function BrawlersPage() {
 
       {/* Ad is only shown when there is a roster to display — AdSense
           policy forbids ads on empty/filter-miss screens. */}
-      {filteredAndSorted.length > 0 && <AdPlaceholder className="mb-6" />}
+      <SafeAdSlot hasContent={filteredAndSorted.length > 0} className="mb-6" />
 
       {/* Roster Grid — 3D Pop-Out Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { useAuth } from '@/hooks/useAuth'
 import { Link } from '@/i18n/routing'
 import { Home, Trophy, Loader2, Search } from 'lucide-react'
@@ -185,8 +185,11 @@ export default function LeaderboardPage() {
             })}
           </div>
 
-          {/* Ad between podium and list */}
-          <AdPlaceholder className="mb-8 max-w-4xl mx-auto" />
+          {/* Ad between podium and list — only when the podium itself
+              renders (top3 has data). The parent conditional already
+              gates loading/error, so top3.length is the meaningful
+              "is there content above this slot" signal. */}
+          <SafeAdSlot hasContent={top3.length >= 3} className="mb-8 max-w-4xl mx-auto" />
 
           {/* Rest of list */}
           <div className="flex flex-col gap-4 relative z-10 max-w-4xl mx-auto px-2">

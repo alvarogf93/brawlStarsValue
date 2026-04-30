@@ -11,7 +11,7 @@ import { ModeIcon } from '@/components/ui/ModeIcon'
 import { GEM_COSTS, TROPHY_ROAD_MAX } from '@/lib/constants'
 import { computeMaxGems, computeMaxCounts, completionPct, safeNumber } from '@/lib/stats-maxes'
 import { formatPlaytime } from '@/lib/utils'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { StatsSkeleton } from '@/components/ui/Skeleton'
 
 export default function StatsPage() {
@@ -69,8 +69,10 @@ export default function StatsPage() {
   return (
     <div className="animate-fade-in w-full pb-10 space-y-6">
 
-      {/* Banner Ad Space */}
-      <AdPlaceholder />
+      {/* Banner Ad Space — top of stats. Past the early-return guards
+          `data.player` and `data.breakdown` are populated, which drive
+          every panel below. */}
+      <SafeAdSlot hasContent={!!data.player && !!data.breakdown} />
 
       {/* Header Panel */}
       <div className="brawl-card p-6 md:p-8 mb-8 flex flex-col md:flex-row md:items-center justify-between bg-gradient-to-r from-[var(--color-brawl-purple)] to-[#121A2F]">
@@ -252,7 +254,9 @@ export default function StatsPage() {
         </div>
       </div>
 
-      <AdPlaceholder className="mb-2" />
+      {/* Mid-page ad — between the trophy/wins panel and the gem
+          breakdown table; same content gate. */}
+      <SafeAdSlot hasContent={!!data.player && !!data.breakdown} className="mb-2" />
 
       {/* Gem Breakdown Table */}
       <div className="brawl-card-dark p-6 sm:p-8 border-[#090E17]">
@@ -345,7 +349,8 @@ export default function StatsPage() {
         </div>
       </div>
 
-      <AdPlaceholder className="my-6" />
+      {/* Footer ad — sits below the gem breakdown table; same gate. */}
+      <SafeAdSlot hasContent={!!data.player && !!data.breakdown} className="my-6" />
     </div>
   )
 }

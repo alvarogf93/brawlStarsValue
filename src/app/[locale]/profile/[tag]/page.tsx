@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react'
 import { BreakdownGrid } from '@/components/profile/BreakdownGrid'
 import { GemIcon } from '@/components/ui/GemIcon'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
-import { AdPlaceholder } from '@/components/ui/AdPlaceholder'
+import { SafeAdSlot } from '@/components/ui/SafeAdSlot'
 import { usePlayerData } from '@/hooks/usePlayerData'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useSkinClassifications } from '@/hooks/useSkinClassifications'
@@ -128,12 +128,18 @@ export default function OverviewPage() {
 
       </div>
 
-      <AdPlaceholder className="mt-2 mb-6" />
+      {/* Top ad — placed between the hero card and the breakdown grid.
+          The early-return guards above ensure `data.breakdown` exists,
+          which is the same condition that drives the breakdown render
+          below this slot. */}
+      <SafeAdSlot hasContent={!!data.breakdown} className="mt-2 mb-6" />
 
       {/* Breakdown Section */}
       <BreakdownGrid breakdown={data.breakdown} stats={data.stats} />
-      
-      <AdPlaceholder className="mt-8" />
+
+      {/* Bottom ad — sits below the breakdown grid; reuses the same
+          breakdown-presence signal so it disappears with the section. */}
+      <SafeAdSlot hasContent={!!data.breakdown} className="mt-8" />
     </div>
   )
 }
