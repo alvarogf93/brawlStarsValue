@@ -182,9 +182,46 @@ export default async function BattleHistoryPage({ params }: { params: Promise<{ 
           </ol>
         </section>
 
-        {/* In-content ad — between How-It-Works and FAQ. Only renders
-            when the translated benefits+steps arrays are non-empty
-            (they ship in all 13 locales, but the gate is a safety net
+        {/* Analytical sections — give the page enough editorial
+            depth (≥600 words) to clear AdSense's content threshold
+            before the slot. Each block addresses a real player
+            question (signal vs noise, tilt detection, meta gap)
+            with examples grounded in our own data. */}
+        <section>
+          <h2 className="text-2xl md:text-3xl font-['Lilita_One'] text-white text-stroke-brawl text-center mb-6">
+            {t('analysisTitle')}
+          </h2>
+          <div className="brawl-card-dark p-6 md:p-8 border-[#090E17] space-y-4">
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('analysisParagraph1')}
+            </p>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('analysisParagraph2')}
+            </p>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('analysisParagraph3')}
+            </p>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl md:text-3xl font-['Lilita_One'] text-white text-stroke-brawl text-center mb-6">
+            {t('whyTitle')}
+          </h2>
+          <div className="brawl-card-dark p-6 md:p-8 border-[#090E17] space-y-4">
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('whyParagraph1')}
+            </p>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('whyParagraph2')}
+            </p>
+          </div>
+        </section>
+
+        {/* In-content ad — sits between the editorial body (≥600
+            words above) and the FAQ. Only renders when the
+            translated benefits+steps arrays are non-empty (they
+            ship in all 13 locales, but the gate is a safety net
             against a locale shipping with empty keys). */}
         <SafeAdSlot hasContent={benefits.length > 0 && steps.length > 0 && faq.length > 0} />
 

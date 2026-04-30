@@ -283,7 +283,12 @@
     "local": "LOCAL",
     "error": "Impossible de charger le classement",
     "trophies": "Trophées",
-    "searchPlaceholder": "Rechercher un joueur..."
+    "searchPlaceholder": "Rechercher un joueur...",
+    "editorialEyebrow": "Comment ce classement est construit",
+    "editorialIntro": "Le classement global des trophées que tu vois en dessous est publié par l'API officielle de Supercell, pas par nous : il liste les 200 meilleurs joueurs de Brawl Stars par pays et par saison selon le total de trophées. BrawlVision le lit et l'affiche avec leur nom, club, et des liens vers la fiche de chaque joueur.",
+    "editorialMethodology": "Les trophées dans Brawl Stars ne sont pas de l'ELO ni du MMR. C'est une métrique d'activité pondérée : gagner des matchs et participer à des événements ajoute des trophées, et le total cumulé ne diminue jamais d'un jour à l'autre (il décroît seulement entre saisons, selon ta position). Donc un joueur à 75 000 trophées n'est pas forcément « deux fois meilleur » qu'un à 38 000 ; il joue beaucoup plus, sans doute avec plus de brawlers, sur plus de saisons. Le nombre récompense consistance et volume, pas le skill brut.",
+    "editorialNote": "Pour une vue plus proche du skill, ouvre la fiche de n'importe quel joueur du top — la page individuelle inclut le taux de victoire sur 14 jours, les brawlers les plus joués avec leur comfort score, et l'historique de combats s'ils ont activé le tracking. La comparaison 1-contre-1 contre toi-même (bouton « Compare ») est ce qui se rapproche le plus d'un vrai classement compétitif.",
+    "editorialClosing": "Le sélecteur de pays au-dessus filtre le classement par la région déclarée dans le compte de chaque joueur (pas par serveur de jeu, qui est global). Si tu vois un nom inconnu dans le top global, il vient presque toujours d'un des classements nationaux que nous échantillonnons pour le cron de PRO data — comment cet échantillonnage est construit vit sur la page méthodologie."
   },
   "consent": {
     "message": "Nous utilisons des cookies et des technologies similaires pour afficher des publicités personnalisées et améliorer ton expérience. Tu peux accepter ou refuser les cookies non essentiels.",
@@ -918,7 +923,14 @@
       }
     ],
     "finalCtaTitle": "Prêt à ne plus perdre de combats ?",
-    "finalCtaBody": "Active le suivi en moins d'une minute et commence à bâtir ton historique complet dès aujourd'hui."
+    "finalCtaBody": "Active le suivi en moins d'une minute et commence à bâtir ton historique complet dès aujourd'hui.",
+    "analysisTitle": "Pourquoi sauvegarder ton historique change ta façon de jouer",
+    "analysisParagraph1": "Sans historique, « je m'améliore » est de l'intuition. Tu as peut-être passé trois semaines avec le même brawler en sentant que tu progresses, mais l'API de Brawl Stars ne montre que les 25 derniers matchs. Mauvaise journée récente ? L'app dit que tu tiltes. Bonne ? L'inverse. Aucune des deux lectures n'est la vérité. Avec un mois d'historique sauvegardé, le bruit du dernier jour cesse de peser et le vrai pattern (taux de victoire par brawler, par carte, par heure) émerge.",
+    "analysisParagraph2": "L'autre cas typique est le tilt. Après quatre défaites de suite, le cerveau a tendance à continuer à picker le même brawler en espérant remonter. L'historique par heure de la journée aide à détecter ce pattern : beaucoup de joueurs ont un WR normal à 21h et 7-8 points pire passé minuit. Cette observation ne vient que de comparer des samples temporels qui ne tiennent pas dans 25 matchs. La page de stats personnelle de chaque utilisateur premium montre ces coupes pour que tu décides quand il est malin d'arrêter.",
+    "analysisParagraph3": "Un troisième usage, moins évident, est la comparaison avec le meta. Si BrawlVision te dit que sur ta carte favorite le brawler que tu joues le plus a un WR global de 53%, mais que ton WR personnel avec ce brawler sur cette carte est à 45% depuis des semaines, tu as une piste claire : tu n'es probablement pas « mauvais avec ce brawler » — quelque chose dans ton draft ou ta rotation de cartes te plante. Sans historique tu ne pourrais même pas formuler la question.",
+    "whyTitle": "Comment on fait sans toucher à ton compte",
+    "whyParagraph1": "BrawlVision synchronise ton battle log en lisant l'API publique de Supercell contre ton Player Tag. On ne te demande jamais de mot de passe ni d'identifiants de jeu — l'API officielle n'exige pas d'authentification pour le endpoint des combats, juste le tag. Chaque fois que le cron tourne, il télécharge les nouveaux combats que l'API expose (les 25 derniers), les recoupe avec ce qu'on a déjà en base, et ne sauvegarde que ceux qu'on n'avait pas vus.",
+    "whyParagraph2": "Ce cron maintient ton historique à jour sans étape manuelle tant que la synchro est active. Si tu mets en pause le service ou annules le premium, ton historique reste tel quel — on ne supprime rien — et réactiver la synchro reprend où elle s'est arrêtée. La méthodologie complète (fréquence du poll, gestion des doublons, rétention) est documentée sur la page méthodologie."
   },
   "flash": {
     "authError": "La connexion a échoué. Réessaie s'il te plaît.",

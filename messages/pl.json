@@ -283,7 +283,12 @@
     "local": "HISZPANIA",
     "error": "Nie udało się załadować rankingu",
     "trophies": "Trofea",
-    "searchPlaceholder": "Szukaj gracza..."
+    "searchPlaceholder": "Szukaj gracza...",
+    "editorialEyebrow": "Jak powstaje ten ranking",
+    "editorialIntro": "Globalny ranking trofeów poniżej jest publikowany przez oficjalne API Supercella, nie przez nas: wymienia 200 najlepszych graczy Brawl Stars na kraj i sezon według łącznej liczby trofeów. BrawlVision czyta go i pokazuje razem z imieniem, klubem i linkami do profilu każdego gracza.",
+    "editorialMethodology": "Trofea w Brawl Stars nie są ELO ani MMR. To ważona metryka aktywności: wygrywanie meczów i udział w wydarzeniach dodaje trofea, a skumulowana suma nigdy nie maleje z dnia na dzień (spada tylko między sezonami, w zależności od pozycji). Oznacza to, że gracz z 75 000 trofeów niekoniecznie jest \"dwa razy lepszy\" niż ten z 38 000; gra znacznie więcej, prawdopodobnie z większą liczbą brawlerów, w więcej sezonów. Liczba nagradza konsystencję i wolumen, nie surowy skill.",
+    "editorialNote": "Dla widoku bliższego skill, otwórz profil dowolnego gracza z topu — strona indywidualna zawiera win rate z ostatnich 14 dni, najczęściej grane brawlery z ich comfort score i historię walk jeśli włączyli tracking. Porównanie 1 na 1 z samym sobą (przycisk \"Compare\") to najbliższe rzeczywistego rankingu competitive.",
+    "editorialClosing": "Selektor kraju powyżej filtruje ranking po regionie zadeklarowanym na koncie każdego gracza (nie po serwerze gry, który jest globalny). Jeśli widzisz nieznane imię w globalnym topie, prawie zawsze pochodzi z jednego z krajowych rankingów, które samplujemy do crona PRO data — jak ten sampling powstaje, znajdziesz na stronie metodologii."
   },
   "consent": {
     "message": "Używamy plików cookies i podobnych technologii do wyświetlania spersonalizowanych reklam i poprawy twojego doświadczenia. Możesz zaakceptować lub odrzucić nieobowiązkowe cookies.",
@@ -918,7 +923,14 @@
       }
     ],
     "finalCtaTitle": "Gotowy, żeby nie tracić już walk?",
-    "finalCtaBody": "Aktywuj tracking w mniej niż minutę i zacznij budować pełną historię od dziś."
+    "finalCtaBody": "Aktywuj tracking w mniej niż minutę i zacznij budować pełną historię od dziś.",
+    "analysisTitle": "Czemu zapisywanie historii zmienia jak grasz",
+    "analysisParagraph1": "Bez historii \"poprawiam się\" to intuicja. Może spędziłeś trzy tygodnie z tym samym brawlerem czując, że robisz postępy, ale API Brawl Stars pokazuje tylko ostatnie 25 meczów. Zły niedawny dzień? Aplikacja mówi, że tiltujesz. Dobry? Odwrotnie. Żaden z dwóch odczytów nie jest prawdą. Z miesięczną zapisaną historią szum ostatniego dnia przestaje ważyć, a prawdziwy wzór (win rate na brawlera, na mapę, na godzinę dnia) wyłania się.",
+    "analysisParagraph2": "Drugi typowy przypadek to tilt. Po czterech porażkach z rzędu mózg ma tendencję do dalszego pickowania tego samego brawlera w nadziei \"odrobienia\". Historia per godzina pomaga zauważyć ten wzór: wielu graczy ma normalny WR o 21:00 i 7-8 punktów gorzej po północy. Ta obserwacja pochodzi tylko z porównania próbek czasowych, które nie mieszczą się w 25 meczach. Strona stats indywidualnej każdego użytkownika premium pokazuje te przekroje, byś zdecydował, kiedy mądrzej jest przestać.",
+    "analysisParagraph3": "Trzecie, mniej oczywiste zastosowanie to porównanie z metą. Jeśli BrawlVision mówi ci, że na twojej ulubionej mapie brawler, którym grasz najczęściej, ma globalny WR 53%, ale twój osobisty WR z tym brawlerem na tej mapie jest na 45% od tygodni, masz wyraźny ślad: prawdopodobnie nie jesteś \"zły z tym brawlerem\" — coś w twoim drafcie lub rotacji map cię zawodzi. Bez historii nie sformułowałbyś nawet pytania.",
+    "whyTitle": "Jak to robimy nie dotykając twojego konta",
+    "whyParagraph1": "BrawlVision synchronizuje twój battlelog czytając publiczne API Supercella przeciw twojemu Player Tag. Nigdy nie prosimy o hasło ani dane logowania do gry — oficjalne API nie wymaga uwierzytelnienia dla endpointu walk, tylko taga. Za każdym razem gdy cron się uruchamia, pobiera nowe walki, które API udostępnia (ostatnie 25), porównuje z tym, co już mamy w bazie, i zapisuje tylko te, których nie widzieliśmy.",
+    "whyParagraph2": "Ten cron utrzymuje twoją historię aktualną bez ręcznych kroków dopóki sync jest aktywna. Jeśli zatrzymasz usługę lub anulujesz premium, twoja historia zostaje taka, jaka była — niczego nie usuwamy — a reaktywacja synca wznawia od miejsca, w którym się zatrzymał. Pełna metodologia (częstotliwość polla, obsługa duplikatów, polityka retencji) jest udokumentowana na stronie metodologii."
   },
   "flash": {
     "authError": "Nie udało się zalogować. Spróbuj ponownie.",

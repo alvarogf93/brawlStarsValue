@@ -283,7 +283,12 @@
     "local": "LOCAL",
     "error": "Não foi possível carregar o ranking",
     "trophies": "Troféus",
-    "searchPlaceholder": "Buscar jogador..."
+    "searchPlaceholder": "Buscar jogador...",
+    "editorialEyebrow": "Como esse ranking se forma",
+    "editorialIntro": "O ranking global de troféus que você vê abaixo é publicado pela API oficial da Supercell, não por nós: lista os 200 melhores jogadores do Brawl Stars por país e por temporada pelo total de troféus. O BrawlVision lê e mostra junto com o nome, clube e links pro perfil de cada jogador.",
+    "editorialMethodology": "Troféus no Brawl Stars não são ELO nem MMR. São uma métrica de atividade ponderada: ganhar partidas e participar de eventos soma troféus, e o total acumulado nunca diminui de um dia pro outro (decai só entre temporadas, conforme sua posição). Um jogador com 75.000 troféus não é necessariamente \"duas vezes melhor\" que um de 38.000; ele tá jogando muito mais, possivelmente com mais brawlers, em mais temporadas. O número premia consistência e volume, não skill bruta.",
+    "editorialNote": "Pra uma visão mais próxima de skill, abre o perfil de qualquer jogador do top — a página individual inclui win rate dos últimos 14 dias, brawlers mais jogados com comfort score, e histórico de batalhas se ativaram tracking. A comparação 1 contra 1 contra você mesmo (botão \"Compare\") é o que mais se parece com um ranking competitivo real.",
+    "editorialClosing": "O seletor de país no topo filtra o ranking pela região declarada na conta de cada jogador (não por servidor de jogo, que é global). Se você vê um nome desconhecido no top global, quase sempre vem de um dos rankings nacionais que amostramos pro cron de PRO data — como essa amostragem é construída tá na página de metodologia."
   },
   "consent": {
     "message": "Usamos cookies e tecnologias similares para exibir anúncios personalizados e melhorar sua experiência. Você pode aceitar ou rejeitar os cookies não essenciais.",
@@ -918,7 +923,14 @@
       }
     ],
     "finalCtaTitle": "Pronto para não perder mais nenhuma batalha?",
-    "finalCtaBody": "Ative o tracking em menos de um minuto e comece a construir seu histórico completo desde hoje."
+    "finalCtaBody": "Ative o tracking em menos de um minuto e comece a construir seu histórico completo desde hoje.",
+    "analysisTitle": "Por que salvar seu histórico muda como você joga",
+    "analysisParagraph1": "Sem histórico, \"estou melhorando\" é intuição. Você pode ter passado três semanas com o mesmo brawler sentindo que progride, mas a API do Brawl Stars só mostra as últimas 25 partidas. Dia ruim recente? O app diz que você está tiltando. Bom dia? O contrário. Nenhuma das duas leituras é verdade. Com um mês de histórico salvo, o ruído do último dia para de pesar e o padrão real (win rate por brawler, por mapa, por hora do dia) emerge.",
+    "analysisParagraph2": "O outro caso típico é o tilt. Depois de quatro derrotas seguidas, o cérebro tende a continuar pickando o mesmo brawler tentando \"recuperar\". O histórico por hora ajuda a detectar esse padrão: muitos jogadores têm um WR normal às 21h e 7-8 pontos pior depois da meia-noite. Essa observação só vem de comparar amostras temporais que não cabem em 25 partidas. A página de stats individual de cada usuário premium mostra esses recortes pra você decidir quando é mais esperto parar.",
+    "analysisParagraph3": "Um terceiro uso, menos óbvio, é a comparação com o meta. Se o BrawlVision te diz que no seu mapa preferido o brawler que você mais joga tem WR global de 53%, mas o seu WR pessoal com esse brawler nesse mapa está em 45% há semanas, tem uma pista clara: você provavelmente não é \"ruim com esse brawler\" — algo na sua draft ou rotação de mapas está te falhando. Sem histórico nem formular a pergunta dá.",
+    "whyTitle": "Como fazemos isso sem tocar na sua conta",
+    "whyParagraph1": "O BrawlVision sincroniza seu battlelog lendo a API pública da Supercell com seu Player Tag. Nunca pedimos senha nem credenciais do jogo — a API oficial não exige autenticação pro endpoint de batalhas, só o tag. Toda vez que o cron roda, baixa as batalhas novas que a API expõe (as últimas 25), cruza com o que já temos no banco, e só salva as que não tínhamos visto.",
+    "whyParagraph2": "Esse cron mantém seu histórico atualizado sem passos manuais enquanto a sync estiver ativa. Se pausar o serviço ou cancelar o premium, seu histórico fica como estava — não apagamos nada — e reativar a sync retoma de onde parou. A metodologia completa (frequência de poll, dedup, retenção) está documentada na página de metodologia."
   },
   "flash": {
     "authError": "Não foi possível entrar. Tente novamente.",

@@ -283,7 +283,12 @@
     "local": "SPAIN",
     "error": "Could not load rankings",
     "trophies": "Trophies",
-    "searchPlaceholder": "Search player..."
+    "searchPlaceholder": "Search player...",
+    "editorialEyebrow": "How this ranking is built",
+    "editorialIntro": "The global trophy ranking you see below is published by Supercell's official API, not by us: it lists the top 200 Brawl Stars players per country per season by total trophy count. BrawlVision reads it and displays it alongside name, club, and links to each player's profile.",
+    "editorialMethodology": "Trophies in Brawl Stars are not ELO or MMR. They're a weighted activity metric: winning matches and participating in events adds trophies, and the cumulative total never decreases day to day (it only decays between seasons, by how high you sit). That means a player at 75,000 trophies is not necessarily \"twice as good\" as one at 38,000; they're playing more, possibly with more brawlers, across more seasons. The number rewards consistency and volume, not raw skill.",
+    "editorialNote": "For a view closer to skill, open the profile of any top player — the individual page includes win rate over the last 14 days, most-played brawlers with their comfort score, and battle history if they've enabled tracking. The 1-on-1 comparison against yourself (the \"Compare\" button) is the closest thing to a real competitive ranking.",
+    "editorialClosing": "The country selector above filters the ranking by the region declared in each player's account (not by game server, which is global). If you see an unfamiliar name in the global top, it almost always comes from one of the national rankings we sample for the PRO-data cron — how that sampling is built lives on the methodology page."
   },
   "consent": {
     "message": "We use cookies and similar technologies to display personalized ads and improve your experience. You can accept or reject non-essential cookies.",
@@ -918,7 +923,14 @@
       }
     ],
     "finalCtaTitle": "Ready to stop losing battles to the 25-match cap?",
-    "finalCtaBody": "Activate tracking in under a minute and start building your complete history from today."
+    "finalCtaBody": "Activate tracking in under a minute and start building your complete history from today.",
+    "analysisTitle": "Why saving your history changes how you play",
+    "analysisParagraph1": "Without a history, \"I'm improving\" is intuition. You may have spent three weeks with the same brawler and feel you're getting better, but the Brawl Stars API only shows the last 25 matches. Bad recent day? The app says you're tilting. Good one? Says the opposite. Neither reading is the truth. With a month of saved history, the noise of the last day stops mattering and the real pattern (win rate per brawler, per map, per hour of day) emerges.",
+    "analysisParagraph2": "The other common case is tilt. After four losses in a row, the brain tends to keep picking the same brawler hoping to \"make it back\". An hour-of-day history breakdown helps spot that pattern: many players have a normal win rate at 9pm and 7-8 points worse past midnight. That observation comes only from comparing temporal samples that don't fit in 25 matches. Each premium user's personal stats page shows those cuts so you can decide when it's smarter to stop.",
+    "analysisParagraph3": "A third, less obvious use is comparison against the meta. If BrawlVision tells you that on your favorite map the brawler you play most has a global win rate of 53%, but your personal win rate with that brawler on that map has been at 45% for weeks, you have a clear lead: you're probably not \"bad with that brawler\" — something in your draft or your map rotation is failing you. Without history, you couldn't even formulate the question.",
+    "whyTitle": "How we do it without touching your account",
+    "whyParagraph1": "BrawlVision syncs your battle log by reading Supercell's public API against your Player Tag. We never ask for passwords or game credentials — the official API doesn't require authentication for the battles endpoint, just the tag. Every time the cron runs, it downloads the new battles the API exposes (the last 25), cross-references them with what's already in our database, and only saves the ones we hadn't seen.",
+    "whyParagraph2": "That cron keeps your history current with no manual steps while sync is active. If you pause the service or cancel premium, your history stays as it was — we don't delete anything — and reactivating sync resumes where it stopped. The full methodology (poll frequency, dedup handling, retention policy) is documented on the methodology page."
   },
   "flash": {
     "authError": "Sign-in failed. Please try again.",

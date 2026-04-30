@@ -283,7 +283,12 @@
     "local": "İSPANYA",
     "error": "Sıralama yüklenemedi",
     "trophies": "Kupalar",
-    "searchPlaceholder": "Oyuncu ara..."
+    "searchPlaceholder": "Oyuncu ara...",
+    "editorialEyebrow": "Bu sıralama nasıl oluşur",
+    "editorialIntro": "Aşağıda gördüğün küresel kupa sıralaması Supercell'in resmi API'si tarafından yayımlanır, biz değil: ülke ve sezon başına toplam kupa sayısına göre Brawl Stars'ın en iyi 200 oyuncusunu listeler. BrawlVision bunu okur ve her oyuncunun adı, kulübü ve profiline link ile birlikte gösterir.",
+    "editorialMethodology": "Brawl Stars'taki kupalar ELO veya MMR değildir. Ağırlıklı bir aktivite metriğidir: maç kazanmak ve etkinliklere katılmak kupa ekler ve birikmiş toplam günden güne asla azalmaz (yalnızca sezonlar arasında, ne kadar yukarıda olduğuna göre düşer). Bu, 75.000 kupa olan bir oyuncunun 38.000 olan bir oyuncudan zorunlu olarak \"iki kat iyi\" olmadığı anlamına gelir; çok daha fazla oynuyor, muhtemelen daha fazla brawler ile, daha fazla sezonda. Sayı tutarlılığı ve hacmi ödüllendirir, ham yeteneği değil.",
+    "editorialNote": "Yeteneğe daha yakın bir görüş için, en üstteki herhangi bir oyuncunun profilini aç — bireysel sayfa son 14 günün galibiyet oranını, en çok oynanan brawler'ları comfort skoru ile ve takip aktifse savaş geçmişini içerir. Kendine karşı 1-e-1 karşılaştırma (\"Compare\" düğmesi) gerçek bir rekabetçi sıralamaya en yakın şeydir.",
+    "editorialClosing": "Üstteki ülke seçici sıralamayı her oyuncunun hesabında bildirilen bölgeye göre filtreler (oyun sunucusuna göre değil, o globaldir). Küresel topta tanımadığın bir isim görürsen, neredeyse her zaman PRO veri cron'u için örneklediğimiz ulusal sıralamalardan birinden gelir — bu örneklemenin nasıl oluşturulduğu metodoloji sayfasında."
   },
   "consent": {
     "message": "Kişiselleştirilmiş reklamlar göstermek ve deneyimini iyileştirmek için çerezler ve benzer teknolojiler kullanıyoruz. Zorunlu olmayan çerezleri kabul veya reddedebilirsin.",
@@ -918,7 +923,14 @@
       }
     ],
     "finalCtaTitle": "Artık savaş kaybetmemeye hazır mısın?",
-    "finalCtaBody": "Bir dakikadan kısa sürede takibi aktive et ve bugünden itibaren tam geçmişini oluşturmaya başla."
+    "finalCtaBody": "Bir dakikadan kısa sürede takibi aktive et ve bugünden itibaren tam geçmişini oluşturmaya başla.",
+    "analysisTitle": "Geçmişini kaydetmek nasıl oynadığını neden değiştirir",
+    "analysisParagraph1": "Geçmiş olmadan \"iyileşiyorum\" sezgidir. Aynı brawler'la üç hafta geçirmiş ve ilerlediğini hissediyor olabilirsin, ama Brawl Stars API'si yalnızca son 25 maçı gösterir. Son zamanlarda kötü gün mü? Uygulama tilt olduğunu söyler. İyi gün mü? Tam tersi. Her iki okuma da gerçek değil. Bir aylık kayıtlı geçmişle son günün gürültüsü ağırlığını kaybeder ve gerçek desen (brawler başına, harita başına, günün saati başına galibiyet oranı) ortaya çıkar.",
+    "analysisParagraph2": "Diğer tipik durum tilt'tir. Üst üste dört yenilgiden sonra beyin \"geri dönmek\" için aynı brawler'ı seçmeye devam etme eğilimindedir. Günün saati başına geçmiş bu deseni tespit etmeye yardımcı olur: birçok oyuncunun saat 21:00'de normal WR'si vardır ve gece yarısından sonra 7-8 puan daha kötüdür. Bu gözlem yalnızca 25 maça sığmayan zamansal örnekleri karşılaştırmaktan gelir. Her premium kullanıcının kişisel istatistik sayfası, durmanın ne zaman daha akıllıca olduğuna karar verebilmeniz için bu kesitleri gösterir.",
+    "analysisParagraph3": "Daha az belirgin üçüncü kullanım metayla karşılaştırmadır. BrawlVision sana, en sevdiğin haritada en çok oynadığın brawler'ın küresel WR'sinin %53 olduğunu, ama o haritada o brawler ile kişisel WR'nin haftalardır %45'te olduğunu söylerse, net bir ipucun var: muhtemelen \"o brawler'la kötü\" değilsin — draft'ında ya da harita rotasyonunda bir şey seni başarısızlığa sürüklüyor. Geçmiş olmadan soruyu bile formüle edemezdin.",
+    "whyTitle": "Hesabına dokunmadan nasıl yapıyoruz",
+    "whyParagraph1": "BrawlVision, Supercell'in genel API'sini Player Tag'inle okuyarak savaş kayıtlarını senkronize eder. Asla şifre ya da oyun kimlik bilgileri istemeyiz — resmi API savaş endpoint'i için kimlik doğrulaması istemez, yalnızca tag'ı. Cron her çalıştığında, API'nin maruz bıraktığı yeni savaşları (son 25) indirir, veritabanımızdakiyle eşleştirir ve yalnızca daha önce görmediklerimizi kaydeder.",
+    "whyParagraph2": "Bu cron, sync aktif olduğu sürece geçmişini manuel adım olmadan güncel tutar. Hizmeti duraklatır veya premium'u iptal edersen, geçmişin olduğu gibi kalır — hiçbir şey silmeyiz — ve sync'i yeniden etkinleştirmek durduğu yerden devam eder. Tam metodoloji (poll sıklığı, tekrar yönetimi, saklama politikası) metodoloji sayfasında belgelenmiştir."
   },
   "flash": {
     "authError": "Giriş başarısız. Lütfen tekrar dene.",

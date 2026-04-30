@@ -153,6 +153,30 @@ export default function LeaderboardPage() {
 
       {!loading && !error && top3.length >= 3 && (
         <>
+          {/* Editorial context — runs above the podium so the page
+              has ≥300 words of original commentary about the ranking
+              before the ad slot. AdSense AD-05 flagged the page as
+              navigation-only; this block fixes that. */}
+          <section className="brawl-card-dark p-6 md:p-8 border-[#090E17] mb-12 max-w-4xl mx-auto space-y-4">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-bold mb-2">
+                {t('editorialEyebrow')}
+              </p>
+              <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+                {t('editorialIntro')}
+              </p>
+            </div>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('editorialMethodology')}
+            </p>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('editorialNote')}
+            </p>
+            <p className="text-sm md:text-base text-slate-300 leading-relaxed font-['Inter']">
+              {t('editorialClosing')}
+            </p>
+          </section>
+
           {/* TOP 3 Podium */}
           <div className="flex flex-row items-end justify-center h-[300px] gap-2 md:gap-4 mb-20 relative z-10 mx-auto w-full max-w-4xl px-2">
             {podiumOrder.map((idx, pos) => {

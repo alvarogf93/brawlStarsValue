@@ -283,7 +283,12 @@
     "local": "LOKAL",
     "error": "Rangliste konnte nicht geladen werden",
     "trophies": "Trophäen",
-    "searchPlaceholder": "Spieler suchen..."
+    "searchPlaceholder": "Spieler suchen...",
+    "editorialEyebrow": "Wie dieses Ranking aufgebaut wird",
+    "editorialIntro": "Das globale Trophäen-Ranking unten wird von Supercells offizieller API veröffentlicht, nicht von uns: es listet die Top 200 Brawl-Stars-Spieler pro Land und Saison nach Gesamt-Trophäenzahl. BrawlVision liest es und zeigt es zusammen mit Name, Club und Links zum Profil jedes Spielers.",
+    "editorialMethodology": "Trophäen in Brawl Stars sind weder ELO noch MMR. Sie sind eine gewichtete Aktivitätsmetrik: Matches gewinnen und an Events teilnehmen addiert Trophäen, und die kumulierte Gesamtsumme sinkt nie von Tag zu Tag (sie verfällt nur zwischen Saisons, je nach Position). Das heißt, ein Spieler mit 75.000 Trophäen ist nicht zwingend „doppelt so gut\" wie einer mit 38.000; er spielt deutlich mehr, möglicherweise mit mehr Brawlern, über mehr Saisons. Die Zahl belohnt Konstanz und Volumen, nicht reines Skill.",
+    "editorialNote": "Für eine Ansicht näher an Skill öffne das Profil eines beliebigen Top-Spielers — die Einzelseite enthält Siegrate der letzten 14 Tage, am meisten gespielte Brawler mit Comfort Score und Kampfverlauf, falls Tracking aktiv ist. Der 1-zu-1-Vergleich gegen dich selbst (Button „Compare\") kommt einem echten kompetitiven Ranking am nächsten.",
+    "editorialClosing": "Der Länder-Selector oben filtert das Ranking nach der im Spieler-Account deklarierten Region (nicht nach Game-Server, der global ist). Wenn du im globalen Top einen unbekannten Namen siehst, kommt er fast immer aus einer der nationalen Ranglisten, die wir für den PRO-Data-Cron sampeln — wie dieses Sampling aufgebaut ist, lebt auf der Methodik-Seite."
   },
   "consent": {
     "message": "Wir verwenden Cookies und ähnliche Technologien, um personalisierte Werbung anzuzeigen und dein Erlebnis zu verbessern. Du kannst nicht wesentliche Cookies akzeptieren oder ablehnen.",
@@ -918,7 +923,14 @@
       }
     ],
     "finalCtaTitle": "Bereit, keinen Kampf mehr zu verlieren?",
-    "finalCtaBody": "Aktiviere das Tracking in unter einer Minute und bau ab heute deinen kompletten Verlauf auf."
+    "finalCtaBody": "Aktiviere das Tracking in unter einer Minute und bau ab heute deinen kompletten Verlauf auf.",
+    "analysisTitle": "Warum das Speichern deines Verlaufs ändert, wie du spielst",
+    "analysisParagraph1": "Ohne Verlauf ist „ich werde besser\" Intuition. Du hast vielleicht drei Wochen mit demselben Brawler verbracht und das Gefühl, dass du Fortschritte machst, aber die Brawl-Stars-API zeigt nur die letzten 25 Matches. Schlechter Tag kürzlich? Die App sagt, du tiltest. Guter Tag? Das Gegenteil. Keine Lesart ist Wahrheit. Mit einem Monat gespeichertem Verlauf hört der Lärm des letzten Tages auf zu wiegen und das echte Muster (Siegrate pro Brawler, pro Map, pro Tageszeit) tritt hervor.",
+    "analysisParagraph2": "Der andere typische Fall ist Tilt. Nach vier Niederlagen in Folge neigt das Gehirn dazu, denselben Brawler weiter zu picken, um „zurückzukommen\". Eine Stunde-für-Stunde-Aufschlüsselung hilft, dieses Muster zu erkennen: viele Spieler haben um 21 Uhr eine normale WR und nach Mitternacht 7-8 Punkte schlechter. Diese Beobachtung kommt nur aus dem Vergleich zeitlicher Stichproben, die in 25 Matches nicht passen. Die persönliche Stats-Seite jedes Premium-Nutzers zeigt diese Schnitte, damit du entscheidest, wann es klüger ist aufzuhören.",
+    "analysisParagraph3": "Eine dritte, weniger offensichtliche Nutzung ist der Vergleich mit dem Meta. Wenn BrawlVision dir sagt, dass auf deiner Lieblingskarte der von dir am meisten gespielte Brawler eine globale WR von 53% hat, deine persönliche WR mit diesem Brawler auf dieser Karte aber seit Wochen bei 45% liegt, hast du einen klaren Hinweis: du bist wahrscheinlich nicht „schlecht mit diesem Brawler\" — etwas in deinem Draft oder deiner Map-Rotation versagt dich. Ohne Verlauf könntest du die Frage nicht einmal formulieren.",
+    "whyTitle": "Wie wir es machen, ohne deinen Account zu berühren",
+    "whyParagraph1": "BrawlVision synchronisiert dein Battle Log durch Lesen der öffentlichen Supercell-API gegen deinen Player Tag. Wir fragen nie nach Passwörtern oder Spiel-Credentials — die offizielle API benötigt keine Authentifizierung für den Kampf-Endpunkt, nur den Tag. Jedes Mal wenn der Cron läuft, lädt er die neuen Kämpfe herunter, die die API offenlegt (die letzten 25), gleicht sie mit dem ab, was wir schon in der DB haben, und speichert nur die, die wir noch nicht gesehen hatten.",
+    "whyParagraph2": "Dieser Cron hält deinen Verlauf aktuell, ohne manuelle Schritte, solange Sync aktiv ist. Pausierst du den Dienst oder kündigst Premium, bleibt dein Verlauf wie er war — wir löschen nichts — und Sync-Reaktivierung nimmt dort wieder auf, wo sie stehen geblieben ist. Die vollständige Methodik (Poll-Frequenz, Duplikat-Handling, Aufbewahrungsrichtlinie) ist auf der Methodik-Seite dokumentiert."
   },
   "flash": {
     "authError": "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
