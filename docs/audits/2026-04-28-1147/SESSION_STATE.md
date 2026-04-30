@@ -20,17 +20,20 @@
 |------------|----------|-----------|
 | 🔴 CRÍTICAS | 4 / 4 (100%) | 0 |
 | 🟠 ALTAS | 14 / 24 (58%) | 10 |
-| 🟡 MEDIAS | 8 / 26 (31%) | 18 |
-| 🟢 BAJAS | 7 / 15 (47%) | 8 |
-| **Total** | **33 / 69 (48%)** | **36** |
+| 🟡 MEDIAS | 19 / 26 (73%) | 7 |
+| 🟢 BAJAS | 11 / 15 (73%) | 4 |
+| **Total** | **48 / 69 (70%)** | **21** |
 
-Tras la sesión 2026-04-30: 4 hallazgos MEDIAS adicionales cerrados en parches a los reviews (PR #3 cubrió SEG-10 parcial; PR #8 cubrió LOG-12+LOG-14 con harden adicional; PR #4 cubrió ARQ-10 parcial; PR #10 cubrió un padding pin no-listado).
+Tras la sesión 2026-04-30 (post-merge inicial + 3 PRs adicionales sin intervención del usuario):
+- **PR A** cerró PERF-05/06/07 + MIX-01 + LOG-06 (5 hallazgos backend perf/resilience).
+- **PR B** cerró LOG-10/11/13 (3 hallazgos hook hardening).
+- **PR C** cerró ARQ-04 + ARQ-10 + RES-02 + LOG-16/17/18 + TEST-08/12 (7 hallazgos sweep).
 
-**Tests:** 871 vitest passing, tsc 0 errores, todos los workflows CI configurados.
+**Tests:** 877 vitest passing (+19 desde 858 baseline pre-PR-A), tsc 0, todos los workflows CI configurados, vitest coverage thresholds activadas.
 
 ---
 
-## PRs mergeados a `main` (10/10)
+## PRs mergeados a `main` (13/13)
 
 | # | Branch (mergeada) | Hallazgos cerrados |
 |---|---|---|
@@ -44,6 +47,9 @@ Tras la sesión 2026-04-30: 4 hallazgos MEDIAS adicionales cerrados en parches a
 | 8 | `audit/sweep-medias-batch1` | SEG-05, SEG-08, LOG-12 (con skip-on-error), LOG-14 |
 | 9 | `audit/mix-02-sync-helper` | MIX-02 |
 | 10 | `audit/res-01-paypal-verify-local` | RES-01, RES-05 + anti-replay window 5min ± 30s |
+| **A** | `audit/pr-a-backend-perf` | **PERF-05, PERF-06, PERF-07, MIX-01, LOG-06** |
+| **B** | `audit/pr-b-hooks` | **LOG-10, LOG-11, LOG-13** + helper `lib/local-cache.ts` |
+| **C** | `audit/pr-c-sweep` | **ARQ-04, RES-02, LOG-16, LOG-17, LOG-18, TEST-08, TEST-12** + parcial ARQ-10 |
 
 Todos rebasados sobre el `main` actualizado y mergeados con `--no-ff` para preservar lineage.
 
@@ -66,69 +72,64 @@ El pre-push hook local (`.claude/hooks/pre-push-check.sh`) está roto (invoca `t
 
 ---
 
-## DEUDA TÉCNICA RESTANTE — 36 hallazgos pendientes
+## DEUDA TÉCNICA RESTANTE — 21 hallazgos pendientes
 
-### 🟠 ALTAS pendientes (10)
+### 🟠 ALTAS pendientes (10) — sin cambio respecto a snapshot anterior
 
 #### Producto / arquitectura
-- **ARQ-01** — Generar tipos Supabase con `npx supabase gen types typescript`. 7 tablas pasan como `any`. Desbloquea TEST-03. **M (1 día).**
+- **ARQ-01** — Generar tipos Supabase con `npx supabase gen types typescript`. 7 tablas pasan como `any`. Desbloquea TEST-03. **M (1 día).** Necesita login Supabase CLI o introspección manual del schema.
 - **ARQ-02** — Extraer 4 módulos de `pro-analysis/route.ts` (582 LoC). **M (4-6 h).**
 - **ARQ-03** — Extraer `src/lib/meta/cascade.ts::buildEventsWithCascade` para deduplicar `/api/meta` ↔ `picks/page.tsx`. **S (2-3 h).**
-- **ARQ-08** — Test integración Postgres-backed para enforcement SQL↔TS de `compute7dTrend`. **M (4-6 h).**
-- **ARQ-14** — `/api/player/club-summary` para evitar 18-54s en `useClubEnriched`. **M (3-4 h).**
+- **ARQ-08** — Test integración Postgres-backed para enforcement SQL↔TS de `compute7dTrend`. **M (4-6 h).** Necesita Supabase preview branch o testcontainers.
+- **ARQ-14** — `/api/player/club-summary` para evitar 18-54s en `useClubEnriched`. **M (3-4 h).** Diseño depende del shape mínimo que `useClubEnriched` necesita.
 
 #### Resiliencia / lógica
-- **LOG-06** — Logging en `processOnePlayer` catch vacío. **S (1 h).**
 - **LOG-07** — Tilt/warmUp/recovery O(N×M) → O(N+M). **M (4-6 h).**
 
 #### Seguridad / infra
-- **SEG-07** — Content-Security-Policy iterativo Report-Only → enforce. **M (varios días con fase Report-Only).**
+- **SEG-07** — Content-Security-Policy iterativo Report-Only → enforce. **M (varios días con fase Report-Only).** Necesita deploy a prod para iterar la allow-list.
 
 #### Testing
-- **TEST-02** — 8 routes sin test integración. **M.**
+- **TEST-02** — 8 routes sin test integración. **M.** Cohesivo, sin blockers — buen candidato siguiente.
 - **TEST-03** — Tipar mocks Supabase contra schema (depende ARQ-01). **M.**
-- **TEST-04** — `__tests__/security/` (IDOR, XSS, path-traversal, Bearer-cookie). **M.**
+- **TEST-04** — `__tests__/security/` (IDOR, XSS, path-traversal, Bearer-cookie). **M.** Sin blockers.
 
-### 🟡 MEDIAS pendientes (18)
+### 🟡 MEDIAS pendientes (7)
 
 #### Arquitectura
-- **ARQ-04** — Mover `notify()` a `lib/telegram/notify.ts`. **S (30 min).**
 - **ARQ-07** — Split `compute.ts` (963 LoC) en `analytics/compute/{overview,brawler,...}.ts`. **M.**
 - **ARQ-09** — Rename `ls_*` → `subscription_*` en `Profile` types. Migration + 8 callsites. **M.** Coordinar con release window.
-- **ARQ-10** — Refactor real de los 3 `set-state-in-effect` (3 suppressions con TODO actualmente). **S.**
-
-#### Datos / lógica
-- **LOG-10** — TTL 30 min + LRU `maxSize=50` en `useProAnalysis` cache. **S/M.**
-- **LOG-11** — `AbortController` en `useClubTrophyChanges` para evitar stale-write race. **S.**
-- **LOG-13** — `_schemaVersion` en 5 hooks de cache localStorage. **S.**
 
 #### Rendimiento
-- **PERF-03** — Precompute `battle_analytics_daily` o reescribir `compute.ts` en una pasada. **M-L.**
-- **PERF-04** — Eliminar cache de módulo `/api/draft/maps`, confiar en `next: { revalidate }`. **M.**
-- **PERF-05** — `Promise.all` + whitelist de mapas vivos en `pro-analysis`. **S.**
-- **PERF-06** — `p-limit(4)` en cron meta-poll secuencial 1000 jugadores. **M.**
-- **PERF-07** — `s-maxage=900` + `Promise.all` en `/api/draft/data`. **S.**
+- **PERF-03** — Precompute `battle_analytics_daily` o reescribir `compute.ts` en una pasada. **M-L.** Decisión arquitectural.
+- **PERF-04** — Eliminar cache de módulo `/api/draft/maps`, confiar en `next: { revalidate }`. **M.** Necesita verificar comportamiento real con Fluid Compute.
 
 #### Resiliencia
-- **MIX-01** — Aplicar helper Upstash a `/api/analytics` (helper ya existe en SEG-06). **S.**
-- **RES-02** — Eliminar escritura desde `/confirm` o `UPDATE … WHERE NOT IN ('cancelled','expired')`. **S.**
 - **RES-04** — Structured logging via `console.log(JSON.stringify({...}))` + `request_id` en `proxy.ts`. **M.**
 
 #### Seguridad
 - **SEG-09** — `profiles.signup_notified_at` flag de idempotencia + hashear/truncar email. **S.**
 
 #### Testing
-- **TEST-05** — Sustituir 7 `waitForTimeout` por `page.waitForFunction(...)`. **S.**
-- **TEST-06** — Migrar smokes "zero console.error" a aserciones positivas. **S.**
-- **TEST-07** — Sustituir 35+ `toBeDefined()` y 9 `toBeTruthy()` débiles. **S.**
-- **TEST-08** — Coverage thresholds en `vitest.config.ts`. **S.**
-- **TEST-09** — Stryker mutation testing en módulos críticos. **M.**
-- **TEST-10** — `vi.stubEnv` per-test (cubierto globalmente por TEST-15 ya, mejora opcional). **S.**
+- **TEST-09** — Stryker mutation testing en módulos críticos. **M.** Opcional/nightly.
 - **TEST-11** — Modo "E2E offline" con `page.route` + fixtures versionados. **M.**
 
-### 🟢 BAJAS pendientes (8)
+(Cerrados en sesión 2026-04-30: ARQ-04, LOG-10, LOG-11, LOG-13, MIX-01, PERF-05, PERF-06, PERF-07, RES-02, TEST-08.)
+(Cerrados antes: ARQ-12, LOG-12, LOG-14, SEG-05, SEG-08.)
 
-- **LOG-16** — Umbrales weak/even/strong escalan con tier (decisión de producto). **S.**
+### 🟢 BAJAS pendientes (4)
+
+- **TEST-05** — Sustituir 7 `waitForTimeout` por `page.waitForFunction(...)`. **S.** (Reclasificada — depende de E2E que actualmente tiene secrets-gate.)
+- **TEST-06** — Migrar smokes "zero console.error" a aserciones positivas. **S.**
+- **TEST-07** — Sustituir 35+ `toBeDefined()` y 9 `toBeTruthy()` débiles. **S.**
+- **TEST-10** — `vi.stubEnv` per-test (cubierto globalmente por TEST-15 ya, mejora opcional). **S.**
+
+(Cerrados en sesión 2026-04-30: LOG-16, LOG-17, LOG-18, TEST-12.)
+(Cerrados antes: LOG-15, LOG-19, ARQ-13, ARQ-15, RES-03, TEST-15.)
+
+### Histórica (referencia)
+- **LOG-06** — cerrado en PR A (logging en cron catch vacío).
+- **ARQ-04** — cerrado en PR C (notify() reubicado a lib/telegram/notify.ts).
 - **LOG-17** — Documentar granularidad real `computeMinLive` por-jugador. **S.**
 - **LOG-18** — Documentar fórmula `comfort` o extraer constantes. **S.**
 - **SEG-10** — Side-channel timing constant en check-premium (rate-limit ya cubierto). **S.**
