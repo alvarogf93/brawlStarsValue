@@ -1,6 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+/**
+ * Cookie-aware Supabase client. Used by every authenticated route — the
+ * cookie carries the user session and `auth.getUser()` works.
+ *
+ * NOTE: we deliberately do NOT pass `<Database>` as a generic here. Doing so
+ * requires every existing `.select(...)` / `.insert(...)` / `.update(...)`
+ * call site to match the projection/shape exactly, which is a 30+ file
+ * refactor. ARQ-01 ships the typed `Database` interface in `./types` for
+ * callers that want strict typing today (see e.g. brawler-metadata helper);
+ * the client stays loose so existing code compiles. Future PRs can opt in
+ * incrementally by importing `Database` and casting on a per-call basis.
+ */
 export async function createClient() {
   const cookieStore = await cookies()
 
