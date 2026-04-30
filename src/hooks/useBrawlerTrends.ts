@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { readLocalCache, writeLocalCache } from '@/lib/local-cache'
 
 /**
  * Bulk trend hook: loads `{ brawlerId: trend7dDelta | null }` for
@@ -19,34 +20,15 @@ import { useEffect, useState } from 'react'
 type TrendsMap = Record<string, number | null>
 const CACHE_KEY = 'brawlvalue:brawler-trends'
 const CACHE_TTL = 10 * 60 * 1000 // 10 minutes
-
-interface Cached {
-  trends: TrendsMap
-  timestamp: number
-}
+// LOG-13 — bump on TrendsMap shape change (e.g. adding metadata).
+const CACHE_VERSION = 1
 
 function readCache(): TrendsMap | null {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY)
-    if (!raw) return null
-    const cached: Cached = JSON.parse(raw)
-    if (Date.now() - cached.timestamp > CACHE_TTL) {
-      localStorage.removeItem(CACHE_KEY)
-      return null
-    }
-    return cached.trends
-  } catch {
-    return null
-  }
+  return readLocalCache<TrendsMap>(CACHE_KEY, CACHE_VERSION, CACHE_TTL)
 }
 
 function writeCache(trends: TrendsMap): void {
-  try {
-    const data: Cached = { trends, timestamp: Date.now() }
-    localStorage.setItem(CACHE_KEY, JSON.stringify(data))
-  } catch {
-    // localStorage full / disabled / SSR — ignore
-  }
+  writeLocalCache(CACHE_KEY, CACHE_VERSION, trends)
 }
 
 export function useBrawlerTrends(): {

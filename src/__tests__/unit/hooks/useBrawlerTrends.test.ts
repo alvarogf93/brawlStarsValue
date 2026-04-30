@@ -6,6 +6,10 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { useBrawlerTrends } from '@/hooks/useBrawlerTrends'
 
 const CACHE_KEY = 'brawlvalue:brawler-trends'
+// Mirror the schema written by lib/local-cache.ts: { v, storedAt, data }.
+// LOG-13 — bumping the constant in the hook MUST also bump this in tests
+// because all entries with the old version are dropped on read.
+const CACHE_VERSION = 1
 
 describe('useBrawlerTrends', () => {
   let fetchMock: ReturnType<typeof vi.spyOn>
@@ -36,14 +40,16 @@ describe('useBrawlerTrends', () => {
     )
 
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null')
-    expect(cached?.trends).toEqual({ '16000001': 2.3, '16000002': -1.5 })
-    expect(typeof cached?.timestamp).toBe('number')
+    expect(cached?.v).toBe(CACHE_VERSION)
+    expect(cached?.data).toEqual({ '16000001': 2.3, '16000002': -1.5 })
+    expect(typeof cached?.storedAt).toBe('number')
   })
 
   it('cache hit: reads from localStorage without calling the endpoint', async () => {
     const cached = {
-      trends: { '16000001': -8.3 },
-      timestamp: Date.now(),
+      v: CACHE_VERSION,
+      storedAt: Date.now(),
+      data: { '16000001': -8.3 },
     }
     localStorage.setItem(CACHE_KEY, JSON.stringify(cached))
 
@@ -57,8 +63,9 @@ describe('useBrawlerTrends', () => {
 
   it('ignores stale cache (>10 min) and re-fetches', async () => {
     const stale = {
-      trends: { '16000001': 5.5 }, // old stale value
-      timestamp: Date.now() - 11 * 60 * 1000, // 11 minutes ago
+      v: CACHE_VERSION,
+      storedAt: Date.now() - 11 * 60 * 1000, // 11 minutes ago
+      data: { '16000001': 5.5 }, // old stale value
     }
     localStorage.setItem(CACHE_KEY, JSON.stringify(stale))
 

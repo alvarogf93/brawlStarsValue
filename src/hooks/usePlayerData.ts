@@ -3,38 +3,20 @@
 import { useEffect, useState } from 'react'
 import type { GemScore } from '@/lib/types'
 import { playerCacheKey } from '@/lib/storage'
+import { readLocalCache, writeLocalCache } from '@/lib/local-cache'
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
-interface CachedData {
-  gemScore: GemScore
-  timestamp: number
-}
+// LOG-13 — bump on changes to GemScore shape (new fields, renames).
+const CACHE_VERSION = 1
 
 const getCacheKey = playerCacheKey
 
 function readCache(tag: string): GemScore | null {
-  try {
-    const raw = localStorage.getItem(getCacheKey(tag))
-    if (!raw) return null
-    const cached: CachedData = JSON.parse(raw)
-    if (Date.now() - cached.timestamp > CACHE_TTL) {
-      localStorage.removeItem(getCacheKey(tag))
-      return null
-    }
-    return cached.gemScore
-  } catch {
-    return null
-  }
+  return readLocalCache<GemScore>(getCacheKey(tag), CACHE_VERSION, CACHE_TTL)
 }
 
 function writeCache(tag: string, gemScore: GemScore): void {
-  try {
-    const data: CachedData = { gemScore, timestamp: Date.now() }
-    localStorage.setItem(getCacheKey(tag), JSON.stringify(data))
-  } catch {
-    // localStorage full or disabled — ignore
-  }
+  writeLocalCache(getCacheKey(tag), CACHE_VERSION, gemScore)
 }
 
 export function usePlayerData(

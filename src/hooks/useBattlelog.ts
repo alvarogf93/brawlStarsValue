@@ -2,8 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import type { BattlelogEntry } from '@/lib/api'
+import { readLocalCache, writeLocalCache } from '@/lib/local-cache'
 
 const CACHE_TTL = 2 * 60 * 1000 // 2 min
+// LOG-13 — bump when BattleStats shape changes (new field, renamed key,
+// changed nesting). Old payloads with a different version are dropped on
+// read, avoiding `undefined` crashes in consumers that destructure the
+// new shape.
+const CACHE_VERSION = 1
 
 export interface ModeWinRate {
   mode: string
@@ -48,22 +54,16 @@ export function useBattlelog(tag: string) {
   useEffect(() => {
     if (!tag) return
 
-    // Check localStorage cache. Cache-hit on mount is the classic pattern;
-    // moving to derived state would couple cache reads to render and break
-    // SSR/hydration. See docs/superpowers/specs/2026-04-12-anonymous-visit-tracking-design.md
-    // Q-A decision for the rationale applied across all cache-on-mount hooks.
-    try {
-      const raw = localStorage.getItem(getCacheKey(tag))
-      if (raw) {
-        const cached = JSON.parse(raw)
-        if (Date.now() - cached.timestamp < CACHE_TTL) {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setData(cached.data)
-          setIsLoading(false)
-          return
-        }
-      }
-    } catch { /* ignore */ }
+    // Check localStorage cache (version + TTL aware). Cache-hit on mount is
+    // the classic pattern; moving to derived state would couple cache reads
+    // to render and break SSR/hydration.
+    const cached = readLocalCache<BattleStats>(getCacheKey(tag), CACHE_VERSION, CACHE_TTL)
+    if (cached) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setData(cached)
+      setIsLoading(false)
+      return
+    }
 
     const controller = new AbortController()
     setIsLoading(true)
@@ -82,7 +82,7 @@ export function useBattlelog(tag: string) {
         const battles: BattlelogEntry[] = response.items || []
         const stats = analyzeBattles(battles, tag)
         setData(stats)
-        try { localStorage.setItem(getCacheKey(tag), JSON.stringify({ data: stats, timestamp: Date.now() })) } catch { /* ignore */ }
+        writeLocalCache(getCacheKey(tag), CACHE_VERSION, stats)
       })
       .catch((err) => {
         if (err.name === 'AbortError') return
