@@ -52,23 +52,27 @@ function setCache(tag: string, data: Partial<EnrichedMember>) {
 }
 
 async function fetchMemberData(tag: string): Promise<Partial<EnrichedMember>> {
-  const res = await fetch('/api/calculate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ playerTag: tag }),
-  })
+  // ARQ-14 — the lightweight /api/player/club-summary endpoint replaces
+  // /api/calculate for this fan-out: skips the redundant club lookup and
+  // the anonymous-visit tracking, returns only the 9 fields the UI uses,
+  // and is rate-limited per IP via Upstash. ~33% faster Supercell-side
+  // and a smaller payload over the wire.
+  const res = await fetch(
+    `/api/player/club-summary?tag=${encodeURIComponent(tag)}`,
+    { credentials: 'omit' },
+  )
   if (!res.ok) throw new Error(`${res.status}`)
   const data = await res.json()
   return {
     totalGems: data.totalGems,
-    brawlerCount: data.player?.brawlers?.length ?? 0,
-    powerLevelsGems: data.breakdown?.powerLevels?.gems ?? 0,
-    totalVictories: data.stats?.totalVictories ?? 0,
-    winRateUsed: data.stats?.winRateUsed ?? 0.5,
-    estimatedHoursPlayed: data.stats?.estimatedHoursPlayed ?? 0,
-    highestTrophies: data.stats?.highestTrophies ?? 0,
-    totalPrestigeLevel: data.stats?.totalPrestigeLevel ?? 0,
-    expLevel: data.player?.expLevel ?? 0,
+    brawlerCount: data.brawlerCount ?? 0,
+    powerLevelsGems: data.powerLevelsGems ?? 0,
+    totalVictories: data.totalVictories ?? 0,
+    winRateUsed: data.winRateUsed ?? 0.5,
+    estimatedHoursPlayed: data.estimatedHoursPlayed ?? 0,
+    highestTrophies: data.highestTrophies ?? 0,
+    totalPrestigeLevel: data.totalPrestigeLevel ?? 0,
+    expLevel: data.expLevel ?? 0,
   }
 }
 
