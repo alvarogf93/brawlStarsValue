@@ -32,39 +32,55 @@ export async function GET(request: Request) {
 
   const serviceSupabase = await createServiceClient()
 
-  // 3. Fetch meta_stats for this brawler (all sources: global + users)
-  const { data: rawStats, error: statsError } = await serviceSupabase
-    .from('meta_stats')
-    .select('brawler_id, map, mode, date, wins, losses, total')
-    .eq('brawler_id', brawlerId)
-    .gte('date', cutoffDate)
+  // 3-5. Fetch the three independent datasets in parallel. Previously
+  // these ran serially (~150-300 ms each); the totalBattles query was
+  // unpaginated and silently truncated at PostgREST's 1000-row cap,
+  // corrupting the pickRate denominator. Switched to RPC scalar sum
+  // (migration 023) and Promise.all.
+  //
+  // All three queries restrict to source='global' so they line up with
+  // the SQL bulk function (migration 022) and with /api/meta/pro-analysis.
+  // Without it, premium users' personal data would leak into the public
+  // brawler page (skewing winRate, mapAgg, matchups, and detaching the
+  // pickRate numerator from its denominator). The previous comment
+  // claimed "all sources: global + users" but the code's own
+  // compute7dTrend invariant (CLAUDE.md "compute7dTrend logic lives in
+  // TWO places and MUST stay in sync") requires single-source data.
+  const [statsResp, matchupsResp, totalResp] = await Promise.all([
+    serviceSupabase
+      .from('meta_stats')
+      .select('brawler_id, map, mode, date, wins, losses, total')
+      .eq('brawler_id', brawlerId)
+      .eq('source', 'global')
+      .gte('date', cutoffDate),
+    serviceSupabase
+      .from('meta_matchups')
+      .select('brawler_id, opponent_id, wins, losses, total')
+      .eq('brawler_id', brawlerId)
+      .eq('source', 'global')
+      .gte('date', cutoffDate),
+    serviceSupabase.rpc('sum_meta_stats_total', { p_since: cutoffDate, p_source: 'global' }),
+  ])
 
+  const { data: rawStats, error: statsError } = statsResp
   if (statsError) {
     return NextResponse.json({ error: 'Failed to fetch meta stats' }, { status: 500 })
   }
 
-  // 4. Fetch meta_matchups for this brawler (all sources)
-  const { data: rawMatchups, error: matchupsError } = await serviceSupabase
-    .from('meta_matchups')
-    .select('brawler_id, opponent_id, wins, losses, total')
-    .eq('brawler_id', brawlerId)
-    .gte('date', cutoffDate)
-
+  const { data: rawMatchups, error: matchupsError } = matchupsResp
   if (matchupsError) {
     return NextResponse.json({ error: 'Failed to fetch matchups' }, { status: 500 })
   }
 
-  // 5. Fetch total battles across ALL brawlers for pick rate calculation
-  const { data: totalBattlesData, error: totalError } = await serviceSupabase
-    .from('meta_stats')
-    .select('total')
-    .gte('date', cutoffDate)
-
+  const { data: totalScalar, error: totalError } = totalResp
   if (totalError) {
     return NextResponse.json({ error: 'Failed to fetch total battles' }, { status: 500 })
   }
 
-  const allGames = (totalBattlesData ?? []).reduce((sum, r) => sum + r.total, 0)
+  // PostgREST returns BIGINT as number (BigInt deserialization is
+  // off by default); guarded with Number() in case future versions
+  // change to string serialization.
+  const allGames = Number(totalScalar ?? 0)
 
   // 6. Aggregate stats by map (sum wins/losses/total across dates)
   const mapAgg = new Map<string, { map: string; mode: string; wins: number; losses: number; total: number }>()

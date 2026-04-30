@@ -8,11 +8,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 type ResolvedValue = { data: unknown; error: unknown }
 
-function chainable(resolvedValue: ResolvedValue) {
+// Per-table record of `.eq(col, val)` calls so tests can assert on
+// filter clauses (LOG-04: meta_stats path must filter source='global').
+const eqCallsByTable: Record<string, Array<[string, unknown]>> = {}
+
+function chainable(resolvedValue: ResolvedValue, tableForRecording?: string) {
   const self: Record<string, ReturnType<typeof vi.fn>> = {}
-  for (const method of ['select', 'eq', 'gte', 'range']) {
+  for (const method of ['select', 'gte', 'range']) {
     self[method] = vi.fn().mockReturnValue(self)
   }
+  self.eq = vi.fn((col: string, val: unknown) => {
+    if (tableForRecording) {
+      eqCallsByTable[tableForRecording] = eqCallsByTable[tableForRecording] ?? []
+      eqCallsByTable[tableForRecording].push([col, val])
+    }
+    return self
+  })
   self.then = vi.fn((resolve: (v: unknown) => void) => resolve(resolvedValue))
   return self
 }
@@ -30,7 +41,7 @@ function enqueue(table: string, ...values: ResolvedValue[]) {
 
 const mockFrom = vi.fn((table: string) => {
   const next = queue[table]?.shift() ?? { data: [], error: null }
-  return chainable(next)
+  return chainable(next, table)
 })
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -43,6 +54,7 @@ describe('GET /api/meta/brawler-trends', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     for (const key of Object.keys(queue)) delete queue[key]
+    for (const key of Object.keys(eqCallsByTable)) delete eqCallsByTable[key]
   })
 
   it('fast path: returns source=precomputed with fresh rows + computedAt', async () => {
@@ -136,6 +148,19 @@ describe('GET /api/meta/brawler-trends', () => {
 
     const res = await GET()
     expect(res.status).toBe(500)
+  })
+
+  it('fallback path: filters meta_stats by source=global to exclude users data — LOG-04', async () => {
+    // The TS inline path must mirror the SQL function (migration 022),
+    // both filtering source='global'. Without this, premium users'
+    // personal battle data contaminates the "PRO trend" badge served
+    // to every visitor on the home page.
+    enqueue('brawler_trends', { data: [], error: null })
+    enqueue('meta_stats', { data: [], error: null })
+
+    await GET()
+
+    expect(eqCallsByTable.meta_stats).toContainEqual(['source', 'global'])
   })
 })
 

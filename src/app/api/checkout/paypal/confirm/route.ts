@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getSubscriptionDetails } from '@/lib/paypal'
 
 /**
@@ -16,14 +16,33 @@ export async function GET(request: Request) {
     const tag = searchParams.get('tag') || ''
 
     if (!subscriptionId || !profileId) {
-      // Missing params = likely a direct hit or a botched callback. Send
-      // the user home with a flag so UrlFlashMessage can explain.
+      return NextResponse.redirect(`${origin}/${locale}?payment_error=1`)
+    }
+
+    // SEG-04 — bind the upgrade to the cookie session. Without this
+    // an attacker with any valid auth session could call this URL
+    // with another user's `profile_id` and a subscription_id they
+    // observed elsewhere; the service-role update would then
+    // happily promote the wrong profile.
+    const cookieSupabase = await createClient()
+    const { data: { user } } = await cookieSupabase.auth.getUser()
+    if (!user || user.id !== profileId) {
       return NextResponse.redirect(`${origin}/${locale}?payment_error=1`)
     }
 
     // Verify subscription is active with PayPal
     const details = await getSubscriptionDetails(subscriptionId)
-    const ok = details.status === 'ACTIVE' || details.status === 'APPROVED'
+    const subscriptionActive = details.status === 'ACTIVE' || details.status === 'APPROVED'
+
+    // SEG-04 (defence in depth) — the create flow pinned the
+    // subscription's `custom_id` to the buyer's profile id (see
+    // `src/lib/paypal.ts:125`). Reject any mismatch — that would
+    // mean the supplied profile_id is not the legitimate buyer of
+    // this subscription, i.e. upgrade-jacking from an observed
+    // subscription_id.
+    const subscriptionOwnsProfile = details.customId === profileId
+
+    const ok = subscriptionActive && subscriptionOwnsProfile
 
     if (ok) {
       const supabase = await createServiceClient()

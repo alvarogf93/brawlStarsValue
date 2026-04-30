@@ -4,11 +4,25 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Each Supabase method returns an object with the next method in the chain.
 // The terminal method resolves to { data, error }.
 
-function chainable(resolvedValue: { data: unknown; error: unknown }) {
+// Per-table record of `.eq(col, val)` calls so tests can assert on
+// filter clauses (e.g. source='global' contract).
+const eqCallsByTable: Record<string, Array<[string, unknown]>> = {}
+
+function chainable(
+  resolvedValue: { data: unknown; error: unknown },
+  tableForRecording?: string,
+) {
   const self: Record<string, ReturnType<typeof vi.fn>> = {}
-  for (const method of ['select', 'eq', 'gte']) {
+  for (const method of ['select', 'gte']) {
     self[method] = vi.fn().mockReturnValue(self)
   }
+  self.eq = vi.fn((col: string, val: unknown) => {
+    if (tableForRecording) {
+      eqCallsByTable[tableForRecording] = eqCallsByTable[tableForRecording] ?? []
+      eqCallsByTable[tableForRecording].push([col, val])
+    }
+    return self
+  })
   // Override the last method to also carry the resolved value
   // We need .then() so `await` works on the chain
   self.then = vi.fn((resolve: (v: unknown) => void) => resolve(resolvedValue))
@@ -19,12 +33,17 @@ function chainable(resolvedValue: { data: unknown; error: unknown }) {
 const mockChains: Record<string, ReturnType<typeof chainable>> = {}
 const mockFrom = vi.fn((table: string) => {
   // Return the pre-configured chain for this table call, or a default empty one
-  const chain = mockChains[table] ?? chainable({ data: [], error: null })
+  const chain = mockChains[table] ?? chainable({ data: [], error: null }, table)
   return chain
 })
 
+// MIX-03: pickRate denominator now resolved via the
+// sum_meta_stats_total RPC (migration 023) instead of an
+// unpaginated SELECT that PostgREST silently truncated at 1000 rows.
+const mockRpc = vi.fn()
+
 vi.mock('@/lib/supabase/server', () => ({
-  createServiceClient: vi.fn(async () => ({ from: mockFrom })),
+  createServiceClient: vi.fn(async () => ({ from: mockFrom, rpc: mockRpc })),
 }))
 
 // We do NOT mock scoring — we want the real bayesianWinRate to run
@@ -43,6 +62,9 @@ describe('GET /api/meta/brawler-detail', () => {
     vi.clearAllMocks()
     // Reset chains
     for (const key of Object.keys(mockChains)) delete mockChains[key]
+    for (const key of Object.keys(eqCallsByTable)) delete eqCallsByTable[key]
+    // Default: rpc returns 0 (no battles) — happy/edge tests override
+    mockRpc.mockResolvedValue({ data: 0, error: null })
   })
 
   // ── Validation ──────────────────────────────────────────────
@@ -69,13 +91,6 @@ describe('GET /api/meta/brawler-detail', () => {
   // ── Successful response ─────────────────────────────────────
 
   it('returns 200 with correct shape for valid brawlerId', async () => {
-    // We need three sequential .from() calls:
-    // 1. meta_stats (brawler-specific)
-    // 2. meta_matchups
-    // 3. meta_stats (total battles)
-    // Because the route calls .from('meta_stats') twice and .from('meta_matchups') once,
-    // we track call order via mockFrom.
-
     const statsData = [
       { brawler_id: 16, map: 'Gem Fort', mode: 'gemGrab', wins: 60, losses: 40, total: 100 },
       { brawler_id: 16, map: 'Hard Rock Mine', mode: 'gemGrab', wins: 30, losses: 20, total: 50 },
@@ -86,34 +101,25 @@ describe('GET /api/meta/brawler-detail', () => {
       { brawler_id: 16, opponent_id: 2, wins: 10, losses: 40, total: 50 },
     ]
 
-    const totalBattlesData = [
-      { total: 1000 },
-      { total: 2000 },
-    ]
-
-    // Build three separate chains for three calls
     const statsChain = chainable({ data: statsData, error: null })
     const matchupsChain = chainable({ data: matchupsData, error: null })
-    const totalChain = chainable({ data: totalBattlesData, error: null })
 
-    let metaStatsCallCount = 0
     mockFrom.mockImplementation((table: string) => {
-      if (table === 'meta_stats') {
-        metaStatsCallCount++
-        return metaStatsCallCount === 1 ? statsChain : totalChain
-      }
-      if (table === 'meta_matchups') {
-        return matchupsChain
-      }
+      if (table === 'meta_stats') return statsChain
+      if (table === 'meta_matchups') return matchupsChain
       return chainable({ data: [], error: null })
     })
+
+    // RPC returns the scalar denominator directly (BIGINT serialized
+    // as a number). With pre-MIX-03 code this came from an
+    // unpaginated SELECT that truncated at 1000 rows.
+    mockRpc.mockResolvedValue({ data: 3000, error: null })
 
     const res = await GET(makeRequest({ brawlerId: '16' }))
     expect(res.status).toBe(200)
 
     const body = await res.json()
 
-    // Verify response shape matches BrawlerMetaResponse
     expect(body.brawlerId).toBe(16)
     expect(body.globalStats).toBeDefined()
     expect(body.globalStats).toHaveProperty('winRate')
@@ -129,6 +135,49 @@ describe('GET /api/meta/brawler-detail', () => {
 
     // Verify pickRate is calculated: (150 / 3000) * 100 = 5.0
     expect(body.globalStats.pickRate).toBe(5)
+
+    // MIX-03: verify the RPC was called with the cutoff date param
+    expect(mockRpc).toHaveBeenCalledWith(
+      'sum_meta_stats_total',
+      expect.objectContaining({ p_since: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) }),
+    )
+  })
+
+  it('uses sum_meta_stats_total RPC instead of unpaginated SELECT — MIX-03', async () => {
+    // Regression: the pre-fix endpoint did
+    //   .from('meta_stats').select('total').gte('date', cutoff)
+    // which truncated at PostgREST's 1000-row cap. The route must
+    // now never call .from('meta_stats') for the totalBattles
+    // denominator; it must use rpc('sum_meta_stats_total').
+    mockFrom.mockImplementation((table: string) => chainable({ data: [], error: null }, table))
+    mockRpc.mockResolvedValue({ data: 99999, error: null })
+
+    await GET(makeRequest({ brawlerId: '16' }))
+
+    // meta_stats may still be called once for the brawler-specific
+    // stats query, but never twice (the second call was the
+    // truncated denominator query).
+    const metaStatsCalls = mockFrom.mock.calls.filter(([t]) => t === 'meta_stats').length
+    expect(metaStatsCalls).toBe(1)
+    expect(mockRpc).toHaveBeenCalledWith('sum_meta_stats_total', expect.any(Object))
+  })
+
+  it('filters meta_stats and meta_matchups by source=global, RPC same — source-parity', async () => {
+    // Detail endpoint must restrict to source='global' across all
+    // three datasets. Without this, premium users' personal data
+    // contaminates the public brawler page and the detail trend7d
+    // can drift from the bulk SQL fast path that already filters.
+    mockFrom.mockImplementation((table: string) => chainable({ data: [], error: null }, table))
+    mockRpc.mockResolvedValue({ data: 0, error: null })
+
+    await GET(makeRequest({ brawlerId: '16' }))
+
+    expect(eqCallsByTable.meta_stats).toContainEqual(['source', 'global'])
+    expect(eqCallsByTable.meta_matchups).toContainEqual(['source', 'global'])
+    expect(mockRpc).toHaveBeenCalledWith(
+      'sum_meta_stats_total',
+      expect.objectContaining({ p_source: 'global' }),
+    )
   })
 
   // ── DB error paths ──────────────────────────────────────────
@@ -164,22 +213,16 @@ describe('GET /api/meta/brawler-detail', () => {
     expect(body.error).toMatch(/matchups/i)
   })
 
-  it('returns 500 when total battles query fails', async () => {
+  it('returns 500 when total battles RPC fails', async () => {
     const statsChain = chainable({ data: [], error: null })
     const matchupsChain = chainable({ data: [], error: null })
-    const totalChain = chainable({ data: null, error: { message: 'connection lost' } })
 
-    let metaStatsCallCount = 0
     mockFrom.mockImplementation((table: string) => {
-      if (table === 'meta_stats') {
-        metaStatsCallCount++
-        return metaStatsCallCount === 1 ? statsChain : totalChain
-      }
-      if (table === 'meta_matchups') {
-        return matchupsChain
-      }
+      if (table === 'meta_stats') return statsChain
+      if (table === 'meta_matchups') return matchupsChain
       return chainable({ data: [], error: null })
     })
+    mockRpc.mockResolvedValue({ data: null, error: { message: 'connection lost' } })
 
     const res = await GET(makeRequest({ brawlerId: '16' }))
     expect(res.status).toBe(500)

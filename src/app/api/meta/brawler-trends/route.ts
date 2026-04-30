@@ -88,9 +88,14 @@ export async function GET() {
   const allRows: Row[] = []
   let offset = 0
   for (;;) {
+    // LOG-04 — must filter source='global' to match the SQL fast
+    // path (migration 022). Without this, premium users' personal
+    // battle data (source='users') contaminates the trend served to
+    // every visitor on the home page.
     const { data: page, error } = await supabase
       .from('meta_stats')
       .select('brawler_id, date, wins, total')
+      .eq('source', 'global')
       .gte('date', cutoff)
       .range(offset, offset + PAGE_SIZE - 1)
 
