@@ -40,32 +40,42 @@ export interface RateLimitOptions {
 
 export interface RateLimitResult {
   ok: boolean
-  /** Requests remaining in the current window (only meaningful when ok=true). */
-  remaining?: number
+  /** Configured maximum requests per window (always present). */
+  limit: number
+  /** Requests remaining in the current window. */
+  remaining: number
   /**
    * Seconds until the window resets, suitable for a `Retry-After` header.
    * Always a non-negative integer; `0` means "retry now".
    */
-  reset?: number
+  reset: number
 }
 
 // ---------------------------------------------------------------------------
-// Module-level singletons. We build the Ratelimit instance once per process so
-// the underlying connection-pool is reused across requests.
+// Credential state.
 
-let cachedLimiter: Ratelimit | null = null
+type CredState =
+  | { kind: 'configured'; url: string; token: string }
+  | { kind: 'fall-open' }
+
 let warnedAboutMissingCreds = false
 
-function getLimiter(): Ratelimit | null {
-  // Read fresh every call — tests reset env vars between cases, and prod env
-  // is stable so this is essentially free.
+/**
+ * Read Upstash credentials from env vars and classify the state. Throws on
+ * partial configuration (loud failure path). Reads fresh every call — tests
+ * stub env between cases, prod is stable so this is essentially free.
+ */
+function checkCredentials(): CredState {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
 
   const hasUrl = typeof url === 'string' && url.length > 0
   const hasToken = typeof token === 'string' && token.length > 0
 
-  // Both missing → fall open, warn ONCE.
+  if (hasUrl && hasToken) {
+    return { kind: 'configured', url, token }
+  }
+
   if (!hasUrl && !hasToken) {
     if (!warnedAboutMissingCreds) {
       console.warn(
@@ -75,31 +85,14 @@ function getLimiter(): Ratelimit | null {
       )
       warnedAboutMissingCreds = true
     }
-    return null
+    return { kind: 'fall-open' }
   }
 
-  // Exactly one missing → loud failure. Never silently degrade in production.
-  if (!hasUrl || !hasToken) {
-    throw new Error(
-      '[rate-limit] Upstash misconfigured: exactly one of UPSTASH_REDIS_REST_URL / ' +
-        'UPSTASH_REDIS_REST_TOKEN is set. Both are required.',
-    )
-  }
-
-  if (!cachedLimiter) {
-    const redis = new Redis({ url, token })
-    cachedLimiter = new Ratelimit({
-      redis,
-      // Algorithm is created lazily per `limit` call below — but the constructor
-      // requires a default. Use a no-op-friendly default; per-route limits are
-      // applied via `Ratelimit.slidingWindow(limit, window)` passed at construction.
-      limiter: Ratelimit.slidingWindow(1, '1 s'),
-      analytics: false,
-      prefix: 'bv:ratelimit',
-    })
-  }
-
-  return cachedLimiter
+  // Exactly one missing → never silently degrade in production.
+  throw new Error(
+    '[rate-limit] Upstash misconfigured: exactly one of UPSTASH_REDIS_REST_URL / ' +
+      'UPSTASH_REDIS_REST_TOKEN is set. Both are required.',
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -110,28 +103,14 @@ function getLimiter(): Ratelimit | null {
 const perRouteLimiters = new Map<string, Ratelimit>()
 
 function getPerRouteLimiter(opts: RateLimitOptions): Ratelimit | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-
-  const hasUrl = typeof url === 'string' && url.length > 0
-  const hasToken = typeof token === 'string' && token.length > 0
-
-  if (!hasUrl && !hasToken) {
-    // Trigger the once-per-process warning side-effect.
-    getLimiter()
-    return null
-  }
-  if (!hasUrl || !hasToken) {
-    // Re-throw via the canonical path so the error message stays in one place.
-    getLimiter()
-    return null // unreachable — getLimiter throws — but satisfies TS.
-  }
+  const creds = checkCredentials()
+  if (creds.kind === 'fall-open') return null
 
   const key = `${opts.limit}:${opts.window}`
   const existing = perRouteLimiters.get(key)
   if (existing) return existing
 
-  const redis = new Redis({ url, token })
+  const redis = new Redis({ url: creds.url, token: creds.token })
   const limiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(opts.limit, opts.window),
@@ -143,8 +122,17 @@ function getPerRouteLimiter(opts: RateLimitOptions): Ratelimit | null {
 }
 
 // ---------------------------------------------------------------------------
+// Identifier extraction.
 
-function extractIdentifier(req: Request): string {
+/**
+ * Extract the client IP from forwarding headers, with safe fallbacks.
+ *
+ * Vercel sets `x-forwarded-for` with the chain `<client>, <proxy1>, ...`. The
+ * leftmost entry is the originating client; subsequent entries are
+ * intermediate proxies. We trust the leftmost because Vercel terminates the
+ * external connection at its edge.
+ */
+export function extractClientIp(req: Request): string {
   const fwd = req.headers.get('x-forwarded-for')
   if (fwd) {
     const first = fwd.split(',')[0]?.trim()
@@ -155,43 +143,75 @@ function extractIdentifier(req: Request): string {
   return 'anonymous'
 }
 
+// ---------------------------------------------------------------------------
+// Public API.
+
 /**
- * Enforce a per-IP sliding-window rate limit.
+ * Enforce a sliding-window rate limit keyed by client IP (default).
  *
  * Returns:
- *   - `{ ok: true, remaining, reset }` when the request is allowed.
- *   - `{ ok: false, remaining: 0, reset }` when the limit has been hit.
- *     `reset` is the number of seconds until the window resets (use as the
- *     `Retry-After` header value).
+ *   - `{ ok: true, limit, remaining, reset }` when the request is allowed.
+ *   - `{ ok: false, limit, remaining: 0, reset }` when the limit has been hit.
  *
- * In the "no credentials" mode (local dev), always returns `{ ok: true }`.
+ * In "no credentials" mode (local dev) always returns ok=true with `limit=∞`
+ * sentinel values (`limit: opts.limit, remaining: opts.limit, reset: 0`).
  *
- * Throws on partial credentials — that's a configuration bug.
+ * Throws on partial credentials.
  */
 export async function enforceRateLimit(
   req: Request,
   opts: RateLimitOptions,
+  identifierOverride?: string,
 ): Promise<RateLimitResult> {
   const limiter = getPerRouteLimiter(opts)
 
   if (!limiter) {
-    // Fall-open path (dev with no Upstash creds).
-    return { ok: true }
+    // Fall-open path (dev with no Upstash creds). Return values clients can
+    // still attach to response headers without leaking that we're disabled.
+    return { ok: true, limit: opts.limit, remaining: opts.limit, reset: 0 }
   }
 
-  const identifier = extractIdentifier(req)
+  const identifier = identifierOverride ?? extractClientIp(req)
   const result = await limiter.limit(identifier)
 
-  // `result.reset` is a Unix epoch in milliseconds. Convert to a non-negative
-  // number of seconds for the Retry-After header.
   const nowMs = Date.now()
   const resetSec = Math.max(0, Math.ceil((result.reset - nowMs) / 1000))
 
   return {
     ok: result.success,
+    limit: opts.limit,
     remaining: result.remaining,
     reset: resetSec,
   }
+}
+
+/**
+ * Build the standard rate-limit response headers from a `RateLimitResult`.
+ *
+ * Uses the IETF draft-ietf-httpapi-ratelimit-headers naming (`RateLimit-*`,
+ * no `X-` prefix) plus the legacy `X-RateLimit-*` aliases for clients that
+ * still depend on them. `Retry-After` (RFC 9110 §10.2.3) is set on 429.
+ *
+ * Pass the result of `enforceRateLimit` plus a flag for whether this is a
+ * 429 (rejected) response — only the rejected path emits `Retry-After`.
+ *
+ * Refs:
+ *   https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/
+ *   https://www.rfc-editor.org/rfc/rfc9110#section-10.2.3
+ */
+export function rateLimitHeaders(rl: RateLimitResult, rejected: boolean): Record<string, string> {
+  const headers: Record<string, string> = {
+    'RateLimit-Limit': String(rl.limit),
+    'RateLimit-Remaining': String(rl.remaining),
+    'RateLimit-Reset': String(rl.reset),
+    'X-RateLimit-Limit': String(rl.limit),
+    'X-RateLimit-Remaining': String(rl.remaining),
+    'X-RateLimit-Reset': String(rl.reset),
+  }
+  if (rejected) {
+    headers['Retry-After'] = String(rl.reset)
+  }
+  return headers
 }
 
 /**
@@ -200,7 +220,6 @@ export async function enforceRateLimit(
  * helper isn't actually called from tests — kept for emergency manual reset.
  */
 export function __resetRateLimitForTests(): void {
-  cachedLimiter = null
   warnedAboutMissingCreds = false
   perRouteLimiters.clear()
 }

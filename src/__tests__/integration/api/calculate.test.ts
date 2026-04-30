@@ -56,10 +56,22 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 const { enforceRateLimitMock } = vi.hoisted(() => ({
-  enforceRateLimitMock: vi.fn().mockResolvedValue({ ok: true, remaining: 9, reset: 60 }),
+  enforceRateLimitMock: vi.fn().mockResolvedValue({
+    ok: true, limit: 10, remaining: 9, reset: 60,
+  }),
 }))
 vi.mock('@/lib/rate-limit', () => ({
   enforceRateLimit: enforceRateLimitMock,
+  rateLimitHeaders: (rl: { limit: number; remaining: number; reset: number }, rejected: boolean) => {
+    const h: Record<string, string> = {
+      'RateLimit-Limit': String(rl.limit),
+      'RateLimit-Remaining': String(rl.remaining),
+      'RateLimit-Reset': String(rl.reset),
+    }
+    if (rejected) h['Retry-After'] = String(rl.reset)
+    return h
+  },
+  extractClientIp: () => '127.0.0.1',
 }))
 
 const MOCK_PLAYER: PlayerData = {
@@ -105,7 +117,7 @@ function makeRequest(body: unknown) {
 describe('POST /api/calculate', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    enforceRateLimitMock.mockResolvedValue({ ok: true, remaining: 9, reset: 60 })
+    enforceRateLimitMock.mockResolvedValue({ ok: true, limit: 10, remaining: 9, reset: 60 })
   })
 
   it('returns 200 with real gem value', async () => {
@@ -159,7 +171,7 @@ describe('POST /api/calculate — anonymous visit tracking', () => {
   beforeEach(() => {
     resetCaptured()
     vi.clearAllMocks()
-    enforceRateLimitMock.mockResolvedValue({ ok: true, remaining: 9, reset: 60 })
+    enforceRateLimitMock.mockResolvedValue({ ok: true, limit: 10, remaining: 9, reset: 60 })
     // Default: Supercell returns a valid player and user is anonymous
     mockFetchPlayer.mockResolvedValue(MOCK_PLAYER)
     getUserMock.mockResolvedValue({ data: { user: null }, error: null })
@@ -258,7 +270,7 @@ describe('POST /api/calculate — rate limiting (SEG-06)', () => {
   })
 
   it('returns 429 with Retry-After header and does NOT call Supercell', async () => {
-    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, remaining: 0, reset: 25 })
+    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, limit: 10, remaining: 0, reset: 25 })
     const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
     expect(res.status).toBe(429)
     expect(res.headers.get('Retry-After')).toBe('25')

@@ -63,11 +63,33 @@ describe('enforceRateLimit — credential handling', () => {
     expect(r1.ok).toBe(true)
     expect(r2.ok).toBe(true)
     expect(warn).toHaveBeenCalledTimes(1)
-    // Warning must NOT include the values of the env vars (defensive — they are
-    // empty here, but we lock the contract).
+    // Lock the warning contract: it MUST contain the word DISABLED so that
+    // boot-time grep / log-search alerts can find it (TEST gap from review).
     const warningText = warn.mock.calls.map((c) => c.join(' ')).join(' ')
+    expect(warningText).toMatch(/DISABLED/)
+    // And it MUST NOT include the values of the env vars (defensive — they
+    // are empty here, but we lock the contract).
     expect(warningText).not.toMatch(/UPSTASH_REDIS_REST_TOKEN=\S/)
     expect(ratelimitLimitMock).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('returns sentinel headers values in fall-open mode (no leaking the disabled state)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { enforceRateLimit, rateLimitHeaders } = await freshImport()
+
+    const rl = await enforceRateLimit(makeRequest(), { limit: 30, window: '60 s' })
+    expect(rl.ok).toBe(true)
+    expect(rl.limit).toBe(30)
+    expect(rl.remaining).toBe(30)
+    expect(rl.reset).toBe(0)
+
+    // The headers helper still returns the configured limit so clients can
+    // attach them on every response without branching on "disabled".
+    const h = rateLimitHeaders(rl, false)
+    expect(h['RateLimit-Limit']).toBe('30')
+    expect(h['RateLimit-Remaining']).toBe('30')
+    expect(h['Retry-After']).toBeUndefined()
     warn.mockRestore()
   })
 
@@ -187,5 +209,61 @@ describe('enforceRateLimit — limit enforcement', () => {
     )
 
     expect(ratelimitLimitMock).toHaveBeenCalledWith('11.22.33.44')
+  })
+
+  it('uses identifierOverride when provided (ip:tag bucketing for check-premium)', async () => {
+    ratelimitLimitMock.mockResolvedValueOnce({
+      success: true,
+      remaining: 59,
+      reset: Date.now() + 1000,
+      limit: 60,
+    })
+    const { enforceRateLimit } = await freshImport()
+
+    await enforceRateLimit(
+      makeRequest({ 'x-forwarded-for': '1.2.3.4' }),
+      { limit: 60, window: '60 s' },
+      '1.2.3.4:#ABC123',
+    )
+
+    // Override wins over the IP extracted from headers.
+    expect(ratelimitLimitMock).toHaveBeenCalledWith('1.2.3.4:#ABC123')
+  })
+})
+
+describe('rateLimitHeaders', () => {
+  it('emits both modern (RateLimit-*) and legacy (X-RateLimit-*) headers', async () => {
+    const { rateLimitHeaders } = await freshImport()
+    const h = rateLimitHeaders(
+      { ok: true, limit: 30, remaining: 25, reset: 42 },
+      false,
+    )
+    expect(h['RateLimit-Limit']).toBe('30')
+    expect(h['RateLimit-Remaining']).toBe('25')
+    expect(h['RateLimit-Reset']).toBe('42')
+    expect(h['X-RateLimit-Limit']).toBe('30')
+    expect(h['X-RateLimit-Remaining']).toBe('25')
+    expect(h['X-RateLimit-Reset']).toBe('42')
+    // Retry-After is reserved for 429 — not on success paths.
+    expect(h['Retry-After']).toBeUndefined()
+  })
+
+  it('adds Retry-After only on rejected (429) responses', async () => {
+    const { rateLimitHeaders } = await freshImport()
+    const h = rateLimitHeaders(
+      { ok: false, limit: 30, remaining: 0, reset: 18 },
+      true,
+    )
+    expect(h['Retry-After']).toBe('18')
+    expect(h['RateLimit-Remaining']).toBe('0')
+  })
+})
+
+describe('extractClientIp', () => {
+  it('mirrors enforceRateLimit identifier resolution for direct callers', async () => {
+    const { extractClientIp } = await freshImport()
+    expect(extractClientIp(makeRequest({ 'x-forwarded-for': '1.2.3.4, 9.9.9.9' }))).toBe('1.2.3.4')
+    expect(extractClientIp(makeRequest({ 'x-real-ip': '5.5.5.5' }))).toBe('5.5.5.5')
+    expect(extractClientIp(makeRequest())).toBe('anonymous')
   })
 })

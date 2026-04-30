@@ -12,10 +12,23 @@ vi.mock('@/lib/api', () => ({
 }))
 
 const { enforceRateLimitMock } = vi.hoisted(() => ({
-  enforceRateLimitMock: vi.fn().mockResolvedValue({ ok: true, remaining: 29, reset: 60 }),
+  enforceRateLimitMock: vi.fn().mockResolvedValue({
+    ok: true, limit: 30, remaining: 29, reset: 60,
+  }),
 }))
 vi.mock('@/lib/rate-limit', () => ({
   enforceRateLimit: enforceRateLimitMock,
+  // Pass-through that just emits the standard subset the tests check.
+  rateLimitHeaders: (rl: { limit: number; remaining: number; reset: number }, rejected: boolean) => {
+    const h: Record<string, string> = {
+      'RateLimit-Limit': String(rl.limit),
+      'RateLimit-Remaining': String(rl.remaining),
+      'RateLimit-Reset': String(rl.reset),
+    }
+    if (rejected) h['Retry-After'] = String(rl.reset)
+    return h
+  },
+  extractClientIp: () => '127.0.0.1',
 }))
 
 import { fetchClub, SuprecellApiError } from '@/lib/api'
@@ -27,7 +40,7 @@ const mockFetchClub = vi.mocked(fetchClub)
 
 beforeEach(() => {
   vi.clearAllMocks()
-  enforceRateLimitMock.mockResolvedValue({ ok: true, remaining: 29, reset: 60 })
+  enforceRateLimitMock.mockResolvedValue({ ok: true, limit: 30, remaining: 29, reset: 60 })
 })
 
 function makeRequest(body: unknown) {
@@ -65,10 +78,20 @@ describe('POST /api/club', () => {
   })
 
   it('returns 429 with Retry-After when rate-limited (SEG-06)', async () => {
-    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, remaining: 0, reset: 17 })
+    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, limit: 30, remaining: 0, reset: 17 })
     const res = await POST(makeRequest({ clubTag: '#CLUB1' }))
     expect(res.status).toBe(429)
     expect(res.headers.get('Retry-After')).toBe('17')
+    // Both modern and legacy header names are emitted.
+    expect(res.headers.get('RateLimit-Remaining')).toBe('0')
     expect(mockFetchClub).not.toHaveBeenCalled()
+  })
+
+  it('emits RateLimit headers on 200 success (no Retry-After)', async () => {
+    mockFetchClub.mockResolvedValueOnce({ tag: '#CLUB2', name: 'OK', members: [] } as unknown as ClubData)
+    const res = await POST(makeRequest({ clubTag: '#CLUB2' }))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('RateLimit-Limit')).toBe('30')
+    expect(res.headers.get('Retry-After')).toBeNull()
   })
 })
