@@ -1,9 +1,19 @@
 import { NextResponse } from 'next/server'
 import { fetchClub, SuprecellApiError } from '@/lib/api'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
+import { enforceRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
   try {
+    // Throttle BEFORE input validation. SEG-06.
+    const rl = await enforceRateLimit(req, { limit: 30, window: '60 s' })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again later.' },
+        { status: 429, headers: rateLimitHeaders(rl, true) },
+      )
+    }
+
     const { clubTag } = await req.json()
 
     // SEG-05 — single regex source. The previous /^#[0-9A-Z]{3,12}$/
@@ -12,11 +22,14 @@ export async function POST(req: Request) {
     // PLAYER_TAG_REGEX is case-insensitive — `.toUpperCase()` was a
     // workaround that masked the inconsistency.
     if (!clubTag || typeof clubTag !== 'string' || !PLAYER_TAG_REGEX.test(clubTag)) {
-      return NextResponse.json({ error: 'Invalid or missing clubTag', code: 400 }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid or missing clubTag', code: 400 },
+        { status: 400, headers: rateLimitHeaders(rl, false) },
+      )
     }
 
     const data = await fetchClub(clubTag)
-    return NextResponse.json(data)
+    return NextResponse.json(data, { headers: rateLimitHeaders(rl, false) })
   } catch (error) {
     if (error instanceof SuprecellApiError) {
       return NextResponse.json({ error: error.message, code: error.status }, { status: error.status })

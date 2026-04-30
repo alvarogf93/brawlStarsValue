@@ -1,17 +1,31 @@
 import { NextResponse } from 'next/server'
 import { PLAYER_TAG_REGEX } from '@/lib/constants'
 import { fetchBattlelog, SuprecellApiError } from '@/lib/api'
+import { enforceRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
 export async function POST(req: Request) {
   try {
+    // Throttle BEFORE input validation so attackers probing payload shapes
+    // still consume rate budget. SEG-06.
+    const rl = await enforceRateLimit(req, { limit: 30, window: '60 s' })
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: 'Too many requests. Try again later.' },
+        { status: 429, headers: rateLimitHeaders(rl, true) },
+      )
+    }
+
     const { playerTag } = await req.json()
 
     if (!playerTag || typeof playerTag !== 'string' || !PLAYER_TAG_REGEX.test(playerTag)) {
-      return NextResponse.json({ error: 'Invalid player tag format', code: 400 }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Invalid player tag format', code: 400 },
+        { status: 400, headers: rateLimitHeaders(rl, false) },
+      )
     }
 
     const data = await fetchBattlelog(playerTag)
-    return NextResponse.json(data)
+    return NextResponse.json(data, { headers: rateLimitHeaders(rl, false) })
   } catch (error) {
     if (error instanceof SuprecellApiError) {
       return NextResponse.json({ error: error.message, code: error.status }, { status: error.status })

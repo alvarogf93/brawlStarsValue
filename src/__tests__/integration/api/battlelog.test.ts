@@ -11,6 +11,25 @@ vi.mock('@/lib/api', () => ({
   },
 }))
 
+const { enforceRateLimitMock } = vi.hoisted(() => ({
+  enforceRateLimitMock: vi.fn().mockResolvedValue({
+    ok: true, limit: 30, remaining: 29, reset: 60,
+  }),
+}))
+vi.mock('@/lib/rate-limit', () => ({
+  enforceRateLimit: enforceRateLimitMock,
+  rateLimitHeaders: (rl: { limit: number; remaining: number; reset: number }, rejected: boolean) => {
+    const h: Record<string, string> = {
+      'RateLimit-Limit': String(rl.limit),
+      'RateLimit-Remaining': String(rl.remaining),
+      'RateLimit-Reset': String(rl.reset),
+    }
+    if (rejected) h['Retry-After'] = String(rl.reset)
+    return h
+  },
+  extractClientIp: () => '127.0.0.1',
+}))
+
 import { fetchBattlelog, SuprecellApiError } from '@/lib/api'
 import { POST } from '@/app/api/battlelog/route'
 
@@ -18,7 +37,10 @@ type BattlelogData = Awaited<ReturnType<typeof fetchBattlelog>>
 
 const mockFetchBattlelog = vi.mocked(fetchBattlelog)
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  enforceRateLimitMock.mockResolvedValue({ ok: true, limit: 30, remaining: 29, reset: 60 })
+})
 
 function makeRequest(body: unknown) {
   return new Request('http://localhost:3000/api/battlelog', {
@@ -63,5 +85,22 @@ describe('POST /api/battlelog', () => {
     mockFetchBattlelog.mockRejectedValueOnce(new Error('network fail'))
     const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
     expect(res.status).toBe(500)
+  })
+
+  it('returns 429 with Retry-After when rate-limited (SEG-06)', async () => {
+    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, limit: 30, remaining: 0, reset: 42 })
+    const res = await POST(makeRequest({ playerTag: '#YJU282PV' }))
+    expect(res.status).toBe(429)
+    expect(res.headers.get('Retry-After')).toBe('42')
+    expect(res.headers.get('RateLimit-Remaining')).toBe('0')
+    // Underlying fetch must NOT have been called when throttled.
+    expect(mockFetchBattlelog).not.toHaveBeenCalled()
+  })
+
+  it('rate-limit runs BEFORE input validation (SEG-06 contract)', async () => {
+    enforceRateLimitMock.mockResolvedValueOnce({ ok: false, limit: 30, remaining: 0, reset: 30 })
+    // Invalid payload — but rate-limit fires first → 429, not 400.
+    const res = await POST(makeRequest({ playerTag: 'not a tag' }))
+    expect(res.status).toBe(429)
   })
 })
