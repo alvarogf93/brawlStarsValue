@@ -43,6 +43,9 @@ export function InputForm() {
   // on the client after hydration, so no hydration mismatch.
   useEffect(() => {
     if (typeof document !== 'undefined' && document.cookie.includes('sb-')) {
+      // TODO: ARQ-10 — react-hooks/set-state-in-effect. Mount-only cookie probe;
+      // refactoring to useSyncExternalStore is the right fix and is tracked separately.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowRedirectLoading(true)
     }
   }, [])
@@ -72,6 +75,10 @@ export function InputForm() {
     if (authLoading) return // don't bounce until AuthProvider resolves
 
     if (profile?.player_tag) {
+      // TODO: ARQ-10 — paired setState + router.replace inside the auth-resolution
+      // effect. Cleanest fix is to derive the redirect from a render-phase guard;
+      // tracked alongside the other set-state-in-effect cases.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowRedirectLoading(true)
       router.replace(`/${locale}/profile/${encodeURIComponent(profile.player_tag)}`)
       return

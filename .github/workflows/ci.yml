@@ -1,0 +1,188 @@
+# BrawlVision CI — quality gates for every push and PR to main.
+#
+# Closes audit finding TEST-01 (see docs/audits/2026-04-28-1147/fase-5-testing.md
+# and MASTER-TODO.md): the suite has 758 tests but no automation runs them, so
+# auth-contract regressions or cookie -> Bearer downgrades could merge silently.
+#
+# Branch protection: this workflow is intended to be a REQUIRED CHECK on `main`.
+# That cannot be enabled from code — a human must do it once in
+#   GitHub -> Settings -> Branches -> Branch protection rules -> main
+# and tick "Require status checks to pass before merging" for the jobs:
+#   typecheck, lint, unit, build.
+#
+# `e2e` is INTENTIONALLY EXCLUDED from required checks because the suite
+# currently hits Supercell live (TEST-11). Until the offline-fixture mode
+# lands, e2e runs only when the repository has the Supercell secrets
+# configured (the secrets-gate job below decides). Marking it required
+# would block merges any day Supercell has an outage — value the audit
+# already paid attention to.
+#
+# Node version: pinned to 24 (Vercel default runtime as of 2026). Upgrading
+# the runtime requires upgrading here too.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+# Default permissions are fine — no PR comments, no release artifacts yet.
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+      - run: npm ci
+      # Errors must stay at 0. Warnings (currently 70, mostly <img>) are
+      # tracked separately and not gating yet.
+      - run: npx eslint .
+
+  unit:
+    name: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+      - run: npm ci
+      - run: npx vitest run
+
+  # Gate the e2e job behind a "do we have the secrets to run it?" check.
+  # GitHub Actions does NOT allow `if: secrets.X != ''` at the job level,
+  # so we materialize the check as an output of a tiny gate job and let
+  # the e2e job's `if` consume that via `needs`. Pattern documented at
+  # https://docs.github.com/en/actions/security-guides/encrypted-secrets
+  # and discussed in actions/runner#520.
+  e2e-gate:
+    name: e2e-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      run_e2e: ${{ steps.check.outputs.run_e2e }}
+    steps:
+      - id: check
+        env:
+          HAS_API_URL: ${{ secrets.BRAWLSTARS_API_URL != '' }}
+          HAS_API_KEY: ${{ secrets.BRAWLSTARS_API_KEY != '' }}
+          HAS_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL != '' }}
+          HAS_SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        run: |
+          if [ "$HAS_API_URL" = "true" ] && [ "$HAS_API_KEY" = "true" ] \
+             && [ "$HAS_SUPABASE_URL" = "true" ] && [ "$HAS_SUPABASE_KEY" = "true" ]; then
+            echo "run_e2e=true" >> "$GITHUB_OUTPUT"
+            echo "All Supercell + Supabase secrets present — e2e will run."
+          else
+            echo "run_e2e=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::e2e skipped — repository is missing one or more required secrets (BRAWLSTARS_API_URL, BRAWLSTARS_API_KEY, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)."
+          fi
+
+  e2e:
+    name: e2e
+    needs: e2e-gate
+    if: needs.e2e-gate.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # playwright.config.ts has a webServer block that boots `npm run dev`,
+      # so no separate dev-server step is needed here.
+      - run: npx playwright test
+        env:
+          CI: 'true'
+          # Surface the secrets to the dev server boot. Without these,
+          # /api/battles, /profile/*, /api/calculate, /api/cron/* all
+          # fail (CLAUDE.md "Dev environment gotchas"). The e2e-gate
+          # job already verified all four are non-empty.
+          BRAWLSTARS_API_URL: ${{ secrets.BRAWLSTARS_API_URL }}
+          BRAWLSTARS_API_KEY: ${{ secrets.BRAWLSTARS_API_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-${{ runner.os }}-
+      - run: npm ci
+      - run: npm run build
