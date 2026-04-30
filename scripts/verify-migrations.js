@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * One-off verifier: confirms migrations 022 + 023 are applied to Supabase prod.
+ * One-off verifier: confirms migrations 022 + 023 + 024 are applied to
+ * Supabase prod.
  *
  * Checks (no writes, all read-only):
  *   1. compute_brawler_trends() exists  → 022 partially applied
@@ -13,8 +14,12 @@
  *      sane non-negative number → 023 actually executes correctly
  *   6. Behavioural test: read brawler_trends after a refresh, expect rows with
  *      computed_at within the last 12h → 022's compute_brawler_trends() ran
+ *   7. profiles.signup_notified_at column exists with TIMESTAMPTZ type
+ *      → 024 applied (SEG-09 idempotency flag)
+ *   8. Behavioural test: select signup_notified_at on an existing profile
+ *      → PostgREST exposes the column (rules out a typo / partial apply)
  *
- * Usage: node scripts/verify-migrations-022-023.js
+ * Usage: node scripts/verify-migrations.js
  */
 
 const fs = require('fs')
@@ -244,12 +249,59 @@ async function check(name, fn) {
     ok(`anon role can execute (returned ${body.trim()})`)
   })
 
+  console.log('\nMigration 024 — profiles.signup_notified_at')
+
+  // 7. Column exists. PostgREST OpenAPI exposes every column it can write
+  //    to. Reading the spec is the most reliable way to confirm without
+  //    a SELECT side-effect on a real profile row.
+  await check('  signup_notified_at exposed in PostgREST spec', async () => {
+    const res = await fetch(`${REST}/`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` },
+    })
+    if (!res.ok) throw new Error(`PostgREST root ${res.status}`)
+    const spec = await res.json()
+    const profilesDef = spec.definitions?.profiles
+    if (!profilesDef) throw new Error('profiles definition missing from spec')
+    const col = profilesDef.properties?.signup_notified_at
+    if (!col) {
+      throw new Error('column signup_notified_at not in profiles spec — migration 024 NOT applied')
+    }
+    if (!/timestamp/i.test(col.format ?? '')) {
+      throw new Error(`unexpected column type: format=${col.format}`)
+    }
+    ok(`column present, type=${col.format}`)
+  })
+
+  // 8. Behavioural test: SELECT the column from any profile row. If the
+  //    DB doesn't have it, PostgREST returns 400 "column does not exist".
+  await check('  SELECT signup_notified_at FROM profiles works end-to-end', async () => {
+    const res = await fetch(
+      `${REST}/profiles?select=id,signup_notified_at&limit=1`,
+      { headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } },
+    )
+    if (!res.ok) {
+      const body = await res.text()
+      throw new Error(`SELECT failed: ${res.status} ${body.slice(0, 200)}`)
+    }
+    const rows = await res.json()
+    if (!Array.isArray(rows)) throw new Error(`unexpected response shape: ${JSON.stringify(rows)}`)
+    info(`scanned ${rows.length} row(s); shape ok`)
+    if (rows.length > 0) {
+      const sample = rows[0]
+      if (!('signup_notified_at' in sample)) {
+        throw new Error('signup_notified_at not present in row — column was filtered out')
+      }
+      info(`sample value: ${JSON.stringify(sample.signup_notified_at)} (null = not yet notified, expected for most rows)`)
+    }
+    ok(`column readable via PostgREST`)
+  })
+
   console.log('')
   if (failures > 0) {
-    console.log(color(`\n${failures} check(s) failed — migrations 022/023 NOT fully applied or correct.\n`, 31))
+    console.log(color(`\n${failures} check(s) failed — one or more migrations NOT fully applied or correct.\n`, 31))
     process.exit(2)
   } else {
-    console.log(color('\nAll checks passed — migrations 022 + 023 are applied and behaving correctly.\n', 32))
+    console.log(color('\nAll checks passed — migrations 022 + 023 + 024 are applied and behaving correctly.\n', 32))
   }
 })().catch(err => {
   console.error('\nFatal:', err.message)

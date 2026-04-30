@@ -7,11 +7,13 @@ import {
   PayPalCertUrlError,
 } from '@/lib/paypal'
 import { notify } from '@/lib/telegram/notify'
+import { log, requestIdFrom } from '@/lib/log'
 
 export async function POST(request: Request) {
+  const requestId = requestIdFrom(request)
   const webhookId = process.env.PAYPAL_WEBHOOK_ID
   if (!webhookId) {
-    console.error('PAYPAL_WEBHOOK_ID not configured')
+    log.error('paypal-webhook', 'PAYPAL_WEBHOOK_ID not configured', { request_id: requestId })
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
 
@@ -32,12 +34,16 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof PayPalCertUrlError) {
       // Hostile cert URL — log generically, return 401 (never echo the URL).
-      console.warn('[paypal webhook] rejected cert URL')
+      log.warn('paypal-webhook', 'rejected cert URL (allowlist violation)', { request_id: requestId })
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
     throw err
   }
   if (!verified) {
+    log.warn('paypal-webhook', 'signature verification failed', {
+      request_id: requestId,
+      transmission_id: headers['paypal-transmission-id'],
+    })
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
@@ -68,7 +74,11 @@ export async function POST(request: Request) {
   }
 
   if (!profileId) {
-    console.error('[paypal webhook] No profile ID found for subscription:', subscriptionId)
+    log.error('paypal-webhook', 'no profile ID found for subscription', {
+      request_id: requestId,
+      subscription_id: subscriptionId,
+      event_type: eventType,
+    })
     return NextResponse.json({ error: 'No profile ID' }, { status: 400 })
   }
 
@@ -111,7 +121,14 @@ export async function POST(request: Request) {
     .eq('id', profileId)
 
   if (updateErr) {
-    console.error('[paypal webhook] Update failed:', updateErr.message)
+    log.error('paypal-webhook', 'profile update failed (PayPal will retry)', {
+      request_id: requestId,
+      profile_id: profileId,
+      subscription_id: subscriptionId,
+      event_type: eventType,
+      err: updateErr.message,
+      pg_code: updateErr.code,
+    })
     // No idempotency mark — PayPal must be allowed to retry until update succeeds.
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   }
@@ -125,11 +142,22 @@ export async function POST(request: Request) {
     if (insertErr && insertErr.code !== '23505') {
       // Effect already applied; log but do not fail the response — PayPal
       // would only retry and re-apply the same idempotent update.
-      console.error('[paypal-webhook] Idempotency insert failed (non-fatal):', insertErr.message)
+      log.warn('paypal-webhook', 'idempotency insert failed (non-fatal — effect already applied)', {
+        request_id: requestId,
+        event_id: eventId,
+        err: insertErr.message,
+      })
     }
   }
 
-  console.info('[paypal webhook] Success: event=%s tier=%s status=%s', eventType, tier, mappedStatus)
+  log.info('paypal-webhook', 'success', {
+    request_id: requestId,
+    event_type: eventType,
+    profile_id: profileId,
+    subscription_id: subscriptionId,
+    tier,
+    status: mappedStatus,
+  })
 
   const emoji = tier === 'premium' ? '💰' : '⚠️'
   notify(`${emoji} <b>PayPal ${eventType.replace('BILLING.SUBSCRIPTION.', '')}</b>\nProfile: ${profileId}\nTier: ${tier} (${mappedStatus})`)

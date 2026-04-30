@@ -48,6 +48,13 @@ const cspDirectives = [
   "form-action 'self' https://*.paypal.com",
   "frame-ancestors 'none'",
   "upgrade-insecure-requests",
+  // SEG-07 reporting — both legacy report-uri and modern report-to
+  // pointing at /api/csp-report. Browsers send one or the other depending
+  // on version; the endpoint normalises both shapes into a single log
+  // line with scope:"csp", visible in Vercel logs.
+  // Reporting-Endpoints header below maps the "csp-endpoint" name.
+  "report-uri /api/csp-report",
+  "report-to csp-endpoint",
 ].join('; ')
 
 const nextConfig: NextConfig = {
@@ -71,10 +78,18 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           // SEG-07 — Phase 1 Report-Only. Switch to 'Content-Security-Policy'
-          // (without -Report-Only) once Sentry/console reports are clean.
-          // Browsers will still LOG violations even in Report-Only mode, so
-          // the operator gets visibility before any user-facing breakage.
+          // (without -Report-Only) once /api/csp-report shows zero violations
+          // for 1-2 weeks. Browsers still LOG violations in Report-Only
+          // mode, so the operator gets visibility before any user-facing
+          // breakage.
           { key: 'Content-Security-Policy-Report-Only', value: cspDirectives },
+          // Reporting-Endpoints header for the modern report-to directive.
+          // Format: <name>="<url>". The endpoint name 'csp-endpoint' is
+          // referenced by the report-to directive in the CSP above.
+          {
+            key: 'Reporting-Endpoints',
+            value: 'csp-endpoint="/api/csp-report"',
+          },
         ],
       },
     ]
