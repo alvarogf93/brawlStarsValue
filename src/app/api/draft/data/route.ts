@@ -34,45 +34,52 @@ export async function GET(request: Request) {
   const serviceSupabase = await createServiceClient()
   const cutoffDate = new Date(Date.now() - META_ROLLING_DAYS * 86400000).toISOString().slice(0, 10)
 
-  // 1. Fetch global meta_stats for this map+mode (public data)
-  const { data: rawStats } = await serviceSupabase
-    .from('meta_stats')
-    .select('brawler_id, wins, losses, total')
-    .eq('map', map)
-    .eq('mode', mode)
-    .eq('source', 'global')
-    .gte('date', cutoffDate)
+  // PERF-07 — the three public queries below are independent of each other
+  // (different sources / different tables, same map+mode filter). Promise.all
+  // collapses serial 3×~120 ms into wall-clock max(...).
+  const [
+    { data: rawStats },
+    { data: rawMatchups },
+    { data: rawUsersStats },
+  ] = await Promise.all([
+    // 1. Global meta_stats for this map+mode.
+    serviceSupabase
+      .from('meta_stats')
+      .select('brawler_id, wins, losses, total')
+      .eq('map', map)
+      .eq('mode', mode)
+      .eq('source', 'global')
+      .gte('date', cutoffDate),
+    // 2. meta_matchups for this mode (mode-level, not map-level).
+    serviceSupabase
+      .from('meta_matchups')
+      .select('brawler_id, opponent_id, wins, losses, total')
+      .eq('mode', mode)
+      .eq('source', 'global')
+      .gte('date', cutoffDate),
+    // 3. Users community data.
+    serviceSupabase
+      .from('meta_stats')
+      .select('brawler_id, wins, losses, total')
+      .eq('map', map)
+      .eq('mode', mode)
+      .eq('source', 'users')
+      .gte('date', cutoffDate),
+  ])
 
-  // Aggregate by brawler (sum across dates)
   const meta = aggregateStats(rawStats ?? [])
-
-  // 2. Fetch meta_matchups for this mode (public data, mode-level)
-  const { data: rawMatchups } = await serviceSupabase
-    .from('meta_matchups')
-    .select('brawler_id, opponent_id, wins, losses, total')
-    .eq('mode', mode)
-    .eq('source', 'global')
-    .gte('date', cutoffDate)
-
   const matchups = aggregateMatchups(rawMatchups ?? [])
-
-  // 3. Fetch users community data
-  const { data: rawUsersStats } = await serviceSupabase
-    .from('meta_stats')
-    .select('brawler_id, wins, losses, total')
-    .eq('map', map)
-    .eq('mode', mode)
-    .eq('source', 'users')
-    .gte('date', cutoffDate)
-
   const usersData = aggregateStats(rawUsersStats ?? [])
 
   const result: DraftData = { meta, matchups, usersData }
 
-  // 4. Check auth for personal data
+  // 4. Check auth for personal data. We track whether the response carries
+  //    user-specific data so the cache policy below can branch correctly.
+  let isAuthenticated = false
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    isAuthenticated = !!user
 
     if (user) {
       // Single profile fetch (fixes double-query)
@@ -116,7 +123,19 @@ export async function GET(request: Request) {
     // Auth check failed — return public data only
   }
 
-  return NextResponse.json(result)
+  // PERF-07 — Cache-Control. Anonymous responses contain only public meta
+  // data (meta + matchups + usersData), safe to cache at the edge for 15
+  // min with a 5 min stale-while-revalidate buffer. Authenticated responses
+  // may carry `result.personal`, so they MUST NOT touch any shared cache —
+  // mark them `private, no-store` so neither the CDN nor the browser
+  // serves a leaked copy.
+  const cacheControl = isAuthenticated
+    ? 'private, no-store'
+    : 'public, s-maxage=900, stale-while-revalidate=300'
+
+  return NextResponse.json(result, {
+    headers: { 'Cache-Control': cacheControl },
+  })
 }
 
 /** Aggregate rows by brawler_id (sum wins/losses/total across dates) */

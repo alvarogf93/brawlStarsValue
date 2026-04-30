@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServiceClientNoCookies } from '@/lib/supabase/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { fetchPlayerRankings, fetchBattlelog, fetchEventRotation } from '@/lib/api'
+import { fetchPlayerRankings, fetchBattlelog, fetchEventRotation, SuprecellApiError } from '@/lib/api'
 import { parseBattleTime } from '@/lib/battle-parser'
 import {
-  META_POLL_DELAY_MS,
   META_POLL_MAX_DEPTH,
   META_POLL_PRELOAD_DAYS,
   META_POLL_RANKING_COUNTRIES,
@@ -195,7 +194,20 @@ async function processOnePlayer(
     }
 
     return { processed: true, skipped: false, errored: false, battlesKept }
-  } catch {
+  } catch (err) {
+    // LOG-06 — surface per-player failures. Without this the run-level
+    // diagnostic block only sees errors:N, hiding regional Supercell 403
+    // waves, proxy timeouts, or a malformed tag poisoning retries.
+    // SuprecellApiError carries .status (403/404/429/503/etc.); generic
+    // errors land here as String(err). This is fire-and-forget — never
+    // throws, never blocks the loop.
+    const status =
+      err instanceof SuprecellApiError ? err.status : null
+    console.warn('[meta-poll] processOnePlayer failed', {
+      tag,
+      status,
+      err: err instanceof Error ? err.message : String(err),
+    })
     return { processed: false, skipped: false, errored: true, battlesKept: 0 }
   }
 }
@@ -390,50 +402,68 @@ async function runBalancedPoll(
   // (how much the gap closed within this single run).
   const initialMinLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)
 
-  // 4. Process players in order with a per-player probabilistic sampler
-  for (const tag of cappedTags) {
+  // 4. Process players in batches of CONCURRENCY with a per-batch
+  //    probabilistic sampler.
+  //
+  // PERF-06 — was for-of sequential, ~250 ms per fetch + a 200 ms inter-call
+  // sleep, capped near 1000 players inside the 270s budget. A single hung
+  // Supercell call (now bounded to 8s by PERF-01's fetchWithTimeout) used to
+  // push the whole run past budget. Batched parallelism collapses the wall
+  // time of N calls into wall time of the slowest call, so the budget
+  // reliably fits ~3x more players per run.
+  //
+  // Sampler nuance: the original design rebuilt the sampler per player so
+  // `minLive` reflected counts that grew earlier in this run. With batches,
+  // we rebuild ONCE per batch — the 4 players in a batch share a sampler
+  // snapshot. That introduces a small staleness equal to the batch size,
+  // which is dominated by the natural variance of the random sampler and
+  // doesn't hurt convergence (every live pair always has a non-zero
+  // accept-rate via Laplacian smoothing).
+  //
+  // Mutation safety: acc.stats / cursorUpdates / battlesByMapMode are mutated
+  // by parallel workers. JS is single-threaded, so each Map.set / Array.push
+  // is atomic between awaits — no torn writes.
+  //
+  // META_POLL_DELAY_MS is no longer applied per-call: the batched throughput
+  // (~4 req in flight) is the natural rate limit. If we ever need to throttle
+  // harder, lower CONCURRENCY rather than re-introduce the inter-call sleep.
+  const CONCURRENCY = 4
+  for (let i = 0; i < cappedTags.length; i += CONCURRENCY) {
     if (Date.now() - runStartedAt > WALL_CLOCK_BUDGET_MS) {
       timeBudgetExit = true
       break
     }
 
-    // Rebuild the sampler per player so `minLive` reflects any counts
-    // that grew during earlier players in this run. The formula is:
-    //
-    //   p(accept) = min(1, (minLive + 1) / (current + 1))
-    //
-    // which is purely monotonic in both arguments — as the gap
-    // closes, all rates rise toward 1 and the sampler stops filtering.
-    // There is no "early exit" because every live pair always has
-    // a non-zero rate (Laplacian smoothing), so we only terminate
-    // by pool exhaustion or wall-clock budget.
+    // Snapshot both `minLive` and the per-key counts at batch start so all
+    // CONCURRENCY workers in this batch see the SAME sampler state. Without
+    // the snapshot, P1 mutating battlesByMapMode[key] after accepting would
+    // immediately drop P2's accept-rate from 1.0 to 0.5, P3's to 0.33, etc.
+    // — that asymmetry made the batch behaviour non-deterministic and broke
+    // the convergence test. Within a batch, the rate freezes; between
+    // batches, both minLive and the snapshot rebuild from live state.
     const minLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)
+    const batchCountsSnapshot: MapModeCounts = { ...battlesByMapMode }
     const sampler = (key: string): boolean => {
       if (!effectiveLiveKeys.has(key)) return false
-      const current = battlesByMapMode[key] ?? 0
+      const current = batchCountsSnapshot[key] ?? 0
       const rate = computeAcceptRate(current, minLive)
       return rng() < rate
     }
 
-    const result = await processOnePlayer(
-      tag, cursorMap, acc, battlesByMapMode, cursorUpdates, sampler,
+    const batch = cappedTags.slice(i, i + CONCURRENCY)
+    const results = await Promise.all(
+      batch.map(tag =>
+        processOnePlayer(tag, cursorMap, acc, battlesByMapMode, cursorUpdates, sampler),
+      ),
     )
+    for (const result of results) {
+      if (result.processed) processed++
+      if (result.skipped) skipped++
+      if (result.errored) errors++
+      battlesKept += result.battlesKept
+      playersPolled++
+    }
 
-    if (result.processed) processed++
-    if (result.skipped) skipped++
-    if (result.errored) errors++
-    battlesKept += result.battlesKept
-    playersPolled++
-
-    // Rate-limit throttle between Supercell API calls — NOT a poll.
-    // Total bounded runtime: META_POLL_MAX_DEPTH (1000) × (~150ms fetch
-    // + META_POLL_DELAY_MS) ≈ 250s worst-case, inside maxDuration=300
-    // with ~50s margin for the bulk upserts that follow the loop.
-    // Deliberately stays in a regular Vercel Function (not Workflow)
-    // because the work finishes in a single invocation — Workflow's
-    // durable-step model is for multi-minute-to-hour jobs that need
-    // crash-safe resume, which this does not.
-    await new Promise(r => setTimeout(r, META_POLL_DELAY_MS))
   }
 
   const finalMinLive = computeMinLive(battlesByMapMode, effectiveLiveKeys)

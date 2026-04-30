@@ -86,44 +86,53 @@ export async function GET(request: Request) {
   // --- Load brawler names ---
   const brawlerNames = await loadBrawlerNames()
 
-  // --- Query 1: meta_stats for current window ---
-  const { data: statsRows } = await supabase
-    .from('meta_stats')
-    .select('brawler_id, wins, losses, total, date')
-    .eq('map', map)
-    .eq('mode', mode)
-    .eq('source', 'global')
-    .gte('date', windowStart)
-    .lte('date', todayStr)
-
-  // --- Query 2: meta_stats for 7d window + previous 7d (for trend) ---
-  const { data: stats7d } = await supabase
-    .from('meta_stats')
-    .select('brawler_id, wins, losses, total, date')
-    .eq('map', map)
-    .eq('mode', mode)
-    .eq('source', 'global')
-    .gte('date', prev7dStart)
-    .lte('date', todayStr)
-
-  // --- Query 3: meta_stats for 30d window + previous 30d (for trend) ---
-  const { data: stats30d } = await supabase
-    .from('meta_stats')
-    .select('brawler_id, wins, losses, total, date')
-    .eq('map', map)
-    .eq('mode', mode)
-    .eq('source', 'global')
-    .gte('date', prev30dStart)
-    .lte('date', todayStr)
-
-  // --- Query 4: meta_matchups for current window ---
-  const { data: matchupRows } = await supabase
-    .from('meta_matchups')
-    .select('brawler_id, opponent_id, wins, losses, total, date')
-    .eq('mode', mode)
-    .eq('source', 'global')
-    .gte('date', windowStart)
-    .lte('date', todayStr)
+  // PERF-05 — the four queries below are independent of each other
+  // (different windows over meta_stats / meta_matchups). Running them
+  // serially added ~150-300 ms each on cold cache; Promise.all collapses
+  // the wait to the slowest single query. Same result-binding contract
+  // as before — destructure { data } from each settled response.
+  const [
+    { data: statsRows },
+    { data: stats7d },
+    { data: stats30d },
+    { data: matchupRows },
+  ] = await Promise.all([
+    // Query 1: meta_stats for current window.
+    supabase
+      .from('meta_stats')
+      .select('brawler_id, wins, losses, total, date')
+      .eq('map', map)
+      .eq('mode', mode)
+      .eq('source', 'global')
+      .gte('date', windowStart)
+      .lte('date', todayStr),
+    // Query 2: meta_stats for 7d + previous 7d (trend).
+    supabase
+      .from('meta_stats')
+      .select('brawler_id, wins, losses, total, date')
+      .eq('map', map)
+      .eq('mode', mode)
+      .eq('source', 'global')
+      .gte('date', prev7dStart)
+      .lte('date', todayStr),
+    // Query 3: meta_stats for 30d + previous 30d (trend).
+    supabase
+      .from('meta_stats')
+      .select('brawler_id, wins, losses, total, date')
+      .eq('map', map)
+      .eq('mode', mode)
+      .eq('source', 'global')
+      .gte('date', prev30dStart)
+      .lte('date', todayStr),
+    // Query 4: meta_matchups for current window.
+    supabase
+      .from('meta_matchups')
+      .select('brawler_id, opponent_id, wins, losses, total, date')
+      .eq('mode', mode)
+      .eq('source', 'global')
+      .gte('date', windowStart)
+      .lte('date', todayStr),
+  ])
 
   // ── Aggregation helper: raw stats + trend maps → top brawlers ──
   // Used by both Tier 1 (map+mode filter) and Tier 2 (mode-only
