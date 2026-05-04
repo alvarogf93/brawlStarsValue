@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { fetchEventRotation } from '@/lib/api'
 import { isDraftMode } from '@/lib/draft/constants'
 import { buildEventsWithCascade, type MetaEventResult } from '@/lib/meta/cascade'
+import { filterRegularRotation } from '@/lib/meta/rotation-filter'
 import type { Metadata } from 'next'
 
 export const revalidate = 1800 // ISR: 30 minutes
@@ -36,7 +37,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 async function fetchMetaEvents(): Promise<MetaEventResult[]> {
   try {
     const events = await fetchEventRotation()
-    const draftEvents = events.filter(e => isDraftMode(e.event.mode))
+    // Drop ranked / extended slots (216h) and short specials (2h) so
+    // the public picks page only shows the maps the player actually
+    // sees in the regular game tab. Same dedup helper as MapSelector.
+    // Bug 2026-05-04 — see rotation-filter.ts header.
+    const draftEvents = filterRegularRotation(events).filter(e => isDraftMode(e.event.mode))
     if (draftEvents.length === 0) return []
 
     const supabase = await createServiceClient()

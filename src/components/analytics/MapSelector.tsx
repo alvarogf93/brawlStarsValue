@@ -9,6 +9,7 @@ import { Lock } from 'lucide-react'
 import { getMapImageUrl, getGameModeImageUrl } from '@/lib/utils'
 import { isDraftMode, normalizeSupercellMode } from '@/lib/draft/constants'
 import { MODE_DISPLAY_NAMES } from '@/lib/constants'
+import { filterRegularRotation } from '@/lib/meta/rotation-filter'
 
 interface MapSelectorProps {
   selectedMap: string | null
@@ -38,36 +39,32 @@ export function MapSelector({ selectedMap, selectedMode, onSelect }: MapSelector
     fetch('/api/events', { signal: controller.signal })
       .then(r => { if (!r.ok) throw new Error(); return r.json() })
       .then((events: Array<{ startTime?: string; endTime?: string; event?: { id?: number; map?: string; mode?: string; modeId?: number }; map?: string; mode?: string; id?: number }>) => {
-        const liveMaps = events
+        // Drop ranked / extended slots (216h) and short specials (2h) so
+        // the picker only shows the maps the player actually sees on the
+        // game's regular-rotation tab. Also dedupes (map, mode) when
+        // Supercell ships the same map in both a regular and a ranked
+        // slot. Bug 2026-05-04 — see rotation-filter.ts header.
+        const filteredEvents = filterRegularRotation(events)
+
+        const liveMaps = filteredEvents
           .map(e => {
             // Normalize via shared helper — handles the "unknown" +
             // modeId=45 fallback for brand-new modes (brawlHockey).
             const rawMode = e.event?.mode ?? e.mode ?? ''
-            const modeId = (e.event as { modeId?: number } | undefined)?.modeId
+            const modeId = e.event?.modeId
             const mode = normalizeSupercellMode(rawMode, modeId) ?? rawMode
 
-            // Competitive events last 12h+ (24h typical). Fun/no-trophy events last 2h.
-            let isCompetitive = true
-            if (e.startTime && e.endTime) {
-              const parse = (s: string) => new Date(
-                s.replace(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/, '$1-$2-$3T$4:$5:$6'),
-              )
-              const durationH = (parse(e.endTime).getTime() - parse(e.startTime).getTime()) / 3600000
-              isCompetitive = durationH >= 12
-            }
             return {
               eventId: e.event?.id ?? e.id,
               map: e.event?.map ?? e.map,
               mode,
-              isCompetitive,
             }
           })
-          .filter((e): e is LiveMap & { isCompetitive: boolean } =>
+          .filter((e): e is LiveMap =>
             typeof e.eventId === 'number' &&
             typeof e.map === 'string' &&
             typeof e.mode === 'string' &&
-            isDraftMode(e.mode) &&
-            e.isCompetitive
+            isDraftMode(e.mode)
           )
 
         setMaps(liveMaps)
