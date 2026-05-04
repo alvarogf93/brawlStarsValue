@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "Brawler oder Map suchen...",
     "heatmapAllModes": "Alle Modi",
     "heatmapShowingOf": "{shown} von {total} angezeigt",
-    "heatmapLoadMore": "Mehr anzeigen"
+    "heatmapLoadMore": "Mehr anzeigen",
+    "rotationMaps": "Karten in Rotation",
+    "rotationMapsEmpty": "Keine Daten für die Karten in Rotation. Filter ändern oder diese Karten mehr spielen."
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

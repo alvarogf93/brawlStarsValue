@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "ブロウラーまたはマップを検索...",
     "heatmapAllModes": "すべてのモード",
     "heatmapShowingOf": "{total}件中{shown}件表示",
-    "heatmapLoadMore": "もっと見る"
+    "heatmapLoadMore": "もっと見る",
+    "rotationMaps": "ローテーション中のマップ",
+    "rotationMapsEmpty": "ローテーション中のマップのデータがありません。フィルターを変えるか、それらのマップでもっとプレイしてください。"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

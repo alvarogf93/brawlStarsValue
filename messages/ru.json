@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "Поиск бравлера или карты...",
     "heatmapAllModes": "Все режимы",
     "heatmapShowingOf": "Показано {shown} из {total}",
-    "heatmapLoadMore": "Показать еще"
+    "heatmapLoadMore": "Показать еще",
+    "rotationMaps": "Карты в ротации",
+    "rotationMapsEmpty": "Нет данных по картам в ротации. Поменяй фильтр или играй больше на этих картах."
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

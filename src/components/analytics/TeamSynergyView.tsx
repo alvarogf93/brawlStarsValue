@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { getBrawlerPortraitUrl, getBrawlerPortraitFallback } from '@/lib/utils'
 import { BrawlImg } from '@/components/ui/BrawlImg'
@@ -10,6 +10,7 @@ import { ModeIcon } from '@/components/ui/ModeIcon'
 import { ConfidenceBadge } from '@/components/ui/ConfidenceBadge'
 import { useMapImages } from '@/hooks/useMapImages'
 import { ProBadge } from '@/components/analytics/ProBadge'
+import { filterRegularRotation } from '@/lib/meta/rotation-filter'
 
 function wrColor(wr: number): string {
   if (wr >= 60) return 'text-green-400 drop-shadow-[0_0_5px_rgba(34,197,94,0.6)]'
@@ -38,8 +39,39 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Prop
   const t = useTranslations('advancedAnalytics')
   const [tab, setTab] = useState<Tab>('trios')
   const [expanded, setExpanded] = useState(false)
-  const [mapFilter, setMapFilter] = useState<string>('all')
+  // Default to "rotation" so the user lands on synergies for the maps
+  // they're about to play in-game. Falls back to "all" silently if the
+  // /api/events fetch is slow or fails (see effect below).
+  const [mapFilter, setMapFilter] = useState<string>('rotation')
+  const [rotationMaps, setRotationMaps] = useState<Set<string> | null>(null)
   const mapImages = useMapImages()
+
+  // Hydrate the regular-rotation map set from /api/events. Reuses the
+  // shared `filterRegularRotation` helper so this view shows exactly
+  // the same 6-ish maps the player sees in-game (matches the picker on
+  // the Meta-PRO tab and the public /picks page).
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/events', { signal: controller.signal })
+      .then(r => r.ok ? r.json() : null)
+      .then((events) => {
+        if (!Array.isArray(events)) {
+          setRotationMaps(new Set())
+          return
+        }
+        const filtered = filterRegularRotation(events)
+        const names = new Set<string>()
+        for (const e of filtered) {
+          const m = e.event?.map ?? e.map
+          if (typeof m === 'string') names.add(m)
+        }
+        setRotationMaps(names)
+      })
+      .catch(err => {
+        if (err?.name !== 'AbortError') setRotationMaps(new Set())
+      })
+    return () => controller.abort()
+  }, [])
 
   const availableMaps = useMemo(() => {
     const maps = new Map<string, string>() // map → mode
@@ -52,13 +84,26 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Prop
 
   const sortedTrios = useMemo(() => {
     let list = [...trioSynergy]
-    if (mapFilter === 'all') {
+    if (mapFilter === 'rotation') {
+      // While the rotation set is hydrating, return an empty list
+      // (treated as loading state by the empty-state branch below).
+      // Once hydrated, keep only per-map trios whose map is in the
+      // current regular rotation. Per-map trios have non-null map;
+      // the agreggated null-map rows are intentionally excluded so
+      // the user sees per-map synergies (which is what "rotation"
+      // implies).
+      if (!rotationMaps) {
+        list = []
+      } else {
+        list = list.filter(t => t.map !== null && rotationMaps.has(t.map))
+      }
+    } else if (mapFilter === 'all') {
       list = list.filter(t => t.map === null)
     } else {
       list = list.filter(t => t.map === mapFilter)
     }
     return list.sort((a, b) => b.wilsonScore - a.wilsonScore)
-  }, [trioSynergy, mapFilter])
+  }, [trioSynergy, mapFilter, rotationMaps])
 
   const sortedTeammates = useMemo(
     () => [...teammateSynergy].sort((a, b) => b.wilsonScore - a.wilsonScore),
@@ -136,7 +181,7 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Prop
           {availableMaps.length > 0 && (
             <div className="mb-4 flex justify-between items-center bg-[#0B1120] px-3 py-2 rounded-lg border border-white/5">
               <div className="flex items-center gap-2">
-                {mapFilter !== 'all' ? (
+                {mapFilter !== 'all' && mapFilter !== 'rotation' ? (
                   <ModeIcon mode={availableMaps.find(([m]) => m === mapFilter)?.[1] ?? 'gemGrab'} size={18} />
                 ) : (
                   <span className="text-xl opacity-60">🗺️</span>
@@ -146,9 +191,10 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Prop
               <select
                 value={mapFilter}
                 onChange={e => { setMapFilter(e.target.value); setExpanded(false) }}
-                aria-label={t('allMaps') || 'Filter by map'}
+                aria-label={t('rotationMaps')}
                 className="bg-[#090E17] text-white text-xs rounded-md px-3 py-1.5 border border-white/10 focus:outline-none focus:border-[#4EC0FA]/50 font-['Lilita_One'] cursor-pointer shadow-md"
               >
+                <option value="rotation">{t('rotationMaps')}</option>
                 <option value="all">{t('allMaps') || 'All Maps'}</option>
                 {availableMaps.map(([map]) => (
                   <option key={map} value={map}>{map}</option>
@@ -158,7 +204,11 @@ export function TeamSynergyView({ trioSynergy, teammateSynergy, proTrios }: Prop
           )}
 
           {sortedTrios.length === 0 ? (
-            <p className="text-sm font-bold uppercase tracking-widest text-slate-500 text-center py-4">{t('noComboData')}</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-slate-500 text-center py-4">
+              {mapFilter === 'rotation' && rotationMaps && rotationMaps.size > 0
+                ? t('rotationMapsEmpty')
+                : t('noComboData')}
+            </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {visibleTrios.map((trio, i) => (

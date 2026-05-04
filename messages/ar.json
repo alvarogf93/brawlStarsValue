@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "ابحث عن brawler أو خريطة...",
     "heatmapAllModes": "كل الأوضاع",
     "heatmapShowingOf": "عرض {shown} من {total}",
-    "heatmapLoadMore": "عرض المزيد"
+    "heatmapLoadMore": "عرض المزيد",
+    "rotationMaps": "الخرائط في الدوران",
+    "rotationMapsEmpty": "لا توجد بيانات لخرائط الدوران. غيّر الفلتر أو العب أكثر على تلك الخرائط."
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

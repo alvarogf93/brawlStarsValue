@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "搜索 Brawler 或地图...",
     "heatmapAllModes": "所有模式",
     "heatmapShowingOf": "显示 {shown} / {total}",
-    "heatmapLoadMore": "查看更多"
+    "heatmapLoadMore": "查看更多",
+    "rotationMaps": "轮换中的地图",
+    "rotationMapsEmpty": "没有轮换中地图的数据。更改过滤器或在这些地图上多玩。"
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

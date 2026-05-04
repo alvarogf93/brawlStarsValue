@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "브롤러 또는 맵 검색...",
     "heatmapAllModes": "모든 모드",
     "heatmapShowingOf": "{total}개 중 {shown}개 표시",
-    "heatmapLoadMore": "더 보기"
+    "heatmapLoadMore": "더 보기",
+    "rotationMaps": "로테이션 맵",
+    "rotationMapsEmpty": "로테이션 맵에 데이터가 없습니다. 필터를 변경하거나 해당 맵에서 더 플레이하세요."
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

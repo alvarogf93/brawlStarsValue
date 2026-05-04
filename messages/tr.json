@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "Brawler veya harita ara...",
     "heatmapAllModes": "Tüm modlar",
     "heatmapShowingOf": "{shown} / {total} gösteriliyor",
-    "heatmapLoadMore": "Daha fazla göster"
+    "heatmapLoadMore": "Daha fazla göster",
+    "rotationMaps": "Rotasyondaki Haritalar",
+    "rotationMapsEmpty": "Rotasyondaki haritalar için veri yok. Filtreyi değiştir veya o haritalarda daha çok oyna."
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",

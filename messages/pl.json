@@ -690,7 +690,9 @@
     "heatmapSearchPlaceholder": "Szukaj brawlera lub mapy...",
     "heatmapAllModes": "Wszystkie tryby",
     "heatmapShowingOf": "Wyświetlono {shown} z {total}",
-    "heatmapLoadMore": "Pokaż więcej"
+    "heatmapLoadMore": "Pokaż więcej",
+    "rotationMaps": "Mapy w Rotacji",
+    "rotationMapsEmpty": "Brak danych dla map w rotacji. Zmień filtr lub graj więcej na tych mapach."
   },
   "metaPro": {
     "tabMetaPro": "Meta PRO",
