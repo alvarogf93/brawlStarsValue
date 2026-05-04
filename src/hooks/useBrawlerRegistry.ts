@@ -1,7 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { STORAGE_KEYS } from '@/lib/storage'
+import {
+  readSupercellRosterCache,
+  writeSupercellRosterCache,
+  type SupercellRoster,
+  type SupercellRosterEntry,
+} from '@/lib/supercell-roster-cache'
 
 /**
  * Game-wide brawler registry from /api/brawlers (which itself proxies the
@@ -14,104 +19,24 @@ import { STORAGE_KEYS } from '@/lib/storage'
  * — new brawlers were invisible from the moment they shipped until the
  * user unlocked them. (FAIL-NEW-BRAWLERS, observed when DAMIAN released.)
  *
+ * The persistence (localStorage cache + invalidation rules) lives in
+ * `src/lib/supercell-roster-cache.ts` so other modules — notably
+ * `resolveBrawlerName` — can read the same cache synchronously without
+ * pulling in this hook (which would force them to be client components).
+ *
  * Fallback values used when the API is unreachable AND there's no cache:
  *   - brawlerCount, maxGadgets, maxStarPowers: roster size of April 2026.
  *   - roster: empty array. UI must guard against this — render only the
  *     player's owned brawlers in that case (the legacy behaviour).
  */
-export interface BrawlerRegistry {
-  brawlerCount: number
-  maxGadgets: number
-  maxStarPowers: number
-  roster: BrawlerRosterEntry[]
-}
-
-export interface BrawlerRosterEntry {
-  id: number
-  name: string
-  gadgets: number
-  starPowers: number
-  hyperCharges: number
-  /**
-   * Rarity name from Brawlify ("Mythic", "Legendary", "Common", etc.).
-   * OPTIONAL — Brawlify takes hours-to-days to publish brand-new
-   * brawlers, and may be temporarily unreachable. When absent, clients
-   * fall back to BRAWLER_RARITY_MAP and finally omit the badge.
-   */
-  rarity?: string
-  rarityColor?: string
-}
+export type BrawlerRegistry = SupercellRoster
+export type BrawlerRosterEntry = SupercellRosterEntry
 
 const FALLBACK: BrawlerRegistry = {
   brawlerCount: 104,
   maxGadgets: 208,
   maxStarPowers: 208,
   roster: [],
-}
-
-// Uses a distinct key from `src/lib/brawler-registry.ts` (which
-// holds a BrawlerEntry[] array under STORAGE_KEYS.BRAWLER_REGISTRY).
-// Sprint D 2026-04-13: both files briefly shared the same literal
-// and the shape mismatch (object vs array) crashed the brawler
-// detail page. Both keys now live in `src/lib/storage.ts` so any
-// accidental re-aliasing has to go through a single file.
-const CACHE_KEY = STORAGE_KEYS.BRAWLER_REGISTRY_TOTALS
-const CACHE_TTL = 24 * 60 * 60 * 1000 // 24h — matches the server revalidate window
-// Bump when BrawlerRegistry / BrawlerRosterEntry shape changes. Old
-// caches without the right shape are dropped on read.
-const CACHE_VERSION = 3
-
-interface CachedRegistry {
-  _v: number
-  _ts: number
-  data: BrawlerRegistry
-}
-
-/**
- * Validate that a registry object has all numeric fields as finite
- * positive numbers AND a roster array (possibly empty). JSON serialisation
- * silently drops `undefined` fields, so a partial cache from an older
- * version of this hook may be missing fields entirely. We treat any such
- * partial as a cache miss and re-fetch.
- */
-function isValidRegistry(value: unknown): value is BrawlerRegistry {
-  if (!value || typeof value !== 'object') return false
-  const v = value as Partial<BrawlerRegistry>
-  return (
-    typeof v.brawlerCount === 'number' && Number.isFinite(v.brawlerCount) && v.brawlerCount > 0 &&
-    typeof v.maxGadgets === 'number' && Number.isFinite(v.maxGadgets) && v.maxGadgets > 0 &&
-    typeof v.maxStarPowers === 'number' && Number.isFinite(v.maxStarPowers) && v.maxStarPowers > 0 &&
-    Array.isArray(v.roster)
-  )
-}
-
-function readCache(): BrawlerRegistry | null {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as CachedRegistry
-    if (parsed._v !== CACHE_VERSION) return null
-    if (Date.now() - parsed._ts > CACHE_TTL) return null
-    if (!isValidRegistry(parsed.data)) {
-      try { localStorage.removeItem(CACHE_KEY) } catch { /* ignore */ }
-      return null
-    }
-    return parsed.data
-  } catch {
-    return null
-  }
-}
-
-function writeCache(data: BrawlerRegistry) {
-  if (!isValidRegistry(data)) return
-  try {
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ _v: CACHE_VERSION, _ts: Date.now(), data }),
-    )
-  } catch {
-    /* localStorage full — ignore */
-  }
 }
 
 /**
@@ -125,10 +50,10 @@ function writeCache(data: BrawlerRegistry) {
  * only owned… }` to gracefully degrade.
  */
 export function useBrawlerRegistry(): BrawlerRegistry {
-  const [registry, setRegistry] = useState<BrawlerRegistry>(() => readCache() ?? FALLBACK)
+  const [registry, setRegistry] = useState<BrawlerRegistry>(() => readSupercellRosterCache() ?? FALLBACK)
 
   useEffect(() => {
-    const cached = readCache()
+    const cached = readSupercellRosterCache()
     if (cached) {
       // Fresh cache already loaded by useState — nothing else to do.
       return
@@ -141,10 +66,13 @@ export function useBrawlerRegistry(): BrawlerRegistry {
         return res.json()
       })
       .then((data: unknown) => {
-        if (isValidRegistry(data)) {
+        // writeSupercellRosterCache also runs the schema check; if data
+        // doesn't match SupercellRoster shape, the write is a no-op and
+        // we keep the fallback in state.
+        if (data && typeof data === 'object' && Array.isArray((data as SupercellRoster).roster)) {
           // eslint-disable-next-line react-hooks/set-state-in-effect
-          setRegistry(data)
-          writeCache(data)
+          setRegistry(data as SupercellRoster)
+          writeSupercellRosterCache(data as SupercellRoster)
         }
       })
       .catch(() => {

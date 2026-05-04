@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { GemScore } from '@/lib/types'
 import { playerCacheKey } from '@/lib/storage'
-import { readLocalCache, writeLocalCache } from '@/lib/local-cache'
+import { readLocalCache, writeLocalCache, clearLocalCache } from '@/lib/local-cache'
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 // LOG-13 — bump on changes to GemScore shape (new fields, renames).
@@ -26,6 +26,41 @@ export function usePlayerData(
   const [data, setData] = useState<GemScore | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Track when the in-memory `data` was last hydrated so the
+  // visibilitychange handler can decide whether refetch is warranted.
+  // 0 means "never fetched in this mount" — first load goes through
+  // the main effect.
+  const lastFetchedAt = useRef(0)
+
+  const doFetch = useCallback(async (signal?: AbortSignal) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerTag: tag,
+          ...(opts?.fromLanding ? { fromLanding: true } : {}),
+          ...(opts?.locale ? { locale: opts.locale } : {}),
+        }),
+        signal,
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || `Error ${res.status}`)
+      }
+      const result: GemScore = await res.json()
+      writeCache(tag, result)
+      setData(result)
+      lastFetchedAt.current = Date.now()
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      if (!signal?.aborted) setIsLoading(false)
+    }
+  }, [tag, opts?.fromLanding, opts?.locale])
 
   useEffect(() => {
     if (!tag) return
@@ -39,46 +74,44 @@ export function usePlayerData(
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setData(cached)
       setIsLoading(false)
+      lastFetchedAt.current = Date.now()
       return
     }
 
     const controller = new AbortController()
-
-    // Fetch from API
-    setIsLoading(true)
-    setError(null)
-
-    fetch('/api/calculate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        playerTag: tag,
-        ...(opts?.fromLanding ? { fromLanding: true } : {}),
-        ...(opts?.locale ? { locale: opts.locale } : {}),
-      }),
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}))
-          throw new Error(body.error || `Error ${res.status}`)
-        }
-        return res.json()
-      })
-      .then((result: GemScore) => {
-        writeCache(tag, result)
-        setData(result)
-      })
-      .catch((err) => {
-        if (err.name === 'AbortError') return
-        setError(err.message)
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false)
-      })
-
+    void doFetch(controller.signal)
     return () => controller.abort()
-  }, [tag, opts?.fromLanding, opts?.locale])
+  }, [tag, doFetch])
+
+  // PWA staleness fix (2026-05-04) — installed PWAs don't unmount
+  // components between sessions the way the browser does. A user who
+  // opened the app yesterday, unlocked DAMIAN, and reopened the PWA
+  // today saw the pre-unlock data because `usePlayerData` only fetches
+  // on mount + the in-memory state never aged. visibilitychange fires
+  // every time the user comes back to the tab/PWA, so it's the right
+  // signal to gate "should we re-check the API".
+  //
+  // Only refetch if the in-memory data is older than CACHE_TTL — under
+  // that threshold the existing cached data is still considered fresh
+  // and we don't want to thrash the upstream Supercell API on every
+  // app-switch.
+  useEffect(() => {
+    if (!tag) return
+    if (typeof document === 'undefined') return
+
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      const age = Date.now() - lastFetchedAt.current
+      if (lastFetchedAt.current === 0 || age <= CACHE_TTL) return
+      // Drop the localStorage entry too so a sibling page mounting
+      // mid-refetch doesn't seed itself with the now-stale cache.
+      clearLocalCache(getCacheKey(tag))
+      void doFetch()
+    }
+
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [tag, doFetch])
 
   return { data, isLoading, error }
 }
