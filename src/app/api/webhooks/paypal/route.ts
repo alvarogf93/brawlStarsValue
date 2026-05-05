@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import {
   verifyPayPalWebhook,
@@ -7,6 +7,7 @@ import {
   PayPalCertUrlError,
 } from '@/lib/paypal'
 import { notify } from '@/lib/telegram/notify'
+import { envHeader } from '@/lib/telegram/env-label'
 import { log, requestIdFrom } from '@/lib/log'
 
 export async function POST(request: Request) {
@@ -50,7 +51,18 @@ export async function POST(request: Request) {
   const supabase = await createServiceClient()
 
   // 2. Parse event
-  let event: { event_type: string; resource: { id: string; custom_id?: string; status?: string } }
+  let event: {
+    event_type: string
+    resource: {
+      id: string
+      custom_id?: string
+      status?: string
+      // Subscription events include billing_info with the next renewal
+      // datetime when the subscription is active. Optional — cancelled
+      // and suspended events generally omit it.
+      billing_info?: { next_billing_time?: string }
+    }
+  }
   try {
     event = JSON.parse(rawBody)
   } catch {
@@ -59,6 +71,7 @@ export async function POST(request: Request) {
 
   const eventType = event.event_type
   const subscriptionId = event.resource?.id
+  const nextBillingTime = event.resource?.billing_info?.next_billing_time
 
   if (!subscriptionId) {
     return NextResponse.json({ error: 'Missing subscription ID' }, { status: 400 })
@@ -160,7 +173,30 @@ export async function POST(request: Request) {
   })
 
   const emoji = tier === 'premium' ? '💰' : '⚠️'
-  notify(`${emoji} <b>PayPal ${eventType.replace('BILLING.SUBSCRIPTION.', '')}</b>\nProfile: ${profileId}\nTier: ${tier} (${mappedStatus})`)
+  // Run the Telegram side-effect inside after() so a slow Telegram
+  // round-trip doesn't delay our 200 to PayPal — PayPal interprets
+  // a slow ack as failure and retries the entire webhook, which
+  // would re-process the event (idempotent, but wasteful).
+  after(async () => {
+    try {
+      const lines = [
+        `${envHeader()}${emoji} <b>PayPal ${eventType.replace('BILLING.SUBSCRIPTION.', '')}</b>`,
+        `Profile: <code>${profileId}</code>`,
+        `Sub: <code>${subscriptionId}</code>`,
+        `Tier: ${tier} (${mappedStatus})`,
+      ]
+      if (nextBillingTime) {
+        lines.push(`Next renewal: ${nextBillingTime}`)
+      }
+      await notify(lines.join('\n'))
+    } catch (err) {
+      log.error('paypal-webhook', 'telegram notify failed', {
+        request_id: requestId,
+        subscription_id: subscriptionId,
+        err,
+      })
+    }
+  })
 
   return NextResponse.json({ ok: true })
 }

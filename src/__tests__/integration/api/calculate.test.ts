@@ -201,9 +201,14 @@ describe('POST /api/calculate — anonymous visit tracking', () => {
     // Now drain the callback — tracker runs
     await captured!()
     expect(trackAnonymousVisitMock).toHaveBeenCalledTimes(1)
+    // 2026-05-05 — country and device are now passed too (extracted
+    // from request headers); both are null when the test request
+    // doesn't set x-vercel-ip-country / user-agent.
     expect(trackAnonymousVisitMock).toHaveBeenCalledWith({
       tag: '#YJU282PV',
       locale: 'es',
+      country: null,
+      device: null,
     })
   })
 

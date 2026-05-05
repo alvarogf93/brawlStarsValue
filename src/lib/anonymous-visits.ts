@@ -8,6 +8,7 @@
 
 import { createClient as createSupabaseAdmin, type SupabaseClient } from '@supabase/supabase-js'
 import { notify } from '@/lib/telegram/notify'
+import { envHeader } from '@/lib/telegram/env-label'
 import { isValidPlayerTag, normalizePlayerTag } from '@/lib/utils'
 
 interface TrackInput {
@@ -15,6 +16,12 @@ interface TrackInput {
   tag: string
   /** UI locale. Must already be whitelisted by the caller. */
   locale: string
+  /** ISO country code from `x-vercel-ip-country`, when available.
+   *  Used only in the Telegram alert — never persisted. */
+  country?: string | null
+  /** "mobile" / "tablet" / "desktop" / "bot" — derived from User-Agent.
+   *  Best-effort signal for the alert; not stored. */
+  device?: string | null
 }
 
 // Memoized per cold start. Stateless — no cookie handling, no session persistence.
@@ -40,7 +47,12 @@ function getAdminClient(): SupabaseClient {
  *
  * Never throws. All failure paths log and return.
  */
-export async function trackAnonymousVisit({ tag, locale }: TrackInput): Promise<void> {
+export async function trackAnonymousVisit({
+  tag,
+  locale,
+  country = null,
+  device = null,
+}: TrackInput): Promise<void> {
   // Defense in depth: re-validate the tag format using the canonical helper.
   if (!isValidPlayerTag(tag)) return
   const normalizedTag = normalizePlayerTag(tag)  // always '#UPPER'
@@ -75,13 +87,17 @@ export async function trackAnonymousVisit({ tag, locale }: TrackInput): Promise<
 
       const profileUrl = `https://brawlvision.com/${locale}/profile/${encodeURIComponent(normalizedTag)}`
 
-      await notify(
-        `👤 <b>Nuevo visitante anónimo</b>\n` +
-        `Tag: <code>${normalizedTag}</code>\n` +
-        `Idioma: ${locale}\n` +
-        `Tags únicos en la tabla: ${count ?? '?'}\n` +
-        `🔗 ${profileUrl}`
-      )
+      const lines = [
+        `${envHeader()}👤 <b>Nuevo visitante anónimo</b>`,
+        `Tag: <code>${normalizedTag}</code>`,
+        `Idioma: ${locale}`,
+      ]
+      if (country) lines.push(`País: ${country}`)
+      if (device) lines.push(`Dispositivo: ${device}`)
+      lines.push(`Tags únicos en la tabla: ${count ?? '?'}`)
+      lines.push(`🔗 ${profileUrl}`)
+
+      await notify(lines.join('\n'))
     }
   } catch (err) {
     // Defensive catch — this function must never propagate to the after() caller.

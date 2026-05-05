@@ -384,12 +384,18 @@ export default function ClubPage() {
               <Link
                 href={isMe ? '#' : compareUrl}
                 key={member.tag}
-                className={`group grid grid-cols-[2.5rem_1fr] sm:grid-cols-[2.5rem_minmax(11rem,1fr)_6.5rem_6.5rem_4rem_5rem_4rem_5rem] gap-2 items-center px-4 sm:px-5 py-3 rounded-lg transition-transform duration-200 opacity-0 animate-[fadeSlideIn_0.4s_ease_forwards] border-b-[4px] relative overflow-hidden shadow-md ${
+                /* PERF 2026-05-05 — used to ship `opacity-0 animate-[fadeSlideIn_0.4s_ease_forwards]`
+                   plus `style={{ animationDelay: i * 20 }}`. The staggered
+                   animation reset on every list re-render (sort change,
+                   visibility-change refetch in PWA) which made rows
+                   parpadear/blink mid-scroll. Removed; the wrapper still
+                   has its own fade-in on initial mount, so the page-load
+                   feel is unchanged. */
+                className={`group grid grid-cols-[2.5rem_1fr] sm:grid-cols-[2.5rem_minmax(11rem,1fr)_6.5rem_6.5rem_4rem_5rem_4rem_5rem] gap-2 items-center px-4 sm:px-5 py-3 rounded-lg transition-transform duration-200 border-b-[4px] relative overflow-hidden shadow-md ${
                   isMe
                     ? 'bg-[#FFC91B]/20 border-[#FFC91B]/80 hover:-translate-y-1 hover:shadow-[0_12px_20px_-8px_rgba(255,201,27,0.5)]'
                     : 'bg-[#121A2F] border-[#090E17] hover:bg-[#1A2542] hover:-translate-y-1 hover:shadow-[0_12px_20px_-8px_rgba(0,0,0,0.8)] hover:border-[#1C5CF1]'
                 } ${isMe ? 'cursor-default' : 'cursor-pointer'} text-slate-200`}
-                style={{ animationDelay: `${i * 20}ms` }}
                 onClick={isMe ? (e) => e.preventDefault() : undefined}
               >
                 {/* Me Overlay */}

@@ -5,6 +5,7 @@ import { calculateValue } from '@/lib/calculate'
 import { createClient } from '@/lib/supabase/server'
 import { trackAnonymousVisit } from '@/lib/anonymous-visits'
 import { enforceRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { classifyUserAgent } from '@/lib/device-class'
 
 // Locale whitelist for anonymous-visit tracking.
 // ⚠️ MUST stay in sync with `src/i18n/routing.ts` (`routing.locales`).
@@ -80,9 +81,21 @@ export async function POST(req: Request) {
 
         if (!user) {
           const trackingLocale: string = body.locale  // narrowed to string by the typeof guard
+          // Pull country + UA from the request BEFORE entering after()
+          // — the request context (and its headers) may be torn down
+          // by the time after() runs. Both are best-effort: country
+          // comes from `x-vercel-ip-country` (always present in Vercel
+          // prod, may be absent in dev), device from User-Agent.
+          const country = req.headers.get('x-vercel-ip-country')
+          const device = classifyUserAgent(req.headers.get('user-agent'))
           after(async () => {
             try {
-              await trackAnonymousVisit({ tag: playerTag, locale: trackingLocale })
+              await trackAnonymousVisit({
+                tag: playerTag,
+                locale: trackingLocale,
+                country,
+                device,
+              })
             } catch (err) {
               console.error('[calculate] tracking failed', err)
             }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 
 interface BrawlImgProps {
   src: string
@@ -9,6 +9,16 @@ interface BrawlImgProps {
   fallbackSrc?: string
   className?: string
   style?: React.CSSProperties
+  /**
+   * Intrinsic dimensions for the underlying <img>. Defaults to a
+   * generic 100×100 — the actual on-screen size is usually overridden
+   * by `className` (e.g. `w-12 h-12`). The point of these props is to
+   * give the browser a stable aspect-ratio box BEFORE the lazy image
+   * resolves, which prevents the "elements blink in and out on scroll"
+   * symptom caused by reflow on every image load. (2026-05-05.)
+   */
+  width?: number
+  height?: number
 }
 
 /**
@@ -16,8 +26,23 @@ interface BrawlImgProps {
  * 1. Try local src
  * 2. Try fallbackSrc (e.g. Brawlify CDN)
  * 3. Show initials placeholder
+ *
+ * Memoized — parent grids (104 brawler cards, 30 club rows, etc.) re-render
+ * frequently as their owning page filters/sorts. Without `memo`, every
+ * BrawlImg unmounts/remounts and resets its internal `useFallback`/`failed`
+ * state mid-load, producing a visible flash. The memo gate is shallow:
+ * it relies on stable string `src`/`fallbackSrc` props, which the callers
+ * already provide via pure URL builders.
  */
-export function BrawlImg({ src, alt, fallbackText, fallbackSrc, className = '' }: BrawlImgProps) {
+function BrawlImgImpl({
+  src,
+  alt,
+  fallbackText,
+  fallbackSrc,
+  className = '',
+  width = 100,
+  height = 100,
+}: BrawlImgProps) {
   const [useFallback, setUseFallback] = useState(false)
   const [failed, setFailed] = useState(false)
   const [prevSrc, setPrevSrc] = useState(src)
@@ -61,6 +86,10 @@ export function BrawlImg({ src, alt, fallbackText, fallbackSrc, className = '' }
       className={className}
       loading="lazy"
       onError={handleError}
+      width={width}
+      height={height}
     />
   )
 }
+
+export const BrawlImg = memo(BrawlImgImpl)

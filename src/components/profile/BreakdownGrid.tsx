@@ -39,11 +39,16 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
   ]
 
   return (
-    <div className="space-y-8 mt-8">
+    /* PERF 2026-05-05 — moved `animate-fade-in` to the wrapper instead of
+       per-card with staggered `animationDelay`. The previous per-item stagger
+       reset on every parent re-render (sort/filter/visibility refetch in PWA)
+       which made cards blink mid-scroll. Single fade-in on mount is equally
+       polished and stable. */
+    <div className="space-y-8 mt-8 animate-fade-in">
       {/* Gem breakdown grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {gemItems.map((item, idx) => (
-          <div key={item.key} className="brawl-card p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt animate-fade-in" style={{ animationDelay: `${idx * 60}ms` }}>
+          <div key={item.key} className="brawl-card p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt">
             {item.iconName ? (
               <BrawlIcon name={item.iconName} className="w-10 h-10 mb-2" />
             ) : (
@@ -61,8 +66,7 @@ export function BreakdownGrid({ breakdown, stats }: BreakdownGridProps) {
         {/* Cosmetics card — links to /cosmetics */}
         <Link
           href={cosmeticsHref}
-          className="brawl-card p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt animate-fade-in cursor-pointer hover:ring-4 hover:ring-[var(--color-brawl-gold)] transition-all"
-          style={{ animationDelay: `${gemItems.length * 60}ms` }}
+          className="brawl-card p-4 flex flex-col items-center text-center relative overflow-hidden group brawl-tilt cursor-pointer hover:ring-4 hover:ring-[var(--color-brawl-gold)] transition-all"
         >
           <span className="text-3xl mb-2 filter drop-shadow-md">🎨</span>
           <p className="text-[10px] text-slate-500 font-black uppercase mb-1">{t('cosmetics')}</p>

@@ -1,6 +1,7 @@
 import { NextResponse, after } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { notify } from '@/lib/telegram/notify'
+import { envHeader } from '@/lib/telegram/env-label'
 import { log, requestIdFrom } from '@/lib/log'
 
 /**
@@ -54,10 +55,23 @@ export async function POST(request: Request) {
     const playerTag = profile.player_tag
     const userId = user.id
     const email = user.email || 'unknown'
+    // Build the public profile URL so the on-call admin can jump
+    // directly to the user's profile from the alert. We don't have
+    // the request locale here (signup notify is fired post-redirect),
+    // so we hard-code 'es' which is the site default and the URL
+    // pattern that yields a stable canonical.
+    const profileUrl = `https://brawlvision.com/es/profile/${encodeURIComponent(playerTag)}`
+    const createdAt = new Date().toISOString()
 
     after(async () => {
       try {
-        await notify(`🎮 <b>New signup!</b>\nTag: ${playerTag}\nEmail: ${email}`)
+        await notify(
+          `${envHeader()}🎮 <b>New signup!</b>\n` +
+          `Tag: <code>${playerTag}</code>\n` +
+          `Email: ${email}\n` +
+          `At: ${createdAt}\n` +
+          `🔗 ${profileUrl}`
+        )
         // Persist the idempotency timestamp ONLY after successful delivery.
         // If Telegram is down we leave the column NULL so the next call
         // can retry — better one duplicate than a permanently missed

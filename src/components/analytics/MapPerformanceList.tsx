@@ -34,9 +34,19 @@ export function MapPerformanceList({ data }: Props) {
               key={`${m.map}-${m.mode}`}
               className="group relative h-28 overflow-hidden rounded-xl border border-white/10 hover:border-[#FFC91B]/50 hover:shadow-[0_0_15px_rgba(255,201,27,0.2)] transition-all duration-300 transform hover:-translate-y-1 bg-[#0A0E1A]"
             >
-              {/* Map background */}
+              {/* Map background — width/height reserve layout space so
+                  the lazy load doesn't trigger reflow that makes cards
+                  blink during scroll. The cover/object-fit handles the
+                  actual rendered aspect ratio. */}
               {mapImageUrl && (
-                <img src={mapImageUrl} alt={m.map} className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                <img
+                  src={mapImageUrl}
+                  alt={m.map}
+                  className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700"
+                  loading="lazy"
+                  width={280}
+                  height={112}
+                />
               )}
               {/* Holographic overlay for top 3 maps */}
               {isTop3 && (

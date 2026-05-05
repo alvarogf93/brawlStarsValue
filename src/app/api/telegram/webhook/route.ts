@@ -91,12 +91,22 @@ export async function POST(request: Request) {
         err: commandErr,
       })
       try {
+        const errName = commandErr instanceof Error ? commandErr.constructor.name : 'unknown'
+        const errMsg = commandErr instanceof Error ? commandErr.message : 'unknown'
+        // Truncate long command text so a misbehaving / overly chatty
+        // command can't push the whole alert past Telegram's 4096-char
+        // limit (the actually-useful part is the first line anyway).
+        const cmdText = message.text.length > 200
+          ? `${message.text.slice(0, 200)}…`
+          : message.text
         await sendTelegramMessage(
           chatId,
           [
             '💥 Error ejecutando el comando.',
             '',
-            `<code>${escapeHtml(commandErr instanceof Error ? commandErr.message : 'unknown')}</code>`,
+            `Comando: <code>${escapeHtml(cmdText)}</code>`,
+            `Tipo: <code>${escapeHtml(errName)}</code>`,
+            `Mensaje: <code>${escapeHtml(errMsg)}</code>`,
             '',
             'Revisa los logs de Vercel para el stack completo.',
           ].join('\n'),

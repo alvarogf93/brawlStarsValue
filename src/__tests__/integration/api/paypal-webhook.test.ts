@@ -37,9 +37,26 @@ vi.mock('@/lib/paypal', async (importOriginal) => {
 })
 
 // ── Mock Telegram (fire-and-forget, should never interfere) ────
-vi.mock('@/lib/telegram', () => ({
-  notify: vi.fn(),
-}))
+// Both modules are imported with explicit `/notify` and `/env-label`
+// suffixes by the route, so each path needs its own mock.
+vi.mock('@/lib/telegram/notify', () => ({ notify: vi.fn() }))
+vi.mock('@/lib/telegram/env-label', () => ({ envHeader: () => '' }))
+
+// ── Mock next/server.after() ───────────────────────────────────
+// 2026-05-05 — the PayPal route now calls `after()` to push the
+// Telegram notify off the response path. In the integration test
+// there's no request scope, so the real `after()` throws. Run the
+// callback inline so existing assertions about Supabase writes
+// still see the side-effects in the same tick.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return {
+    ...actual,
+    after: (cb: () => Promise<void> | void) => {
+      void Promise.resolve().then(() => cb())
+    },
+  }
+})
 
 import { POST } from '@/app/api/webhooks/paypal/route'
 
